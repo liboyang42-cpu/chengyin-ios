@@ -49,7 +49,7 @@ import XCTest
     }
     private func select(_ m: ProjectStoryImageAuthorModel) async throws {
         m.load(); await m.choose(); let crop = try XCTUnwrap(m.crop.draft)
-        m.confirmCrop(crop.id, try .init(sourceWidth: crop.source.width, sourceHeight: crop.source.height, horizontal: 0.5, vertical: 0.5, zoom: 1))
+        m.confirmCrop(crop.id, try .init(sourceWidth: crop.sources[0].width, sourceHeight: crop.sources[0].height, horizontal: 0.5, vertical: 0.5, zoom: 1))
         XCTAssertNotNil(m.flow.review)
     }
     private func upload(_ m: ProjectStoryImageAuthorModel) async throws {

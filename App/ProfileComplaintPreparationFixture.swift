@@ -10,7 +10,9 @@ import SwiftUI
         self.scenario = scenario
         if scenario == "guest" { session = nil }
     }
+    var progressCalls = 0
     func read(_ resource: CoopFlowRead) async throws -> CoopFlowJSON {
+        if resource == .complaintProgress { return try progress() }
         guard resource == .complaintTopics else { throw APIError.notConfigured }
         calls += 1
         if scenario == "failure" && calls == 1 { throw APIError.httpStatus(503) }
@@ -22,6 +24,19 @@ import SwiftUI
         return .array([
             .object(["topicId": .id(71), "topicName": .string("Synthetic city topic"), "registrationId": .id(987)]),
             .object(["topicId": .id(72), "topicName": .string("Synthetic second topic")])
+        ])
+    }
+    /// Separate counter: progress reads never shift the selector failure scenarios above.
+    private func progress() throws -> CoopFlowJSON {
+        progressCalls += 1
+        if scenario == "progressDenied" { throw CoopFlowFailure.server(403, nil) }
+        if scenario == "unauthorized" { throw APIError.unauthorized }
+        if scenario == "empty" { return .array([]) }
+        return .array([
+            .object(["id": .id(5), "topicId": .id(71), "topicName": .string("Synthetic city topic"), "status": .id(2),
+                     "statusText": .string("处理中"), "reason": .string("Synthetic reason"), "handleNote": .string("Synthetic note")]),
+            .object(["id": .id(6), "topicId": .id(72), "topicName": .string("Synthetic second topic"), "status": .id(0),
+                     "statusText": .string("已受理"), "reason": .string("Synthetic second reason")])
         ])
     }
     func settlement(source: CoopFlowSettlement.Source, id: Int) async throws -> CoopFlowSettlement { throw APIError.notConfigured }

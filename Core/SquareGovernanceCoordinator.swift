@@ -14,6 +14,7 @@ import Foundation
     private let journal: SquareGovernanceJournal
     public init(service: SquareGovernanceService, journal: SquareGovernanceJournal? = nil) { self.service = service; self.journal = journal ?? .persistent() }
     public func check(_ identity: SquareGovernanceIdentity, access: any SquareGovernanceAccess) throws {
+        try Task.checkCancellation()
         guard identity.valid, identity == access.identity, let token = access.token, AuthRequestBuilder.isValidToken(token) else { throw SquareGovernanceFailure.signedOut }
     }
     public func load(access: any SquareGovernanceAccess, enforcementPages: Int = 1, notificationPages: Int = 1) async throws -> SquareGovernanceSnapshot {
@@ -83,6 +84,7 @@ import Foundation
         guard fresh == review.snapshot else { throw SquareGovernanceFailure.staleReview }
         try Self.validate(review.action, snapshot: fresh)
         guard let token = access.token else { throw SquareGovernanceFailure.signedOut }
+        try check(fresh.identity, access: access)
         // Consume before dispatch. Unknown results cannot be repeated with a new request ID.
         guard journal.claim(Self.lockKey(review.action, snapshot: fresh), identity: fresh.identity) else { throw SquareGovernanceFailure.outcomeLocked }
         consumed.insert(review.id)

@@ -69,6 +69,8 @@ public struct SquarePost: Decodable, Equatable, Identifiable {
     public let memberID: Int
     public let contents: String?
     public let images: [String]
+    /// Registered VIDEO media rows (U01 read path); empty for legacy image-only posts.
+    public let videos: [SquarePostVideo]
     public let address: String?
     public let cityCode: String?
     public let likeCount: Int
@@ -116,6 +118,7 @@ public struct SquarePost: Decodable, Equatable, Identifiable {
         let mediaImages = media.filter { ($0.first("media_type", "mediaType").string ?? "IMAGE") == "IMAGE" }
             .compactMap { $0.first("derived_object_key", "derivedObjectKey").nonempty }
         images = mediaImages.isEmpty ? post["pics"].pictures : mediaImages
+        videos = SquarePostVideo.rows(media)
         address = post.first("poiName", "address").string
         cityCode = post.first("cityCode", "city_code").string
         likeCount = post.first("likeCount", "likeNum").number ?? 0

@@ -279,3 +279,119 @@ private actor OwnedCouponCompositionHTTP: HTTPTransport {
         XCTAssertNil(view.begin(model: model)); XCTAssertFalse(close(view)); XCTAssertNil(model.presentation)
     }
 }
+
+@MainActor private final class CouponReturnReader: AccountCollectionReading {
+    var scope = UUID(), isConfigured = true, isAuthenticated = true
+    let isOfflineExample = true
+    var calls = 0
+    var fails = false
+    var empty = false
+    func favoriteTopics(pageNumber: Int, pageSize: Int) async throws -> TopicPage { throw APIError.notConfigured }
+    func favoritePosts(pageNumber: Int, pageSize: Int) async throws -> AccountCollectionPostPage { throw APIError.notConfigured }
+    func ownedCoupon(id: Int) async throws -> AccountCollectionCoupon { throw APIError.notConfigured }
+    func ownedCoupons(keyword: String?) async throws -> [AccountCollectionCoupon] {
+        calls += 1
+        if fails { throw APIError.malformedResponse }
+        return empty ? [] : [try JSONDecoder().decode(AccountCollectionCoupon.self,
+            from: Data(#"{"id":71,"useStatus":0,"couponName":"Return fixture"}"#.utf8))]
+    }
+}
+
+extension OwnedCouponCompositionTests {
+    func testCouponListReturnKeepsSameReaderRowsAndExplicitRefreshStillReads() async {
+        let reader = CouponReturnReader(), screen = OwnedCouponReadScreenModel()
+        let request = OwnedCouponReadRequest.list(ownerScope: reader.scope, keyword: "weekend")
+        let initial = screen.beginPresentation(for: request, foreground: true)
+        await screen.refresh(request: request, reader: reader, presentation: initial)
+        screen.endPresentation(presentation: initial)
+        let returned = screen.beginPresentation(for: request, foreground: true)
+        screen.scheduleListIfNeeded(request: request, reader: reader, presentation: returned)
+        for _ in 0..<10 { await Task.yield() }
+        XCTAssertEqual(reader.calls, 1); XCTAssertEqual(screen.rows(for: request)?.first?.id, 71)
+        await screen.refresh(request: request, reader: reader, presentation: returned)
+        XCTAssertEqual(reader.calls, 2)
+    }
+    func testCouponListReturnKeepsAcceptedEmptyResult() async {
+        let reader = CouponReturnReader(), screen = OwnedCouponReadScreenModel(); reader.empty = true
+        let request = OwnedCouponReadRequest.list(ownerScope: reader.scope, keyword: nil)
+        let initial = screen.beginPresentation(for: request, foreground: true)
+        await screen.refresh(request: request, reader: reader, presentation: initial)
+        screen.endPresentation(presentation: initial)
+        let returned = screen.beginPresentation(for: request, foreground: true)
+        screen.scheduleListIfNeeded(request: request, reader: reader, presentation: returned)
+        for _ in 0..<10 { await Task.yield() }
+        XCTAssertEqual(reader.calls, 1); XCTAssertEqual(screen.rows(for: request), [])
+    }
+    func testCouponListReplacementReaderWithSameScopeCannotReusePriorRows() async {
+        let reader = CouponReturnReader(), replacement = CouponReturnReader(), screen = OwnedCouponReadScreenModel()
+        replacement.scope = reader.scope
+        let request = OwnedCouponReadRequest.list(ownerScope: reader.scope, keyword: nil)
+        let initial = screen.beginPresentation(for: request, foreground: true)
+        await screen.refresh(request: request, reader: reader, presentation: initial)
+        screen.endPresentation(presentation: initial)
+        let returned = screen.beginPresentation(for: request, foreground: true)
+        screen.scheduleListIfNeeded(request: request, reader: replacement, presentation: returned)
+        XCTAssertNil(screen.rows(for: request))
+        for _ in 0..<10 { await Task.yield() }
+        XCTAssertEqual(replacement.calls, 1)
+    }
+    func testCouponListChangedQueryAndFailureAreRereadOnReturn() async {
+        let reader = CouponReturnReader(), screen = OwnedCouponReadScreenModel()
+        let old = OwnedCouponReadRequest.list(ownerScope: reader.scope, keyword: "old")
+        let new = OwnedCouponReadRequest.list(ownerScope: reader.scope, keyword: "new")
+        let initial = screen.beginPresentation(for: old, foreground: true)
+        await screen.refresh(request: old, reader: reader, presentation: initial)
+        reader.fails = true
+        let changed = screen.beginPresentation(for: new, foreground: true)
+        await screen.refresh(request: new, reader: reader, presentation: changed)
+        XCTAssertNotNil(screen.issue(for: new)); reader.fails = false
+        screen.endPresentation(presentation: changed)
+        let returned = screen.beginPresentation(for: new, foreground: true)
+        screen.scheduleListIfNeeded(request: new, reader: reader, presentation: returned)
+        for _ in 0..<10 { await Task.yield() }
+        XCTAssertEqual(reader.calls, 3); XCTAssertNotNil(screen.rows(for: new)); XCTAssertNil(screen.rows(for: old))
+    }
+    func testCouponListOldReturnPermitCannotInterfereWithCurrentRead() async {
+        let reader = CouponReturnReader(), screen = OwnedCouponReadScreenModel()
+        let request = OwnedCouponReadRequest.list(ownerScope: reader.scope, keyword: nil)
+        let old = screen.beginPresentation(for: request, foreground: true)
+        let current = screen.beginPresentation(for: request, foreground: true)
+        screen.scheduleListIfNeeded(request: request, reader: reader, presentation: old)
+        for _ in 0..<10 { await Task.yield() }
+        XCTAssertEqual(reader.calls, 0); XCTAssertTrue(screen.presentation === current)
+        reader.isAuthenticated = false
+        screen.scheduleListIfNeeded(request: request, reader: reader, presentation: current)
+        for _ in 0..<10 { await Task.yield() }
+        XCTAssertEqual(reader.calls, 0); XCTAssertEqual(screen.issue(for: request), .login)
+    }
+}
+
+extension OwnedCouponCompositionTests {
+    func testCouponForegroundRefreshDoesNotReuseAcceptedList() async {
+        let reader = CouponReturnReader(), screen = OwnedCouponReadScreenModel()
+        let request = OwnedCouponReadRequest.list(ownerScope: reader.scope, keyword: nil)
+        let permit = screen.beginPresentation(for: request, foreground: true)
+        await screen.refresh(request: request, reader: reader, presentation: permit)
+        screen.setForeground(false, request: request, reader: reader, presentation: permit)
+        screen.setForeground(true, request: request, reader: reader, presentation: permit)
+        XCTAssertNil(screen.rows(for: request))
+        for _ in 0..<10 { await Task.yield() }
+        XCTAssertEqual(reader.calls, 2)
+    }
+}
+
+extension OwnedCouponCompositionTests {
+    func testCouponChangedQueryReturnCannotReuseAcceptedOldQuery() async {
+        let reader = CouponReturnReader(), screen = OwnedCouponReadScreenModel()
+        let old = OwnedCouponReadRequest.list(ownerScope: reader.scope, keyword: "old")
+        let new = OwnedCouponReadRequest.list(ownerScope: reader.scope, keyword: "new")
+        let initial = screen.beginPresentation(for: old, foreground: true)
+        await screen.refresh(request: old, reader: reader, presentation: initial)
+        screen.endPresentation(presentation: initial)
+        let returned = screen.beginPresentation(for: new, foreground: true)
+        screen.scheduleListIfNeeded(request: new, reader: reader, presentation: returned)
+        XCTAssertNil(screen.rows(for: old)); XCTAssertNil(screen.rows(for: new))
+        for _ in 0..<10 { await Task.yield() }
+        XCTAssertEqual(reader.calls, 2); XCTAssertNotNil(screen.rows(for: new))
+    }
+}

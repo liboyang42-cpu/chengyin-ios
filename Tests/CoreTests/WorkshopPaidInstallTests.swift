@@ -24,6 +24,7 @@ import XCTest
     @MainActor private final class Wire:HTTPTransport,WorkshopPaidInstallMutationTransport {
         let context:RuntimeDependencyContext
         var requests:[URLRequest]=[],writes=0,delayNext=false,commitThenThrow=false
+        var scripted:[String:[(Data,Int)]]=[:]
         var committed:WorkshopPaidInstallCommand?
         var suspended:CheckedContinuation<(Data,Int),Never>?
         init(_ context:RuntimeDependencyContext){self.context=context}
@@ -32,7 +33,11 @@ import XCTest
         func send(_ request:URLRequest)async throws->(Data,Int){
             requests.append(request)
             if delayNext{delayNext=false;return await withCheckedContinuation{suspended=$0}}
-            switch request.url!.lastPathComponent{
+            let route=request.url!.lastPathComponent
+            if var responses=scripted[route], !responses.isEmpty {
+                let response=responses.removeFirst();scripted[route]=responses;return response
+            }
+            switch route{
             case "targets":return(try WorkshopPaidInstallTests.envelope(["schema":"w18-paid-install-targets-v1","scope":"OWNER_DRAFT_METADATA_ONLY","licenseId":"w18-paid-11","checkedAt":"2026-10-05T00:00:00Z","items":[WorkshopPaidInstallTests.target],"hasMore":false,"nextBeforeDraftId":NSNull()]),200)
             case "history":return(try WorkshopPaidInstallTests.envelope(["schema":"w18-paid-install-history-v1","scope":"OWNER_COMMAND_RECEIPTS_ONLY","licenseId":"w18-paid-11","checkedAt":"2026-10-05T00:00:00Z","items":committed.map{[try! WorkshopPaidInstallTests.outcome($0)]} ?? [],"hasMore":false,"nextBeforeCommandKey":NSNull()]),200)
             case "status":let body=try JSONSerialization.jsonObject(with:request.httpBody!) as! [String:Any];if let committed{return(try WorkshopPaidInstallTests.envelope(WorkshopPaidInstallTests.outcome(committed)),200)};return(try WorkshopPaidInstallTests.envelope(["schema":"w18-paid-install-outcome-v1","requestId":body["requestId"]!,"state":"NOT_FOUND"]),200)
@@ -161,4 +166,504 @@ import XCTest
         XCTAssertEqual(WorkshopPaidInstallRequest.accepts(request,baseURL:f.context.baseURL),.targets)
         request.httpBody=Data("{\"licenseId\":\"w18-paid-11\",\"owner\":7}".utf8);request.setValue(String(request.httpBody!.count),forHTTPHeaderField:"Content-Length");XCTAssertNil(WorkshopPaidInstallRequest.accepts(request,baseURL:f.context.baseURL))
     }
+    private static let historyCursor = String(repeating: "a", count: 64)
+    private static func receipt(_ index: Int) throws -> [String: Any] {
+        let requestID = UUID(uuidString: String(format: "00000000-0000-4000-8000-%012d", index))!
+        let command = try WorkshopPaidInstallCommand(item: item(), target: decodedTarget(), region: "synthetic-region", commercialUse: false, requestID: requestID)
+        return try outcome(command)
+    }
+    private static func historyPage(_ ids: [Int], cursor: String? = nil) throws -> (Data, Int) {
+        (try envelope(["schema":"w18-paid-install-history-v1", "scope":"OWNER_COMMAND_RECEIPTS_ONLY",
+                      "licenseId":"w18-paid-11", "checkedAt":"2026-10-05T00:00:00Z",
+                      "items":try ids.map { try receipt($0) }, "hasMore":cursor != nil,
+                      "nextBeforeCommandKey":cursor as Any? ?? NSNull()]), 200)
+    }
+    private static func targetPage(_ ids: [Int], cursor: Int? = nil) throws -> (Data, Int) {
+        let rows = ids.map { id -> [String: Any] in var row = target; row["targetDraftId"] = id; return row }
+        return (try envelope(["schema":"w18-paid-install-targets-v1", "scope":"OWNER_DRAFT_METADATA_ONLY",
+                              "licenseId":"w18-paid-11", "checkedAt":"2026-10-05T00:00:00Z",
+                              "items":rows, "hasMore":cursor != nil,
+                              "nextBeforeDraftId":cursor as Any? ?? NSNull()]), 200)
+    }
+    func testHistoryContinuationKeepsPriorResultsAndNeverReloadsTargets() async throws {
+        let f = try Fixture(), a = WorkshopPaidInstallAppearance()
+        f.wire.scripted["history"] = [try Self.historyPage(Array(1...50), cursor: Self.historyCursor), try Self.historyPage([50, 51])]
+        try await f.load(a)
+        let earlier = try XCTUnwrap(f.controller.history.first), targets = f.controller.targets
+        let start = f.wire.requests.count
+        let action = try XCTUnwrap(f.controller.offerLoad(a, beforeHistory: Self.historyCursor))
+        XCTAssertTrue(f.controller.loadingPage); XCTAssertEqual(f.controller.history.count, 50)
+        await action()
+        XCTAssertEqual(f.wire.requests.count, start + 1)
+        XCTAssertEqual(f.wire.requests.last?.url?.lastPathComponent, "history")
+        XCTAssertEqual(f.controller.history.count, 51); XCTAssertEqual(f.controller.targets, targets)
+        XCTAssertNil(f.controller.nextHistoryCursor); XCTAssertFalse(f.controller.loadingPage)
+        XCTAssertNotNil(f.controller.installedTextReference(earlier, appearance: a))
+        XCTAssertEqual(f.wire.writes, 0)
+    }
+    func testTargetContinuationKeepsHistoryAndChosenTarget() async throws {
+        let f = try Fixture(), a = WorkshopPaidInstallAppearance()
+        f.wire.scripted["history"] = [try Self.historyPage([1])]
+        f.wire.scripted["targets"] = [try Self.targetPage(Array((51...100).reversed()), cursor: 51), try Self.targetPage([50, 49])]
+        try await f.load(a)
+        let first = try XCTUnwrap(f.controller.targets.first), receipts = f.controller.history
+        f.controller.select(first, appearance: a); f.controller.chooseRegion("synthetic-region", appearance: a)
+        let start = f.wire.requests.count
+        await (try XCTUnwrap(f.controller.offerLoad(a, beforeTarget: 51)))()
+        XCTAssertEqual(f.wire.requests.count, start + 1); XCTAssertEqual(f.controller.targets.count, 52)
+        XCTAssertEqual(f.controller.history, receipts); XCTAssertEqual(f.controller.target, first)
+        XCTAssertEqual(f.controller.region, "synthetic-region"); XCTAssertNil(f.controller.nextTargetCursor)
+        XCTAssertEqual(f.wire.writes, 0)
+    }
+    func testFailedContinuationPreservesResultsAndRetriesSameCursor() async throws {
+        let f = try Fixture(), a = WorkshopPaidInstallAppearance()
+        f.wire.scripted["history"] = [try Self.historyPage(Array(1...50), cursor: Self.historyCursor), (Data(), 500), try Self.historyPage([51])]
+        try await f.load(a); let before = f.controller.history
+        await (try XCTUnwrap(f.controller.offerLoad(a, beforeHistory: Self.historyCursor)))()
+        XCTAssertEqual(f.controller.history, before); XCTAssertEqual(f.controller.nextHistoryCursor, Self.historyCursor)
+        XCTAssertNotNil(f.controller.pageIssue); XCTAssertEqual(f.controller.phase, .ready)
+        XCTAssertNotNil(f.controller.installedTextReference(before[0], appearance: a))
+        await (try XCTUnwrap(f.controller.offerLoad(a, beforeHistory: Self.historyCursor)))()
+        XCTAssertEqual(f.controller.history.count, 51); XCTAssertNil(f.controller.pageIssue)
+        let reads = f.wire.requests.filter { $0.url?.lastPathComponent == "history" }
+        XCTAssertEqual(reads[1].httpBody, reads[2].httpBody); XCTAssertEqual(f.wire.writes, 0)
+    }
+    func testRepeatedCursorCannotReplaceEarlierResults() async throws {
+        let f = try Fixture(), a = WorkshopPaidInstallAppearance()
+        f.wire.scripted["history"] = [try Self.historyPage(Array(1...50), cursor: Self.historyCursor), try Self.historyPage(Array(51...100), cursor: Self.historyCursor)]
+        try await f.load(a); let before = f.controller.history
+        await (try XCTUnwrap(f.controller.offerLoad(a, beforeHistory: Self.historyCursor)))()
+        XCTAssertEqual(f.controller.history, before); XCTAssertEqual(f.controller.pageIssue, .malformed)
+        XCTAssertEqual(f.controller.nextHistoryCursor, Self.historyCursor)
+        XCTAssertNil(f.controller.offerLoad(a, beforeTarget: 99, beforeHistory: Self.historyCursor))
+        XCTAssertNil(f.controller.offerLoad(a, beforeHistory: String(repeating:"b", count:64)))
+    }
+    func testLatePageCannotClearReplacementBusyOrPublishOldResults() async throws {
+        let f = try Fixture(), old = WorkshopPaidInstallAppearance()
+        f.wire.scripted["history"] = [try Self.historyPage(Array(1...50), cursor: Self.historyCursor)]
+        try await f.load(old); f.wire.delayNext = true
+        let task = Task { await (try! XCTUnwrap(f.controller.offerLoad(old, beforeHistory: Self.historyCursor)))() }
+        await f.wire.wait(); f.controller.close(old)
+        let fresh = WorkshopPaidInstallAppearance(), queued = try XCTUnwrap(f.controller.appear(fresh))
+        f.wire.resume(try Self.historyPage([51])); await task.value
+        XCTAssertEqual(f.controller.phase, .loading); XCTAssertTrue(f.controller.history.isEmpty)
+        await queued(); XCTAssertEqual(f.controller.phase, .ready); XCTAssertEqual(f.wire.writes, 0)
+    }
+    func testUnauthorizedContinuationClearsProtectedReceipts() async throws {
+        let f = try Fixture(), a = WorkshopPaidInstallAppearance()
+        f.wire.scripted["history"] = [try Self.historyPage(Array(1...50), cursor: Self.historyCursor), (Data(), 401)]
+        try await f.load(a); let old = try XCTUnwrap(f.controller.history.first)
+        await (try XCTUnwrap(f.controller.offerLoad(a, beforeHistory: Self.historyCursor)))()
+        XCTAssertEqual(f.controller.phase, .invalidated); XCTAssertTrue(f.controller.history.isEmpty)
+        XCTAssertNil(f.controller.installedTextReference(old, appearance: a)); XCTAssertEqual(f.wire.writes, 0)
+    }
+
+    func testPendingStatusCannotReplaceOwnedPaginationAndRemainsAvailableAfterPage() async throws {
+        let f = try Fixture(), a = WorkshopPaidInstallAppearance()
+        try f.store.save(Self.command())
+        f.wire.scripted["history"] = [try Self.historyPage(Array(1...50), cursor: Self.historyCursor), try Self.historyPage([51])]
+        try await f.load(a)
+        let page = try XCTUnwrap(f.controller.offerLoad(a, beforeHistory: Self.historyCursor))
+        XCTAssertNil(f.controller.offerStatus(a)); XCTAssertTrue(f.controller.loadingPage)
+        await page(); XCTAssertFalse(f.controller.loadingPage)
+        let status = try XCTUnwrap(f.controller.offerStatus(a))
+        XCTAssertEqual(f.controller.phase, .loading)
+        await status(); XCTAssertEqual(f.controller.phase, .ready); XCTAssertFalse(f.controller.loadingPage)
+        XCTAssertEqual(f.wire.writes, 0)
+    }
+    func testInitialTargetFailureCanBeExplicitlyReloadedWithoutInstallation() async throws {
+        let f = try Fixture(), a = WorkshopPaidInstallAppearance()
+        f.wire.scripted["history"] = [try Self.historyPage([1]), try Self.historyPage([1])]
+        f.wire.scripted["targets"] = [(Data(), 500), try Self.targetPage([91])]
+        try await f.load(a)
+        XCTAssertEqual(f.controller.phase, .ready); XCTAssertNotNil(f.controller.targetIssue)
+        XCTAssertEqual(f.controller.history.count, 1)
+        await (try XCTUnwrap(f.controller.offerLoad(a)))()
+        XCTAssertNil(f.controller.targetIssue); XCTAssertEqual(f.controller.targets.count, 1)
+        XCTAssertEqual(f.wire.writes, 0)
+    }
+    func testCursorCycleRejectsSecondContinuationWithoutErasingEarlierPages() async throws {
+        let f = try Fixture(), a = WorkshopPaidInstallAppearance(), second = String(repeating: "9", count: 64)
+        f.wire.scripted["history"] = [try Self.historyPage(Array(1...50), cursor: Self.historyCursor),
+                                    try Self.historyPage(Array(51...100), cursor: second),
+                                    try Self.historyPage(Array(101...150), cursor: Self.historyCursor)]
+        try await f.load(a)
+        await (try XCTUnwrap(f.controller.offerLoad(a, beforeHistory: Self.historyCursor)))()
+        await (try XCTUnwrap(f.controller.offerLoad(a, beforeHistory: second)))()
+        XCTAssertEqual(f.controller.history.count, 100); XCTAssertEqual(f.controller.nextHistoryCursor, second)
+        XCTAssertEqual(f.controller.pageIssue, .malformed); XCTAssertFalse(f.controller.loadingPage)
+    }
+    func testInitialTargetUnauthorizedClearsAlreadyReadHistory() async throws {
+        let f = try Fixture(), a = WorkshopPaidInstallAppearance()
+        f.wire.scripted["history"] = [try Self.historyPage([1])]
+        f.wire.scripted["targets"] = [(Data(), 401)]
+        try await f.load(a)
+        XCTAssertEqual(f.controller.phase, .invalidated); XCTAssertTrue(f.controller.history.isEmpty)
+        XCTAssertTrue(f.controller.targets.isEmpty); XCTAssertEqual(f.wire.writes, 0)
+    }
+    func testRefreshUnauthorizedClearsPreviouslyReadResults() async throws {
+        let f = try Fixture(), a = WorkshopPaidInstallAppearance()
+        f.wire.scripted["history"] = [try Self.historyPage([1]), (Data(), 401)]
+        try await f.load(a); XCTAssertEqual(f.controller.history.count, 1)
+        await (try XCTUnwrap(f.controller.offerLoad(a)))()
+        XCTAssertEqual(f.controller.phase, .invalidated); XCTAssertTrue(f.controller.history.isEmpty)
+        XCTAssertTrue(f.controller.targets.isEmpty)
+    }
+
+    func testConflictingReceiptPageIsRejectedAtomically() async throws {
+        let f = try Fixture(), a = WorkshopPaidInstallAppearance()
+        var changed = try Self.receipt(1); changed["ownedDraftId"] = 102
+        let response = try Self.envelope(["schema":"w18-paid-install-history-v1", "scope":"OWNER_COMMAND_RECEIPTS_ONLY",
+                                         "licenseId":"w18-paid-11", "checkedAt":"2026-10-05T00:00:00Z",
+                                         "items":[try Self.receipt(51), changed], "hasMore":false, "nextBeforeCommandKey":NSNull()])
+        f.wire.scripted["history"] = [try Self.historyPage(Array(1...50), cursor: Self.historyCursor), (response, 200)]
+        try await f.load(a); let before = f.controller.history
+        await (try XCTUnwrap(f.controller.offerLoad(a, beforeHistory: Self.historyCursor)))()
+        XCTAssertEqual(f.controller.history, before); XCTAssertEqual(f.controller.pageIssue, .malformed)
+        XCTAssertEqual(f.controller.nextHistoryCursor, Self.historyCursor)
+    }
+    func testTargetPageFailureKeepsSelectionAndRetriesWithoutReloadingReceipts() async throws {
+        let f = try Fixture(), a = WorkshopPaidInstallAppearance()
+        f.wire.scripted["targets"] = [try Self.targetPage(Array((51...100).reversed()), cursor: 51), (Data(), 500), try Self.targetPage([50])]
+        try await f.load(a); let chosen = try XCTUnwrap(f.controller.targets.first)
+        f.controller.select(chosen, appearance: a)
+        await (try XCTUnwrap(f.controller.offerLoad(a, beforeTarget: 51)))()
+        XCTAssertEqual(f.controller.targets.count, 50); XCTAssertEqual(f.controller.target, chosen)
+        XCTAssertEqual(f.controller.nextTargetCursor, 51); XCTAssertNotNil(f.controller.pageIssue)
+        await (try XCTUnwrap(f.controller.offerLoad(a, beforeTarget: 51)))()
+        XCTAssertEqual(f.controller.targets.count, 51); XCTAssertNil(f.controller.pageIssue)
+        XCTAssertEqual(f.wire.requests.filter { $0.url?.lastPathComponent == "history" }.count, 1)
+        XCTAssertEqual(f.wire.writes, 0)
+    }
+
+    func testEmptyTerminalPagesRetainEarlierResultsAndEndPagination() async throws {
+        let f = try Fixture(), a = WorkshopPaidInstallAppearance()
+        f.wire.scripted["history"] = [try Self.historyPage(Array(1...50), cursor: Self.historyCursor), try Self.historyPage([])]
+        f.wire.scripted["targets"] = [try Self.targetPage(Array((51...100).reversed()), cursor: 51), try Self.targetPage([])]
+        try await f.load(a); let history = f.controller.history, targets = f.controller.targets
+        await (try XCTUnwrap(f.controller.offerLoad(a, beforeHistory: Self.historyCursor)))()
+        await (try XCTUnwrap(f.controller.offerLoad(a, beforeTarget: 51)))()
+        XCTAssertEqual(f.controller.history, history); XCTAssertEqual(f.controller.targets, targets)
+        XCTAssertNil(f.controller.nextHistoryCursor); XCTAssertNil(f.controller.nextTargetCursor)
+        XCTAssertNil(f.controller.pageIssue); XCTAssertEqual(f.controller.phase, .ready)
+    }
+    func testOnlyOneCollectionPageIsOfferedAtATime() async throws {
+        let f = try Fixture(), a = WorkshopPaidInstallAppearance()
+        f.wire.scripted["history"] = [try Self.historyPage(Array(1...50), cursor: Self.historyCursor), try Self.historyPage([51])]
+        f.wire.scripted["targets"] = [try Self.targetPage(Array((51...100).reversed()), cursor: 51), try Self.targetPage([50])]
+        try await f.load(a)
+        let history = try XCTUnwrap(f.controller.offerLoad(a, beforeHistory: Self.historyCursor))
+        XCTAssertNil(f.controller.offerLoad(a, beforeTarget: 51))
+        await history()
+        await (try XCTUnwrap(f.controller.offerLoad(a, beforeTarget: 51)))()
+        XCTAssertEqual(f.controller.history.count, 51); XCTAssertEqual(f.controller.targets.count, 51)
+        XCTAssertFalse(f.controller.loadingPage); XCTAssertEqual(f.wire.writes, 0)
+    }
+
+    func testRestartRecoversOriginalInstalledReceiptBeforeUnavailableHistoryAndTargets() async throws {
+        let prior = try Fixture(), command = try Self.command()
+        try prior.store.save(command)
+        let f = try Fixture(memory: prior.memory), appearance = WorkshopPaidInstallAppearance()
+        f.wire.committed = command
+        f.wire.scripted["history"] = [(Data(), 500)]
+        f.wire.scripted["targets"] = [(Data(), 500)]
+        try await f.load(appearance)
+        XCTAssertEqual(f.wire.requests.map { $0.url!.lastPathComponent }, ["status", "history", "targets"])
+        XCTAssertEqual(f.controller.phase, .installed)
+        XCTAssertEqual(f.controller.outcome?.command, command)
+        XCTAssertEqual(f.controller.outcome?.ownedDraftId, 101)
+        XCTAssertEqual(f.controller.issue, .unavailable)
+        XCTAssertEqual(f.controller.targetIssue, .unavailable)
+        XCTAssertNil(try f.store.load()); XCTAssertNil(f.controller.pending)
+        let original = try XCTUnwrap(f.controller.outcome)
+        let reference = try XCTUnwrap(f.controller.installedTextReference(original, appearance: appearance))
+        XCTAssertEqual(reference.command, command); XCTAssertEqual(reference.ownedDraftID, 101)
+        XCTAssertEqual(f.wire.writes, 0)
+    }
+
+    func testRestartNotFoundThenHistoryFailurePreservesOriginalBytesAndNeverWrites() async throws {
+        let f = try Fixture(), command = try Self.command(), appearance = WorkshopPaidInstallAppearance()
+        try f.store.save(command); let original = f.memory.values
+        f.wire.scripted["history"] = [(Data(), 500)]
+        try await f.load(appearance)
+        XCTAssertEqual(f.controller.phase, .ready)
+        XCTAssertEqual(f.controller.outcome?.state, .notFound)
+        XCTAssertEqual(f.controller.pending, command); XCTAssertEqual(f.memory.values, original)
+        XCTAssertNil(f.controller.installedTextReference(try XCTUnwrap(f.controller.outcome), appearance: appearance))
+        await (try XCTUnwrap(f.controller.offerStatus(appearance)))()
+        XCTAssertEqual(try f.store.load(), command); XCTAssertEqual(f.memory.values, original)
+        XCTAssertEqual(f.wire.writes, 0)
+        let ids = try f.wire.requests.filter { $0.url!.lastPathComponent == "status" }.map {
+            try XCTUnwrap((JSONSerialization.jsonObject(with: $0.httpBody!) as? [String: String])?["requestId"])
+        }
+        XCTAssertEqual(ids, [command.requestId, command.requestId])
+    }
+
+    func testRestartUnavailableOriginalStatusRetainsPendingAndExplicitRetryUsesSameUUID() async throws {
+        let f = try Fixture(), command = try Self.command(), appearance = WorkshopPaidInstallAppearance()
+        try f.store.save(command); let original = f.memory.values
+        f.wire.scripted["status"] = [(Data(), 500)]
+        try await f.load(appearance)
+        XCTAssertEqual(f.wire.requests.map { $0.url!.lastPathComponent }, ["status"])
+        XCTAssertEqual(f.controller.phase, .failed); XCTAssertEqual(f.memory.values, original)
+        XCTAssertEqual(f.controller.pending, command); XCTAssertEqual(f.wire.writes, 0)
+        f.wire.committed = command; f.wire.scripted["history"] = [(Data(), 500)]
+        await (try XCTUnwrap(f.controller.offerLoad(appearance)))()
+        XCTAssertEqual(f.controller.phase, .installed)
+        XCTAssertEqual(f.controller.outcome?.command, command); XCTAssertNil(try f.store.load())
+        XCTAssertEqual(f.wire.writes, 0)
+    }
+
+    func testRestartMismatchedOriginalStatusCannotAcknowledgeOrFallBackToUnrelatedHistory() async throws {
+        let f = try Fixture(), command = try Self.command(), appearance = WorkshopPaidInstallAppearance()
+        try f.store.save(command); let original = f.memory.values
+        var wrong = try Self.outcome(command); wrong["targetRevision"] = 2
+        f.wire.scripted["status"] = [(try Self.envelope(wrong), 200)]
+        try await f.load(appearance)
+        XCTAssertEqual(f.controller.phase, .failed); XCTAssertEqual(f.controller.issue, .malformed)
+        XCTAssertEqual(f.memory.values, original); XCTAssertEqual(f.controller.pending, command)
+        XCTAssertNil(f.controller.outcome)
+        XCTAssertEqual(f.wire.requests.map { $0.url!.lastPathComponent }, ["status"])
+        XCTAssertEqual(f.wire.writes, 0)
+    }
+
+    func testRestartHistoryRevocationStillInvalidatesAndPreservesUnknownRequest() async throws {
+        let f = try Fixture(), command = try Self.command(), appearance = WorkshopPaidInstallAppearance()
+        try f.store.save(command); let original = f.memory.values
+        f.wire.scripted["history"] = [(Data(), 401)]
+        try await f.load(appearance)
+        XCTAssertEqual(f.wire.requests.map { $0.url!.lastPathComponent }, ["status", "history"])
+        XCTAssertEqual(f.controller.phase, .invalidated); XCTAssertNil(f.controller.outcome)
+        XCTAssertTrue(f.controller.history.isEmpty); XCTAssertTrue(f.controller.targets.isEmpty)
+        XCTAssertEqual(f.memory.values, original); XCTAssertEqual(try f.store.load(), command)
+        XCTAssertEqual(f.unauthorized, 1); XCTAssertEqual(f.wire.writes, 0)
+    }
+
+    func testExplicitOriginalStatus401RetiresProtectedPresentationAndKeepsDurableIntent() async throws {
+        let f = try Fixture(), command = try Self.command(), appearance = WorkshopPaidInstallAppearance()
+        try f.store.save(command)
+        f.wire.scripted["history"] = [try Self.historyPage([1])]
+        try await f.load(appearance)
+        let visibleReceipt = try XCTUnwrap(f.controller.history.first)
+        XCTAssertNotNil(f.controller.installedTextReference(visibleReceipt, appearance: appearance))
+        let saved = f.memory.values
+        f.wire.scripted["status"] = [(Data(), 401)]
+        await (try XCTUnwrap(f.controller.offerStatus(appearance)))()
+        XCTAssertEqual(f.unauthorized, 1)
+        assertPresentationRetired(f, appearance: appearance)
+        XCTAssertNil(f.controller.installedTextReference(visibleReceipt, appearance: appearance))
+        XCTAssertEqual(f.memory.values, saved)
+        XCTAssertEqual(try f.store.load(), command)
+        XCTAssertEqual(f.wire.writes, 0)
+        // A separate, revalidated session recovers the original operation. This
+        // never replays the original mutation merely because the old page expired.
+        let fresh = try Fixture(memory: f.memory), reopened = WorkshopPaidInstallAppearance()
+        fresh.wire.committed = command
+        try await fresh.load(reopened)
+        XCTAssertEqual(fresh.controller.outcome?.command, command)
+        XCTAssertEqual(fresh.controller.phase, .installed)
+        XCTAssertNil(try fresh.store.load())
+        XCTAssertEqual(fresh.wire.writes, 0)
+        XCTAssertEqual(fresh.wire.requests.first?.url?.lastPathComponent, "status")
+    }
+
+    func testExplicitOriginalStatusAfterApprovalLossRetiresWithoutNetworkOrDeletingIntent() async throws {
+        let f = try Fixture(), command = try Self.command(), appearance = WorkshopPaidInstallAppearance()
+        try f.store.save(command)
+        f.wire.scripted["history"] = [try Self.historyPage([1])]
+        try await f.load(appearance)
+        let saved = f.memory.values, requestCount = f.wire.requests.count
+        f.approval = nil
+        await (try XCTUnwrap(f.controller.offerStatus(appearance)))()
+        assertPresentationRetired(f, appearance: appearance)
+        XCTAssertEqual(f.controller.issue, .disabled)
+        XCTAssertEqual(f.wire.requests.count, requestCount)
+        XCTAssertEqual(f.memory.values, saved)
+        XCTAssertEqual(try f.store.load(), command)
+        XCTAssertEqual(f.wire.writes, 0)
+    }
+
+    func testCurrentSubmit401RetiresPresentationButRetainsPossiblyCommittedOriginal() async throws {
+        let f = try Fixture(), appearance = WorkshopPaidInstallAppearance()
+        f.wire.scripted["history"] = [try Self.historyPage([1])]
+        try await f.load(appearance)
+        let command = try f.review(appearance)
+        f.wire.delayNext = true
+        let action = try XCTUnwrap(f.controller.offerSubmit(appearance, command: command))
+        let saved = f.memory.values, task = Task { await action() }
+        await f.wire.wait()
+        f.wire.resume((Data(), 401)); await task.value
+        XCTAssertEqual(f.unauthorized, 1)
+        assertPresentationRetired(f, appearance: appearance)
+        XCTAssertEqual(f.memory.values, saved)
+        XCTAssertEqual(try f.store.load(), command)
+        XCTAssertEqual(f.wire.writes, 1)
+        XCTAssertNil(f.controller.offerSubmit(appearance, command: command))
+    }
+
+    func testConfirmedSubmitAfterApprovalLossRetiresWithoutDispatchAndKeepsOriginal() async throws {
+        let f = try Fixture(), appearance = WorkshopPaidInstallAppearance()
+        try await f.load(appearance)
+        let command = try f.review(appearance)
+        f.approval = nil
+        let action = try XCTUnwrap(f.controller.offerSubmit(appearance, command: command))
+        let saved = f.memory.values, requestCount = f.wire.requests.count
+        await action()
+        assertPresentationRetired(f, appearance: appearance)
+        XCTAssertEqual(f.controller.issue, .disabled)
+        XCTAssertEqual(f.wire.requests.count, requestCount)
+        XCTAssertEqual(f.memory.values, saved)
+        XCTAssertEqual(try f.store.load(), command)
+        XCTAssertEqual(f.wire.writes, 0)
+    }
+
+    func testDispatchedSubmitDisabledResponseRetiresWithoutAssumingWriteDidNotCommit() async throws {
+        let f = try Fixture(), appearance = WorkshopPaidInstallAppearance()
+        try await f.load(appearance)
+        let command = try f.review(appearance)
+        f.wire.delayNext = true
+        let action = try XCTUnwrap(f.controller.offerSubmit(appearance, command: command))
+        let saved = f.memory.values, task = Task { await action() }
+        await f.wire.wait()
+        f.wire.resume((Data(), 503)); await task.value
+        assertPresentationRetired(f, appearance: appearance)
+        XCTAssertEqual(f.controller.issue, .disabled)
+        XCTAssertEqual(f.memory.values, saved)
+        XCTAssertEqual(try f.store.load(), command)
+        XCTAssertEqual(f.wire.writes, 1)
+        XCTAssertEqual(f.unauthorized, 0)
+    }
+
+    private func assertPresentationRetired(_ f: Fixture, appearance: WorkshopPaidInstallAppearance,
+                                           file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertEqual(f.controller.phase, .invalidated, file: file, line: line)
+        XCTAssertTrue(f.controller.history.isEmpty, file: file, line: line)
+        XCTAssertTrue(f.controller.targets.isEmpty, file: file, line: line)
+        XCTAssertNil(f.controller.outcome, file: file, line: line)
+        XCTAssertNil(f.controller.pending, file: file, line: line)
+        XCTAssertNil(f.controller.confirmation, file: file, line: line)
+        XCTAssertNil(f.controller.offerLoad(appearance), file: file, line: line)
+        XCTAssertNil(f.controller.offerStatus(appearance), file: file, line: line)
+        XCTAssertNil(f.controller.resume(appearance), file: file, line: line)
+    }
+
+    func testRestartMissingApprovalDoesNotReadOrEraseSavedOriginalRequest() async throws {
+        let f = try Fixture(approved: false), command = try Self.command(), appearance = WorkshopPaidInstallAppearance()
+        try f.store.save(command); let original = f.memory.values
+        try await f.load(appearance)
+        XCTAssertEqual(f.controller.phase, .invalidated); XCTAssertEqual(f.controller.issue, .disabled)
+        XCTAssertTrue(f.wire.requests.isEmpty); XCTAssertEqual(f.memory.values, original)
+        XCTAssertEqual(try f.store.load(), command); XCTAssertEqual(f.wire.writes, 0)
+    }
+
+    func testLateOriginalStatus401AfterCloseCannotEraseReplacementRecovery() async throws {
+        let f = try Fixture(), command = try Self.command(), old = WorkshopPaidInstallAppearance()
+        try f.store.save(command); let original = f.memory.values
+        f.wire.delayNext = true
+        let load = try XCTUnwrap(f.controller.appear(old)), task = Task { await load() }
+        await f.wire.wait(); XCTAssertEqual(f.wire.requests.last?.url?.lastPathComponent, "status")
+        f.controller.close(old)
+        let replacement = WorkshopPaidInstallAppearance()
+        f.wire.scripted["history"] = [(Data(), 500)]
+        try await f.load(replacement)
+        XCTAssertEqual(f.controller.phase, .ready); XCTAssertEqual(f.controller.outcome?.state, .notFound)
+        f.wire.resume((Data(), 401)); await task.value
+        XCTAssertEqual(f.controller.phase, .ready); XCTAssertEqual(f.controller.outcome?.state, .notFound)
+        XCTAssertEqual(f.controller.pending, command); XCTAssertEqual(f.memory.values, original)
+        XCTAssertEqual(f.unauthorized, 0); XCTAssertEqual(f.wire.writes, 0)
+    }
+
+    func testRecoveredTerminalNonInstallResultsNeverOpenProtectedBodyOrReplayWrite() async throws {
+        for state in ["FAILED", "CANCELLED", "EXPIRED"] {
+            let f = try Fixture(), command = try Self.command(), appearance = WorkshopPaidInstallAppearance()
+            try f.store.save(command)
+            f.wire.scripted["status"] = [(try Self.envelope(Self.outcome(command, state: state)), 200)]
+            f.wire.scripted["history"] = [(Data(), 500)]
+            try await f.load(appearance)
+            XCTAssertEqual(f.controller.phase, .ready); XCTAssertEqual(f.controller.outcome?.state.rawValue, state)
+            XCTAssertNil(try f.store.load()); XCTAssertNil(f.controller.pending)
+            XCTAssertNil(f.controller.installedTextReference(try XCTUnwrap(f.controller.outcome), appearance: appearance))
+            XCTAssertEqual(f.wire.writes, 0)
+        }
+    }
+
+    func testOriginalStatusResponseAfterGrantRevocationCannotAcknowledgePending() async throws {
+        let f = try Fixture(), command = try Self.command(), appearance = WorkshopPaidInstallAppearance()
+        try f.store.save(command); let original = f.memory.values
+        f.wire.delayNext = true
+        let load = try XCTUnwrap(f.controller.appear(appearance)), task = Task { await load() }
+        await f.wire.wait(); f.approval = nil
+        f.wire.resume((try Self.envelope(Self.outcome(command)), 200)); await task.value
+        XCTAssertEqual(f.controller.phase, .invalidated); XCTAssertEqual(f.controller.issue, .disabled)
+        XCTAssertNil(f.controller.outcome); XCTAssertEqual(f.memory.values, original)
+        XCTAssertEqual(try f.store.load(), command); XCTAssertEqual(f.wire.writes, 0)
+        XCTAssertEqual(f.wire.requests.map { $0.url!.lastPathComponent }, ["status"])
+    }
+
+    func testBackgroundRetiresUnconfirmedReviewAndResumeOnlyReads() async throws {
+        let f = try Fixture(), appearance = WorkshopPaidInstallAppearance()
+        try await f.load(appearance)
+        let command = try f.review(appearance)
+        f.controller.suspend(appearance)
+        XCTAssertNil(f.controller.confirmation); XCTAssertNil(f.controller.target)
+        XCTAssertNil(f.controller.offerSubmit(appearance, command: command))
+        XCTAssertNil(try f.store.load()); XCTAssertEqual(f.wire.writes, 0)
+        await (try XCTUnwrap(f.controller.resume(appearance)))()
+        XCTAssertEqual(f.controller.phase, .ready); XCTAssertNil(f.controller.confirmation)
+        XCTAssertEqual(f.wire.writes, 0)
+    }
+
+    func testBackgroundRetiresQueuedSubmitButPreservesOriginalDurableUUID() async throws {
+        let f = try Fixture(), appearance = WorkshopPaidInstallAppearance()
+        try await f.load(appearance)
+        let command = try f.review(appearance)
+        let queued = try XCTUnwrap(f.controller.offerSubmit(appearance, command: command))
+        let bytes = f.memory.values
+        f.controller.suspend(appearance); await queued()
+        XCTAssertEqual(f.wire.writes, 0); XCTAssertEqual(f.memory.values, bytes)
+        XCTAssertEqual(try f.store.load(), command)
+        await (try XCTUnwrap(f.controller.resume(appearance)))()
+        XCTAssertEqual(f.controller.pending, command); XCTAssertEqual(f.controller.outcome?.state, .notFound)
+        XCTAssertEqual(f.memory.values, bytes); XCTAssertEqual(f.wire.writes, 0)
+    }
+
+    func testDispatchedInstallLateBackgroundReceiptCannotAcknowledgeUntilOriginalStatusRead() async throws {
+        let f = try Fixture(), appearance = WorkshopPaidInstallAppearance()
+        try await f.load(appearance)
+        let command = try f.review(appearance)
+        f.wire.delayNext = true
+        let submit = try XCTUnwrap(f.controller.offerSubmit(appearance, command: command))
+        let task = Task { await submit() }; await f.wire.wait()
+        XCTAssertEqual(f.wire.writes, 1); let bytes = f.memory.values
+        f.controller.suspend(appearance)
+        f.wire.resume((try Self.envelope(Self.outcome(command)), 200)); await task.value
+        XCTAssertNil(f.controller.outcome); XCTAssertEqual(f.memory.values, bytes)
+        XCTAssertEqual(try f.store.load(), command)
+        let count = f.wire.requests.count
+        await (try XCTUnwrap(f.controller.resume(appearance)))()
+        XCTAssertEqual(f.wire.requests[count].url?.lastPathComponent, "status")
+        XCTAssertEqual(f.controller.outcome?.command, command); XCTAssertNil(try f.store.load())
+        XCTAssertEqual(f.controller.phase, .installed); XCTAssertEqual(f.wire.writes, 1)
+    }
+
+    func testBackgroundResumeAfterAccountChangeDoesNotReadOrEraseOriginalRequest() async throws {
+        let f = try Fixture(), appearance = WorkshopPaidInstallAppearance()
+        try await f.load(appearance)
+        let command = try f.review(appearance)
+        _ = try XCTUnwrap(f.controller.offerSubmit(appearance, command: command))
+        let bytes = f.memory.values, count = f.wire.requests.count
+        f.controller.suspend(appearance); f.current = nil
+        XCTAssertNil(f.controller.resume(appearance))
+        XCTAssertEqual(f.controller.phase, .invalidated); XCTAssertEqual(f.wire.requests.count, count)
+        XCTAssertEqual(f.memory.values, bytes); XCTAssertEqual(f.wire.writes, 0)
+    }
+
+    func testClosedAppearanceCannotResumeAfterBackground() async throws {
+        let f = try Fixture(), appearance = WorkshopPaidInstallAppearance()
+        try await f.load(appearance); f.controller.suspend(appearance); f.controller.close(appearance)
+        XCTAssertNil(f.controller.resume(appearance)); XCTAssertNil(f.controller.appear(appearance))
+        XCTAssertEqual(f.wire.writes, 0)
+    }
+
 }
+

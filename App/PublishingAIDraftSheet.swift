@@ -1,10 +1,12 @@
 import SwiftUI
 
-@MainActor private final class PublishingAIDraftModel: ObservableObject {
+@MainActor final class PublishingAIDraftModel: ObservableObject {
     let flow: PublishingAIDraftFlow
     @Published var revision = 0
-    init(client: (any PublishingAIDraftServing)?, product: ProjectEditProduct) {
+    init(client: (any PublishingAIDraftServing)?, product: ProjectEditProduct, initialIdea: String = "") {
         flow = PublishingAIDraftFlow(client: client, product: product)
+        // One local seed per StateObject. Rendering or quota refresh never replaces user edits.
+        flow.idea = initialIdea
         flow.onChange = { [weak self] in self?.revision += 1 }
     }
 }
@@ -14,8 +16,8 @@ import SwiftUI
     @StateObject private var inspiration = PublishingAIPromptController()
     @FocusState private var ideaFocused: Bool
     let accept: (QuickPublishDraft) -> Void
-    init(client: (any PublishingAIDraftServing)?, product: ProjectEditProduct, accept: @escaping (QuickPublishDraft) -> Void) {
-        _model = StateObject(wrappedValue: PublishingAIDraftModel(client: client, product: product)); self.accept = accept
+    init(client: (any PublishingAIDraftServing)?, product: ProjectEditProduct, initialIdea: String = "", accept: @escaping (QuickPublishDraft) -> Void) {
+        _model = StateObject(wrappedValue: PublishingAIDraftModel(client: client, product: product, initialIdea: initialIdea)); self.accept = accept
     }
     var body: some View {
         NavigationStack {

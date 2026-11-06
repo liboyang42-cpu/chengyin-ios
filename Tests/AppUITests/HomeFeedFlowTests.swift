@@ -35,17 +35,33 @@ final class HomeFeedFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["homeFeed.destination.activity"].waitForExistence(timeout: 15), app.debugDescription)
         XCTAssertEqual(app.staticTexts["homeFeed.destination.activity"].label, "Synthetic activity destination 7")
         app.navigationBars.buttons.firstMatch.tap()
-        XCTAssertTrue(app.staticTexts["Currency not provided"].firstMatch.waitForExistence(timeout: 5))
+        // Cards show a price only when one is known; no currency or "unknown" placeholder copy.
+        XCTAssertFalse(app.staticTexts["Currency not provided"].exists, app.debugDescription)
+        XCTAssertFalse(app.staticTexts["Starting price"].exists, app.debugDescription)
         XCTAssertFalse(app.buttons["Buy"].exists); XCTAssertFalse(app.buttons["Start playing"].exists)
     }
     func testPageFailureRetriesAndDuplicateFullPageStillPaginates() {
         launch("retry")
-        let retry = app.buttons["homeFeed.retry.page"]; reveal(retry); retry.tap()
+        let retry = app.buttons["homeFeed.retry.page"]; reveal(retry)
+        attachFixtureScreenshot(self, app: app, name: "Home feed page failure before retry")
+        retry.tap()
         let row = app.buttons["homeFeed.stream.topic.7"]; reveal(row)
         XCTAssertEqual(app.buttons.matching(identifier: "homeFeed.stream.topic.7").count, 1)
         let more = app.buttons["homeFeed.loadMore"]; reveal(more); more.tap()
         let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: more)
         XCTAssertEqual(XCTWaiter.wait(for: [gone], timeout: 5), .completed)
+    }
+    func testExhaustedStreamSurvivesDetailAndBack() {
+        launch()
+        let more = app.buttons["homeFeed.loadMore"]; reveal(more); more.tap()
+        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: more)
+        XCTAssertEqual(XCTWaiter.wait(for: [gone], timeout: 5), .completed)
+        let row = app.buttons["homeFeed.stream.topic.7"]; reveal(row); row.tap()
+        XCTAssertTrue(app.staticTexts["homeFeed.destination.topic"].waitForExistence(timeout: 15))
+        app.navigationBars.buttons.firstMatch.tap()
+        reveal(row)
+        XCTAssertEqual(app.buttons.matching(identifier: "homeFeed.stream.topic.7").count, 1)
+        XCTAssertFalse(more.exists, "Back must not reset the exhausted stream to page one")
     }
     func testEmptyStateIsNotAnError() {
         launch("empty")
@@ -54,5 +70,6 @@ final class HomeFeedFlowTests: XCTestCase {
         for _ in 0..<12 { if empty.exists { break }; app.swipeUp() }
         XCTAssertTrue(empty.waitForExistence(timeout: 15), app.debugDescription)
         XCTAssertFalse(app.buttons["homeFeed.retry.page"].exists)
+        attachFixtureScreenshot(self, app: app, name: "Home feed known empty state")
     }
 }

@@ -44,10 +44,14 @@ public struct RegistrationQuote: Decodable, Equatable {
     public let couponDeductYuan: Decimal?
     public let clubMember: Bool
     public let quoteSign: String
+    /// Source RegistrationQuoteResult.prioritySignupEnabled. Only an explicit true counts
+    /// (mini-program `=== true`); absent or malformed values never invent a club benefit.
+    public let prioritySignupEnabled: Bool
 
     private enum CodingKeys: String, CodingKey {
         case payAmount, pointsUsed, pointsDeductYuan, pointsUsable
         case memberDiscountYuan, couponDeductYuan, clubMember, quoteSign
+        case prioritySignupEnabled
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -59,6 +63,7 @@ public struct RegistrationQuote: Decodable, Equatable {
         couponDeductYuan = try c.registrationMoney(forKey: .couponDeductYuan)
         clubMember = try c.decodeIfPresent(Bool.self, forKey: .clubMember) ?? false
         quoteSign = try c.decodeIfPresent(String.self, forKey: .quoteSign) ?? ""
+        prioritySignupEnabled = ((try? c.decodeIfPresent(Bool.self, forKey: .prioritySignupEnabled)) ?? nil) == true
         guard pointsUsed >= 0 else { throw APIError.malformedResponse }
     }
 

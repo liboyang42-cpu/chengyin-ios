@@ -61,7 +61,7 @@ class ProjectStoryImageContracts(unittest.TestCase):
         self.assertIn('storyImages.presentation == nil, storyAudios.presentation == nil', view)
         self.assertNotIn('Button("projectEdit.addImage") { appendBlock(.image) }', view)
         panel = self.read('App/ProjectStoryImageAuthorView.swift')
-        for token in ['TemplateImageCropSession', 'TemplateImageCropView', 'selectionApproval:', 'flow.claimUpload(review)', 'ProjectStoryImagePreparedReferences', 'payload["chapters"]']:
+        for token in ['CreatorCropExportSession', 'CreatorCropExportView', 'selectionApproval:', 'flow.claimUpload(review)', 'ProjectStoryImagePreparedReferences', 'payload["chapters"]']:
             self.assertIn(token, panel)
         for absent in ['requestAuthorization', 'PHPhotoLibrary', 'AVCapture', 'AVAudioRecorder']:
             self.assertNotIn(absent, panel)
@@ -83,7 +83,7 @@ class ProjectStoryImageContracts(unittest.TestCase):
         core = self.read('Tests/CoreTests/ProjectStoryImageTests.swift')
         app = self.read('Tests/AppUnitTests/ProjectStoryImagePresentationTests.swift')
         composition = self.read('Tests/AppUnitTests/ProjectStoryImageCompositionTests.swift')
-        self.assertEqual(len(re.findall(r'func test\w+\(', core)), 12)
+        self.assertEqual(len(re.findall(r'func test\w+\(', core)), 22)
         self.assertEqual(len(re.findall(r'func test\w+\(', app)), 13)
         self.assertEqual(len(re.findall(r'func test\w+\(', composition)), 5)
         for token in ['testPartialLocalEnvelopeSave', 'testReceiptPersistenceFailureReopens', 'testRetainedCropCallback', 'testActualApplySavesRestores']:

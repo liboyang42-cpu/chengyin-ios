@@ -59,7 +59,7 @@ struct MessagingEmptyView: View {
     var body: some View {
         ContentUnavailableView {
             Label { Text(title).accessibilityIdentifier(identifier) } icon: { Image(systemName: "bubble.left.and.bubble.right") }
-        } description: { Text(hint) }
+        }
     }
 }
 
@@ -222,15 +222,6 @@ struct MessagingReadScreen<Value, Content: View>: View {
         .refreshable {
             guard let token = model.prepareRefresh(appearance: appearance, input: input) else { return }
             await model.perform(token, load: load)
-        }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("messaging.refresh", systemImage: "arrow.clockwise") {
-                    queue(model.prepareRefresh(appearance: appearance, input: input))
-                }
-                    .disabled(model.isLoading || !reader.isConfigured || reader.identity == nil)
-                    .accessibilityIdentifier(accessibilityPrefix + ".refresh")
-            }
         }
         .onAppear { queue(model.appear(reader: reader, refreshRevision: refreshRevision)) }
         .onChange(of: input) { _, _ in

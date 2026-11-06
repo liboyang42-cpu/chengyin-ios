@@ -44,7 +44,7 @@ import XCTest
         let presentation = try XCTUnwrap(controller.presentation)
         let model = ProjectStoryImageAuthorModel(original: presentation, picker: ProjectStoryImageSynthetic.Picker(c.source.picked), apply: { controller.apply($0) })
         model.load(); await model.choose(); let crop = try XCTUnwrap(model.crop.draft)
-        model.confirmCrop(crop.id, try .init(sourceWidth: crop.source.width, sourceHeight: crop.source.height, horizontal: 0.5, vertical: 0.5, zoom: 1))
+        model.confirmCrop(crop.id, try .init(sourceWidth: crop.sources[0].width, sourceHeight: crop.sources[0].height, horizontal: 0.5, vertical: 0.5, zoom: 1))
         model.upload(try XCTUnwrap(model.flow.review)); for _ in 0..<100 where model.flow.busy { await Task.yield() }
         XCTAssertNotNil(model.flow.receipt); c.storage.failAppliedMarkerOnce = true; model.apply()
         XCTAssertEqual(model.flow.state, .localSaveFailed); XCTAssertEqual(c.editor.draft.chapters[0].blocks?.count, 200)

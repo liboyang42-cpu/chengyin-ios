@@ -24,8 +24,8 @@
     "zh-Hans": "此设备限制了照片保存。限制解除后可重试。"
   },
   "roam.share.photoSaveUnavailable": {
-    "en": "Photo saving is not configured in this app build. You can still use the system share sheet.",
-    "zh-Hans": "当前应用版本尚未配置相册保存，仍可使用系统分享。"
+    "en": "Saving to Photos isn't available right now. You can still use Share.",
+    "zh-Hans": "保存到相册暂不可用，仍可使用系统分享。"
   },
   "roam.share.photoSaveFailed": {
     "en": "The card could not be saved. Retry saving the prepared card.",

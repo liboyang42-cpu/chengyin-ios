@@ -57,6 +57,7 @@ public final class RegistrationUIFlow {
     public private(set) var waitlistOutcomeUnknown = false
     public private(set) var durableCreation: RegistrationDurableCreation = .none
     public private(set) var durableStatus: RegistrationStatusSnapshot?
+    public private(set) var durableStatusFailed = false
     public private(set) var activeWaitlistOffer: RegistrationWaitlistOffer?
     private let waitlistService: (any RegistrationWaitlistServing)?
     private let now: () -> Date
@@ -64,9 +65,33 @@ public final class RegistrationUIFlow {
     private var waitlistGeneration: UInt64 = 0
     private let participantReader: (any ProfileReading)?
     private let currentIdentity: () -> ProfileReadIdentity?
+    private var participantProjectionIdentity: ProfileReadIdentity?
+    private var participantSuppliedDraft = false
+    public var participantsIdentity: ProfileReadIdentity? { participantReader?.identity }
+    public var participantProjectionIsCurrent: Bool {
+        guard let identity = participantProjectionIdentity else { return false }
+        return identity == participantReader?.identity && participantIdentityMatchesOwner(identity)
+    }
+    private func participantIdentityMatchesOwner(_ identity: ProfileReadIdentity) -> Bool {
+        guard hasCurrentSession, let owner = openedIdentity else { return false }
+        // Participant approval/viewer revision is independent of the registration grant.
+        return identity.accountID == owner.accountID && identity.epoch == owner.epoch
+    }
+    public func synchronizeParticipantIdentity() {
+        guard participantProjectionIdentity != participantReader?.identity else { return }
+        participantGeneration &+= 1
+        if participantSuppliedDraft, !hasRetainedIntent, durableCreation == .none {
+            draft = .init(); participantSuppliedDraft = false; invalidateConfirmation()
+        }
+        participantProjectionIdentity = nil; participants = []; selectedParticipantID = nil
+        participantsState = .idle; changed()
+    }
     private let onReadback: (RegistrationStatusSnapshot) -> Void
     private var openedIdentity: ProfileReadIdentity?
     private var generation: UInt64 = 0
+    // Navigation evidence belongs to this opening, never a later reconstructed form.
+    public private(set) var resultOrderVisitID = UUID()
+    public func retireResultOrderNavigation() { resultOrderVisitID = UUID(); changed() }
     private var quoteGeneration: UInt64 = 0
     private var participantGeneration: UInt64 = 0
     private var manuallyEdited = false
@@ -125,6 +150,7 @@ public final class RegistrationUIFlow {
 
     /// Called when the sheet opens or the host's session identity changes. No requests.
     public func open() {
+        resultOrderVisitID = UUID()
         generation &+= 1; quoteGeneration &+= 1; participantGeneration &+= 1
         clearForm()
         openedIdentity = currentIdentity()
@@ -140,35 +166,38 @@ public final class RegistrationUIFlow {
     }
     public func setName(_ value: String) {
         guard canEdit else { return }
-        draft.realName = value; manuallyEdited = true; invalidateConfirmation(); changed()
+        draft.realName = value; participantSuppliedDraft = false; manuallyEdited = true; invalidateConfirmation(); changed()
     }
     public func setPhone(_ value: String) {
         guard canEdit else { return }
-        draft.phone = value; manuallyEdited = true; invalidateConfirmation(); changed()
+        draft.phone = value; participantSuppliedDraft = false; manuallyEdited = true; invalidateConfirmation(); changed()
     }
     public func selectParticipant(id: Int) {
-        guard canEdit, let participant = participants.first(where: { $0.id == id }) else { return }
+        guard canEdit, participantProjectionIsCurrent, let participant = participants.first(where: { $0.id == id }) else { return }
         applyParticipant(participant); manuallyEdited = true; invalidateConfirmation(); changed()
     }
     /// Only an acknowledged create receipt supplies the new ID. Re-read that owned row;
     /// stale accounts, cancellation and malformed/mismatched readbacks never select it.
     public func selectCreatedParticipant(_ receipt: ProfileParticipant, identity: ProfileReadIdentity) async {
-        guard canEdit, identity == openedIdentity, let participantReader,
+        synchronizeParticipantIdentity()
+        guard canEdit, participantIdentityMatchesOwner(identity), let participantReader,
               participantReader.identity == identity, receipt.id > 0 else { return }
         participantGeneration &+= 1
-        let stamp = generation, participantStamp = participantGeneration
+        let stamp = generation, participantStamp = participantGeneration, registrationIdentity = openedIdentity
         do {
             let row = try await participantReader.profileParticipant(id: receipt.id)
-            guard matches(stamp, identity), participantStamp == participantGeneration, canEdit, !Task.isCancelled,
+            guard matches(stamp, registrationIdentity), participantStamp == participantGeneration, canEdit, !Task.isCancelled,
                   participantReader.identity == identity, row.id == receipt.id,
                   row.fullName == receipt.fullName, row.mobilePhone == receipt.mobilePhone else { return }
+            participantProjectionIdentity = identity
             participants.removeAll { $0.id == row.id }; participants.append(row); participantsState = .received
             applyParticipant(row); manuallyEdited = true; invalidateConfirmation(); changed()
-        } catch { if matches(stamp, identity), participantStamp == participantGeneration { participantsState = .unavailable; changed() } }
+        } catch { if matches(stamp, registrationIdentity), participantStamp == participantGeneration,
+                     participantReader.identity == identity { participantsState = .unavailable; changed() } }
     }
     public func useManualEntry() {
         guard canEdit else { return }
-        selectedParticipantID = nil; manuallyEdited = true; invalidateConfirmation(); changed()
+        selectedParticipantID = nil; participantSuppliedDraft = false; manuallyEdited = true; invalidateConfirmation(); changed()
     }
     @discardableResult public func selectTicket(id: Int?) -> Bool {
         guard canEdit, (id == nil ? activity.tickets.isEmpty : activity.tickets.contains(where: { $0.id == id })) else { return false }
@@ -184,16 +213,19 @@ public final class RegistrationUIFlow {
         consented = value; invalidateConfirmation(); changed()
     }
     public func loadParticipants() async {
+        synchronizeParticipantIdentity()
         guard hasCurrentSession, !hasRetainedIntent, let participantReader,
-              participantReader.isConfigured, participantReader.identity == openedIdentity else { return }
+              participantReader.isConfigured, let participantIdentity = participantReader.identity,
+              participantIdentityMatchesOwner(participantIdentity) else { return }
         participantGeneration &+= 1
         let stamp = generation, participantStamp = participantGeneration
-        let identity = openedIdentity
+        let registrationIdentity = openedIdentity
         participantsState = .loading; changed()
         do {
             let rows = try await participantReader.profileParticipants()
-            guard matches(stamp, identity), participantStamp == participantGeneration,
-                  participantReader.identity == identity, !Task.isCancelled else { return }
+            guard matches(stamp, registrationIdentity), participantStamp == participantGeneration,
+                  participantReader.identity == participantIdentity, !Task.isCancelled else { return }
+            participantProjectionIdentity = participantIdentity
             participants = rows; participantsState = .received
             if canEdit, !manuallyEdited, selectedParticipantID == nil,
                draft.realName.isEmpty, draft.phone.isEmpty,
@@ -201,8 +233,9 @@ public final class RegistrationUIFlow {
                 applyParticipant(preferred)
             }
         } catch {
-            guard matches(stamp, identity), participantStamp == participantGeneration, !Task.isCancelled else { return }
-            participants = []; participantsState = .unavailable
+            guard matches(stamp, registrationIdentity), participantStamp == participantGeneration,
+                  participantReader.identity == participantIdentity, !Task.isCancelled else { return }
+            participantProjectionIdentity = nil; participants = []; participantsState = .unavailable
         }
         changed()
     }
@@ -256,12 +289,13 @@ public final class RegistrationUIFlow {
     /// Dismissal invalidates callbacks and scrubs form fields. It never resets/recreates
     /// the host's retained intent, sends cancellation, or claims a dispatched write failed.
     public func leave() {
+        resultOrderVisitID = UUID()
         if hasCurrentSession { coordinator.cancelPendingOperations() }
         generation &+= 1; quoteGeneration &+= 1; participantGeneration &+= 1
         clearForm(); openedIdentity = nil; changed()
     }
     private func refreshCreationLock() {
-        durableStatus = nil
+        durableStatus = nil; durableStatusFailed = false
         guard case .approved = creationPolicy, let service = waitlistService as? any RegistrationPendingServing, let scope = waitlistScope else { durableCreation = .none; return }
         do { durableCreation = try service.creationLock(scope) }
         catch { durableCreation = .pending(registrationID: nil) }
@@ -270,14 +304,20 @@ public final class RegistrationUIFlow {
         guard hasCurrentSession, !isReadingStatus, case .pending(let id) = durableCreation, id != nil,
               let scope = waitlistScope, let service = waitlistService as? any RegistrationPendingServing else { return }
         let stamp = generation, identity = openedIdentity
+        durableStatus = nil; durableStatusFailed = false; resultOrderVisitID = UUID()
         isReadingStatus = true; changed()
+        defer {
+            if matches(stamp, identity), waitlistScope == scope { isReadingStatus = false; changed() }
+        }
         do {
             let snapshot = try await service.readRetainedStatus(scope)
             guard matches(stamp, identity), waitlistScope == scope, !Task.isCancelled else { return }
             guard snapshot.registrationID == id else { throw APIError.malformedResponse }
             durableStatus = snapshot; onReadback(snapshot)
-        } catch { guard matches(stamp, identity) else { return }; block = .quoteUnavailable }
-        isReadingStatus = false; changed()
+        } catch {
+            guard matches(stamp, identity), waitlistScope == scope, !Task.isCancelled else { return }
+            durableStatusFailed = true
+        }
     }
     public var waitlistReadKey: RegistrationWaitlistReadKey? {
         guard hasCurrentSession, let openedIdentity, let scope = waitlistScope else { return nil }
@@ -429,7 +469,7 @@ public final class RegistrationUIFlow {
         if let selection = expectedSelection { _ = coordinator.select(selection) }
     }
     private func applyParticipant(_ participant: ProfileParticipant) {
-        selectedParticipantID = participant.id
+        selectedParticipantID = participant.id; participantSuppliedDraft = true
         draft = .init(realName: participant.fullName, phone: participant.mobilePhone)
     }
     private func matches(_ stamp: UInt64, _ identity: ProfileReadIdentity?) -> Bool {
@@ -437,10 +477,11 @@ public final class RegistrationUIFlow {
     }
     private func invalidateConfirmation() { confirmation = nil; waitlistCancellation = nil; block = nil }
     private func clearForm() {
-        resetWaitlist(); quoteReceivedAt = nil; durableCreation = .none; durableStatus = nil
-        draft = .init(); participants = []; participantsState = .idle; selectedParticipantID = nil
+        resetWaitlist(); quoteReceivedAt = nil; durableCreation = .none; durableStatus = nil; durableStatusFailed = false
+        draft = .init(); participantSuppliedDraft = false; participants = []; participantProjectionIdentity = nil; participantsState = .idle; selectedParticipantID = nil
         selectedTicketID = nil; usePoints = false; consented = false; confirmation = nil; block = nil
         manuallyEdited = false; isQuoting = false; isSubmitting = false; isReadingStatus = false
     }
     private func changed() { onChange?() }
 }
+

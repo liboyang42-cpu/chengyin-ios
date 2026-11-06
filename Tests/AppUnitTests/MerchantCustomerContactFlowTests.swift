@@ -119,3 +119,265 @@ import XCTest
         f.invalidate(); XCTAssertNil(f.coordinator.receipt); XCTAssertFalse(f.canConsume)
     }
 }
+
+import SwiftUI
+import UIKit
+
+@MainActor final class MerchantCustomerAppliedQueryTests: XCTestCase {
+    @MainActor private final class Source: MerchantBusinessReading {
+        var scope: MerchantBusinessScope? = .init(realm: "synthetic-query", accountID: 7, epoch: 1)
+        var authorizationGeneration: UUID? = UUID()
+        var isConfigured = true
+        var isOfflineExample = true
+        var canExecuteSyntheticMutation = false
+        var reads = 0
+        var failure: MerchantBusinessFailure?
+        var grant: MerchantBusinessAccess
+        init() throws {
+            grant = try .init(["active": .bool(true), "merchant": .object(["id": .int(610)]),
+                "roleCode": .string("MERCHANT_MANAGER"), "permissions": .array([.string("merchant:crm:read")])])
+        }
+        func access() async throws -> MerchantBusinessAccess { grant }
+        func snapshot(_ query: MerchantBusinessQuery) async throws -> MerchantBusinessSnapshot {
+            reads += 1; if let failure { throw failure }
+            return try .init(access: grant, document: .init(query: query, payload: .object(["rows": .array([]), "total": .int(0)])))
+        }
+        func execute(_ mutation: MerchantBusinessMutation, requestID: String, scope: MerchantBusinessScope) async throws -> MerchantBusinessReceipt { throw MerchantBusinessFailure.disabled }
+    }
+    @MainActor private final class Destination: MerchantEngagementReading {
+        var scope: MerchantBusinessScope? = .init(realm: "synthetic-query", accountID: 7, epoch: 1)
+        var authorizationGeneration: UUID? = UUID()
+        var isConfigured = true
+        var isSyntheticEnabled = false
+        var calls = 0, writes = 0
+        var afterRead: (() -> Void)?
+        var grant: MerchantEngagementAccess
+        init(merchant: Int = 610) throws {
+            grant = try .init(["active": .bool(true), "merchant": .object(["id": .int(merchant)]),
+                "roleCode": .string("MERCHANT_MANAGER"), "permissions": .array([.string("merchant:crm:read"), .string("merchant:crm:export")])])
+        }
+        func access() async throws -> MerchantEngagementAccess { calls += 1; afterRead?(); return grant }
+        func read(_ query: MerchantEngagementQuery) async throws -> MerchantEngagementPayload { calls += 1; afterRead?(); return .segments([]) }
+        func read(_ query: MerchantEngagementQuery, expectedMerchantID: Int) async throws -> MerchantEngagementPayload {
+            guard grant.merchantID == expectedMerchantID else { throw MerchantBusinessFailure.stale }
+            return try await read(query)
+        }
+        func proof(_ command: MerchantEngagementCommand) async throws -> MerchantEngagementProof { calls += 1; afterRead?(); return .init(access: grant) }
+        func proof(_ command: MerchantEngagementCommand, expectedMerchantID: Int) async throws -> MerchantEngagementProof {
+            guard grant.merchantID == expectedMerchantID else { throw MerchantBusinessFailure.stale }
+            return try await proof(command)
+        }
+        func execute(_ command: MerchantEngagementCommand, requestID: String, proof: MerchantEngagementProof, scope: MerchantBusinessScope) async throws -> MerchantEngagementReceipt { writes += 1; throw MerchantBusinessFailure.disabled }
+    }
+    private func query() -> MerchantCustomerQuery {
+        var result = MerchantCustomerQuery(); result.keyword = " e\u{0301} exact "; result.segment = "repeat"
+        result.tagID = 14; result.sourceType = 2; result.sourceStart = "2026-09-01"; result.sourceEnd = "2026-10-01"
+        return result
+    }
+    private func loaded() async throws -> (Source, MerchantBusinessViewModel, MerchantCustomerAppliedQuery) {
+        let source = try Source(), model = MerchantBusinessViewModel(reader: source, journal: MerchantBusinessMemoryIntentStore())
+        let applied = query(); await model.load(.customers(applied))
+        let expected = try XCTUnwrap(model.coordinator.snapshot)
+        let selection = try XCTUnwrap(model.customerEngagementSelection(query: .customers(applied), draft: applied, expected: expected, revision: model.revision))
+        return (source, model, selection)
+    }
+    func testAppliedQueryCopiesEveryFieldAndUsesExistingExportPageRules() async throws {
+        let (source, _, selection) = try await loaded()
+        XCTAssertEqual(selection.filter.customerQuery, query())
+        XCTAssertEqual(Array(selection.filter.keyword.utf8), Array(query().keyword.utf8))
+        XCTAssertEqual(selection.filter.exportFields["pageNum"], .int(1)); XCTAssertEqual(selection.filter.exportFields["pageSize"], .int(20))
+        XCTAssertNil(selection.filter.segmentFields["keyword"]); XCTAssertEqual(source.reads, 1)
+    }
+    func testUnappliedAndCanonicallyEqualByteChangedQueryCannotOpen() async throws {
+        let (_, model, _) = try await loaded(), expected = try XCTUnwrap(model.coordinator.snapshot)
+        for key in ["changed", " é exact "] {
+            var draft = query(); draft.keyword = key
+            XCTAssertNil(model.customerEngagementSelection(query: .customers(query()), draft: draft, expected: expected, revision: model.revision))
+        }
+    }
+    func testAuthorizationChangeBeforeParentObserverRejectsOldSnapshot() async throws {
+        let (source, model, _) = try await loaded(), expected = try XCTUnwrap(model.coordinator.snapshot)
+        source.authorizationGeneration = UUID()
+        XCTAssertNil(model.customerEngagementSelection(query: .customers(query()), draft: query(), expected: expected, revision: model.revision))
+        await model.load(.customers(query()))
+        XCTAssertNotNil(model.customerEngagementSelection(query: .customers(query()), draft: query(), expected: try XCTUnwrap(model.coordinator.snapshot), revision: model.revision))
+    }
+    func testOldRenderedRevisionAndFailedReloadCannotCreateRoute() async throws {
+        let (source, model, _) = try await loaded(), expected = try XCTUnwrap(model.coordinator.snapshot), old = model.revision
+        await model.load(.customers(query()))
+        XCTAssertNil(model.customerEngagementSelection(query: .customers(query()), draft: query(), expected: expected, revision: old))
+        source.failure = .denied; await model.load(.customers(query()))
+        XCTAssertNil(model.customerEngagementSelection(query: .customers(query()), draft: query(), expected: expected, revision: model.revision))
+    }
+    func testNormalPushParentInvalidationKeepsFrozenChildAliveWithoutDispatch() async throws {
+        let (source, model, selection) = try await loaded(), destination = try Destination()
+        let child = MerchantCustomerQueryReader(selection: selection, base: destination, source: source, originCurrent: { true })
+        model.invalidate()
+        XCTAssertTrue(child.isCurrent); XCTAssertEqual(child.selection.filter.customerQuery, query())
+        XCTAssertEqual(destination.calls, 0); XCTAssertEqual(destination.writes, 0)
+        _ = try await child.access(); XCTAssertEqual(destination.calls, 1); XCTAssertEqual(destination.writes, 0)
+    }
+    func testRetiredChildAndSameLocationReplacementHaveDifferentIdentity() async throws {
+        let (source, model, first) = try await loaded(), destination = try Destination()
+        let old = MerchantCustomerQueryReader(selection: first, base: destination, source: source, originCurrent: { true })
+        old.retire(); await model.load(.customers(query()))
+        let next = try XCTUnwrap(model.customerEngagementSelection(query: .customers(query()), draft: query(), expected: try XCTUnwrap(model.coordinator.snapshot), revision: model.revision))
+        let current = MerchantCustomerQueryReader(selection: next, base: destination, source: source, originCurrent: { true })
+        XCTAssertNotEqual(first.id, next.id); XCTAssertFalse(old.isCurrent); XCTAssertTrue(current.isCurrent)
+        old.retire(); XCTAssertTrue(current.isCurrent)
+        do { _ = try await old.access(); XCTFail() } catch { XCTAssertEqual(error as? MerchantBusinessFailure, .stale) }
+        XCTAssertEqual(destination.calls, 0)
+    }
+    func testSourceDestinationAndRootIdentityChangesRetireCapturedChild() async throws {
+        for change in 0..<3 {
+            let (source, _, selection) = try await loaded(), destination = try Destination(); var root = true
+            let child = MerchantCustomerQueryReader(selection: selection, base: destination, source: source, originCurrent: { root })
+            if change == 0 { source.scope = .init(realm: "synthetic-query", accountID: 8, epoch: 2) }
+            if change == 1 { destination.authorizationGeneration = UUID() }
+            if change == 2 { root = false }
+            XCTAssertFalse(child.isCurrent); XCTAssertNil(child.scope)
+            do { _ = try await child.access(); XCTFail() } catch { XCTAssertEqual(error as? MerchantBusinessFailure, .stale) }
+            XCTAssertEqual(destination.calls, 0); XCTAssertEqual(destination.writes, 0)
+        }
+    }
+    func testWrongMerchantFreshAccessAndProofAreRejected() async throws {
+        let (source, _, selection) = try await loaded(), destination = try Destination(merchant: 611)
+        let child = MerchantCustomerQueryReader(selection: selection, base: destination, source: source, originCurrent: { true })
+        do { _ = try await child.access(); XCTFail() } catch { XCTAssertEqual(error as? MerchantBusinessFailure, .stale) }
+        do { _ = try await child.proof(.createExport(selection.filter)); XCTFail() } catch { XCTAssertEqual(error as? MerchantBusinessFailure, .stale) }
+        XCTAssertEqual(destination.writes, 0)
+    }
+    func testLateReadDoesNotReturnAfterSourceAuthorizationChanges() async throws {
+        let (source, _, selection) = try await loaded(), destination = try Destination()
+        let child = MerchantCustomerQueryReader(selection: selection, base: destination, source: source, originCurrent: { true })
+        destination.afterRead = { source.authorizationGeneration = UUID() }
+        do { _ = try await child.read(.segments); XCTFail() } catch { XCTAssertEqual(error as? MerchantBusinessFailure, .stale) }
+        XCTAssertEqual(destination.calls, 1); XCTAssertEqual(destination.writes, 0)
+    }
+    func testNoNewWriteOrDevicePermissionAndUnticketedPathStaysDisabled() async throws {
+        let (source, _, selection) = try await loaded(), destination = try Destination()
+        let child = MerchantCustomerQueryReader(selection: selection, base: destination, source: source, originCurrent: { true })
+        XCTAssertFalse(child.canExecute(.createExport(selection.filter), merchantID: 610))
+        XCTAssertFalse(child.permitsDevice(.saveExport(1), merchantID: 610))
+        do { _ = try await child.execute(.createExport(selection.filter), requestID: "unchanged", proof: .init(access: destination.grant), scope: selection.scope); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantBusinessFailure, .disabled) }
+        XCTAssertEqual(destination.calls, 0); XCTAssertEqual(destination.writes, 0)
+    }
+}
+
+extension MerchantCustomerAppliedQueryTests {
+    func testOldNavigationBindingCannotReadOrDismissReplacementSession() async throws {
+        let (_, _, first) = try await loaded(), (_, _, second) = try await loaded()
+        var route: MerchantCustomerAppliedQuery? = first
+        let source = Binding<MerchantCustomerAppliedQuery?>(get: { route }, set: { route = $0 })
+        let old = source.forMerchantCustomerQuery(first)
+        route = second; XCTAssertNil(old.wrappedValue)
+        old.wrappedValue = nil; old.wrappedValue = first
+        XCTAssertEqual(route?.id, second.id)
+        source.forMerchantCustomerQuery(second).wrappedValue = nil; XCTAssertNil(route)
+    }
+    func testEmptyNavigationBindingNeverAdoptsLaterRoute() async throws {
+        var route: MerchantCustomerAppliedQuery? = nil
+        let source = Binding<MerchantCustomerAppliedQuery?>(get: { route }, set: { route = $0 })
+        let old = source.forMerchantCustomerQuery(nil), (_, _, selection) = try await loaded()
+        route = selection; XCTAssertNil(old.wrappedValue); old.wrappedValue = nil
+        XCTAssertEqual(route?.id, selection.id)
+    }
+}
+
+extension MerchantCustomerAppliedQueryTests {
+    @MainActor private final class BoundReadTransport: HTTPTransport {
+        var merchants: [Int]
+        var paths: [String] = []
+        init(_ merchants: [Int]) { self.merchants = merchants }
+        func send(_ request: URLRequest) async throws -> (Data, Int) {
+            let path = try XCTUnwrap(request.url?.path); paths.append(path)
+            if path == "/api/merchant/access/me" {
+                let merchant: Int
+                if merchants.count > 1 { merchant = merchants.removeFirst() }
+                else { merchant = try XCTUnwrap(merchants.first) }
+                return (Data("{\"code\":200,\"data\":{\"active\":true,\"merchant\":{\"id\":\(merchant)},\"roleCode\":\"MERCHANT_MANAGER\",\"permissions\":[\"merchant:crm:read\"]}}".utf8), 200)
+            }
+            guard path == "/api/merchant/crm/segments" else { throw MerchantBusinessFailure.invalid }
+            return (Data(#"{"code":200,"data":[]}"#.utf8), 200)
+        }
+    }
+    @MainActor private final class LegacyReadOnly: MerchantEngagementReading {
+        let base: Destination
+        init() throws { base = try Destination() }
+        var scope: MerchantBusinessScope? { base.scope }
+        var isConfigured: Bool { true }
+        var isSyntheticEnabled: Bool { false }
+        func access() async throws -> MerchantEngagementAccess { try await base.access() }
+        func read(_ query: MerchantEngagementQuery) async throws -> MerchantEngagementPayload { try await base.read(query) }
+        func proof(_ command: MerchantEngagementCommand) async throws -> MerchantEngagementProof { try await base.proof(command) }
+        func execute(_ command: MerchantEngagementCommand, requestID: String, proof: MerchantEngagementProof, scope: MerchantBusinessScope) async throws -> MerchantEngagementReceipt { throw MerchantBusinessFailure.disabled }
+    }
+    private func actualSessionReader(_ transport: BoundReadTransport) throws -> MerchantEngagementSessionReader {
+        let configuration = try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://bound-reader.example")))
+        let service = MerchantEngagementService(configuration: configuration, readTransport: transport)
+        let session = try MerchantBusinessSession(accountID: 7, epoch: 1, token: "synthetic-token")
+        return MerchantEngagementSessionReader(service: service, session: { session })
+    }
+    func testSameSessionFreshGrantForOtherMerchantStopsBeforeDocumentRequest() async throws {
+        let transport = BoundReadTransport([610, 611]), base = try actualSessionReader(transport), source = try Source()
+        source.scope = base.scope
+        let model = MerchantBusinessViewModel(reader: source, journal: MerchantBusinessMemoryIntentStore()); await model.load(.customers(query()))
+        let selected = try XCTUnwrap(model.customerEngagementSelection(query: .customers(query()), draft: query(), expected: XCTUnwrap(model.coordinator.snapshot), revision: model.revision))
+        let child = MerchantCustomerQueryReader(selection: selected, base: base, source: source, originCurrent: { true })
+        let scope = base.scope, authorization = base.authorizationGeneration
+        let initialGrant = try await child.access()
+        XCTAssertEqual(initialGrant.merchantID, 610)
+        do { _ = try await child.read(.segments); XCTFail() } catch { XCTAssertEqual(error as? MerchantBusinessFailure, .stale) }
+        XCTAssertEqual(base.scope, scope); XCTAssertEqual(base.authorizationGeneration, authorization)
+        XCTAssertEqual(transport.paths, ["/api/merchant/access/me", "/api/merchant/access/me"])
+        XCTAssertFalse(child.isCurrent); XCTAssertNil(child.scope)
+    }
+    func testSameCallCorrectMerchantGrantAllowsExactlyOneDocumentRequest() async throws {
+        let transport = BoundReadTransport([610]), base = try actualSessionReader(transport)
+        let result = try await base.read(.segments, expectedMerchantID: 610)
+        guard case .segments(let rows) = result else { return XCTFail("Expected segments") }
+        XCTAssertTrue(rows.isEmpty)
+        XCTAssertEqual(transport.paths, ["/api/merchant/access/me", "/api/merchant/crm/segments"])
+    }
+    func testReaderWithoutBoundReadImplementationFailsBeforeUnboundRead() async throws {
+        let (source, _, selected) = try await loaded(), base = try LegacyReadOnly()
+        let child = MerchantCustomerQueryReader(selection: selected, base: base, source: source, originCurrent: { true })
+        do { _ = try await child.read(.segments); XCTFail() } catch { XCTAssertEqual(error as? MerchantBusinessFailure, .disabled) }
+        XCTAssertEqual(base.base.calls, 0); XCTAssertEqual(base.base.writes, 0); XCTAssertFalse(child.isCurrent)
+    }
+}
+
+
+extension MerchantCustomerAppliedQueryTests {
+    func testBoundProofWrongMerchantStopsBeforeSensitiveCustomerRead() async throws {
+        let transport = BoundReadTransport([611]), base = try actualSessionReader(transport)
+        do {
+            _ = try await base.proof(.contact(try MerchantCustomerID(61001), .call), expectedMerchantID: 610)
+            XCTFail("A different merchant cannot authorize a selected customer proof")
+        } catch { XCTAssertEqual(error as? MerchantBusinessFailure, .stale) }
+        XCTAssertEqual(transport.paths, ["/api/merchant/access/me"])
+    }
+    func testReaderWithoutBoundProofImplementationFailsBeforeUnboundProof() async throws {
+        let (source, _, selected) = try await loaded(), base = try LegacyReadOnly()
+        let child = MerchantCustomerQueryReader(selection: selected, base: base, source: source, originCurrent: { true })
+        do { _ = try await child.proof(.createExport(selected.filter)); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantBusinessFailure, .disabled) }
+        XCTAssertEqual(base.base.calls, 0); XCTAssertEqual(base.base.writes, 0)
+    }
+}
+
+
+extension MerchantCustomerAppliedQueryTests {
+    func testActualQueryOwnerRemovalRetiresOnlyCapturedReader() async throws {
+        let (source, _, selected) = try await loaded(), base = try Destination()
+        let old = MerchantCustomerQueryReader(selection: selected, base: base, source: source, originCurrent: { true })
+        let current = MerchantCustomerQueryReader(selection: selected, base: base, source: source, originCurrent: { true })
+        let anchor = MerchantCustomerQueryOwnerAnchor(reader: old)
+        MerchantCustomerQueryOwnerAnchor.dismantleUIViewController(UIViewController(), coordinator: anchor.makeCoordinator())
+        XCTAssertFalse(old.isCurrent); XCTAssertTrue(current.isCurrent)
+        do { _ = try await old.read(.segments); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantBusinessFailure, .stale) }
+        XCTAssertEqual(base.calls, 0); XCTAssertEqual(base.writes, 0)
+    }
+}

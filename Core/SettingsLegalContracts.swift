@@ -59,6 +59,7 @@ public enum SettingsLegalState: Equatable {
         generation &+= 1; state = .idle; onChange?(state)
     }
     public func load(type: SettingsLegalType, market: RegionalMarket?) async {
+        guard !Task.isCancelled else { return }
         generation &+= 1
         let current = generation
         state = .loading; onChange?(state)

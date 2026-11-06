@@ -133,24 +133,29 @@ public struct OwnedTemplateConfigurationSnapshot {
 @available(macOS 14.0, *)
 @MainActor @Observable public final class OwnedTemplateConfigurationHost {
     @ObservationIgnored private let transport: TemplateShelfReadTransport?
+    @ObservationIgnored private let acceptsResult: () -> Bool
+    private let expectedID: MemberPlayTemplateID?
     @ObservationIgnored private var retained: OwnedTemplateConfigurationSnapshot?
     private var contentRevision = 0
     @ObservationIgnored private var generation = 0
     public private(set) var loading = false
     public private(set) var failed = false
-    public var available: Bool { transport?.available == true }
+    public var available: Bool { acceptsResult() && transport?.available == true }
     public var snapshot: OwnedTemplateConfigurationSnapshot? {
         _ = contentRevision
         guard available else { retained = nil; return nil }; return retained
     }
-    public init(transport: TemplateShelfReadTransport?) { self.transport = transport }
+    public init(transport: TemplateShelfReadTransport?, expectedID: MemberPlayTemplateID? = nil,
+                acceptsResult: @escaping () -> Bool = { true }) {
+        self.transport = transport; self.expectedID = expectedID; self.acceptsResult = acceptsResult
+    }
     public func clear() { generation += 1; retained = nil; contentRevision += 1; loading = false; failed = false }
     public func load(id: MemberPlayTemplateID) async {
-        clear(); guard let transport, available else { failed = true; return }
+        clear(); guard let transport, available, expectedID == nil || expectedID == id else { failed = true; return }
         let stamp = generation; loading = true
         do {
             let result = try await transport.ownedConfiguration(id, acceptsResult: { [weak self] in
-                self?.generation == stamp
+                self?.generation == stamp && self?.available == true
             })
             guard stamp == generation, available, !Task.isCancelled else { if stamp == generation { clear() }; return }
             retained = result; contentRevision += 1; loading = false

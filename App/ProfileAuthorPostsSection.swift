@@ -7,7 +7,10 @@ import SwiftUI
     let squareReader: any SquareReading
     var actions: SocialActionCoordinator? = nil
     var isCurrent: @MainActor () -> Bool = { true }
-    @State private var model = ProfileAuthorPostsRefreshController()
+    var retainedModel: ProfileAuthorPostsRefreshController? = nil
+    var onOpenPost: ((SquarePost) -> Void)? = nil
+    @State private var ownedModel = ProfileAuthorPostsRefreshController()
+    private var model: ProfileAuthorPostsRefreshController { retainedModel ?? ownedModel }
     private var context: ProfileAuthorPostsContext {
         .init(memberID: memberID, accountReader: accountReader, squareReader: squareReader)
     }
@@ -42,12 +45,20 @@ import SwiftUI
                         }
                     }
                     ForEach(model.visibleRows(for: context, isCurrent: isCurrent())) { post in
-                        NavigationLink {
-                            if model.canOpen(post, context: context, isCurrent: isCurrent()) {
-                                SquareDetailView(id: post.id, contentGeneration: post.generation, reader: squareReader, accountReader: accountReader, actions: actions)
-                            } else { Text("social.changed") }
-                        } label: { SquarePostContent(post: post, showImages: false) }
-                        .accessibilityIdentifier("profile.postsRefresh.post.\(post.id)")
+                        if let onOpenPost {
+                            Button {
+                                guard model.canOpen(post, context: context, isCurrent: isCurrent()) else { return }
+                                onOpenPost(post)
+                            } label: { SquarePostContent(post: post, showImages: false) }
+                            .accessibilityIdentifier("profile.postsRefresh.post.\(post.id)")
+                        } else {
+                            NavigationLink {
+                                if model.canOpen(post, context: context, isCurrent: isCurrent()) {
+                                    SquareDetailView(id: post.id, contentGeneration: post.generation, reader: squareReader, accountReader: accountReader, actions: actions)
+                                } else { Text("social.changed") }
+                            } label: { SquarePostContent(post: post, showImages: false) }
+                            .accessibilityIdentifier("profile.postsRefresh.post.\(post.id)")
+                        }
                         NativeMediaGalleryEntry(sources: post.images, scope: squareReader.scope, titleKey: "media.destination.squareImages")
                     }
                     if model.pagination.hasLoadedPage && model.pagination.items.isEmpty {
@@ -65,7 +76,7 @@ import SwiftUI
                 }
             }
         }
-        .task(id: context) { await refresh() }
+        .task(id: context) { await model.activate(memberID: memberID, accountReader: accountReader, squareReader: squareReader, isCurrent: isCurrent) }
         .onDisappear { model.suspend() }
     }
     private func refresh() async {

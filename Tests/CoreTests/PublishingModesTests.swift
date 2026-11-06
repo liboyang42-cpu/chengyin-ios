@@ -12,6 +12,20 @@ private final class PublishingFakeTransport: HTTPTransport {
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         requests.append(request); onSend?(request)
         guard !replies.isEmpty, let value = replies.removeFirst() else { throw URLError(.networkConnectionLost) }
+        if value == "activity-committed" {
+            let original = try JSONDecoder().decode(ActivityCreateRequestContract.Submit.self, from: request.httpBody!)
+            let receipt: [String: Any] = ["protocolVersion": original.protocolVersion, "requestId": original.requestId,
+                "payloadSHA256": original.payloadSHA256, "state": "COMMITTED", "originalResult": ["activityId": 42]]
+            return (try JSONSerialization.data(withJSONObject: ["code": 200, "data": receipt]), 200)
+        }
+        if value == "state-committed" {
+            let original = try JSONDecoder().decode(ProjectStateRequestContract.Submit.self, from: request.httpBody!)
+            let command = try XCTUnwrap(original.command)
+            let receipt: [String: Any] = ["protocolVersion": original.protocolVersion, "requestId": original.requestId,
+                "payloadSHA256": original.payloadSHA256, "state": "COMMITTED", "originalPath": command.originalPath,
+                "kind": "topic", "resourceId": command.resourceId, "originalResult": ["applied": true]]
+            return (try JSONSerialization.data(withJSONObject: ["code": 200, "data": receipt]), 200)
+        }
         return (Data(value.utf8), 200)
     }
 }
@@ -41,8 +55,8 @@ private let publishingPlayer = #"{"code":200,"data":{"role":"player"}}"#
     }
     private func service(_ transport: PublishingFakeTransport, session: PublishingSession, journal: PublishingTestJournal? = nil, approved: Bool = true) throws -> PublishingService {
         let c = try PublishingCredentials(session: session, token: "synthetic-token")
-        let a = try OperationEndpointApproval(baseURL: configuration().baseURL, namespace: session.namespace, accountID: session.accountID, paths: ["api/activity/publish", "api/topic/delete", "api/topic/update_user_status"])
-        return try PublishingService(configuration: configuration(), transport: transport, approval: approved ? a : nil, journal: journal, credentials: { c })
+        let a = try OperationEndpointApproval(baseURL: configuration().baseURL, namespace: session.namespace, accountID: session.accountID, paths: ["api/activity/publish", "api/topic/delete", "api/topic/update_user_status", ActivityCreateRequestContract.submitPath, ProjectStateRequestContract.submitPath, ProjectStateRequestContract.contextPath])
+        return try PublishingService(configuration: configuration(), transport: transport, approval: approved ? a : nil, journal: journal, activityReceiptApproval: a, activityRequestStore: PublishingDraftStore(storage: PublishingTestStorage()), credentials: { c })
     }
     func testActivityExactPayloadAndEmptyCollaborators() throws {
         let body = try draft().wire()
@@ -82,9 +96,14 @@ private let publishingPlayer = #"{"code":200,"data":{"role":"player"}}"#
     private func project(kind: String = "topic", state: String = "offline", signups: Int = 0, owner: String = "member") throws -> PublishingProject {
         try .init(["id": .number(17), "bizType": .string(kind), "title": .string("Fixture"), "state": .string(state), "signupCount": .number(Decimal(signups)), "ownerType": .string(owner)])
     }
+    private func stateContext(_ project: PublishingProject) -> String {
+        let context: [String: Any] = ["protocolVersion": ProjectStateRequestContract.protocolVersion, "kind": project.resource.kind.rawValue,
+            "resourceId": project.resource.value, "title": project.title, "online": project.online, "baselineHash": String(repeating: "a", count: 64)]
+        return String(data: try! JSONSerialization.data(withJSONObject: ["code": 200, "data": context]), encoding: .utf8)!
+    }
     func testBusinessSpecificPathsAndExpectedTopicStatus() throws {
         let paths = ["topic": "api/topic/update_user_status", "activity": "api/activity/update_publish_status", "template": "api/template/updateLibraryStatus"]
-        for (kind, path) in paths { let req = try PublishingContracts.project(project(kind: kind), action: .toggle); XCTAssertEqual(req.path, path); XCTAssertEqual(req.fields["id"], .string("17")); XCTAssertEqual(req.fields["expectedUserStatus"], kind == "topic" ? .string("0") : nil) }
+        for (kind, path) in paths { let req = try PublishingContracts.project(project(kind: kind), action: .toggle); XCTAssertEqual(req.path, path); XCTAssertEqual(req.fields[kind == "template" ? "template_id" : "id"], .string("17")); XCTAssertEqual(req.fields["publish_status"], kind == "template" ? .string("1") : nil); XCTAssertEqual(req.fields["expectedUserStatus"], kind == "topic" ? .string("0") : nil) }
         XCTAssertThrowsError(try project(kind: "unknown")); XCTAssertThrowsError(try PublishedResource(kind: .activity, value: 0))
     }
     func testDeletionAndFinancialRules() throws {
@@ -115,11 +134,11 @@ private let publishingPlayer = #"{"code":200,"data":{"role":"player"}}"#
         XCTAssertEqual(outcome, .notSent); XCTAssertEqual(t.requests.count, 1)
     }
     func testActivityExactHTTPAndJournalBeforeDispatch() async throws {
-        let s = session(), journal = PublishingTestJournal(), t = PublishingFakeTransport([publishingClub, publishingClub, #"{"code":200}"#]), api = try service(t, session: s, journal: journal)
-        t.onSend = { request in if request.url?.path == "/api/activity/publish" { XCTAssertEqual(journal.records.count, 1); XCTAssertNil(request.value(forHTTPHeaderField: "Idempotency-Key")) } }
+        let s = session(), journal = PublishingTestJournal(), t = PublishingFakeTransport([publishingClub, publishingClub, "activity-committed"]), api = try service(t, session: s, journal: journal)
+        t.onSend = { request in if request.url?.path == "/api/activity/create-requests/submit" { XCTAssertEqual(journal.records.count, 1); XCTAssertNil(request.value(forHTTPHeaderField: "Idempotency-Key")) } }
         let review = try await api.prepareActivity(draft(), session: s); let outcome = await api.submit(review)
         XCTAssertEqual(outcome, .acknowledged); XCTAssertTrue(journal.records.isEmpty)
-        XCTAssertEqual(t.requests.map { $0.url!.path }, ["/api/publish/home", "/api/publish/home", "/api/activity/publish"])
+        XCTAssertEqual(t.requests.map { $0.url!.path }, ["/api/publish/home", "/api/publish/home", "/api/activity/create-requests/submit"])
         let replay = await api.submit(review); XCTAssertEqual(replay, .notSent); XCTAssertEqual(t.requests.count, 3)
     }
     func testLostResponseBlocksNewReviewsAndRestart() async throws {
@@ -141,7 +160,7 @@ private let publishingPlayer = #"{"code":200,"data":{"role":"player"}}"#
     func testStorageFailureMakesZeroMutationRequests() async throws {
         let s = session(), j = PublishingTestJournal(); j.failWrite = true
         let t = PublishingFakeTransport([publishingClub, publishingClub]), api = try service(t, session: s, journal: j)
-        let review = try await api.prepareActivity(draft(), session: s); let outcome = await api.submit(review); XCTAssertEqual(outcome, .notSent); XCTAssertFalse(t.requests.contains { $0.url?.path == "/api/activity/publish" })
+        let review = try await api.prepareActivity(draft(), session: s); let outcome = await api.submit(review); XCTAssertEqual(outcome, .notSent); XCTAssertFalse(t.requests.contains { $0.url?.path == "/api/activity/create-requests/submit" })
     }
     func testAccountEpochChangeRejectsRead() async throws {
         let s = session(); var c: PublishingCredentials? = try .init(session: s, token: "synthetic")
@@ -164,22 +183,29 @@ private let publishingPlayer = #"{"code":200,"data":{"role":"player"}}"#
         let s = session(), p = try project()
         let envelope = "{\"code\":200,\"data\":{\"rows\":[" + String(data: try JSONEncoder().encode(p.raw), encoding: .utf8)! + "],\"total\":1}}"
         let changed = envelope.replacingOccurrences(of: "offline", with: "running")
-        let t = PublishingFakeTransport([envelope, changed]), api = try service(t, session: s, journal: PublishingTestJournal())
+        let t = PublishingFakeTransport([envelope, stateContext(p), changed]), api = try service(t, session: s, journal: PublishingTestJournal())
         let query = PublishingRead.projects(type: "all", state: "all", ownerType: "all", scope: "", pageSize: 200)
         let review = try await api.prepareProject(p, action: .toggle, query: query, session: s)
         let outcome = await api.submit(review); XCTAssertEqual(outcome, .notSent)
-        XCTAssertEqual(t.requests.map { $0.url!.path }, ["/api/project/my", "/api/project/my"])
+        XCTAssertEqual(t.requests.map { $0.url!.path }, ["/api/project/my", "/api/project/state-requests/context", "/api/project/my"])
     }
     func testProjectToggleUsesMultipartAndReviewedExpectedStatus() async throws {
         let s = session(), p = try project()
         let envelope = "{\"code\":200,\"data\":{\"rows\":[" + String(data: try JSONEncoder().encode(p.raw), encoding: .utf8)! + "],\"total\":1}}"
-        let t = PublishingFakeTransport([envelope, envelope, #"{"code":200}"#]), api = try service(t, session: s, journal: PublishingTestJournal())
+        let t = PublishingFakeTransport([envelope, stateContext(p), envelope, "state-committed"]), api = try service(t, session: s, journal: PublishingTestJournal())
         let query = PublishingRead.projects(type: "all", state: "all", ownerType: "all", scope: "", pageSize: 200)
         let review = try await api.prepareProject(p, action: .toggle, query: query, session: s)
         let outcome = await api.submit(review); XCTAssertEqual(outcome, .acknowledged)
-        let request = try XCTUnwrap(t.requests.last), body = String(data: try XCTUnwrap(request.httpBody), encoding: .utf8)!
-        XCTAssertTrue(request.value(forHTTPHeaderField: "Content-Type")!.hasPrefix("multipart/form-data"))
-        XCTAssertTrue(body.contains("name=\"expectedUserStatus\"\r\n\r\n0")); XCTAssertTrue(body.contains("name=\"id\"\r\n\r\n17"))
+        let request = try XCTUnwrap(t.requests.last)
+        let original = try JSONDecoder().decode(ProjectStateRequestContract.Submit.self, from: XCTUnwrap(request.httpBody))
+        // Preserve the original test identity and its form-writer contract. The source-backed
+        // producer now carries those original fields inside one JSON request envelope.
+        XCTAssertEqual(review.request.encoding, .form)
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+        XCTAssertEqual(request.url?.path, "/api/project/state-requests/submit")
+        XCTAssertEqual(original.command?.originalPath, "api/topic/update_user_status")
+        XCTAssertEqual(original.command?.fields, ["expectedUserStatus": .string("0"), "id": .string("17")])
+
     }
 
     func testRewardBindingRetainsIntermediateInputUntilReview() throws {

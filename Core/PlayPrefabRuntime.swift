@@ -122,9 +122,14 @@ public struct PlayPrefabRuntimeRecord: Codable, Equatable {
         do {
             let context = try PlayDeviceContext(session: session, scope: scope, nodeID: station.id)
             let output = try await provider.capture(.location, context: context); try check(session, generation)
-            guard case .location(let longitude, let latitude, let coordinateSystem) = output, coordinateSystem == "GCJ02" else { throw PlayExperienceError.unsupported }
-            record.pendingArrivalNodeID = station.id; try store.save(record, session: session, scope: scope); self.record = record
-            let receipt = try await service.complete(scope: scope, nodeID: station.id, evidence: .location(longitude: longitude, latitude: latitude, coordinateSystem: coordinateSystem), advance: nil, token: session.token)
+            guard case .location(let longitude, let latitude, let coordinateSystem, let accuracyMeters, let measuredAt) = output, coordinateSystem == "GCJ02" else { throw PlayExperienceError.unsupported }
+            let evidence = PlayCompletionEvidence.location(longitude: longitude, latitude: latitude, coordinateSystem: coordinateSystem, accuracyMeters: accuracyMeters, measuredAt: measuredAt)
+            let receipt = try await service.completePreparingJournal(scope: scope, nodeID: station.id, evidence: evidence, token: session.token) {
+                try self.check(session, generation)
+                var pending = record; pending.pendingArrivalNodeID = station.id
+                try self.store.save(pending, session: session, scope: self.scope)
+                record = pending; self.record = pending
+            }
             try check(session, generation); guard receipt["nodeId"].tolerantInteger == station.id else { throw PlayExperienceError.malformed }
             record.pendingArrivalNodeID = nil; try store.save(record, session: session, scope: scope); self.record = record
             let photo = try await provider.capture(.photo, context: context); try check(session, generation)

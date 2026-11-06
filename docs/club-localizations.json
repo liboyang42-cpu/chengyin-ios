@@ -36,8 +36,8 @@
   },
   {
     "key": "club.accessDeniedHint",
-    "en": "The server did not allow this account to view this information.",
-    "zh-Hans": "服务端未允许当前账户查看此信息。"
+    "en": "Your account doesn't have permission to view this.",
+    "zh-Hans": "当前账号无权查看此信息。"
   },
   {
     "key": "club.membersUnavailable",
@@ -56,8 +56,8 @@
   },
   {
     "key": "club.invalidResponse",
-    "en": "The server returned an incomplete response. Try again.",
-    "zh-Hans": "服务端返回的信息不完整，请重试。"
+    "en": "Some information couldn't be loaded. Try again.",
+    "zh-Hans": "部分信息加载失败，请重试。"
   },
   {
     "key": "club.retryHint",

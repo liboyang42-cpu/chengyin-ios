@@ -17,6 +17,38 @@
         }
       }
     },
+    "NSLocationWhenInUseUsageDescription": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use your location only while the app is open and when you choose to roam, play a location-based activity, find nearby places, or explicitly start personal location sharing with a selected person. Personal sharing uploads your location to the service for that person until you stop or the approved sharing period ends. Location is never used in the background."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅在应用使用期间，且你主动选择漫游、参与基于位置的玩法、查找附近地点或明确向指定对象开启个人位置分享时使用你的位置。个人分享会将位置上传至服务端并展示给该对象，直到你停止或获准的分享期限结束。不会在后台使用位置。"
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use the microphone only when you choose to record an IM voice message, talk to or set up an NPC voice, or measure sound peak levels locally on this iPhone during interactive sound gameplay. IM recordings are uploaded only after your separate confirmation for the original audio safety check; sending the message requires another confirmation. Sound-challenge amplitude is measured on device without uploading audio, and microphone access stops when you finish and never runs in the background."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅在你主动选择录制站内语音消息、与 NPC 语音对话、设置 NPC 声音，或在声音互动玩法中于本机测量音量峰值时使用麦克风。站内语音上传需另行确认并经过原音频安全检查，发送消息还需再次确认。声音互动玩法仅在本地测量振幅、不上传录音；结束后即停止使用麦克风，不会在后台运行。"
+          }
+        }
+      }
+    },
     "NSMotionUsageDescription": {
       "localizations": {
         "en": {

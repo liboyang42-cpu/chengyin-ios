@@ -99,9 +99,40 @@ class AccountCollectionStructureTests(unittest.TestCase):
         self.assertIn('onOpenPost?(.init(id: post.id, generation: post.generation))', view)
         self.assertEqual(view.count('AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending)'), 2)
         root = self.text('App/AccountView.swift')
-        self.assertIn('saved.scope == session.accountCollectionReader.scope', root)
-        self.assertIn('SquareDetailView(id: saved.route.id, contentGeneration: saved.route.generation', root)
-        self.assertIn('.onChange(of: session.accountCollectionReader.scope) { _, _ in savedPost = nil }', root)
+        entry = root.split('AccountCollectionAccountLinks(reader:', 1)[1].split('Section {', 1)[0]
+        self.assertIn('session.profileFavoritesReader.selectPost($0, renderedScope: session.profileFavoritesReader.scope)', entry)
+        self.assertIn('savedPostOwner.open(selected, scope: session.profileFavoritesReader.scope)', entry)
+        self.assertIn('favoritesReader: session.profileFavoritesReader', entry)
+        destination = root.split('ProfileFavoriteNavigationLayer(owner: savedPostOwner)', 1)[1].split('.sheet(isPresented:$showsSettings)', 1)[0]
+        self.assertIn('ProfileFavoriteDetailDestination(selection: selected,', destination)
+        self.assertIn('makeReader: { session.makeProfileFavoriteDetailReader(selected) }', destination)
+        self.assertIn('.id(selected.id)', destination)
+        self.assertIn('.onChange(of: session.profileFavoritesReader.scope)', destination)
+        self.assertIn('savedPostOwner.updateScope(scope); savedTopicOwner.updateScope(scope)', destination)
+        owner = self.text('App/ProfileFavoriteDetailDestination.swift')
+        self.assertIn('if let reader, selection.isCurrent', owner)
+        self.assertIn('SquareDetailView(id: selection.route.id, contentGeneration: selection.route.generation,', owner)
+        self.assertIn('reader: reader, accountReader: accountReader, actions: actions).id(reader.scope)', owner)
+        self.assertIn('self.selection?.id == id, selected.isCurrent', owner)
+        self.assertIn('if value == nil { _ = self.close(id: id) }', owner)
+        self.assertIn('selected.id == id', owner)
+        self.assertIn('.navigationDestination(item: owner.binding(for: selected), destination: destination)', owner)
+        self.assertIn('.onDisappear { savedPostOwner.disappear(); savedTopicOwner.disappear() }', root)
+        self.assertIn('session.profileFavoritesReader.selectTopic($0, renderedScope: session.profileFavoritesReader.scope)', entry)
+        self.assertIn('savedTopicOwner.open(selected, scope: session.profileFavoritesReader.scope)', entry)
+        topic = root.split('ProfileFavoriteTopicNavigationLayer(owner: savedTopicOwner)', 1)[1].split('ProfileFavoriteNavigationLayer(owner: savedPostOwner)', 1)[0]
+        self.assertIn('ProfileFavoriteTopicDestination(selection: selected, session: session,', topic)
+        self.assertIn('makeReader: { session.makeProfileFavoriteTopicReader(selected) }', topic)
+        topic_host = self.text('App/ProfileFavoriteTopicDestination.swift')
+        self.assertIn('SessionTopicDetailView(id: selection.topicID, session: session, topicReaderOverride: reader)', topic_host)
+        self.assertIn('self.selection?.id == id, selected.isCurrent', topic_host)
+        self.assertIn('if value == nil { _ = self.close(id: id) }', topic_host)
+        self.assertNotIn('.onDisappear', topic_host.split('struct ProfileFavoriteTopicDestination: View', 1)[1])
+        full = self.text('App/PlatformConsumerSessionOwner.swift').split('struct SessionTopicDetailView: View', 1)[1].split('#if DEBUG', 1)[0]
+        self.assertIn('var topicReaderOverride: (any TopicReading)? = nil', full)
+        self.assertIn('TopicDetailView(id: id, reader: topicReaderOverride ?? session.topicReader,', full)
+        detail = owner.split('struct ProfileFavoriteDetailDestination: View', 1)[1]
+        self.assertNotIn('.onDisappear', detail)
 
     def test_saved_post_pagination_and_races_have_behavioral_test_cases(self):
         source = self.text('Core/AccountCollectionReading.swift')

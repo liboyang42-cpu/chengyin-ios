@@ -17,8 +17,11 @@ struct CreatorContentLoadKey: Hashable {
     let configured: Bool
     let authenticated: Bool
     let query: CreatorContentQuery
-    @MainActor init(_ reader: any CreatorContentReading, query: CreatorContentQuery = .init()) {
+    /// Page entry. Empty is the personal list. A merchant entry reloads instead of reusing those rows.
+    let entryScope: String
+    @MainActor init(_ reader: any CreatorContentReading, query: CreatorContentQuery = .init(), entryScope: String? = nil) {
         scope = reader.scope; configured = reader.isConfigured; authenticated = reader.isAuthenticated; self.query = query
+        self.entryScope = entryScope ?? ""
     }
 }
 private struct CreatorContentIssueView: View {
@@ -40,12 +43,24 @@ private struct CreatorContentIssueView: View {
 /// Host must observe account/market revisions and reset this destination with .id(reader.scope).
 @MainActor struct CreatorContentProjectsView: View {
     let reader: any CreatorContentReading
-    var onOpenProject: ((CreatorContentProject, UUID) -> Void)? = nil
+    /// Nil is the personal entry and does not send `scope`. `MERCHANT` is the merchant entry.
+    var entryScope: String? = nil
+    /// True only after access/me reported `merchant:project:manage` for this entry. Default closed.
+    var canManageProjects: Bool = false
+    /// Third value is the entry scope, never `data.scope`.
+    var onOpenProject: ((CreatorContentProject, UUID, String?) -> Void)? = nil
     let onOpen: (CreatorContentDestination) -> Void
+    /// Set only after a server save receipt for this reader scope. Another account's token does not match.
+    var listRefresh: MyProjectListRefreshRequest? = nil
     @StateObject private var model = CreatorContentScreenModel<CreatorContentProjectPage>()
     @State private var query = CreatorContentQuery()
     @Environment(\.scenePhase) private var scenePhase
-    private var key: CreatorContentLoadKey { .init(reader, query: query) }
+    @Environment(\.locale) private var locale
+    @Environment(\.myProjectTemplateShelf) private var templateShelf
+    private var key: CreatorContentLoadKey { .init(reader, query: query, entryScope: entryScope) }
+    private var loadedAccess: MyProjectMerchantScopeAccess {
+        MyProjectMerchantScopeExclusiveAdapter.access(entryScope: entryScope, canManageProjects: canManageProjects)
+    }
     var body: some View {
         List {
             if reader.isOfflineExample { Text("creatorContent.offlineExample") }
@@ -57,34 +72,41 @@ private struct CreatorContentIssueView: View {
                     picker("creatorContent.owner", selection: $query.ownerType, values: ["all", "member", "club", "merchant"])
                     picker("creatorContent.state", selection: $query.state, values: ["all", "draft", "pending", "notStarted", "running", "completed", "offline", "rejected"])
                 }
-                if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView("creatorContent.loading") }
+                // Mini myproject template tab reads the separate api/template/my-list own-shelf, never project/my rows.
+                if query.type == "template" { MyProjectTemplateTabSection(shelf: templateShelf) }
+                else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView("creatorContent.loading") }
                 else if let failure = model.state.visibleIssue(scope: key.scope) { issue(failure) }
                 else if let page = model.state.visibleValue(scope: key.scope) {
-                    if page.rows.isEmpty { ContentUnavailableView("creatorContent.empty", systemImage: "square.stack") }
+                    if page.rows.isEmpty { MyProjectEmptyView(type: query.type) }
                     if page.isTruncated { Text("creatorContent.truncated").accessibilityIdentifier("creatorContent.truncated") }
                     let rowScope = key.scope
-                    ForEach(page.rows) { project in
+                    MyProjectCreateActivityRow(type: query.type, rowCount: page.rows.count)
+                    ForEach(MyProjectListPresentation.sorted(page.rows)) { project in
                         if let destination = project.destination {
                             Button {
                                 guard model.state.loadedScope == rowScope, reader.scope == rowScope, reader.isAuthenticated,
                                       model.state.visibleValue(scope: rowScope)?.rows.contains(project) == true else { return }
-                                if let onOpenProject { onOpenProject(project, rowScope) } else { onOpen(destination) }
+                                if let onOpenProject { onOpenProject(project, rowScope, entryScope) } else { onOpen(destination) }
                             } label: { card(project) }
                                 .buttonStyle(QuestifyCardButtonStyle())
                                 .accessibilityIdentifier("creatorContent.project.\(project.id)")
+                                .contextMenu { MyProjectRowOperationsMenu(project: project) }
                                 .questifyCardListRow()
                         } else {
                             card(project).questifyCardListRow()
                         }
                     }
-                    Text("creatorContent.readOnly").font(.caption)
-                        .accessibilityIdentifier("creatorContent.readOnly")
                 }
             }
         }
         .listStyle(.insetGrouped)
+        .environment(\.myProjectMerchantScopeAccess, loadedAccess)
         .appNavigationTitle("creatorContent.projects")
         .modifier(CreatorContentReadLifecycle(key: key, refresh: refresh, cancel: model.cancel))
+        .onChange(of: listRefresh) { _, request in
+            guard let request, request.readerScope == reader.scope, reader.isAuthenticated else { return }
+            Task { await refresh() }
+        }
     }
     private func picker(_ title: LocalizedStringKey, selection: Binding<String>, values: [String]) -> some View {
         Picker(title, selection: selection) {
@@ -98,16 +120,26 @@ private struct CreatorContentIssueView: View {
         QuestifyImageEntityCard(imageSource: project.cover, title: project.title,
                                subtitle: project.projectTypeText, fallbackTitle: "creatorContent.untitled", minimumHeight: 240) {
             if let state = project.stateText { Text(verbatim: state) }
-            if let acceptance = project.acceptStatusText { Text(verbatim: acceptance) }
-            if project.signupCount > 0 { LabeledContent("creatorContent.signups", value: String(project.signupCount)) }
-            if project.viewCount > 0 { LabeledContent("creatorContent.views", value: String(project.viewCount)) }
-            if let start = project.startTime, let end = project.endTime { Text(verbatim: "\(start) – \(end)") }
+            // Mini-program myproject footer: co-host acceptance text, otherwise always "N 报名 · N 浏览", then the owner identity.
+            if let pending = project.pendingVerifyCount { Text("myProject.pendingVerify \(pending)") }
+            else if let acceptance = MyProjectListPresentation.acceptanceText(project) { Text(verbatim: acceptance) }
+            else { Text("myProject.statsLine \(project.signupCount) \(project.viewCount)") }
+            Text(LocalizedStringKey(project.ownerType == "club" ? "creatorContent.filter.club"
+                : project.ownerType == "merchant" ? "creatorContent.filter.merchant" : "creatorContent.filter.member"))
+                .font(.caption).foregroundStyle(.secondary)
+            MyProjectCardMeta(project: project, chinese: locale.language.languageCode?.identifier == "zh")
         }.accessibilityElement(children: .combine)
     }
     private func refresh() async {
         guard reader.isAuthenticated, reader.isConfigured else { model.clear(); return }
         let captured = query
-        await model.load(reader: reader) { try await reader.projects(query: captured) }
+        guard captured.type != "template" else { model.clear(); return }
+        await model.load(reader: reader) {
+            if let live = reader as? CreatorContentSessionReader {
+                return try await live.projects(query: captured, operationScope: entryScope)
+            }
+            return try await reader.projects(query: captured)
+        }
     }
 }
 

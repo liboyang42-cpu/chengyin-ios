@@ -1,0 +1,7 @@
+# NOT APPLIED. Do not apply this diff.
+# MessagingHomeView now passes a channel and space only when that conversation, its
+# context object, or its counterparty already carries channel_id, guild_kind, and guild_id
+# together. Otherwise the directory request stays nil and the existing unavailable row shows.
+# The values go through ChannelDirectoryTransportInjection into MessagingHistoryView.
+# Conversation id, bizKey, club chat, a history-read grant, and api/native/spaces/admission
+# are not a channel, a guild, or an admission write.

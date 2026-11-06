@@ -116,13 +116,13 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "查看来源记录"
+          "value": "查看全部记录"
         }
       },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "View source records"
+          "value": "View all records"
         }
       }
     }
@@ -260,13 +260,13 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "已退款来自服务端报名状态；记录时间不是退款完成或到账时间。"
+          "value": "“已退款”为报名状态；记录时间不是退款完成或到账时间。"
         }
       },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Refunded is the returned registration status. Record time is not the refund completion or bank receipt time."
+          "value": "\"Refunded\" is the registration status. The record time isn't when the refund completed or reached the bank."
         }
       }
     }
@@ -363,6 +363,38 @@
         "stringUnit": {
           "state": "translated",
           "value": "Outreach record"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.paidAmountUnrecorded": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未记录"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not recorded"
+        }
+      }
+    }
+  },
+  "merchant.customerDetail.paidAmountExcludesRefunds": {
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "累计已付不含退款记录"
+        }
+      },
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Cumulative paid excludes refunded records"
         }
       }
     }

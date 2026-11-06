@@ -23,7 +23,6 @@ struct ProjectEditCompletionRulesForm: View {
                 }
                 Toggle("projectEdit.completion.enabled", isOn: $rules.bingoEnabled)
                     .accessibilityIdentifier("projectEdit.completion.enabled")
-                Text("projectEdit.completion.serverConditions").font(.caption).foregroundStyle(.secondary)
                 if let key = rules.validationIssue(totalNodes: totalNodes) { Label(LocalizedStringKey(key), systemImage: "exclamationmark.circle").foregroundStyle(.red) }
                 if rules.bingoEnabled, rules.cells.count == 9 {
                     ForEach(ProjectEditCompletionRules.displayOrder, id: \.self) { position in
@@ -32,7 +31,6 @@ struct ProjectEditCompletionRulesForm: View {
                                 .accessibilityIdentifier("projectEdit.completion.label.\(position)")
                             TextField("projectEdit.completion.coupon", text: $rules.cells[position].couponID)
                                 .keyboardType(.numberPad).accessibilityIdentifier("projectEdit.completion.coupon.\(position)")
-                            Text("projectEdit.completion.couponHint").font(.caption).foregroundStyle(.secondary)
                             TextField("projectEdit.completion.feedback", text: $rules.cells[position].feedbackText, axis: .vertical)
                                 .accessibilityIdentifier("projectEdit.completion.feedback.\(position)")
                         } label: {

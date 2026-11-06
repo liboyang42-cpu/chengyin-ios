@@ -4,29 +4,37 @@ import SwiftUI
     let reader: any SocialAccountReading
     var onOpenDestination: ((SocialGuideDestination) -> Void)? = nil
     var templateReader: (any DiscoveryReading)? = nil
+    var informationDestination: ((SocialInformation) -> AnyView)? = nil
     var body: some View {
         List {
+            Section { SocialGuideXcxHero() }
             Section("social.guide.modes") {
-                ForEach(SocialGuideMode.allCases) { mode in
-                    VStack(alignment: .leading, spacing: 8) {
-                        Label(mode.titleKey, systemImage: mode.icon).font(.headline)
-                        Text(mode.detailKey).foregroundStyle(.secondary)
-                        if let onOpenDestination { Button("social.guide.explore") { onOpenDestination(mode.destination) }.accessibilityIdentifier("social.guide.\(mode.rawValue)") }
-                    }.padding(.vertical, 5)
-                }
+                ForEach(SocialGuideMode.allCases) { mode in SocialGuideXcxModeRow(mode: mode, onOpen: onOpenDestination) }
             }
             SocialGuideTemplateSection(reader: templateReader)
-            Section("social.guide.information") {
+            Section {
                 SocialReadScreen(reader: reader, requestKey: "information-list", load: { try await reader.informationList() }) { rows in
-                    if rows.isEmpty { Text("social.guide.empty") }
+                    if rows.isEmpty {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("guideXcx.docsEmpty").font(.headline)
+                        }.accessibilityElement(children: .combine).accessibilityIdentifier("social.guide.docsEmpty")
+                    }
                     ForEach(rows) { row in
-                        NavigationLink { SocialInformationView(id: row.id, reader: reader) } label: {
+                        NavigationLink {
+                            if let informationDestination { informationDestination(row) }
+                            else { AnyView(SocialInformationView(id: row.id, reader: reader)) }
+                        } label: {
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(verbatim: row.title)
                                 if let summary = row.summary { Text(verbatim: summary).font(.footnote).foregroundStyle(.secondary) }
                             }
                         }.accessibilityIdentifier("social.information.\(row.id)")
                     }
+                }
+            } header: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("guideXcx.docs")
+                    Text("guideXcx.docsHint").font(.caption).textCase(nil)
                 }
             }
         }.appNavigationTitle("social.guide.title").accessibilityIdentifier("social.guide")
@@ -43,12 +51,13 @@ import SwiftUI
                     if row.isRemoved { Text("social.guide.removed") }
                     else {
                         Text(verbatim: row.title).font(.title2.bold())
+                        if let created = SocialText.nonempty(row.createTime) { Text(verbatim: created).font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("social.information.createTime") }
                         if let summary = row.summary { Text(verbatim: summary).foregroundStyle(.secondary) }
                         if let contents = row.contents { SocialArticleContentView(contents: contents) }
                         else { Text("social.guide.noContent") }
                     }
                 }
             }
-        }.appNavigationTitle("social.guide.information").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("social.information.detail")
+        }.appNavigationTitle("guideXcx.detailTitle").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("social.information.detail")
     }
 }

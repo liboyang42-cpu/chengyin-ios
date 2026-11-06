@@ -4,6 +4,8 @@ import SwiftUI
     let coordinator: NPCChatDataCoordinator
     @Published private(set) var revision = 0
     @Published private(set) var loadIntent: UUID?
+    /// Set only by the destructive dialog's confirm button; lifecycle exits clear it.
+    @Published private(set) var deletionIntent: UUID?
     private var visible = false
     private var active = false
     init(coordinator: NPCChatDataCoordinator) {
@@ -22,10 +24,25 @@ import SwiftUI
         guard !Task.isCancelled, visible, active, let intent, intent == loadIntent else { return }
         await coordinator.load()
     }
-    func suspend() { active = false; loadIntent = nil; coordinator.suspend() }
+    func requestDeletion() { guard visible, active else { return }; coordinator.requestDeletion() }
+    func cancelDeletion() { guard deletionIntent == nil else { return }; coordinator.cancelDeletion() }
+    func confirmDeletion() {
+        guard visible, active, deletionIntent == nil, coordinator.deletion == .confirming else { return }
+        deletionIntent = UUID()
+    }
+    func runDeletion(_ intent: UUID?) async {
+        guard !Task.isCancelled, visible, active, let intent, intent == deletionIntent else { return }
+        await coordinator.confirmDeletion()
+        if deletionIntent == intent { deletionIntent = nil }
+    }
+    func suspend() { active = false; loadIntent = nil; deletionIntent = nil; coordinator.suspend() }
     func foreground() { guard visible else { return }; active = true; coordinator.foreground() }
-    func sessionChanged() { loadIntent = nil; coordinator.sessionChanged() }
-    func disappear() { visible = false; active = false; loadIntent = nil; coordinator.invalidate() }
+    func sessionChanged() { loadIntent = nil; deletionIntent = nil; coordinator.sessionChanged() }
+    func disappear() { visible = false; active = false; loadIntent = nil; deletionIntent = nil; coordinator.invalidate() }
+    var deletionFailureKey: LocalizedStringKey? {
+        guard case .failed(let failure) = coordinator.deletion else { return nil }
+        return LocalizedStringKey("npcLogDelete.failure." + failure.rawValue)
+    }
 }
 
 struct NPCChatDataPresentation: Identifiable {
@@ -79,6 +96,9 @@ struct NPCChatDataPresentation: Identifiable {
                 if let failure = coordinator.failure {
                     Section { Text(LocalizedStringKey(failure.messageKey)).accessibilityIdentifier("npcData.failure") }
                 }
+                if coordinator.canRequestDeletion || coordinator.deletion != .idle {
+                    NPCChatLogDeletionSection(model: model)
+                }
                 if coordinator.canLoad {
                     Section {
                         Button("npcData.reload") { query = ""; model.requestLoad() }
@@ -90,17 +110,57 @@ struct NPCChatDataPresentation: Identifiable {
             .navigationTitle("npcData.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { model.disappear(); query = ""; dismiss() } } }
+            .confirmationDialog(Text("npcLogDelete.confirmTitle", tableName: "NPCChatLogDeletion"), isPresented: Binding(
+                get: { coordinator.deletion == .confirming && model.deletionIntent == nil },
+                set: { if !$0 { model.cancelDeletion() } }
+            ), titleVisibility: .visible) {
+                Button(role: .destructive) { model.confirmDeletion() } label: { Text("npcLogDelete.confirm", tableName: "NPCChatLogDeletion") }
+                    .accessibilityIdentifier("npcLogDelete.confirm")
+                Button(role: .cancel) { model.cancelDeletion() } label: { Text("npcLogDelete.cancel", tableName: "NPCChatLogDeletion") }
+            } message: { Text("npcLogDelete.confirmMessage", tableName: "NPCChatLogDeletion") }
         }
         .privacySensitive()
         .accessibilityIdentifier("npcData.screen")
         .onAppear { model.appear(active: scenePhase == .active) }
         .task(id: model.loadIntent) { [intent = model.loadIntent] in await model.load(intent) }
+        .task(id: model.deletionIntent) { [intent = model.deletionIntent] in await model.runDeletion(intent) }
         .onChange(of: coordinator.currentSession) { _, _ in query = ""; model.sessionChanged() }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { model.foreground() }
             else { query = ""; model.suspend() }
         }
         .onDisappear { query = ""; model.disappear() }
+    }
+}
+
+/// Log deletion only (BK-EXISTING); shown only when a host injected an approved deleter.
+@MainActor private struct NPCChatLogDeletionSection: View {
+    @ObservedObject var model: NPCChatDataViewModel
+    var body: some View {
+        let coordinator = model.coordinator
+        Section {
+            Text("npcLogDelete.scope", tableName: "NPCChatLogDeletion").font(.footnote).foregroundStyle(.secondary)
+            switch coordinator.deletion {
+            case .deleting:
+                ProgressView { Text("npcLogDelete.deleting", tableName: "NPCChatLogDeletion") }
+            case .deleted(let count):
+                LabeledContent { Text(verbatim: String(count)) } label: { Text("npcLogDelete.deletedCount", tableName: "NPCChatLogDeletion") }
+                    .accessibilityIdentifier("npcLogDelete.deleted")
+                Text("npcLogDelete.deletedBoundary", tableName: "NPCChatLogDeletion").font(.footnote)
+            case .unknown:
+                Text("npcLogDelete.unknown", tableName: "NPCChatLogDeletion").accessibilityIdentifier("npcLogDelete.unknown")
+            case .failed:
+                if let key = model.deletionFailureKey {
+                    Text(key, tableName: "NPCChatLogDeletion").accessibilityIdentifier("npcLogDelete.failure")
+                }
+            case .idle, .confirming:
+                EmptyView()
+            }
+            if coordinator.canRequestDeletion {
+                Button(role: .destructive) { model.requestDeletion() } label: { Text("npcLogDelete.action", tableName: "NPCChatLogDeletion") }
+                    .accessibilityIdentifier("npcLogDelete.action")
+            }
+        } header: { Text("npcLogDelete.title", tableName: "NPCChatLogDeletion") }
     }
 }
 

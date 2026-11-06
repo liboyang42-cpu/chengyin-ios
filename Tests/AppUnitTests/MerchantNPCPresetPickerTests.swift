@@ -149,3 +149,72 @@ import XCTest
         XCTAssertNil(MerchantNPCPresetPickerModel(document: document))
     }
 }
+
+extension MerchantNPCPresetPickerTests {
+    func testStablePresentationRetainsSelectionWithoutAnyRowLifetime() async throws {
+        let (document, reader) = try await harness(), owner = MerchantNPCPresetPresentation()
+        owner.appear(active: true); owner.open(permit: owner.generation, document: document)
+        let picker = try XCTUnwrap(owner.picker); picker.select("p18")
+        let binding = owner.binding(picker)
+        XCTAssertTrue(binding.wrappedValue === picker); XCTAssertEqual(owner.picker?.selectedID, "p18")
+        XCTAssertFalse(document.coordinator.isDirty); XCTAssertEqual(reader.saveCount, 0)
+    }
+    func testOldSheetGetterNilAndDismissCannotCloseNewPresetPicker() async throws {
+        let (document, _) = try await harness(), owner = MerchantNPCPresetPresentation()
+        owner.appear(active: true); owner.open(permit: owner.generation, document: document)
+        let old = try XCTUnwrap(owner.picker), binding = owner.binding(old)
+        owner.close(old.id); owner.open(permit: owner.generation, document: document)
+        let fresh = try XCTUnwrap(owner.picker); fresh.select("p25")
+        XCTAssertNil(binding.wrappedValue); binding.wrappedValue = nil; owner.close(old.id)
+        old.select("p18"); XCTAssertFalse(old.apply())
+        XCTAssertTrue(owner.picker === fresh); XCTAssertEqual(fresh.selectedID, "p25")
+    }
+    func testDepartureAndHiddenSceneRecoveryCannotReopenWithQueuedPermit() async throws {
+        let (document, reader) = try await harness(), owner = MerchantNPCPresetPresentation()
+        owner.appear(active: true); let oldPermit = owner.generation
+        owner.open(permit: oldPermit, document: document); let picker = try XCTUnwrap(owner.picker)
+        picker.select("p18"); owner.disappear(); owner.sceneChanged(active: false); owner.sceneChanged(active: true)
+        owner.open(permit: owner.generation, document: document)
+        XCTAssertFalse(owner.active); XCTAssertNil(owner.picker); XCTAssertFalse(picker.apply())
+        owner.appear(active: true); owner.open(permit: oldPermit, document: document); XCTAssertNil(owner.picker)
+        owner.open(permit: owner.generation, document: document); XCTAssertNotNil(owner.picker)
+        XCTAssertEqual(reader.saveCount, 0)
+    }
+    func testBackgroundRetiresLocalPickerAndExplicitNewOpenWorksAfterForeground() async throws {
+        let (document, _) = try await harness(), owner = MerchantNPCPresetPresentation()
+        owner.appear(active: true); owner.open(permit: owner.generation, document: document)
+        let old = try XCTUnwrap(owner.picker); old.select("p18"); let before = document.coordinator.draft
+        owner.sceneChanged(active: false); XCTAssertNil(owner.picker); XCTAssertFalse(old.apply())
+        owner.sceneChanged(active: true); XCTAssertTrue(owner.active); XCTAssertNil(owner.picker)
+        owner.open(permit: owner.generation, document: document); XCTAssertNotEqual(owner.picker?.id, old.id)
+        XCTAssertEqual(document.coordinator.draft, before)
+    }
+    func testCurrentCancelKeepsDraftAndOldCloseDoesNotConsumeLaterChoice() async throws {
+        let (document, reader) = try await harness(), owner = MerchantNPCPresetPresentation()
+        let before = document.coordinator.draft
+        owner.appear(active: true); owner.open(permit: owner.generation, document: document)
+        let first = try XCTUnwrap(owner.picker); first.select("p18"); owner.close(first.id)
+        XCTAssertEqual(document.coordinator.draft, before); XCTAssertFalse(document.coordinator.isDirty)
+        owner.open(permit: owner.generation, document: document)
+        let second = try XCTUnwrap(owner.picker); second.select("p25"); owner.close(first.id)
+        XCTAssertTrue(second.apply()); owner.close(second.id)
+        XCTAssertNil(owner.picker); XCTAssertTrue(document.coordinator.canReview); XCTAssertEqual(reader.saveCount, 0)
+    }
+    func testScopeSwitchRejectsOldBindingBeforeLifecycleCallback() async throws {
+        let (document, reader) = try await harness(), owner = MerchantNPCPresetPresentation()
+        owner.appear(active: true); owner.open(permit: owner.generation, document: document)
+        let old = try XCTUnwrap(owner.picker), binding = owner.binding(old); old.select("p18")
+        reader.switchAccount()
+        XCTAssertNil(binding.wrappedValue); XCTAssertFalse(old.apply()); XCTAssertEqual(reader.saveCount, 0)
+        owner.invalidate(); XCTAssertNil(owner.picker)
+    }
+    func testDraftReplacementRejectsFrozenPresetBeforeLifecycleCallback() async throws {
+        let (document, _) = try await harness(), owner = MerchantNPCPresetPresentation()
+        owner.appear(active: true); owner.open(permit: owner.generation, document: document)
+        let old = try XCTUnwrap(owner.picker), binding = owner.binding(old)
+        guard case .character(var draft) = document.coordinator.draft else { return XCTFail() }
+        draft.persona = "New local persona"; document.edit(.character(draft))
+        XCTAssertNil(binding.wrappedValue); XCTAssertFalse(old.apply())
+        XCTAssertEqual(document.coordinator.draft, .character(draft))
+    }
+}

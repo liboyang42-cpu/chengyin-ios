@@ -41,8 +41,8 @@ public struct ProfileEditReviewSummary: Equatable {
         if payload.removesContactQR {
             result.append(.init(field: .contactQR, before: .present(!snapshot.wechat.isEmpty), after: .present(false)))
         }
-        if payload.removesCasePictures {
-            result.append(.init(field: .casePictures, before: .imageCount(ProfileCasePortfolio(casePics: snapshot.casePics).imageCount), after: .imageCount(0)))
+        if payload.changesCasePictures {
+            result.append(.init(field: .casePictures, before: .imageCount(ProfileCasePortfolio(casePics: snapshot.casePics).imageCount), after: .imageCount(ProfileCasePortfolio(casePics: payload.casePics).imageCount)))
         }
         changes = result
     }

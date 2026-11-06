@@ -80,13 +80,18 @@ public struct CoopFlowReview: Equatable {
     private let now: () -> Date
     private var review: CoopFlowReview?
     private var busy = false
-    /// Closed by default. Tests may inject fake adapters and opt in. Shipping composition must keep false.
-    private let enabled: Bool
+    /// Closed by default. Read again at confirm so a revoked approval stops the POST.
+    private let enabled: () -> Bool
     public init(current: @escaping () -> CoopFlowSession?, evidence: any CoopFlowEvidenceReading,
-                executor: any CoopFlowExecuting, locks: any CoopFlowLockStore, enabled: Bool = false,
+                executor: any CoopFlowExecuting, locks: any CoopFlowLockStore, enabled: @escaping () -> Bool = { false },
                 now: @escaping () -> Date = Date.init) {
         self.current = current; self.evidence = evidence; self.executor = executor; self.locks = locks
         self.enabled = enabled; self.now = now
+    }
+    public convenience init(current: @escaping () -> CoopFlowSession?, evidence: any CoopFlowEvidenceReading,
+                            executor: any CoopFlowExecuting, locks: any CoopFlowLockStore, enabled: Bool,
+                            now: @escaping () -> Date = Date.init) {
+        self.init(current: current, evidence: evidence, executor: executor, locks: locks, enabled: { enabled }, now: now)
     }
     public func invalidate() { review = nil }
     public func prepare(_ operation: CoopFlowMutation) async throws -> CoopFlowReview {
@@ -104,7 +109,7 @@ public struct CoopFlowReview: Equatable {
         review = value; return value
     }
     public func confirm(_ accepted: CoopFlowReview) async throws -> CoopFlowJSON {
-        guard enabled, executor.permitsDispatch(accepted.operation) else { throw CoopFlowFailure.disabled }
+        guard enabled(), executor.permitsDispatch(accepted.operation) else { throw CoopFlowFailure.disabled }
         guard !accepted.operation.requiresSeparateEnablement || accepted.dispatchScope != nil else { throw CoopFlowFailure.disabled }
         guard !busy else { throw CoopFlowFailure.conflict }; busy = true; defer { busy = false }
         guard executor.dispatchScope == accepted.dispatchScope, review == accepted, let session = current(), session == accepted.capturedSession, session.accountID == accepted.accountID,
@@ -118,6 +123,11 @@ public struct CoopFlowReview: Equatable {
         guard executor.dispatchScope == accepted.dispatchScope else { throw CoopFlowFailure.stale }
         guard fresh.baseline == accepted.baseline else { throw CoopFlowFailure.conflict }
         guard try !hasLock(accepted.operation, account: session.accountID, scope: accepted.dispatchScope) else { throw CoopFlowFailure.ambiguous }
+        // Fresh evidence may suspend past the original confirmation deadline or revoke a
+        // separately supplied host gate. Recheck before acquiring a durable dispatch lock.
+        let dispatchAge = now().timeIntervalSince(accepted.created)
+        guard dispatchAge >= 0, dispatchAge <= 120 else { throw CoopFlowFailure.stale }
+        guard enabled(), executor.permitsDispatch(accepted.operation) else { throw CoopFlowFailure.disabled }
         let key = scopedLockKey(accepted.operation, account: session.accountID, scope: accepted.dispatchScope)
         try locks.acquire(key)
         // Any throw after acquire (timeout/cancel/malformed/server rejection/account switch) remains locked.
@@ -144,7 +154,30 @@ public struct CoopFlowReview: Equatable {
                   state.actions(direction: direction).contains(action) else { throw CoopFlowFailure.permission }
             if action == .cancel, row["status"].integer == 1,
                reason?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false { throw CoopFlowFailure.invalid("reason") }
+        case .withdrawOffer(let id, _):
+            // Fresh evidence must carry the account's own rows; the topic's
+            // productType/lifecycle are merged into the evidence row, never inferred.
+            let rows = fresh.baseline.rows ?? fresh.baseline["rows"].rows ?? fresh.baseline["mine"].rows ?? []
+            guard let row = rows.first(where: { $0["offerId"].integer == id }) else { throw CoopFlowFailure.permission }
+            var topic: CoopFlowJSON? = nil
+            if case .object = fresh.baseline["topic"] { topic = fresh.baseline["topic"] }
+            let subject = MerchantOfferWithdrawalSubject(mineRow: Self.merchantValue(row), topic: topic.map(Self.merchantValue))
+            guard subject.isEligible else { throw CoopFlowFailure.permission }
         default: break
+        }
+    }
+    /// Lossless-enough bridge for eligibility only: identifiers/states stay exact,
+    /// money and contact fields from evidence rows are not carried anywhere else.
+    static func merchantValue(_ value: CoopFlowJSON) -> MerchantContentValue {
+        switch value {
+        case .null: return .null
+        case .bool(let v): return .bool(v)
+        case .string(let v): return .string(v)
+        case .number(let v):
+            if let exact = Int(exactly: NSDecimalNumber(decimal: v)) { return .integer(exact) }
+            return .decimal(v)
+        case .array(let rows): return .array(rows.map(merchantValue))
+        case .object(let fields): return .object(fields.mapValues(merchantValue))
         }
     }
     private func scopedLockKey(_ op: CoopFlowMutation, account: Int, scope: String?) -> String {
@@ -169,7 +202,7 @@ public struct CoopFlowReview: Equatable {
         case .createTemplate: resource = "template-create"
         case .deleteTemplate(let id): resource = "template-\(id)"
         case .enrollOffer(let fields): resource = "offer-chapter-\(fields["chapterId"]?.integer ?? 0)"
-        case .reconfirmOffer(let id), .pauseOffer(let id): resource = "offer-\(id)"
+        case .reconfirmOffer(let id), .pauseOffer(let id), .withdrawOffer(let id, _): resource = "offer-\(id)"
         case .review(let topic, let member, _, _): resource = "review-\(topic)-\(member)"
         case .complaint(let id, _): resource = "complaint-\(id)"
         }

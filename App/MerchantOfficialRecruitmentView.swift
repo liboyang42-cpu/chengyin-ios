@@ -5,6 +5,8 @@ import SwiftUI
 @MainActor final class MerchantOfficialRecruitmentReader<Merchant: MerchantReading>: ObservableObject, OfficialEventReading {
     private let merchant: Merchant
     private let official: any OfficialEventReading
+    private var officialObservation: OfficialReadInvalidationSubscription?
+    var invalidationSignal: OfficialReadInvalidationSignal? { official.invalidationSignal }
     private let sourceIsCurrent: () -> Bool
     private let originRevision: UInt64
     private let originOfficialScope: UUID
@@ -25,6 +27,10 @@ import SwiftUI
     init(merchant: Merchant, official: any OfficialEventReading, sourceIsCurrent: @escaping () -> Bool) {
         self.merchant = merchant; self.official = official; self.sourceIsCurrent = sourceIsCurrent
         originRevision = merchant.sessionRevision; originOfficialScope = official.scope
+        officialObservation = official.invalidationSignal?.observe { [weak self] in
+            guard let self else { return }
+            self.generation = UUID(); self.objectWillChange.send()
+        }
     }
     private var current: Bool {
         active && merchant.sessionRevision == originRevision && official.scope == originOfficialScope

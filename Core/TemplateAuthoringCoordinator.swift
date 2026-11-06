@@ -14,6 +14,12 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
 @MainActor public final class TemplateAuthoringCoordinator {
     public enum State: Equatable { case idle, editing, reviewing, submitting, simulated, acknowledged, uncertain, blocked }
     private let adapter: TemplateAuthoringAdapter
+    private let requestService: TemplateAuthoringRequestHTTPService?
+    public private(set) var originalRequestBusy = false
+    public var canReadOriginalRequest: Bool {
+        !originalRequestBusy && state != .submitting && captured == currentSession() &&
+        pending?.serverRequest != nil && pending?.originalRequestValid == true && requestService?.canRead == true
+    }
     private let store: TemplateAuthoringLocalStore
     private let currentSession: () -> TemplateAuthoringSession?
     private var captured: TemplateAuthoringSession?
@@ -64,16 +70,19 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
         } catch { state = .blocked; messageKey = "templateAuthor.storageFailed"; return false }
     }
     public var canRead: Bool { adapter.canRead }
-    public var canSubmit: Bool { adapter.canSubmit }
-    public var canSimulate: Bool { adapter.canSimulate }
+    public var canSubmit: Bool {
+        if let requestService { return requestService.canSubmit(path: "/api/template/draft") || requestService.canSubmit(path: "/api/template/publish") }
+        return adapter.canSubmit
+    }
+    public var canSimulate: Bool { requestService == nil && adapter.canSimulate }
     public var locked: Bool { pending != nil || [.submitting, .uncertain, .simulated, .acknowledged, .blocked].contains(state) }
-    public init(adapter: TemplateAuthoringAdapter? = nil, store: TemplateAuthoringLocalStore, currentSession: @escaping () -> TemplateAuthoringSession?) {
-        self.adapter = adapter ?? .init(); self.store = store; self.currentSession = currentSession
+    public init(adapter: TemplateAuthoringAdapter? = nil, store: TemplateAuthoringLocalStore, requestService: TemplateAuthoringRequestHTTPService? = nil, currentSession: @escaping () -> TemplateAuthoringSession?) {
+        self.adapter = adapter ?? .init(); self.store = store; self.requestService = requestService; self.currentSession = currentSession
     }
     public func synchronizeSession() {
         guard captured != currentSession() else { return }
         generation += 1; captured = currentSession(); state = .idle; identity = .init(); draft = .init()
-        review = nil; pending = nil; rows = []; restore = .missing; messageKey = nil
+        review = nil; pending = nil; rows = []; restore = .missing; messageKey = nil; originalRequestBusy = false
         shelfGeneration += 1; shelfReview = nil; shelfPending = nil; shelfBusy = false; shelfBlocked = false; shelfMessageKey = nil
     }
     private func active(_ session: TemplateAuthoringSession, _ stamp: Int) -> Bool { currentSession() == session && captured == session && generation == stamp && !Task.isCancelled }
@@ -86,6 +95,8 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
             restore = store.load(session: session, identity: identity)
             pending = try store.pending(session: session, identity: identity)
             if let pending {
+                if case .ready(let envelope) = restore { draft = envelope.draft }
+                if pending.serverReceipt?.state == "REJECTED" { state = .blocked; messageKey = "templateAuthor.invalid"; return }
                 state = pending.terminal ? (pending.acknowledged == true ? .acknowledged : .simulated) : .uncertain
                 messageKey = pending.terminal ? (pending.acknowledged == true ? "templateAuthor.acknowledged" : "templateAuthor.simulated") : "templateAuthor.uncertain"; return
             }
@@ -129,17 +140,26 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
         } catch { messageKey = "templateAuthor.invalid" }
     }
     public func cancelReview() { review = nil; if state == .reviewing { state = .editing } }
-    public func leaveScreen() { generation += 1; shelfGeneration += 1; shelfReview = nil; review = nil; if state == .reviewing { state = .editing } }
+    public func leaveScreen() { generation += 1; originalRequestBusy = false; shelfGeneration += 1; shelfReview = nil; review = nil; if state == .reviewing { state = .editing } }
     public func confirm(_ value: TemplateAuthoringReview) async {
         synchronizeSession()
         guard !locked, review == value, value.session == currentSession(), value.identity == identity, value.generation == generation, value.draft == draft else { return }
-        guard canSubmit else { cancelReview(); messageKey = "templateAuthor.unavailable"; return }
+        guard canSubmit, requestService == nil || requestService?.canSubmit(path: value.request.path) == true else { cancelReview(); messageKey = "templateAuthor.unavailable"; return }
         let session = value.session; generation += 1; let stamp = generation; review = nil
         do {
             if let existing = try store.pending(session: session, identity: identity) { pending = existing; state = .uncertain; messageKey = "templateAuthor.uncertain"; return }
             // Both active pointer and full intent must survive before the transport is called.
             try store.save(draft, session: session, identity: identity)
-            let intent = TemplateAuthoringPending(operationID: value.id, ownerKey: session.ownerKey, identity: identity, request: value.request, createdAt: Date())
+            var intent = TemplateAuthoringPending(operationID: value.id, ownerKey: session.ownerKey, identity: identity, request: value.request, createdAt: Date())
+            if requestService != nil {
+                let command = try TemplateAuthoringRequestReceipt.Command(request: value.request)
+                intent.serverRequest = try .init(id: value.id, command: command)
+                guard try store.active(session: session) == identity,
+                      case .ready(let checkpoint) = store.load(session: session, identity: identity),
+                      ProjectEditPendingMaterials.exactData(checkpoint.draft) == ProjectEditPendingMaterials.exactData(draft) else {
+                    throw TemplateAuthoringError.storageUnavailable
+                }
+            }
             try store.savePending(intent, session: session)
             guard active(session, stamp) else {
                 // Preserve the durable lock without restoring old-owner state into a new session.
@@ -149,6 +169,12 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
                 return
             }
             pending = intent; state = .submitting
+            if let requestService, let request = intent.serverRequest {
+                let receipt = try await requestService.submit(request, session: session)
+                guard active(session, stamp) else { return }
+                try acceptOriginalReceipt(receipt, intent: intent, session: session, stamp: stamp)
+                return
+            }
             let submission = await adapter.submitWithReceipt(value.request)
             let outcome = submission.outcome
             guard active(session, stamp) else { return }
@@ -171,6 +197,46 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
         } catch {
             guard active(session, stamp) else { return }
             state = pending == nil ? .blocked : .uncertain; messageKey = pending == nil ? "templateAuthor.storageFailed" : "templateAuthor.uncertain"
+        }
+    }
+    private func acceptOriginalReceipt(_ receipt: TemplateAuthoringRequestReceipt.Receipt,
+                                       intent: TemplateAuthoringPending, session: TemplateAuthoringSession, stamp: Int) throws {
+        guard intent.originalRequestValid, let request = intent.serverRequest, receipt.matches(request),
+              try store.pending(session: session, identity: intent.identity) == intent else { throw TemplateAuthoringError.invalidContract }
+        if let prior = intent.serverReceipt, prior.terminal {
+            guard prior.state == receipt.state, prior.memberTemplateID == receipt.memberTemplateID else { throw TemplateAuthoringError.invalidContract }
+        }
+        var saved = intent; saved.serverReceipt = receipt
+        if receipt.committed, let id = receipt.memberTemplateID {
+            saved.terminal = true; saved.acknowledged = true
+            if intent.request.path == "/api/template/draft" {
+                saved.savedDraft = try .init(operationID: intent.operationID, ownerKey: intent.ownerKey, identity: intent.identity, memberTemplateID: id, request: intent.request)
+            } else {
+                saved.publishedReceipt = try .init(operationID: intent.operationID, ownerKey: intent.ownerKey, identity: intent.identity, memberTemplateID: id, request: intent.request)
+            }
+        }
+        // Read back the same durable record before exposing a handoff. NOT_FOUND,
+        // RUNNING, rejected, and failures never remove or resend the original request.
+        try store.savePending(saved, session: session)
+        guard active(session, stamp), pending == intent else { throw TemplateAuthoringError.changedSession }
+        pending = saved
+        state = receipt.committed ? .acknowledged : receipt.state == "REJECTED" ? .blocked : .uncertain
+        messageKey = receipt.committed ? "templateAuthor.acknowledged" : receipt.state == "REJECTED" ? "templateAuthor.invalid" : "templateAuthor.uncertain"
+    }
+    public func readOriginalRequest() async {
+        synchronizeSession()
+        guard canReadOriginalRequest, let session = captured, let intent = pending,
+              let request = intent.serverRequest, let requestService else { return }
+        generation += 1; let stamp = generation; review = nil; originalRequestBusy = true
+        defer { if generation == stamp { originalRequestBusy = false } }
+        do {
+            guard try store.pending(session: session, identity: intent.identity) == intent else { throw TemplateAuthoringError.invalidContract }
+            let receipt = try await requestService.read(request, session: session)
+            guard active(session, stamp), pending == intent else { return }
+            try acceptOriginalReceipt(receipt, intent: intent, session: session, stamp: stamp)
+        } catch {
+            guard active(session, stamp) else { return }
+            messageKey = "templateAuthor.uncertain"
         }
     }
     public func loadMine() async {
@@ -213,7 +279,7 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
     public func confirmShelf(_ value: TemplateOwnShelfReview) async {
         synchronizeSession()
         guard !shelfLocked, shelfReview == value, value.session == captured,
-              value.generation == shelfGeneration, canSubmit else { return }
+              value.generation == shelfGeneration, adapter.canSubmit else { return }
         let session = value.session; let stamp = shelfGeneration
         shelfReview = nil; shelfBusy = true
         defer { if shelfGeneration == stamp { shelfBusy = false } }
@@ -262,6 +328,6 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
             shelfMessageKey = shelfPending == nil ? "templateAuthor.shelf.preflightFailed" : "templateAuthor.shelf.unknown"
         }
     }
-    // No source operation-receipt or reconciliation contract exists. Never clear an
-    // uncertain mutation merely because /my-list contains a matching title.
+    // Shelf mutations and legacy local-only operations still have no producer receipt.
+    // Never clear an uncertain mutation because /my-list contains a matching title.
 }

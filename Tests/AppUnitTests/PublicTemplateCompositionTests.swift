@@ -450,6 +450,100 @@ import XCTest
             }
         }
     }
+    func testCatalogVisitReturnReplacesRowsAndKeepsAppliedNameFilter() async throws {
+        let wire = Wire(); let (session, _) = try makeSession(wire)
+        let owner = PublicTemplateCatalogVisitOwner()
+        let first = try XCTUnwrap(owner.appear(reader: session))
+        await owner.load(reader: session, visit: first)
+        let filter = DiscoveryTopicTemplateNameSearch("route")
+        XCTAssertEqual(filter.filter(try XCTUnwrap(owner.value)).map(\.id), [801])
+        let detail = session.publicTopicTemplateCoordinator(id: 801)
+        owner.cover(); owner.disappear(); await detail.load()
+        wire.catalogJSON = #"{"code":200,"data":[{"id":802,"name":"New route"}]}"#
+        owner.uncover()
+        let returned = try XCTUnwrap(owner.appear(reader: session))
+        await owner.load(reader: session, visit: returned)
+        XCTAssertEqual(filter.filter(try XCTUnwrap(owner.value)).map(\.id), [802])
+        XCTAssertEqual(wire.requests.filter { $0.url?.path.hasSuffix(Self.catalog) == true }.count, 2)
+        XCTAssertTrue(owner.canOpen(reader: session))
+    }
+    func testRetainedParentReturnInvalidatesQueuedCoveredRead() async throws {
+        let wire = Wire(); let (session, _) = try makeSession(wire)
+        let owner = PublicTemplateCatalogVisitOwner()
+        let oldVisit = try XCTUnwrap(owner.appear(reader: session))
+        await owner.load(reader: session, visit: oldVisit)
+        owner.cover()
+        await owner.load(reader: session, visit: oldVisit)
+        XCTAssertFalse(owner.canOpen(reader: session)); XCTAssertEqual(wire.requests.count, 1)
+        owner.uncover()
+        await owner.load(reader: session, visit: owner.visit)
+        XCTAssertEqual(wire.requests.count, 2); XCTAssertTrue(owner.canOpen(reader: session))
+    }
+    func testCatalogVisitCoalescesConcurrentRequests() async throws {
+        let wire = Wire(); let (session, _) = try makeSession(wire)
+        let owner = PublicTemplateCatalogVisitOwner(), started = expectation(description: "Visit catalog paused")
+        let visit = try XCTUnwrap(owner.appear(reader: session))
+        wire.pauseNextCatalog = true; wire.onPaused = { started.fulfill() }
+        let read = Task { await owner.load(reader: session, visit: visit) }
+        await fulfillment(of: [started], timeout: 2)
+        XCTAssertNil(owner.appear(reader: session))
+        await owner.load(reader: session, visit: visit)
+        XCTAssertEqual(wire.requests.count, 1)
+        wire.resume(status: 200); await read.value
+        XCTAssertEqual(owner.value?.map(\.id), [801]); XCTAssertFalse(owner.isLoading)
+    }
+    func testHiddenCatalogUnauthorizedCannotExpireSessionOrOverwriteReturn() async throws {
+        let wire = Wire(); let (session, vault) = try makeSession(wire, auth: true)
+        await signIn(session, recorder: wire)
+        let owner = PublicTemplateCatalogVisitOwner(), started = expectation(description: "Leaving catalog")
+        let first = try XCTUnwrap(owner.appear(reader: session))
+        wire.pauseNextCatalog = true; wire.onPaused = { started.fulfill() }
+        let old = Task { await owner.load(reader: session, visit: first) }
+        await fulfillment(of: [started], timeout: 2)
+        owner.disappear()
+        let next = try XCTUnwrap(owner.appear(reader: session))
+        wire.catalogJSON = #"{"code":200,"data":[{"id":802,"name":"Replacement"}]}"#
+        await owner.load(reader: session, visit: next)
+        wire.resume(status: 401); await old.value
+        XCTAssertEqual(owner.value?.map(\.id), [802]); XCTAssertNil(owner.error)
+        XCTAssertEqual(session.account?.id, 7); XCTAssertEqual(vault.value, "synthetic-7")
+    }
+    func testCatalogCurrentFailureRetryAndEmptyAreDistinct() async throws {
+        let wire = Wire(); let (session, _) = try makeSession(wire)
+        let owner = PublicTemplateCatalogVisitOwner()
+        let visit = try XCTUnwrap(owner.appear(reader: session))
+        wire.catalogStatus = 503
+        await owner.load(reader: session, visit: visit)
+        XCTAssertNotNil(owner.error); XCTAssertNil(owner.value); XCTAssertFalse(owner.canOpen(reader: session))
+        wire.catalogStatus = 200; wire.catalogJSON = #"{"code":200,"data":[]}"#
+        await owner.load(reader: session, visit: visit)
+        XCTAssertNil(owner.error); XCTAssertEqual(owner.value?.count, 0); XCTAssertFalse(owner.isLoading)
+    }
+    func testAcceptedCurrentVisitUnauthorizedStillExpiresSession() async throws {
+        let wire = Wire(); let (session, vault) = try makeSession(wire, auth: true)
+        await signIn(session, recorder: wire)
+        let owner = PublicTemplateCatalogVisitOwner()
+        let visit = try XCTUnwrap(owner.appear(reader: session))
+        wire.catalogStatus = 401
+        await owner.load(reader: session, visit: visit)
+        XCTAssertEqual(owner.error as? APIError, .unauthorized)
+        XCTAssertNil(session.account); XCTAssertNil(vault.value)
+        XCTAssertEqual(session.errorKey, "auth.expired")
+    }
+    func testCatalogIdentityChangeClearsProjectionAndRejectsOldVisit() async throws {
+        let wire = Wire(); let (session, _) = try makeSession(wire, auth: true)
+        let owner = PublicTemplateCatalogVisitOwner()
+        let old = try XCTUnwrap(owner.appear(reader: session))
+        await owner.load(reader: session, visit: old)
+        await signIn(session, recorder: wire)
+        XCTAssertTrue(owner.synchronize(reader: session)); XCTAssertNil(owner.value)
+        let count = wire.requests.count
+        await owner.load(reader: session, visit: old)
+        XCTAssertEqual(wire.requests.count, count)
+        await owner.load(reader: session, visit: owner.visit)
+        XCTAssertEqual(owner.value?.map(\.id), [801])
+    }
+
     @MainActor private final class Vault: AppTokenStorage {
         var value: String?
         func read() throws -> String? { value }

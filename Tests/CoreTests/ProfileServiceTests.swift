@@ -137,6 +137,81 @@ final class ProfileServiceTests: XCTestCase {
         do { _ = try await service(transport).badgeWall(token: "fixture-token"); XCTFail() }
         catch { XCTAssertTrue(error is CancellationError) }
     }
+    func testPlatformWallKeepsServerScopeWithoutClubBackfill() async throws {
+        // BK-BADGE: the platform wall drops unowned club_id definitions; owned club rows still arrive
+        // from the server. The client renders exactly those rows and never queries a club scope to pad counts.
+        let transport = ProfileTestTransport([
+            .json(#"{"code":200,"data":{"identity":[{"badgeCode":"PLATFORM-ID","unlocked":false},{"badgeCode":"OWNED-CLUB-ID","unlocked":true,"unlockTime":"2026-10-01 09:00:00"}],"growth":[{"badgeCode":"CLUB-GROWTH"}]}}"#),
+            .json(#"{"code":200,"data":{"count":0,"medals":[]}}"#)
+        ])
+        let wall = try await service(transport).badgeWall(token: "fixture-token")
+        XCTAssertEqual(wall.identities.map(\.badgeCode), ["PLATFORM-ID", "OWNED-CLUB-ID"])
+        XCTAssertEqual(wall.identities.map(\.unlocked), [false, true])
+        XCTAssertEqual(wall.medals, []); XCTAssertFalse(wall.isEmpty); XCTAssertFalse(wall.isPartial)
+        XCTAssertEqual(transport.requests.map { $0.url!.path }, ["/fixture/api/badge/wall-v2", "/fixture/api/medal/wall"])
+    }
+    func testEmptyDeniedAndFailedWallsRemainDistinct() async throws {
+        let empty = try await service(ProfileTestTransport([
+            .json(#"{"code":200,"data":{"identity":[]}}"#), .json(#"{"code":200,"data":{"medals":[]}}"#)
+        ])).badgeWall(token: "fixture-token")
+        XCTAssertTrue(empty.isEmpty); XCTAssertFalse(empty.isPartial)
+        // A refused medal read keeps the established identity cards as a partial wall.
+        let deniedMedals = try await service(ProfileTestTransport([
+            .json(#"{"code":200,"data":{"identity":[{"badgeCode":"ID","unlocked":true}]}}"#),
+            .json(#"{"code":403,"msg":"Not visible"}"#, status: 403)
+        ])).badgeWall(token: "fixture-token")
+        XCTAssertEqual(deniedMedals.identities.map(\.badgeCode), ["ID"])
+        XCTAssertTrue(deniedMedals.isPartial); XCTAssertFalse(deniedMedals.isEmpty)
+        for reply in [ProfileTestReply.json(#"{"code":403,"msg":"Not visible"}"#, status: 403), .json(#"{"code":403,"msg":"Not visible"}"#)] {
+            do { _ = try await service(ProfileTestTransport([reply])).badgeWall(token: "fixture-token"); XCTFail() }
+            catch {
+                let failure = try XCTUnwrap(error as? ProfileReadFailure)
+                XCTAssertTrue(failure.isDenied); XCTAssertFalse(failure.isUnauthorized)
+            }
+        }
+        for failure in [ProfileReadFailure(httpStatus: 401), ProfileReadFailure(code: 401), ProfileReadFailure(httpStatus: 500, code: 500)] {
+            XCTAssertFalse(failure.isDenied)
+        }
+    }
+    @MainActor func testBadgeWallReadIsNotCarriedAcrossAccounts() async throws {
+        let transport = ProfileSuspendedTransport()
+        let first = try ProfileReadSession(accountID: 31, epoch: 1, token: "fixture-token-a")
+        let second = try ProfileReadSession(accountID: 32, epoch: 2, token: "fixture-token-b")
+        var current: ProfileReadSession? = first
+        var unauthorized: [Int] = []
+        let service = ProfileService(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com/fixture/")!), transport: transport)
+        let reader = ProfileSessionReader(service: service, currentSession: { current },
+                                          onUnauthorized: { unauthorized.append($0.identity.accountID) })
+        let stale = Task { try await reader.profileBadges() }
+        await transport.waitForRequests(1)
+        current = second
+        await transport.reply(#"{"code":200,"data":{"identity":[{"badgeCode":"ACCOUNT-A","unlocked":true}]}}"#)
+        await transport.waitForRequests(2)
+        await transport.reply(#"{"code":200,"data":{"medals":[]}}"#)
+        do { _ = try await stale.value; XCTFail("Account A's wall must not surface under account B") }
+        catch { XCTAssertTrue(error is CancellationError) }
+        let fresh = Task { try await reader.profileBadges() }
+        await transport.waitForRequests(3)
+        await transport.reply(#"{"code":200,"data":{"identity":[{"badgeCode":"ACCOUNT-B","unlocked":false}]}}"#)
+        await transport.waitForRequests(4)
+        await transport.reply(#"{"code":200,"data":{"medals":[]}}"#)
+        let wall = try await fresh.value
+        XCTAssertEqual(wall.identities.map(\.badgeCode), ["ACCOUNT-B"])
+        let tokens = await transport.tokens
+        XCTAssertEqual(tokens, ["fixture-token-a", "fixture-token-a", "fixture-token-b", "fixture-token-b"])
+        XCTAssertTrue(unauthorized.isEmpty)
+    }
+}
+
+private actor ProfileSuspendedTransport: HTTPTransport {
+    private var pending: [CheckedContinuation<(Data, Int), Error>] = []
+    private(set) var tokens: [String] = []
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        tokens.append(request.value(forHTTPHeaderField: "Authorization") ?? "")
+        return try await withCheckedThrowingContinuation { pending.append($0) }
+    }
+    func waitForRequests(_ count: Int) async { while tokens.count < count || pending.isEmpty { await Task.yield() } }
+    func reply(_ json: String) { pending.removeFirst().resume(returning: (Data(json.utf8), 200)) }
 }
 
 struct ProfileTestReply {

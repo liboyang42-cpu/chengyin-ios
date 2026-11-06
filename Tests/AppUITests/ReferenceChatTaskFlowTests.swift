@@ -68,6 +68,7 @@ final class ReferenceChatTaskFlowTests: XCTestCase {
         let app = launch(["--uitesting-module", "composer"])
         let input = element("message.send.input", app); XCTAssertTrue(input.waitForExistence(timeout: 5)); input.tap(); input.typeText(String(repeating: "Message text ", count: 12))
         XCTAssertTrue(app.buttons["message.send.button"].isHittable)
+        attachFixtureScreenshot(self, app: app, name: "IM long draft with keyboard visible")
         app.buttons["message.send.keyboard.done"].tap()
         XCTAssertTrue(app.buttons["message.send.button"].isHittable)
         attachFixtureScreenshot(self, app: app, name: "IM long draft and pinned composer")

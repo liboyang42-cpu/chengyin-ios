@@ -18,7 +18,13 @@ public struct TeamSession: Equatable {
     }
 }
 public enum TeamServiceAuthority: Equatable { case unconfigured, readOnly, approved, synthetic }
-public enum TeamWriteOutcome: Equatable { case simulated(operationID: UUID, teamID: Int), acknowledged(operationID: UUID, teamID: Int), rejected, notSent, unknown }
+public enum TeamWriteOutcome: Equatable {
+    case simulated(operationID: UUID, teamID: Int), acknowledged(operationID: UUID, teamID: Int)
+    /// Operation/team correlation is local; the server returns only the confirmed mode.
+    case joinModeSimulated(operationID: UUID, teamID: Int, mode: TeamJoinMode)
+    case joinModeAcknowledged(operationID: UUID, teamID: Int, mode: TeamJoinMode)
+    case rejected, notSent, unknown
+}
 @MainActor public protocol TeamServing: AnyObject {
     var authority: TeamServiceAuthority { get }
     func myTeams(session: TeamSession) async throws -> [OwnedTeam]

@@ -152,18 +152,18 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
     }
     private func memberRow(_ member: ClubMember) -> some View {
         HStack(spacing: 12) {
-            Image(systemName: "person.crop.circle.fill").font(.title).foregroundStyle(.secondary).accessibilityHidden(true)
+            Image(systemName: "person.crop.circle.fill").font(.title).foregroundStyle(.tertiary).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
                 if let nickname = member.trimmedNickname { Text(verbatim: nickname) }
                 else { Text("club.memberNumber \(member.memberId)") }
-                if member.isOwner { Text("club.role.creator").font(.caption).foregroundStyle(.secondary) }
-                else if member.isAdmin { Text("club.role.administrator").font(.caption).foregroundStyle(.secondary) }
+                if member.isOwner { Text("club.role.creator").font(Theme.Font.label).foregroundStyle(.secondary) }
+                else if member.isAdmin { Text("club.role.administrator").font(Theme.Font.label).foregroundStyle(.secondary) }
                 if let level = member.displayedLevel {
-                    Text("club.memberLevel \(level)").font(.caption).foregroundStyle(.secondary)
+                    Text("club.memberLevel \(level)").font(Theme.Font.label).foregroundStyle(.secondary)
                         .accessibilityIdentifier("club.member.level.\(member.memberId)")
                 }
                 if let joined = member.displayedJoinTime {
-                    Text("club.memberJoined \(joined)").font(.caption).foregroundStyle(.secondary)
+                    Text("club.memberJoined \(joined)").font(Theme.Font.label).foregroundStyle(.secondary)
                         .accessibilityIdentifier("club.member.joined.\(member.memberId)")
                 }
             }

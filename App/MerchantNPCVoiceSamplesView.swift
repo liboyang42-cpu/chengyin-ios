@@ -9,9 +9,11 @@ import SwiftUI
     @StateObject private var model: MerchantNPCVoiceSamplesModel
     @State private var ownsVoice = false
     @State private var consent = false
+    @State private var resetVisible = false
     @Environment(\.scenePhase) private var scenePhase
     init(coordinator: MerchantNPCVoiceSamplesCoordinator) { _model = StateObject(wrappedValue: .init(coordinator)) }
     var body: some View {
+        let reset = model.coordinator.resetReview
         Section("merchantVoice.title") {
             Text("merchantVoice.disclosure")
             if model.coordinator.configuration == nil { Text("merchantVoice.configurationRequired") }
@@ -36,6 +38,12 @@ import SwiftUI
                     }.accessibilityElement(children: .contain)
                 }
             }
+            Button("merchantVoice.reset.open", role: .destructive) {
+                guard resetVisible, scenePhase == .active else { return }
+                model.coordinator.prepareLocalReset()
+            }
+                .disabled(!model.coordinator.canResetLocalSamples)
+                .accessibilityIdentifier("merchantVoice.reset.open")
             Button("merchantVoice.stopPlayback") { model.coordinator.stopPlayback() }.disabled(model.coordinator.recording != nil || model.coordinator.busy)
             Button("merchantVoice.reviewUpload") { model.coordinator.prepareUpload() }
                 .disabled(!model.coordinator.ready || model.coordinator.recording != nil || model.coordinator.clips.count != 5 || model.coordinator.uploaded.count == 5)
@@ -55,9 +63,23 @@ import SwiftUI
             if model.coordinator.unresolved { Text("merchantVoice.unknown").accessibilityIdentifier("merchantVoice.unknown") }
             MerchantNPCIssue(failure: model.coordinator.failure)
         }
+        .confirmationDialog("merchantVoice.reset.title", isPresented: Binding(
+            get: { resetVisible && scenePhase == .active && reset != nil && model.coordinator.resetReview?.id == reset?.id },
+            set: { showing in if !showing, let reset { model.coordinator.cancelLocalReset(reset.id) } }),
+            titleVisibility: .visible, presenting: reset) { captured in
+                Button("merchantVoice.reset.confirm", role: .destructive) {
+                    guard resetVisible, scenePhase == .active else { return }
+                    _ = model.coordinator.confirmLocalReset(captured.id)
+                }.accessibilityIdentifier("merchantVoice.reset.confirm")
+                Button("action.cancel", role: .cancel) { model.coordinator.cancelLocalReset(captured.id) }
+                    .accessibilityIdentifier("merchantVoice.reset.cancel")
+            } message: { _ in
+                Text("merchantVoice.reset.message")
+            }
         .onChange(of: ownsVoice) { _, _ in model.coordinator.attest(ownsVoice: ownsVoice, consent: consent) }
         .onChange(of: consent) { _, _ in model.coordinator.attest(ownsVoice: ownsVoice, consent: consent) }
-        .onDisappear { model.coordinator.invalidate() }
+        .onAppear { resetVisible = true }
+        .onDisappear { resetVisible = false; model.coordinator.invalidate() }
         .onChange(of: scenePhase) { _, phase in if phase != .active { model.coordinator.invalidate(); ownsVoice = false; consent = false } }
         .privacySensitive()
     }

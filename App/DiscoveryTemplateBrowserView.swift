@@ -6,7 +6,12 @@ struct DiscoveryTemplateBrowserView: View {
     let reader: any DiscoveryReading
     let authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)?
     let authoringRevision: UInt64
+    let authoringCompletion: TemplateAuthoringCompletionContext?
     let imageReader: (any RetainedPublicImageReading)?
+    /// Mini-program merchant scope; staff without project management only browse.
+    let templateTabScope: TemplateTabScope
+    /// Mini-program template tab: the "+" opens the publish menu. Hidden for staff who only browse.
+    let publishDestination: (() -> AnyView)?
     @State private var tab = Shelf.topics
     @State private var categoryID: Int?
     @State private var pack: DiscoveryPackType?
@@ -15,7 +20,8 @@ struct DiscoveryTemplateBrowserView: View {
     @State private var topicKeyword = ""
     @FocusState private var topicSearchFocused: Bool
     @State private var appliedTopicSearch = DiscoveryTopicTemplateNameSearch("")
-    @StateObject private var topics = DiscoveryLoader<[DiscoveryTopicTemplate]>()
+    @StateObject private var topics = PublicTemplateCatalogVisitOwner()
+    @State private var topicSelection: PublicTemplateCatalogSelection?
     @StateObject private var games = DiscoveryLoader<[DiscoveryPlayTemplate]>()
     @StateObject private var home = DiscoveryLoader<DiscoveryTemplateHome>()
 
@@ -28,9 +34,10 @@ struct DiscoveryTemplateBrowserView: View {
     private var query: Query { Query(tab: tab, pack: pack, keyword: appliedKeyword) }
     private var hasGameFilter: Bool { pack != nil || !appliedKeyword.isEmpty }
 
-    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil) {
+    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil, templateTabScope: TemplateTabScope = .consumer, publishDestination: (() -> AnyView)? = nil) {
+        self.publishDestination = publishDestination
         self.reader = reader; self.authoringFactory = authoringFactory; self.authoringRevision = authoringRevision
-        self.imageReader = imageReader
+        self.imageReader = imageReader; self.authoringCompletion = authoringCompletion; self.templateTabScope = templateTabScope
     }
 
     var body: some View {
@@ -39,6 +46,12 @@ struct DiscoveryTemplateBrowserView: View {
                 ContentUnavailableView("discovery.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
             } else {
                 List {
+                    if templateTabScope == .merchant(canManageProjects: false) {
+                        Section {
+                            Text("discovery.templateTab.staffReadOnly").font(.footnote)
+                                .accessibilityIdentifier("discovery.templateTab.staffReadOnly")
+                        }
+                    }
                     Section {
                         Picker("discovery.shelf", selection: $tab) {
                             Text("discovery.topics").tag(Shelf.topics)
@@ -50,19 +63,65 @@ struct DiscoveryTemplateBrowserView: View {
                 }.refreshable { await reloadCurrent() }
             }
         }
-        .appNavigationTitle("discovery.browseTemplates")
+        .appNavigationTitle("discovery.templateTab.title")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                if let publishDestination, templateTabScope != .merchant(canManageProjects: false) {
+                    NavigationLink { publishDestination() } label: {
+                        Label("discovery.templateTab.publish", systemImage: "plus")
+                    }.accessibilityIdentifier("discovery.templateTab.publish")
+                }
+            }
+        }
         .task {
             guard reader.isConfigured, home.value == nil else { return }
             await loadHome()
         }
         .task(id: query) {
             guard reader.isConfigured else { return }
-            if tab == .topics {
-                if topics.value == nil { await loadTopics() }
-            } else if hasGameFilter {
-                await loadGames()
+            if tab == .games && hasGameFilter { await loadGames() }
+        }
+        .onAppear {
+            if let visit = topics.appear(reader: reader), tab == .topics, topicSelection == nil {
+                Task { await topics.load(reader: reader, visit: visit) }
             }
         }
+        .onDisappear { topics.disappear() }
+        .onChange(of: tab) { _, next in
+            if next == .topics { scheduleTopicReload() }
+            else { topics.cancelPending() }
+        }
+        .onReceive(reader.discoveryPresentationChanges) { _ in
+            // AppSession publishes before mutating its identity.
+            Task { @MainActor in
+                await Task.yield()
+                if topics.synchronize(reader: reader) {
+                    topicSelection = nil
+                    if tab == .topics { scheduleTopicReload() }
+                }
+            }
+        }
+        .navigationDestination(isPresented: topicDetailBinding) {
+            if let selected = topicSelection,
+               selected.identity == reader.discoveryPresentationIdentity {
+                DiscoveryTopicTemplatePreview(coordinator: selected.coordinator).id(selected.id)
+            } else { Text("social.changed") }
+        }
+    }
+
+    private var topicDetailBinding: Binding<Bool> {
+        let selectedID = topicSelection?.id
+        return Binding(get: { topicSelection != nil }, set: { presented in
+            guard !presented, let selectedID, topicSelection?.id == selectedID else { return }
+            topicSelection = nil
+            topics.uncover()
+            // A retained parent may not receive another onAppear.
+            if tab == .topics { scheduleTopicReload() }
+        })
+    }
+    private func scheduleTopicReload() {
+        let visit = topics.visit
+        Task { await topics.load(reader: reader, visit: visit) }
     }
 
     @ViewBuilder private var topicShelf: some View {
@@ -76,7 +135,6 @@ struct DiscoveryTemplateBrowserView: View {
                 Button("discovery.searchAction") { applyTopicSearch() }
                     .accessibilityIdentifier("discovery.topicNameSearch.submit")
             }
-            Text("discovery.topicNameSearchScope").font(.caption).foregroundStyle(.secondary)
             if appliedTopicSearch.isActive {
                 Text(verbatim: appliedTopicSearch.keyword)
                     .accessibilityIdentifier("discovery.topicNameSearch.applied")
@@ -175,9 +233,12 @@ struct DiscoveryTemplateBrowserView: View {
         if !rows.isEmpty {
             Section(title) {
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, item in
-                    NavigationLink {
-                        DiscoveryTopicTemplatePreview(coordinator: reader.publicTopicTemplateCoordinator(id: item.id))
-                            .id(item.id) // Filtering must not reuse another row's stateful detail.
+                    Button {
+                        guard topicSelection == nil, topics.canOpen(reader: reader),
+                              topics.value?.contains(where: { $0.id == item.id }) == true else { return }
+                        topicSelection = .init(identity: reader.discoveryPresentationIdentity,
+                            coordinator: reader.publicTopicTemplateCoordinator(id: item.id))
+                        topics.cover()
                     } label: {
                         VStack(alignment: .leading, spacing: 6) {
                             DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").font(.headline)
@@ -186,7 +247,8 @@ struct DiscoveryTemplateBrowserView: View {
                             }
                             DiscoveryTopicMetadata(item: item)
                         }.padding(.vertical, 6)
-                    }.accessibilityIdentifier("discovery.topic.\(item.id)")
+                    }.disabled(!topics.canOpen(reader: reader))
+                        .accessibilityIdentifier("discovery.topic.\(item.id)")
                 }
             }
         }
@@ -196,7 +258,7 @@ struct DiscoveryTemplateBrowserView: View {
             Section(title) {
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, item in
                     NavigationLink {
-                        DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: authoringFactory, authoringRevision: authoringRevision, imageReader: imageReader)
+                        DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: TemplateTabPolicy.refusal(for: .configure, previewOnly: false, scope: templateTabScope) == nil ? authoringFactory : nil, authoringRevision: authoringRevision, imageReader: imageReader, authoringCompletion: authoringCompletion)
                     } label: { DiscoveryPlayRow(item: item) }
                     .accessibilityIdentifier("discovery.play.\(item.id)")
                 }
@@ -212,8 +274,7 @@ struct DiscoveryTemplateBrowserView: View {
     }
     private func loadHome() async { await home.load { try await reader.discoveryTemplateHome() } }
     private func loadTopics() async {
-        let request = reader.publicTopicTemplateCatalogRequest()
-        await topics.load(onUnauthorized: request.onUnauthorized, request.read)
+        await topics.load(reader: reader, visit: topics.visit)
     }
     private func loadGames() async {
         let requestedKeyword = appliedKeyword
@@ -227,5 +288,68 @@ struct DiscoveryTemplateBrowserView: View {
             _ = await (a, b)
         } else if hasGameFilter { await loadGames() }
         else { await loadHome() }
+    }
+}
+
+
+@MainActor private struct PublicTemplateCatalogSelection {
+    let id = UUID()
+    let identity: String
+    let coordinator: PublicTopicTemplateCoordinator
+}
+
+/// One visible catalog visit owns accepted rows and any deferred unauthorized effect.
+/// Hiding cancels acceptance, not the rows that still anchor a navigation transition.
+@MainActor final class PublicTemplateCatalogVisitOwner: ObservableObject {
+    @Published private(set) var value: [DiscoveryTopicTemplate]?
+    @Published private(set) var error: Error?
+    @Published private(set) var isLoading = false
+    private(set) var visit = UUID()
+    private(set) var visible = false
+    private var covered = false
+    private var readerID: ObjectIdentifier?
+    private var identity: String?
+    private var operation: UUID?
+
+    @discardableResult func synchronize(reader: any DiscoveryReading) -> Bool {
+        let next = reader.discoveryPresentationIdentity
+        guard readerID != ObjectIdentifier(reader) || identity != next else { return false }
+        cancelPending(); visit = UUID(); value = nil; error = nil; covered = false
+        readerID = ObjectIdentifier(reader); identity = next
+        return true
+    }
+    func appear(reader: any DiscoveryReading) -> UUID? {
+        let changed = synchronize(reader: reader)
+        guard !visible || changed else { return nil }
+        visible = true; visit = UUID(); return visit
+    }
+    func disappear() { visible = false; visit = UUID(); cancelPending() }
+    func cover() { covered = true; visit = UUID(); cancelPending() }
+    func uncover() { covered = false; visit = UUID(); cancelPending() }
+    func cancelPending() { visit = UUID(); operation = nil; isLoading = false }
+    func canOpen(reader: any DiscoveryReading) -> Bool {
+        visible && !covered && !isLoading && error == nil && value != nil && matches(reader)
+    }
+    private func matches(_ reader: any DiscoveryReading) -> Bool {
+        readerID == ObjectIdentifier(reader) && identity == reader.discoveryPresentationIdentity && reader.isConfigured
+    }
+    func load(reader: any DiscoveryReading, visit expectedVisit: UUID) async {
+        guard visible, !covered, visit == expectedVisit, matches(reader), operation == nil else { return }
+        let request = reader.publicTopicTemplateCatalogRequest(), run = UUID()
+        operation = run; isLoading = true; error = nil
+        func current() -> Bool {
+            !Task.isCancelled && visible && !covered && visit == expectedVisit && operation == run && matches(reader)
+        }
+        defer { if operation == run { operation = nil; isLoading = false } }
+        do {
+            let rows = try await request.read()
+            guard current() else { return }
+            value = rows
+        } catch is CancellationError { }
+        catch {
+            guard current() else { return }
+            self.error = error
+            if error as? APIError == .unauthorized { request.onUnauthorized() }
+        }
     }
 }

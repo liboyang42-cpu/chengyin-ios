@@ -25,13 +25,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This run’s branch history"
+            "value": "Branch history"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本次游玩的分支历史"
+            "value": "分支历史"
           }
         }
       }
@@ -42,13 +42,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only choices recorded by the server for this run appear here, in server order. Times are shown as reported by the server."
+            "value": "Only the choices recorded for this run appear here, in the order they were made."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅显示服务端记录的本次游玩选择，按记录顺序排列。时间按服务端记录展示。"
+            "value": "仅显示本次游玩记录的选择，按选择顺序排列。"
           }
         }
       }

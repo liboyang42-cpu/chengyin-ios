@@ -182,14 +182,14 @@ import SwiftUI
             if current {
                 Section {
                     LabeledContent("coopflow.field.topicId", value: String(session.context.selection.topicID))
-                    if let name = session.context.selection.topicName { Text(verbatim: name) }
-                    Text("coopflow.poolMessage.intent").font(.footnote)
+                    if let name = session.context.selection.topicName { Text(verbatim: name).font(.headline).fixedSize(horizontal: false, vertical: true) }
+                    Text("coopflow.poolMessage.intent").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
                 Section("coopflow.poolMessage.optional") {
                     TextEditor(text: messageBinding).frame(minHeight: 140)
                         .accessibilityLabel("coopflow.poolMessage.optional").accessibilityIdentifier("club.poolApplication.message")
-                    Text("coopflow.poolMessage.length \(message.unicodeScalars.count)")
-                    if !valid { Text("coopflow.poolMessage.tooLong").foregroundStyle(.red) }
+                    Text("coopflow.poolMessage.length \(message.unicodeScalars.count)").font(.caption).foregroundStyle(.secondary)
+                    if !valid { Text("coopflow.poolMessage.tooLong").foregroundStyle(.red).fixedSize(horizontal: false, vertical: true) }
                 }
                 Button("coopflow.reviewAction") {
                     guard let value = model.review(message: message, session: session, context: currentContext(), reader: reader) else { return }

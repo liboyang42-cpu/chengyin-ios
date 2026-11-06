@@ -46,6 +46,7 @@ public struct MerchantNPCMessageDraft: Equatable {
     public var onChange: (() -> Void)?
     public private(set) var reply: MerchantNPCReply?
     public private(set) var message: String?
+    public private(set) var gameDispatchDenial: MerchantNPCGameDispatchDenial?
     public private(set) var failure: MerchantNPCFailure?
     public private(set) var sending = false
     public private(set) var requestID: UUID?
@@ -83,7 +84,7 @@ public struct MerchantNPCMessageDraft: Equatable {
     public var isCurrent: Bool { lifecycle == .active && currentScope() == scope }
     public var isInterrupted: Bool { lifecycle == .interrupted }
     public var canResumeAfterInterruption: Bool {
-        isInterrupted && scope.accountID > 0 && !scope.namespace.isEmpty && currentScope() == scope && grants().chatAllowed
+        isInterrupted && gameDispatchDenial == nil && scope.accountID > 0 && !scope.namespace.isEmpty && currentScope() == scope && grants().chatAllowed
     }
     /// Backgrounding clears local content immediately. It never retries a dispatched request.
     /// A permanently invalidated owner must never become resumable through another scene event.
@@ -102,7 +103,7 @@ public struct MerchantNPCMessageDraft: Equatable {
         guard canResumeAfterInterruption else { return }
         lifecycle = .active; onChange?()
     }
-    public var canSend: Bool { isCurrent && grants().chatAllowed && !sending && requestID == nil && transmission == nil }
+    public var canSend: Bool { gameDispatchDenial == nil && isCurrent && grants().chatAllowed && !sending && requestID == nil && transmission == nil }
     @discardableResult public func send(_ text: String) async -> CompletedRequest? {
         guard canSend else { return nil }
         let draft = MerchantNPCMessageDraft(text)
@@ -123,9 +124,15 @@ public struct MerchantNPCMessageDraft: Equatable {
         completedOperation = nil; reply = nil; failure = .unknownOutcome; onChange?()
     }
     public var isStoppingLocalWait: Bool { isCurrent && !sending && transmission != nil }
-    public var canAbandon: Bool { isCurrent && !sending && transmission == nil }
+    public var canAbandon: Bool { gameDispatchDenial == nil && isCurrent && !sending && transmission == nil }
+    /// A decoded server denial wins over the local transport-unknown fallback.
+    /// Only an absent response uses the existing exact-request retry contract.
+    private var outcomeAllowsRetry: Bool {
+        if let reply { return reply.canRetry }
+        return failure == .unknownOutcome
+    }
     public var canRetry: Bool {
-        isCurrent && grants().chatAllowed && !sending && transmission == nil && requestID != nil && attempts < 3 && (retryAt ?? .distantPast) <= Date() && (reply?.canRetry == true || failure == .unknownOutcome)
+        gameDispatchDenial == nil && isCurrent && grants().chatAllowed && !sending && transmission == nil && requestID != nil && attempts < 3 && (retryAt ?? .distantPast) <= Date() && outcomeAllowsRetry
     }
     /// Read-only explanation of the existing retry gates. It never grants a send,
     /// changes the deadline or replaces the original request/body.
@@ -142,18 +149,18 @@ public struct MerchantNPCMessageDraft: Equatable {
         public let canAbandon: Bool
     }
     public func retryRecovery(at now: Date = Date()) -> RetryRecovery? {
-        guard isCurrent, grants().chatAllowed, let requestID else { return nil }
+        guard gameDispatchDenial == nil, isCurrent, grants().chatAllowed, let requestID else { return nil }
         let state: RetryRecovery.State
         if sending { state = .waitingForReply }
         else if transmission != nil { state = .stoppingLocalWait }
+        else if !outcomeAllowsRetry { state = .unavailable }
         else if attempts >= 3 { state = .attemptLimitReached }
-        else if !(reply?.canRetry == true || failure == .unknownOutcome) { state = .unavailable }
         else if let retryAt, retryAt > now {
             let seconds = retryAt.timeIntervalSince(now)
             state = .cooldown(seconds: seconds.isFinite ? Int(min(86_400, max(1, ceil(seconds)))) : 86_400)
         } else { state = .retryAvailable }
         return RetryRecovery(requestID: requestID, attemptCount: attempts, retryAt: retryAt,
-            state: state, outcomeUnknown: failure == .unknownOutcome, canAbandon: canAbandon)
+            state: state, outcomeUnknown: reply?.hasUnknownOutcome == true || failure == .unknownOutcome, canAbandon: canAbandon)
     }
     @discardableResult public func retry() async -> CompletedRequest? {
         guard let capturedRequestID = requestID else { return nil }
@@ -180,13 +187,17 @@ public struct MerchantNPCMessageDraft: Equatable {
     }
     public func abandon() { guard canAbandon else { return }; requestID = nil; displayedRequestID = nil; completedOperation = nil; retryAt = nil; reply = nil; message = nil; failure = nil; onChange?() }
     public func invalidate() { lifecycle = .invalidated; generation += 1; clearConversation(); onChange?() }
+    /// Qualification loss is not a chat retry. Clear display so an old draft cannot serve.
+    public func applyQualificationRevoke(_ revoke: MerchantNPCQualificationRevoke) {
+        guard revoke.allowsServing(scope) else { invalidate(); return }
+    }
     private func clearConversation() {
         transmission?.cancel(); transmission = nil; transmissionID = nil
         storedHistory.clear(); displayedRequestID = nil; completedOperation = nil
         reply = nil; message = nil; requestID = nil; retryAt = nil; failure = nil; sending = false; attempts = 0
     }
     private func run() async {
-        guard isCurrent, grants().chatAllowed, transmission == nil, let message, let requestID else { return }
+        guard gameDispatchDenial == nil, isCurrent, grants().chatAllowed, transmission == nil, let message, let requestID else { return }
         sending = true; attempts += 1; failure = nil; completedOperation = nil; let stamp = generation
         let operation = UUID(), client = self.client, scope = self.scope
         let task = Task<MerchantNPCReply, Error> {
@@ -209,14 +220,22 @@ public struct MerchantNPCMessageDraft: Equatable {
             reply = result
             storedHistory.record(requestID: requestID, question: message, reply: result)
             retryAt = Date().addingTimeInterval(TimeInterval(max(0, result.retryAfterSeconds ?? 0)))
-            if !result.canRetry { self.requestID = nil }
+            // A non-retryable PROCESSING reply is still unresolved. Keep the
+            // original request/input until the existing explicit local abandon
+            // or lifecycle retirement; never unlock a new send from this reply.
+            if !result.canRetry, result.outcomeStatus != "PROCESSING" { self.requestID = nil }
             if result.succeeded, !result.canRetry, result.safeText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
                 completedOperation = operation
             }
         } catch {
             guard generation == stamp else { return }
             guard isCurrent, grants().chatAllowed, !Task.isCancelled else { invalidate(); return }
-            failure = error as? MerchantNPCFailure ?? .unknownOutcome
+            if let denial = error as? MerchantNPCGameDispatchDenial {
+                gameDispatchDenial = denial
+                storedHistory.clear(); displayedRequestID = nil; completedOperation = nil
+                reply = nil; self.message = nil
+                failure = .unknownOutcome
+            } else { failure = error as? MerchantNPCFailure ?? .unknownOutcome }
             if failure == .malformed { failure = .unknownOutcome }
             if failure != .unknownOutcome { self.requestID = nil }
         }
@@ -353,5 +372,8 @@ public struct MerchantNPCMessageDraft: Equatable {
         active = false; generation += 1; revokeWriteAuthority(); resources = nil; refreshing = false; failure = nil
         // Never clear the durable journal on close, background, signout or epoch change.
         outcome = hasUnresolvedWrite ? .unknown : .idle; onChange?()
+    }
+    public func applyQualificationRevoke(_ revoke: MerchantNPCQualificationRevoke) {
+        guard revoke.allowsServing(scope) else { invalidate(); return }
     }
 }

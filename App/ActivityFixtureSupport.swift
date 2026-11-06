@@ -11,6 +11,8 @@ enum ActivityFixtureScenario: String {
     case clubGate = "club-gate"
     case retry
     case pagination
+    /// Source detail meta rows: category names, meeting point and registration count.
+    case meta
 
     static func selected(arguments: [String]) -> Self? {
         guard let flag=arguments.firstIndex(of:"--uitesting-activity-fixture"),
@@ -93,6 +95,10 @@ private final class ActivityFixtureReader: ActivityReading {
         }
         if scenario == .people {
             let data = Data(#"{"id":101,"name":"Fixture people activity","memberId":99,"collaboratorsList":[{"id":901,"memberId":82,"memberRealName":"Fixture host"}],"registrationList":[{"id":902,"memberId":83,"nickname":"Fixture participant"},{"id":903,"nickname":"Fixture unnamed link"},{"id":904,"memberId":0,"nickname":"Fixture invalid link"}],"registrationCount":12}"#.utf8)
+            return .allowed(try JSONDecoder().decode(ActivityDetail.self, from: data))
+        }
+        if scenario == .meta {
+            let data = Data(#"{"id":101,"name":"Fixture meta activity","addressName":"Fixture meeting point","sysCategoryList":[{"categoryName":"Fixture walk"},{"categoryName":" "},{"categoryName":"Fixture puzzle"}],"registrationCount":7}"#.utf8)
             return .allowed(try JSONDecoder().decode(ActivityDetail.self, from: data))
         }
         if [.reviews, .reviewsEmpty, .reviewsUnknown].contains(scenario) {

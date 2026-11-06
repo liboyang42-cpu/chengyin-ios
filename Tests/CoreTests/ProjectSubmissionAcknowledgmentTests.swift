@@ -23,7 +23,7 @@ import FoundationNetworking
         func send(_ request: URLRequest) async throws -> (Data, Int) {
             requests.append(request)
             if request.url?.path == "/api/publish/home" { return (Data(#"{"code":200,"data":{"permission":{"canProPublish":true},"quota":{"themesRemaining":2}}}"#.utf8), 200) }
-            return (reply, 200)
+            return (try projectOriginalTestReceipt(request, legacy: reply), 200)
         }
     }
     func testActualHTTPServiceToCoordinatorPersistsV2MetadataWithoutResending() async throws {
@@ -31,16 +31,16 @@ import FoundationNetworking
         let configuration = try APIConfiguration(baseURL: URL(string: "https://example.com")!)
         let wire = Wire(Data(("{\"code\":200,\"data\":" + raw + "}").utf8))
         let credentials = try ProjectEditCredentials(session: s, token: "synthetic-only-token")
-        let approval = try OperationEndpointApproval(baseURL: configuration.baseURL, namespace: s.storageNamespace, accountID: s.accountID, paths: [ProjectEditStoryContract.createPath])
+        let approval = try OperationEndpointApproval(baseURL: configuration.baseURL, namespace: s.storageNamespace, accountID: s.accountID, paths: [ProjectEditStoryContract.createPath, ProjectEditRequestContract.submitPath])
         let service = ProjectEditHTTPService(configuration: configuration, transport: wire, owner: .personal, approval: approval, store: store, currentCredentials: { credentials })
         let co = ProjectEditCoordinator(initial: .init(draft: draft), service: service, store: store, currentSession: { s })
         await co.load(); co.prepare(draft); await co.confirm(try XCTUnwrap(co.confirmation))
         XCTAssertEqual(co.state, .acknowledged); XCTAssertEqual(co.pending?.bundleAcknowledgment, try acknowledgment())
-        XCTAssertEqual(wire.requests.filter { $0.url?.path == "/api/topic/v2/create" }.count, 1)
-        XCTAssertEqual(wire.requests.map { $0.url?.path }, ["/api/publish/home", "/api/publish/home", "/api/topic/v2/create"])
+        XCTAssertEqual(wire.requests.filter { $0.url?.path == "/api/topic/edit-requests/submit" }.count, 1)
+        XCTAssertEqual(wire.requests.map { $0.url?.path }, ["/api/publish/home", "/api/publish/home", "/api/topic/edit-requests/submit"])
         let reopened = ProjectEditCoordinator(initial: .init(draft: draft), service: service, store: store, currentSession: { s })
         await reopened.load(); XCTAssertEqual(reopened.pending?.bundleAcknowledgment?.auditTaskID, 3301)
-        XCTAssertEqual(reopened.state, .acknowledged); XCTAssertEqual(wire.requests.filter { $0.url?.path == "/api/topic/v2/create" }.count, 1)
+        XCTAssertEqual(reopened.state, .acknowledged); XCTAssertEqual(wire.requests.filter { $0.url?.path == "/api/topic/edit-requests/submit" }.count, 1)
     }
     func testActualHTTPDecoderRetainsSubmissionTaskButDoesNotInventApproval() throws {
         let op = try pending(session()), body = Data(("{\"code\":200,\"data\":" + raw + "}").utf8)

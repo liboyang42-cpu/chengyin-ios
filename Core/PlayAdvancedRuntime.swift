@@ -193,14 +193,20 @@ extension PlayExperienceService {
     let currentSession: () -> PlayExperienceSession?
     private var owner: PlayExperienceSession?
     private var generation: UInt64 = 0
+    private let recovery: (any PlayAdvancedRecovery)?
+    private var recoverySnapshot: PlayAdvancedRecoverySnapshot?
     public private(set) var startOutcomeUnknown = false
-    public init(activityID: Int, topicID: Int, nodeID: Int, service: PlayExperienceService, currentSession: @escaping () -> PlayExperienceSession?) {
+    public init(activityID: Int, topicID: Int, nodeID: Int, service: PlayExperienceService, recovery: (any PlayAdvancedRecovery)? = nil, currentSession: @escaping () -> PlayExperienceSession?) {
+        if let recovery { self.recovery = recovery }
+        else if service.transport is PlayRecoveryRecordingTransport { self.recovery = nil }
+        else { self.recovery = PlayUnavailableAdvancedRecovery() }
         self.activityID = activityID; self.topicID = topicID; self.nodeID = nodeID; self.service = service; self.currentSession = { service.hasCurrentReadLifetime ? currentSession() : nil }
     }
     public var readLifetimeID: String? { service.readLifetimeID }
     public var hasCurrentReadLifetime: Bool { service.hasCurrentReadLifetime }
-    public var blocksReadRebinding: Bool { startOutcomeUnknown || pending != nil || ["loading", "submitting", "unknown", "retryable"].contains(phase) }
+    public var blocksReadRebinding: Bool { recoverySnapshot != nil || startOutcomeUnknown || pending != nil || ["loading", "submitting", "unknown", "retryable"].contains(phase) }
     public func start() async {
+        if recovery != nil { await startDurably(); return }
         guard !startOutcomeUnknown, state == nil, ["idle", "rejected", "disabled"].contains(phase), let session = currentSession() else { return }
         generation &+= 1; let generation = generation; owner = session; phase = "loading"
         startOutcomeUnknown = true
@@ -260,16 +266,21 @@ extension PlayExperienceService {
         await sendPending()
     }
     private func sendPending() async {
+        if recovery != nil { await sendPendingDurably(); return }
         guard let pending, let session = owner, session == currentSession() else { return }
+        // A rejection of a replay is not proof that the earlier request did not
+        // commit. Keep its immutable idempotency key until its own result returns.
+        let preservesUnknown = phase == "retryable" || phase == "unknown"
         let generation = generation; let cardLifetime = cardLifetime; phase = "submitting"
         do {
             let result = try await service.advancedAction(pending, token: session.token)
             try accept(result, session: session, generation: generation)
             if self.cardLifetime == cardLifetime { cardReceipts.accept(result, owner: session, pending: pending, requestedCard: pendingRequestedCard) }
             self.pending = nil; pendingRequestedCard = false
-        } catch { failure(error, session: session, generation: generation) }
+        } catch { failure(error, session: session, generation: generation, preservePending: preservesUnknown) }
     }
     public func recover() async {
+        if recovery != nil { await recoverDurably(); return }
         guard let pending, let session = owner, session == currentSession(), phase == "unknown" else { return }
         let generation = generation; phase = "loading"
         do {
@@ -281,7 +292,7 @@ extension PlayExperienceService {
             // Version advancement alone is NOT proof, including on a single-user run.
             // Expose only replay of the frozen idempotent request after explicit review.
             phase = "retryable"
-        } catch { failure(error, session: session, generation: generation) }
+        } catch { failure(error, session: session, generation: generation, preservePending: true) }
     }
     public func retryExact() async { guard phase == "retryable" else { return }; await sendPending() }
     public func refreshAuthoritative() async {
@@ -290,6 +301,153 @@ extension PlayExperienceService {
         let generation = generation; phase = "loading"
         do { try accept(await service.advancedState(sessionID: state.sessionID, token: session.token), session: session, generation: generation) }
         catch { failure(error, session: session, generation: generation) }
+    }
+    private func durableScope() throws -> PlayAdvancedRecoveryScope {
+        try .init(activityID: activityID, topicID: topicID, nodeID: nodeID)
+    }
+    private func checkDurableOwner(_ session: PlayExperienceSession, _ generation: UInt64) throws {
+        guard self.generation == generation, currentSession() == session, !Task.isCancelled else { throw PlayExperienceError.staleSession }
+        try service.checkReadLifetime()
+    }
+    private func durableFailure(_ error: Error, session: PlayExperienceSession, generation: UInt64) {
+        failure(error, session: session, generation: generation, preservePending: true)
+        if self.generation == generation, currentSession() == session, phase != "stale",
+           recoverySnapshot != nil || startOutcomeUnknown { phase = "unknown" }
+    }
+    private func startDurably() async {
+        guard let recovery, !startOutcomeUnknown, state == nil,
+              ["idle", "rejected", "disabled"].contains(phase), let session = currentSession() else { return }
+        generation &+= 1; let generation = generation; owner = session; phase = "loading"
+        do {
+            let scope = try durableScope()
+            let stored = try await recovery.read()
+            try checkDurableOwner(session, generation)
+            if let stored {
+                guard stored.value.sharedPlanR5 == nil, stored.value.sharedPlanStart == nil else { throw PlayExperienceError.persistenceUnavailable }
+                try stored.value.validate(session: session, scope: scope)
+                recoverySnapshot = stored
+                if stored.value.phase == .starting {
+                    // No HTTP lookup identifies a lost start response. Keep its durable
+                    // marker; /start may select a newer server instance and is not a read.
+                    startOutcomeUnknown = true; phase = "unknown"; issue = .unknownResult; return
+                }
+                if stored.value.phase == .started { startOutcomeUnknown = true }
+                else {
+                    guard let original = stored.value.pending else { throw PlayExperienceError.persistenceUnavailable }
+                    pending = original; pendingRequestedCard = stored.value.requestedCard
+                }
+                phase = "unknown"; await recoverDurably(); return
+            }
+            guard service.enabled.contains(.advanced) else { throw PlayExperienceError.disabled }
+            let marker = try PlayAdvancedRecoveryRecord(session: session, scope: scope, process: recovery.processID)
+            recoverySnapshot = try await recovery.prepare(marker)
+            startOutcomeUnknown = true
+            try checkDurableOwner(session, generation)
+            let result = try await service.startAdvanced(activityID: activityID, topicID: topicID, nodeID: nodeID, token: session.token)
+            try validate(result, session: session, generation: generation)
+            guard let prepared = recoverySnapshot else { throw PlayExperienceError.persistenceUnavailable }
+            recoverySnapshot = try await recovery.transition(prepared, to: .started, startedSessionID: result.sessionID)
+            try checkDurableOwner(session, generation)
+            guard let acknowledged = recoverySnapshot else { throw PlayExperienceError.persistenceUnavailable }
+            try await recovery.clear(acknowledged)
+            try checkDurableOwner(session, generation)
+            try accept(result, session: session, generation: generation)
+            recoverySnapshot = nil; startOutcomeUnknown = false
+        } catch { durableFailure(error, session: session, generation: generation) }
+    }
+    private func sendPendingDurably() async {
+        guard let recovery, let pending, let session = owner, session == currentSession() else { return }
+        let generation = generation; let cardLifetime = cardLifetime; phase = "submitting"
+        do {
+            try checkDurableOwner(session, generation)
+            guard service.enabled.contains(.advanced) else { throw PlayExperienceError.disabled }
+            if recoverySnapshot == nil {
+                let record = try PlayAdvancedRecoveryRecord(session: session, scope: durableScope(), pending: pending, requestedCard: pendingRequestedCard)
+                recoverySnapshot = try await recovery.prepare(record)
+                try checkDurableOwner(session, generation)
+            }
+            guard let prepared = recoverySnapshot, let original = prepared.value.pending,
+                  try PlayAdvancedFrozenAction.requestBytes(original) == PlayAdvancedFrozenAction.requestBytes(pending) else { throw PlayExperienceError.persistenceUnavailable }
+            recoverySnapshot = try await recovery.transition(prepared, to: .dispatching, startedSessionID: nil)
+            try checkDurableOwner(session, generation)
+            let result = try await service.advancedAction(pending, token: session.token)
+            try validate(result, session: session, generation: generation)
+            guard let dispatched = recoverySnapshot else { throw PlayExperienceError.persistenceUnavailable }
+            recoverySnapshot = try await recovery.transition(dispatched, to: .acknowledged, startedSessionID: nil)
+            try checkDurableOwner(session, generation)
+            guard let acknowledged = recoverySnapshot else { throw PlayExperienceError.persistenceUnavailable }
+            try await recovery.clear(acknowledged)
+            try checkDurableOwner(session, generation)
+            // An exact replay can return its older original receipt. Retire that
+            // request without replacing a newer authoritative projection with it.
+            let display = state.flatMap { $0.sessionID == result.sessionID && $0.version > result.version ? $0 : nil } ?? result
+            try accept(display, session: session, generation: generation)
+            if self.cardLifetime == cardLifetime { cardReceipts.accept(result, owner: session, pending: pending, requestedCard: pendingRequestedCard) }
+            cardReceipts.reconcile(display, owner: session)
+            self.pending = nil; pendingRequestedCard = false; recoverySnapshot = nil
+        } catch {
+            if let stored = recoverySnapshot, stored.value.phase == .dispatching,
+               let unknown = try? await recovery.transition(stored, to: .unknown, startedSessionID: nil) { recoverySnapshot = unknown }
+            // Even a business error may follow committed server work. The original
+            // stays durable; no error response is manufactured into a non-commit receipt.
+            durableFailure(error, session: session, generation: generation)
+        }
+    }
+    private func recoverDurably() async {
+        guard let recovery, let session = owner, session == currentSession(), phase == "unknown" else { return }
+        let generation = generation; phase = "loading"
+        do {
+            var observed = try await recovery.read()
+            try checkDurableOwner(session, generation)
+            if observed == nil, recoverySnapshot == nil, let pending {
+                // prepare never returned, so this coordinator never dispatched.
+                // Retry persistence of that same original, not a new review/key.
+                let record = try PlayAdvancedRecoveryRecord(session: session, scope: durableScope(), pending: pending, requestedCard: pendingRequestedCard)
+                observed = try await recovery.prepare(record); recoverySnapshot = observed
+                try checkDurableOwner(session, generation)
+            }
+            if observed == nil, recoverySnapshot == nil, pending == nil, !startOutcomeUnknown {
+                // No original was ever dispatched after a failed initial store read.
+                // Reopening the start control is safe; this does not send a request.
+                phase = "idle"; issue = nil; return
+            }
+            // An acknowledged clear may have committed before its storage error.
+            // Only this already-acknowledged local snapshot can explain an empty slot.
+            guard let stored = observed ?? (recoverySnapshot?.value.canClear == true ? recoverySnapshot : nil) else { throw PlayExperienceError.persistenceUnavailable }
+            try stored.value.validate(session: session, scope: durableScope())
+            recoverySnapshot = stored
+            if stored.value.phase == .starting {
+                startOutcomeUnknown = true; phase = "unknown"; issue = .unknownResult; return
+            }
+            if let original = stored.value.pending {
+                if let pending {
+                    guard try PlayAdvancedFrozenAction.requestBytes(original) == PlayAdvancedFrozenAction.requestBytes(pending) else { throw PlayExperienceError.persistenceUnavailable }
+                }
+                pending = original; pendingRequestedCard = stored.value.requestedCard
+            }
+            // A second viewer must not replay an action still in flight in this process.
+            if stored.value.phase == .dispatching, stored.value.dispatchProcess == recovery.processID {
+                phase = "unknown"; issue = .unknownResult; return
+            }
+            guard let sessionID = stored.value.sessionID else { throw PlayExperienceError.persistenceUnavailable }
+            let result = try await service.advancedState(sessionID: sessionID, token: session.token)
+            try validate(result, session: session, generation: generation)
+            if let pending { guard result.version >= pending.version else { throw PlayExperienceError.malformed } }
+            if stored.value.canClear {
+                if stored.value.phase == .acknowledged, let pending {
+                    guard result.version > pending.version else { throw PlayExperienceError.malformed }
+                }
+                if observed != nil { try await recovery.clear(stored); try checkDurableOwner(session, generation) }
+                try accept(result, session: session, generation: generation)
+                recoverySnapshot = nil; pending = nil; pendingRequestedCard = false; startOutcomeUnknown = false
+            } else {
+                guard pending != nil else { throw PlayExperienceError.persistenceUnavailable }
+                state = result; cardReceipts.reconcile(result, owner: session)
+                // This read authorizes no new action and proves no outcome. Only
+                // the original immutable request may be explicitly replayed next.
+                phase = "retryable"; issue = nil
+            }
+        } catch { durableFailure(error, session: session, generation: generation) }
     }
     private func validate(_ state: PlayAdvancedState, session: PlayExperienceSession, generation: UInt64) throws {
         guard self.generation == generation, currentSession() == session, !Task.isCancelled else { throw PlayExperienceError.staleSession }
@@ -305,10 +463,23 @@ extension PlayExperienceService {
         // Step submission itself is separately unsupported until its proof contract is approved.
         phase = "ready"
     }
-    private func failure(_ error: Error, session: PlayExperienceSession, generation: UInt64) {
+    private func failure(_ error: Error, session: PlayExperienceSession, generation: UInt64, preservePending: Bool = false) {
         guard self.generation == generation else { return }
         guard currentSession() == session else { clearAdvancedLeaderboard(); self.state = nil; clearObjectCardReceipt(); phase = "stale"; return }
         issue = error as? PlayExperienceError ?? .unknownResult
+        if preservePending, pending != nil {
+            // A current-state read has no original action identity. Missing data,
+            // an expired grant or a business error must not release that action.
+            clearAdvancedLeaderboard()
+            if case PlayExperienceError.unauthorized = error { clearObjectCardReceipt(); phase = "stale" }
+            else if case APIError.unauthorized = error { clearObjectCardReceipt(); phase = "stale" }
+            else {
+                if case PlayExperienceError.rejected = error { clearObjectCardReceipt() }
+                if case PlayExperienceError.disabled = error { clearObjectCardReceipt() }
+                phase = "unknown"
+            }
+            return
+        }
         if case PlayExperienceError.rejected = error { pending = nil; clearObjectCardReceipt(); phase = "rejected"; clearAdvancedLeaderboard() }
         else if case PlayExperienceError.disabled = error { clearAdvancedLeaderboard(); pending = nil; clearObjectCardReceipt(); phase = "disabled" }
         else if case PlayExperienceError.unauthorized = error { clearAdvancedLeaderboard(); clearObjectCardReceipt(); phase = "stale" }

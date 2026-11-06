@@ -51,13 +51,11 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
         .sheet(item: $review) { item in
             NavigationStack {
                 Form {
-                    Section("playkit.review") {
-                        Text(LocalizedStringKey("playkit.kind." + kind.rawValue))
-                        Text(verbatim: item.action).font(.caption)
-                        Text("playkit.reviewBoundary")
+                    Section {
                         if let question = item.compareQuestion { PlayCompareReview(question: question, marked: (item.payload["marked"]?.array ?? []).compactMap(\.text)) }
                         else { PlayKitPayloadReadback(payload: item.payload) }
-                        LabeledContent("playkit.version") { Text(verbatim: String(item.version)) }
+                    }
+                    Section {
                         Button("playkit.confirm") {
                             let completion = reviewedCompletion
                             let expectedLifetime = lifetime
@@ -65,12 +63,19 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
                             Task {
                                 if await model.submit(item), lifetime == expectedLifetime { issue = nil; dirty = false; completion?() }
                             }
-                        }.disabled(!model.canInteract || model.state?.version != item.version || model.state?.sessionID != item.sessionID)
+                        }
+                            .buttonStyle(.questifyPrimary)
+                            .frame(maxWidth: .infinity)
+                            .listRowBackground(Color.clear)
+                            .disabled(!model.canInteract || model.state?.version != item.version || model.state?.sessionID != item.sessionID)
                             .accessibilityIdentifier("playkit.review.confirm")
                     }
-                }.navigationTitle("playkit.review")
+                }.navigationTitle("playkit.submitQuestion")
+                    .navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playkit.cancel") { review = nil; reviewedCompletion = nil } } }
             }.privacySensitive()
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
         }
         .confirmationDialog("playkit.discardQuestion", isPresented: $leaveReview, titleVisibility: .visible) {
             Button("playkit.discard", role: .destructive) { clearTransient(); dismiss() }
@@ -118,7 +123,15 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
         }
         if let state = model.state, state.deadlineAt != nil {
             TimelineView(.periodic(from: .now, by: 1)) { context in
-                LabeledContent("playkit.sessionRemaining") { Text(verbatim: String(state.remainingSeconds(nowMilliseconds: Int64(context.date.timeIntervalSince1970 * 1000)) ?? 0)).monospacedDigit() }
+                let left = max(0, state.remainingSeconds(nowMilliseconds: Int64(context.date.timeIntervalSince1970 * 1000)) ?? 0)
+                Label {
+                    Text(verbatim: String(format: "%02ld:%02ld", left / 60, left % 60))
+                        .font(.system(.title2, design: .rounded).weight(.bold)).monospacedDigit()
+                } icon: { Image(systemName: "timer") }
+                .foregroundStyle(left <= 10 ? Color.red : Color.primary)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("playkit.sessionRemaining"))
+                .accessibilityValue(Text(verbatim: "\(left)"))
             }
         }
     }
@@ -169,12 +182,11 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
                 Label(passed ? "playkit.result.passed" : "playkit.result.notPassed", systemImage: passed ? "checkmark.circle" : "info.circle")
             } else if projection.complete { Label("playkit.result.recorded", systemImage: "checkmark.circle") }
             if let feedback = projection.feedback, !feedback.isEmpty { Text(verbatim: feedback) }
-            if projection.complete { Text("playkit.result.authority").font(.footnote).foregroundStyle(.secondary) }
         }
     }
     @ViewBuilder private var recovery: some View {
         if model.phase == "submitting" || model.phase == "loading" { ProgressView("playkit.sending") }
-        if model.pending != nil { Text("playkit.pendingBoundary").font(.footnote) }
+        if model.pending != nil { Text("playkit.pendingBoundary").font(.footnote).foregroundStyle(.secondary) }
         if model.phase == "unknown" { Button("playkit.reconcile") { Task { await model.recover() } }.accessibilityIdentifier("playkit." + kind.rawValue + ".reconcile") }
         if model.phase == "retryable" { Button("playkit.retryExact") { Task { await model.retryExact() } }.accessibilityIdentifier("playkit." + kind.rawValue + ".retryExact") }
         if model.pending == nil && model.isCurrent && model.phase != "submitting" {
@@ -187,7 +199,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     }
     func submitButton(_ action: String, payload: [String: PlayWireValue], valid: Bool = true) -> some View {
         Button("playkit.review") { prepare(action, payload) }
-            .buttonStyle(.borderedProminent).disabled(!enabled || !valid)
+            .buttonStyle(.questifyPrimary).disabled(!enabled || !valid)
             .accessibilityIdentifier("playkit.submit." + kind.rawValue)
     }
     func artwork(_ url: String?) -> some View {
@@ -212,9 +224,12 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
 
 @MainActor struct PlayKitPayloadReadback: View {
     let payload: [String: PlayWireValue]
+    /// Shows what the player chose, never the request field names.
     var body: some View {
         ForEach(payload.keys.sorted(), id: \.self) { key in
-            if let value = payload[key] { VStack(alignment: .leading) { Text(verbatim: key).font(.caption).foregroundStyle(.secondary); Text(verbatim: display(value)).textSelection(.enabled) } }
+            if let value = payload[key], value != .null {
+                Text(verbatim: display(value)).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+            }
         }
     }
     private func display(_ value: PlayWireValue) -> String {
@@ -241,7 +256,12 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
                 else if phase.error != nil { Label("playkit.imageUnavailable", systemImage: "photo.badge.exclamationmark") }
                 else { ProgressView("playkit.imageLoading") }
             }
-        } else if source?.isEmpty == false { Label("playkit.imageGated", systemImage: "photo") }
+        } else if source?.isEmpty == false {
+            // Clean placeholder, no text, for an image this build may not load.
+            RoundedRectangle(cornerRadius: 16).fill(.secondary.opacity(0.12)).frame(height: 160)
+                .overlay { Image(systemName: "photo").font(.largeTitle).foregroundStyle(.secondary) }
+                .accessibilityHidden(true)
+        }
     }
 }
 

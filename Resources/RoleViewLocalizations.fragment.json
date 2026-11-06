@@ -107,13 +107,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The server could not identify one role for this session. Refresh after the team assignment is resolved; this app cannot choose a role for you."
+          "value": "Your role for this game hasn't been decided yet. Refresh once your team assignment is final; the app can't choose a role for you."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端暂未确认你在本局中的唯一角色。队伍分配明确后可重新读取；本应用不会替你选择角色。"
+          "value": "你在本局中的角色暂未确定。队伍分配明确后可刷新查看；应用不会替你选择角色。"
         }
       }
     }
@@ -192,13 +192,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Only the server-assigned content is shown. Refresh reads the latest assignment without changing it."
+          "value": "Only content for your assigned role is shown. Refreshing updates the display without changing your role."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "这里只显示服务端分配的内容。重新读取只更新显示，不改变角色分配。"
+          "value": "这里只显示为你分配的内容。刷新只更新显示，不改变角色分配。"
         }
       }
     }

@@ -6,27 +6,24 @@ import SwiftUI
     var actions: SocialActionCoordinator? = nil
     @StateObject private var model = SocialInviteHistoryModel()
     private var groups: [(String, [SocialInvitedMember])] {
-        var keys: [String] = [], rows: [String: [SocialInvitedMember]] = [:]
-        for member in model.pagination.members {
-            let raw = String((member.createdAt ?? "").prefix(7))
-            let key = raw.range(of: "^[0-9]{4}-(0[1-9]|1[0-2])$", options: .regularExpression) == nil ? "" : raw
-            if rows[key] == nil { keys.append(key) }; rows[key, default: []].append(member)
-        }
-        return keys.map { ($0, rows[$0] ?? []) }
+        (model.timeline(reader)?.months ?? []).map { ($0.id, $0.members) }
     }
     var body: some View {
         let binding = model.bind(reader)
         let permit = model.permit(reader)
         List {
             if reader.isOfflineExample { Text("social.offline").font(.caption) }
-            if reader.identity.accountID == nil { SocialIssueView(error: APIError.unauthorized) }
+            if reader.identity.accountID == nil { ProfileInviteHistoryIssueView(error: APIError.unauthorized) }
             else if !reader.isConfigured { SocialIssueView(error: APIError.notConfigured) }
             else if !model.matches(reader) { ProgressView("social.loading") }
+            else if model.accessDenied, let error = model.error {
+                ProfileInviteHistoryIssueView(error: error)
+            }
             else {
-                if let error = model.error { SocialIssueView(error: error) { model.start(reader, permit: permit, reset: model.pagination.members.isEmpty) } }
+                if let error = model.error { ProfileInviteHistoryIssueView(error: error) { model.start(reader, permit: permit, reset: model.pagination.members.isEmpty) } }
                 Section {
+                    ProfileInviteHistorySummaryLine(total: model.pagination.total)
                     SocialOptionalCount(title: "social.invites.total", count: model.pagination.total)
-                    LabeledContent("social.invites.loaded", value: String(model.pagination.members.count))
                     if model.scan?.isComplete != true { Text("social.invites.partial").font(.footnote).accessibilityIdentifier("social.invites.partial") }
                 }
                 ProfileInviteRewardReviewSection(review: .init(scan: model.scan), isLoading: model.loading) {
@@ -48,7 +45,7 @@ import SwiftUI
                         }
                     }
                 }
-                if !model.loading && model.pagination.members.isEmpty && model.error == nil { Text("social.invites.empty") }
+                if !model.loading && model.pagination.members.isEmpty && model.error == nil { ProfileInviteHistoryEmptyView() }
                 if model.loading { ProgressView("social.loading") }
                 if model.pagination.continuationInvalid { Text("social.invites.continuationInvalid") }
                 if model.pagination.hasMore && !model.loading && model.error == nil {
@@ -65,9 +62,9 @@ import SwiftUI
     private func memberRow(_ member: SocialInvitedMember) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             if let nickname = member.nickname { Text(verbatim: nickname).font(.headline) }
-            else { Text("square.unknownAuthor").font(.headline) }
-            if let date = member.createdAt { Text(verbatim: date).font(.caption) }
-            else { Text("social.invites.timeUnknown").font(.caption) }
+            else { Text("profile.inviteHistory.nicknameUnknown").font(.headline) }
+            ProfileInviteTimelineDates(invitationTime: member.createdAt,
+                reward: model.scan?.rewards[String(member.id)])
             if let reward = model.scan?.rewards[String(member.id)] {
                 Text("social.invites.earned").font(.subheadline)
                 LabeledContent("social.invites.points", value: NSDecimalNumber(decimal: reward.points).stringValue)
@@ -92,6 +89,11 @@ import SwiftUI
     @Published private(set) var scan: SocialRewardScan?
     @Published private(set) var loading = false
     @Published private(set) var error: Error?
+    var accessDenied: Bool {
+        guard let error else { return false }
+        let kind = ProfileInviteHistoryIssueKind(error)
+        return kind == .signIn || kind == .denied
+    }
     @Published private var presentation: LoadPermit?
     @Published private var loadedBinding: ReaderBinding?
     private var boundReader: ReaderBinding?
@@ -117,6 +119,11 @@ import SwiftUI
     func matches(_ reader: any SocialAccountReading) -> Bool {
         reader.identity.accountID != nil && reader.isConfigured && loadedBinding == boundReader
             && loadedBinding?.key == Self.key(reader)
+    }
+    /// Never project the retained rows into a replacement reader's visible timeline.
+    func timeline(_ reader: any SocialAccountReading) -> ProfileInviteTimeline? {
+        guard matches(reader) else { return nil }
+        return .init(members: pagination.members)
     }
     func permit(_ reader: any SocialAccountReading) -> LoadPermit? {
         guard let presentation, presentation.owner == owner, presentation.binding == boundReader,
@@ -189,7 +196,8 @@ import SwiftUI
         } catch is CancellationError { }
         catch {
             guard !Task.isCancelled, owns(reader, permit: permit, request: request) else { return }
-            if error as? APIError == .unauthorized { pagination = SocialInvitePagination(); scan = nil }
+            let kind = ProfileInviteHistoryIssueKind(error)
+            if kind == .signIn || kind == .denied { pagination = SocialInvitePagination(); scan = nil }
             self.error = error
         }
     }

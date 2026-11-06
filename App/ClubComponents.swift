@@ -8,13 +8,29 @@ struct ClubName: View {
     }
 }
 
+/// Member-count grammar follows the selected UI locale, without changing source counts.
+/// Both supported languages share the exactly-one selection; their words remain in the catalog.
+enum ClubMemberCountLocalization {
+    static func resource(_ count: Int, locale: Locale) -> LocalizedStringResource {
+        if count == 1 {
+            return LocalizedStringResource("club.memberCount.singular \(count)", locale: locale)
+        }
+        return LocalizedStringResource("club.memberCount \(count)", locale: locale)
+    }
+
+    static func text(_ count: Int, locale: Locale) -> String {
+        String(localized: resource(count, locale: locale))
+    }
+}
+
 struct ClubRow: View {
     let club: ClubRecord
+    @Environment(\.locale) private var locale
     var body: some View {
         QuestifyImageEntityCard(imageSource:club.cover,title:club.name,subtitle:club.style,
                                 fallbackTitle:"club.untitled",fallbackSymbol:"person.3") {
             HStack(spacing:12) {
-                Text("club.memberCount \(club.memberCount)")
+                Text(verbatim: ClubMemberCountLocalization.text(club.memberCount, locale: locale))
                 if club.isOwner { Text("club.role.creator") }
                 else if club.isJoined { Text("club.membership.joined") }
             }.font(.caption.weight(.semibold))

@@ -1,0 +1,9 @@
+// Build inputs only. This profile never grants authentication or feature capabilities.
+#include "UnitedStates.xcconfig"
+// Reset earlier local inputs so deployments cannot inherit another environment's address.
+QUESTIFY_API_BASE_URL =
+QUESTIFY_SESSION_REALM =
+#include? "Local.UnitedStates.Production.xcconfig"
+// Bind environment and market after optional overrides; endpoints and realms remain local inputs.
+QUESTIFY_DEPLOYMENT_ENVIRONMENT = production
+QUESTIFY_MARKET = US

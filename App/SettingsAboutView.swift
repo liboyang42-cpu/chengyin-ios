@@ -10,7 +10,7 @@ import UIKit
         Form {
             Section {
                 VStack(spacing: 12) {
-                    Image(systemName: "building.2.crop.circle").font(.system(size: 54)).accessibilityHidden(true)
+                    Image("SettingsBrandMark").resizable().scaledToFit().frame(width: 54, height: 54).accessibilityHidden(true)
                     if let name = appInformation.displayName {
                         Text(verbatim: name).font(.largeTitle.bold()).accessibilityIdentifier("settingsNative.about.appName")
                     } else { Text("settingsNative.about.nameMissing") }
@@ -38,7 +38,6 @@ import UIKit
                 Label {
                     Text("settingsNative.about.playerCodeUnavailable").accessibilityIdentifier("settingsNative.about.codeUnavailable")
                 } icon: { Image(systemName: "info.circle").accessibilityHidden(true) }
-                Text("settingsNative.about.playerCodeHint").font(.footnote).foregroundStyle(.secondary)
             }
             Section {
                 ForEach([SettingsLegalType.userAgreement, .privacyPolicy]) { type in
@@ -48,17 +47,15 @@ import UIKit
                     .accessibilityIdentifier("settingsNative.about.openLegal.\(type.rawValue)")
                 }
             }
-            Section("settingsNative.about.contact") {
-                if let phone = SettingsSourceContact.phone(market: market) {
-                    Text("settingsNative.about.contactSource").font(.footnote).foregroundStyle(.secondary)
+            if let phone = SettingsSourceContact.phone(market: market) {
+                Section("settingsNative.about.contact") {
                     Text(verbatim: phone).textSelection(.enabled)
                         .accessibilityIdentifier("settingsNative.about.contactPhone")
                     NativeCopyTextButton(text: phone, title: "settingsNative.about.copyPhone",
                         identifier: "settingsNative.about.copyPhone", copyText: copyText)
-                } else {
-                    Text("settingsNative.about.contactUnavailable").foregroundStyle(.secondary)
                 }
             }
+            SettingsAttributionsSection(copyText: copyText)
         }
         .appNavigationTitle("settingsNative.about.title")
     }

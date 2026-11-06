@@ -12,8 +12,8 @@
     "zh-Hans": "传感器挑战（本地）"
   },
   "templateAuthor.preference.instructions": {
-    "en": "Edit the source questionnaire JSON: steps/options/scores, dimensions, tiebreak, results and tags. Keys belong to the author; nothing is automatically reordered. Invalid text can still be saved locally.",
-    "zh-Hans": "编辑原始题组 JSON：步骤、选项及分值、维度、并列取舍题、结果和标签。key 由作者维护，不自动重排。格式错误的文本也可保存本地。"
+    "en": "Edit the questionnaire JSON: steps, options and scores, dimensions, tiebreaks, results and tags. You manage the keys; nothing is reordered automatically. Text with errors can still be saved on this device.",
+    "zh-Hans": "编辑问卷 JSON：步骤、选项及分值、维度、并列取舍题、结果和标签。key 由你维护，不会自动重排。格式有误的文本也可保存在本机。"
   },
   "templateAuthor.preference.source": {
     "en": "Preference configuration JSON",

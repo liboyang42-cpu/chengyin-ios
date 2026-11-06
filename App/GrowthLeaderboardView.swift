@@ -4,6 +4,7 @@ import SwiftUI
     let reader: any GrowthCenterReading
     @Environment(\.growthExploreHomeAction) private var onExploreHome
     @Environment(\.scenePhase) private var scenePhase
+    private var reads: GrowthNormalReadTask { model.overviewReads }
     @State private var query = GrowthBoardQuery()
     @State private var explorePresentationID = UUID()
     @State private var exploreVisible = false
@@ -25,10 +26,13 @@ import SwiftUI
             if !reader.isAuthenticated { GrowthCenterIssueView(issue: .login) }
             else if !reader.isConfigured { GrowthCenterIssueView(issue: .notConfigured) }
             else if model.isLoading || model.loadedKey != key { ProgressView("growth.loading") }
-            else if let issue = model.issue(key: key) { GrowthCenterIssueView(issue: issue, retry: { Task { await load() } }) }
+            else if let issue = model.issue(key: key) {
+                if issue == .notConfigured { GrowthNormalLeaderboardHoldView() }
+                else { GrowthCenterIssueView(issue: issue, retry: reload) }
+            }
             else if let board = model.value(key: key) {
                 if let rank = board.me.rank {
-                    Section("growth.myRank") { GrowthLeaderboardRow(entry: board.me, fallback: "growth.me", metric: board.metric).accessibilityIdentifier("growth.board.me.\(rank)") }
+                    Section("growth.myRank") { GrowthLeaderboardRow(entry: board.me, fallback: "growth.me", metric: board.metric, isMe: true).accessibilityIdentifier("growth.board.me.\(rank)") }
                 }
                 if board.list.isEmpty {
                     ContentUnavailableView {
@@ -56,7 +60,7 @@ import SwiftUI
                 } else {
                     Section("growth.board.leaders") {
                         ForEach(Array(board.list.enumerated()), id: \.offset) { index, row in
-                            GrowthLeaderboardRow(entry: row, fallback: "growth.explorer", metric: board.metric)
+                            GrowthLeaderboardRow(entry: row, fallback: "growth.explorer", metric: board.metric, place: index < 3 ? index + 1 : nil)
                                 .accessibilityIdentifier("growth.board.row.\(index)")
                         }
                     }
@@ -67,7 +71,7 @@ import SwiftUI
         .appNavigationTitle("growth.board.title")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button { Task { await load() } } label: { Label("growth.refresh", systemImage: "arrow.clockwise") }
+                Button(action: reload) { Label("growth.refresh", systemImage: "arrow.clockwise") }
                     .disabled(model.isLoading || !reader.isAuthenticated || !reader.isConfigured)
                     .accessibilityIdentifier("growth.board.refresh")
             }
@@ -78,7 +82,9 @@ import SwiftUI
         .onChange(of: scenePhase) { _, _ in explorePresentationID = UUID() }
         .onChange(of: ObjectIdentifier(reader)) { _, value in latestReaderID = value; explorePresentationID = UUID() }
     }
-    private func load() async {
+    private func reload() { reads.start { await readLeaderboard() } }
+    private func load() async { await reads.run { await readLeaderboard() } }
+    private func readLeaderboard() async {
         explorePresentationID = UUID(); exploreConsumed = false; latestReaderID = ObjectIdentifier(reader)
         guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }
         let captured = key, requested = query
@@ -105,9 +111,16 @@ private struct GrowthLeaderboardRow: View {
     let entry: GrowthLeaderboardEntry
     let fallback: LocalizedStringKey
     let metric: GrowthBoardMetric
+    /// Podium position (1-3) of a server-ordered row; the source shows gold/silver/bronze rings.
+    var place: Int? = nil
+    var isMe = false
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            GrowthCenterName(name: entry.nickname, fallback: fallback).font(.headline).fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: 8) {
+                if let place { GrowthPodiumMark(place: place) }
+                GrowthCenterName(name: entry.nickname, fallback: fallback).font(.headline).fixedSize(horizontal: false, vertical: true)
+                if isMe { Text("growth.board.meTag").font(.caption.bold()).padding(.horizontal, 6).background(.tint.opacity(0.18), in: Capsule()) }
+            }
             LabeledContent("growth.rank") {
                 if let rank = entry.rank { Text(rank, format: .number).monospacedDigit() }
                 else { Text("growth.unranked") }
@@ -115,5 +128,15 @@ private struct GrowthLeaderboardRow: View {
             LabeledContent(LocalizedStringKey("growth.unit." + metric.rawValue)) { GrowthCenterInteger(value: entry.score) }
             if let percentage = GrowthCenterFormatting.nonempty(entry.rankPercentage) { Text(verbatim: percentage).font(.caption).foregroundStyle(.secondary) }
         }.accessibilityElement(children: .combine).padding(.vertical, 4)
+    }
+}
+
+struct GrowthPodiumMark: View {
+    let place: Int
+    private var tint: Color { place == 1 ? .yellow : place == 2 ? .gray : .brown }
+    private var label: LocalizedStringKey { place == 1 ? "growth.board.podium.first" : place == 2 ? "growth.board.podium.second" : "growth.board.podium.third" }
+    var body: some View {
+        Image(systemName: "medal.fill").foregroundStyle(tint)
+            .accessibilityLabel(Text(label))
     }
 }

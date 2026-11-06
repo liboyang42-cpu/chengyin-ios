@@ -154,4 +154,153 @@ import FoundationNetworking
         await co.checkOutcome(); XCTAssertEqual(wire.requests.count, 1); XCTAssertEqual(storage.data, before)
         if let draft = co.snapshot?.draft { co.prepare(draft) }; XCTAssertNil(co.confirmation)
     }
+
+    func testSellingFrozenDetailRetainsCanonicalIDsAndRejectsUnknownScopes() throws {
+        for product in ProjectEditProduct.allCases { for owner in [ProjectEditOwner.personal, .merchant] {
+            let data = try ProjectEditRemoteFixtures.detail(product: product, scope: .sellingFrozen)
+            let snapshot = try ProjectEditContract.decodeEditDetail(data, expectedTopicID: 71, owner: owner)
+            XCTAssertEqual(snapshot.scope, .sellingFrozen); XCTAssertFalse(snapshot.scope.allowsEditing)
+            XCTAssertEqual(snapshot.draft.owner, owner); XCTAssertEqual(snapshot.draft.product, product)
+            XCTAssertEqual(snapshot.draft.chapters[0].preserved["id"], .number(11))
+            XCTAssertEqual(snapshot.draft.chapters[0].nodes[0].localMetadata["id"], .number(22))
+            XCTAssertEqual(snapshot.draft.chapters[0].nodes[0].templateID, 73)
+            if product == .city { XCTAssertEqual(snapshot.draft.chapters[0].blocks?.last?.nodeID, snapshot.draft.chapters[0].nodes[0].id) }
+            let unknown = String(decoding: data, as: UTF8.self).replacingOccurrences(of: "SELLING_FROZEN", with: "FUTURE_SCOPE")
+            XCTAssertThrowsError(try ProjectEditContract.decodeEditDetail(Data(unknown.utf8), expectedTopicID: 71, owner: owner))
+        } }
+    }
+    func testFrozenPayloadAndRawPathsRejectBeforePartialDraftDateConversion() throws {
+        let partial = ProjectEditDraft(), frozen = ProjectEditSnapshot(topicID: 71, scope: .sellingFrozen, draft: .init())
+        XCTAssertThrowsError(try ProjectEditContract.payload(partial, topicID: 71, scope: .sellingFrozen))
+        XCTAssertFalse(ProjectEditValidation.issues(partial, scope: .sellingFrozen).isEmpty)
+        for requested in [ProjectEditScope.full, .whitelist] {
+            XCTAssertThrowsError(try ProjectEditContract.payload(partial, topicID: 71, scope: requested, baseline: frozen))
+        }
+        for product in ProjectEditProduct.allCases {
+            let body = try ProjectEditContract.payload(ProjectEditSyntheticFixtures.draft(product: product), topicID: 71, scope: .full)
+            XCTAssertThrowsError(try ProjectEditStoryContract.path(payload: body, baseline: frozen))
+            XCTAssertThrowsError(try ProjectEditStoryContract.validatePayload(body, baseline: frozen))
+        }
+        XCTAssertThrowsError(try ProjectEditStoryContract.path(payload: ["id": .number(71), "name": .string("No whitelist bypass")], baseline: frozen))
+    }
+    func testFrozenReopenPreservesLocalDraftAndBlocksRestoreDiscardAndSave() async throws {
+        let (co, owner, storage, store, wire) = try await setup()
+        let session = try XCTUnwrap(owner.session), identity = try XCTUnwrap(co.identity)
+        var local = try XCTUnwrap(co.snapshot?.draft); local.name = "Retain unsent local edit"
+        try store.save(local, session: session, identity: identity); let saved = storage.data
+        co.leaveScreen(); wire.data = try ProjectEditRemoteFixtures.detail(product: .freeExplore, scope: .sellingFrozen)
+        await co.load()
+        XCTAssertEqual(co.state, .idle); XCTAssertTrue(co.isReadOnly); XCTAssertFalse(co.canSubmit)
+        XCTAssertEqual(co.snapshot?.draft.name, "Owned fixture route")
+        XCTAssertNil(co.restoredDraft()); XCTAssertFalse(co.saveLocal(local)); co.discardLocalDraft(); co.prepare(local)
+        XCTAssertNil(co.confirmation); XCTAssertEqual(storage.data, saved)
+        guard case .ready(let retained) = co.restore else { return XCTFail("Local draft should remain available for a later editable read") }
+        XCTAssertEqual(retained.draft, local)
+        co.leaveScreen(); wire.data = try ProjectEditRemoteFixtures.detail(product: .freeExplore)
+        await co.load(); XCTAssertFalse(co.isReadOnly); XCTAssertEqual(co.restoredDraft()?.name, local.name)
+    }
+    func testUnknownFrozenRereadNeverConfirmsClearsOrReplaysOriginalSave() async throws {
+        let (co, owner, storage, store, wire) = try await setup(completed: false)
+        let original = try XCTUnwrap(co.pending), session = try XCTUnwrap(owner.session)
+        try store.save(try XCTUnwrap(co.snapshot?.draft), session: session, identity: original.identity)
+        let saved = storage.data
+        co.leaveScreen(); wire.data = try ProjectEditRemoteFixtures.detail(product: .city, scope: .sellingFrozen)
+        await co.load(); await co.checkOutcome(); co.discardLocalDraft()
+        XCTAssertTrue(co.isReadOnly); XCTAssertTrue(co.isLocked); XCTAssertEqual(co.state, .unknown)
+        XCTAssertEqual(co.pending?.operationID, original.operationID); XCTAssertNotEqual(co.pending?.serverAcknowledged, true)
+        XCTAssertNil(co.acknowledgedContinuation); XCTAssertEqual(storage.data, saved)
+        XCTAssertEqual(wire.requests.map { $0.url!.path }, ["/api/topic/edit-detail", "/api/topic/edit-detail"])
+        var placeholder = ProjectEditDraft(); placeholder.owner = .personal
+        let service = ProjectEditHTTPService(configuration: try .init(baseURL: URL(string: "https://example.com")!), transport: wire,
+            owner: .personal, currentCredentials: { try? .init(session: session, token: "synthetic-test-token") })
+        let reopened = ProjectEditCoordinator(initial: .init(topicID: 71, draft: placeholder), service: service, store: store, currentSession: { session })
+        await reopened.load(); XCTAssertTrue(reopened.isLocked); XCTAssertTrue(reopened.isReadOnly)
+        XCTAssertEqual(reopened.pending?.operationID, original.operationID); XCTAssertEqual(storage.data, saved)
+    }
+    func testAcknowledgedFrozenReadRetainsDraftAndJournalUntilEditableContinuation() async throws {
+        let (co, owner, storage, store, wire) = try await setup(completed: true)
+        let session = try XCTUnwrap(owner.session), original = try XCTUnwrap(co.pending)
+        var local = try XCTUnwrap(co.snapshot?.draft); local.name = "Submitted local content"
+        try store.save(local, session: session, identity: original.identity); let saved = storage.data
+        wire.data = try ProjectEditRemoteFixtures.detail(product: .city, revision: "fixture-r3", scope: .sellingFrozen)
+        storage.events = []
+        let read = await co.continueAcknowledged(try XCTUnwrap(co.acknowledgedContinuation))
+        XCTAssertTrue(read); XCTAssertTrue(co.isReadOnly); XCTAssertEqual(co.state, .acknowledged)
+        XCTAssertEqual(co.snapshot?.draft.baseRevision, "fixture-r3"); XCTAssertEqual(co.snapshot?.draft.product, .city)
+        XCTAssertEqual(co.pending?.operationID, original.operationID); XCTAssertEqual(storage.data, saved); XCTAssertTrue(storage.events.isEmpty)
+        let reread = await co.continueAcknowledged(try XCTUnwrap(co.acknowledgedContinuation))
+        XCTAssertTrue(reread); XCTAssertEqual(storage.data, saved)
+        wire.data = try ProjectEditRemoteFixtures.detail(product: .freeExplore, revision: "fixture-r4")
+        let continued = await co.continueAcknowledged(try XCTUnwrap(co.acknowledgedContinuation))
+        XCTAssertTrue(continued); XCTAssertFalse(co.isReadOnly); XCTAssertEqual(co.state, .idle); XCTAssertNil(co.pending)
+        XCTAssertEqual(storage.events, ["write", "remove"]); XCTAssertEqual(co.snapshot?.draft.baseRevision, "fixture-r4")
+    }
+    func testFailedFrozenRefreshRetainsOriginalJournalAndCanReread() async throws {
+        let (co, _, storage, _, wire) = try await setup(completed: true), saved = storage.data
+        wire.data = try ProjectEditRemoteFixtures.detail(product: .freeExplore, scope: .sellingFrozen)
+        let frozen = await co.continueAcknowledged(try XCTUnwrap(co.acknowledgedContinuation)); XCTAssertTrue(frozen)
+        wire.status = 503
+        let failed = await co.continueAcknowledged(try XCTUnwrap(co.acknowledgedContinuation))
+        XCTAssertFalse(failed); XCTAssertTrue(co.isReadOnly); XCTAssertEqual(co.state, .acknowledged)
+        XCTAssertEqual(co.messageKey, "projectRemote.readFailed"); XCTAssertEqual(storage.data, saved)
+        wire.status = 200
+        let recovered = await co.continueAcknowledged(try XCTUnwrap(co.acknowledgedContinuation))
+        XCTAssertTrue(recovered); XCTAssertEqual(storage.data, saved)
+    }
+    func testFrozenLateReadCannotReplaceChangedSessionOrPending() async throws {
+        for changeSession in [true, false] {
+            let (co, owner, storage, store, wire) = try await setup(completed: true)
+            let session = try XCTUnwrap(owner.session), capture = try XCTUnwrap(co.acknowledgedContinuation), saved = storage.data
+            wire.data = try ProjectEditRemoteFixtures.detail(product: .freeExplore, revision: "frozen-late", scope: .sellingFrozen)
+            wire.beforeReply = {
+                if changeSession { owner.session = try? .init(accountID: 902, epoch: 2, storageNamespace: "remote-edit-test") }
+                else {
+                    var replacement = capture.completed; replacement.completedTopicID = nil; replacement.serverAcknowledged = nil
+                    try? store.savePending(replacement, session: session)
+                }
+            }
+            storage.events = []
+            let result = await co.continueAcknowledged(capture)
+            XCTAssertFalse(result); XCTAssertNotEqual(co.snapshot?.draft.baseRevision, "frozen-late")
+            XCTAssertFalse(storage.events.contains("remove"))
+            if changeSession { XCTAssertEqual(storage.data, saved) }
+            else { XCTAssertEqual(co.state, .unknown); XCTAssertTrue(co.isLocked) }
+        }
+    }
+    func testApprovedHTTPServiceRefusesFrozenBaselineAndFreshFreezeWithoutDispatch() async throws {
+        let owner = Owner(), session = try XCTUnwrap(owner.session), storage = Storage(), store = ProjectEditLocalStore(storage: storage)
+        let full = try ProjectEditContract.decodeEditDetail(ProjectEditRemoteFixtures.detail(product: .freeExplore), expectedTopicID: 71, owner: .personal)
+        let frozen = ProjectEditSnapshot(topicID: 71, scope: .sellingFrozen, draft: full.draft)
+        let payload = try ProjectEditContract.payload(full.draft, topicID: 71, scope: .full, baseline: full)
+        let wire = Transport(try ProjectEditRemoteFixtures.detail(product: .freeExplore, scope: .sellingFrozen))
+        let configuration = try APIConfiguration(baseURL: URL(string: "https://example.com")!)
+        let approval = try OperationEndpointApproval(baseURL: configuration.baseURL, namespace: session.storageNamespace, accountID: session.accountID,
+            paths: ["api/topic/update", "api/topic/v2/update"])
+        let service = ProjectEditHTTPService(configuration: configuration, transport: wire, owner: .personal, approval: approval, store: store,
+            currentCredentials: { try? .init(session: session, token: "synthetic-test-token") })
+        for baseline in [frozen, full] {
+            let operation = try ProjectEditPending(operationID: UUID(), ownerKey: session.ownerKey, identity: .init(topicID: 71), payload: payload, baseline: baseline)
+            try store.savePending(operation, session: session); let saved = storage.data
+            let result = await service.submit(operation, session: session)
+            XCTAssertEqual(result, .notSent); XCTAssertEqual(storage.data, saved)
+            XCTAssertNotEqual(try store.pending(session: session, identity: operation.identity)?.dispatchStarted, true)
+        }
+        XCTAssertEqual(wire.requests.map { $0.url!.path }, ["/api/topic/edit-detail"])
+    }
+    func testFreezeBetweenReviewAndConfirmationLeavesLocalDraftAndAllowsReadback() async throws {
+        let owner = Owner(), session = try XCTUnwrap(owner.session), storage = Storage(), store = ProjectEditLocalStore(storage: storage)
+        let initial = ProjectEditSyntheticFixtures.snapshot(), service = ProjectEditSyntheticService(snapshot: initial)
+        let co = ProjectEditCoordinator(initial: initial, service: service, store: store, currentSession: { owner.session })
+        await co.load(); var edited = initial.draft; edited.name = "Retain reviewed edit"
+        XCTAssertTrue(co.saveLocal(edited)); co.prepare(edited); let review = try XCTUnwrap(co.confirmation)
+        let saved = storage.data
+        service.snapshot = .init(topicID: initial.topicID, scope: .sellingFrozen, draft: initial.draft)
+        await co.confirm(review)
+        XCTAssertEqual(co.state, .blocked); XCTAssertTrue(service.submissions.isEmpty); XCTAssertEqual(storage.data, saved)
+        await co.load(); XCTAssertTrue(co.isReadOnly); XCTAssertEqual(co.state, .idle)
+        await co.confirm(review); XCTAssertTrue(service.submissions.isEmpty); XCTAssertNil(co.pending)
+        let identity = try XCTUnwrap(co.identity)
+        guard case .ready(let retained) = store.load(session: session, identity: identity, baseline: initial.draft) else { return XCTFail("Reviewed local draft must remain") }
+        XCTAssertEqual(retained.draft.name, edited.name)
+    }
 }

@@ -14,29 +14,32 @@ import SwiftUI
                 }
                 if quota.limited {
                     if let limit = quota.limit {
-                        LabeledContent("publishingAIQuota.limit") { Text(verbatim: String(limit)) }
-                    } else { Text("publishingAIQuota.limitUnknown").font(.footnote) }
+                        LabeledContent("publishingAIQuota.limit") { Text(verbatim: String(limit)).monospacedDigit() }
+                    } else { PublishingStatusRow(title: Text("publishingAIQuota.limitUnknown")) }
                     if let remaining = quota.remaining {
-                        LabeledContent("contextPublish.ai.remaining") { Text(verbatim: String(remaining)) }
+                        LabeledContent("contextPublish.ai.remaining") { Text(verbatim: String(remaining)).font(.headline).monospacedDigit() }
                             .accessibilityIdentifier("publishingAIQuota.remaining")
                     }
-                    if quota.exhausted { Text("contextPublish.ai.exhausted") }
-                } else { Text("publishingAIQuota.notMarkedLimited") }
+                    if quota.exhausted { PublishingStatusRow(title: Text("contextPublish.ai.exhausted"), symbol: "info.circle") }
+                } else { PublishingStatusRow(title: Text("publishingAIQuota.notMarkedLimited")) }
                 if let readAt = flow.quotaReadAt {
                     LabeledContent("publishingAIQuota.lastRead") {
-                        Text(readAt, format: .dateTime.month().day().hour().minute())
+                        Text(readAt, format: .dateTime.month().day().hour().minute()).font(.footnote).foregroundStyle(.secondary)
                     }
                 }
-            } else if flow.quotaReadState == .idle { Text("publishingAIQuota.notRead") }
+            } else if flow.quotaReadState == .idle { PublishingStatusRow(title: Text("publishingAIQuota.notRead")) }
             if flow.quotaReadState == .failed {
-                Text("publishingAIQuota.failed").font(.footnote).accessibilityIdentifier("publishingAIQuota.failed")
+                PublishingStatusRow(title: Text("publishingAIQuota.failed"), symbol: "exclamationmark.triangle", isError: true)
+                    .accessibilityIdentifier("publishingAIQuota.failed")
             }
-            if flow.quotaReadState == .unavailable { Text("publishingAIQuota.unavailable").font(.footnote) }
+            if flow.quotaReadState == .unavailable { PublishingStatusRow(title: Text("publishingAIQuota.unavailable"), symbol: "wifi.slash") }
             if flow.quotaReadState != .unavailable {
-                Button("publishingAIQuota.refresh") { Task { await flow.loadQuota() } }
+                Button { Task { await flow.loadQuota() } } label: {
+                    Label("publishingAIQuota.refresh", systemImage: "arrow.clockwise").frame(minHeight: 44)
+                }
                     .disabled(!flow.canRefreshQuota).accessibilityIdentifier("publishingAIQuota.refresh")
             }
-            Text("publishingAIQuota.boundary").font(.footnote).foregroundStyle(.secondary)
+            PublishingStatusRow(title: Text("publishingAIQuota.boundary"))
         }.privacySensitive().accessibilityIdentifier("publishingAIQuota.section")
     }
 }

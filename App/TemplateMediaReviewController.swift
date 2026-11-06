@@ -26,6 +26,7 @@ import UIKit
         let review: Review
         let state: State
         let crop: TemplateImageCropDraft?
+        let creatorCrop: CreatorCropExportDraft?
         let image: RetainedSelectedImage?
         let audio: TemplateAudioDocumentMetadata?
         let canSelectImage: Bool
@@ -48,6 +49,7 @@ import UIKit
     private var storyOrder: [UUID] = []
     private var context = ""
     private var crop: TemplateImageCropSession?
+    private var creatorCrop: CreatorCropExportSession?
     private var picker: RetainedNativeImagePicker?
     private var task: Task<Void, Never>?
     private var state: State = .awaitingSelection
@@ -161,7 +163,8 @@ import UIKit
     /// An old panel may refresh a same-ID reselect token, never acquire a different panel's review.
     func presentation(for originalID: UUID) -> Presentation? {
         guard let value = review, value.id == originalID, isCurrent(value) else { return nil }
-        return .init(review: value, state: state, crop: crop?.draft, image: crop?.selection, audio: audio,
+        return .init(review: value, state: state, crop: crop?.draft, creatorCrop: creatorCrop?.draft,
+                     image: creatorCrop?.selection ?? crop?.selection, audio: audio,
                      canSelectImage: Self.isImage(value.selection.slot.field) && imageSelectionApproved() && state != .pending)
     }
     static func isImage(_ field: TemplateAuthoringMediaField) -> Bool {
@@ -195,8 +198,20 @@ import UIKit
     func stage(_ image: RetainedSelectedImage, for value: Review) {
         guard isCurrent(value), Self.isImage(value.selection.slot.field) else { return }
         let session = TemplateImageCropSession(isCurrent: { [weak self] in self?.isCurrent(value) == true })
-        session.stage(image); crop = session; audio = nil
-        state = session.failed ? .failed : .cropping; revision += 1
+        session.stage(image); crop = session
+        let creator = CreatorCropExportSession(isCurrent: { [weak self] in self?.isCurrent(value) == true })
+        creator.stage([image]); creatorCrop = creator; audio = nil
+        state = (session.failed || creator.failed) ? .failed : .cropping; revision += 1
+    }
+    func confirmCreatorCrop(_ value: Review, id: UUID, results: [MiniCropView.Result]) {
+        guard isCurrent(value), let creatorCrop else { return }
+        if creatorCrop.confirm(id: id, results: results) != nil { state = .ready }
+        else if creatorCrop.failed { state = .failed }
+        revision += 1
+    }
+    func cancelCreatorCrop(_ value: Review, id: UUID) {
+        guard isCurrent(value), creatorCrop?.draft?.id == id else { return }
+        creatorCrop?.cancel(id: id); state = .awaitingSelection; revision += 1
     }
     func confirmCrop(_ value: Review, id: UUID, rect: TemplateImageCropRect) {
         guard isCurrent(value), let crop else { return }
@@ -223,7 +238,8 @@ import UIKit
     }
     private func dropCandidate() {
         task?.cancel(); task = nil; picker?.cancel(); picker = nil
-        crop?.invalidate(); crop = nil; audio = nil; review = nil; state = .awaitingSelection
+        crop?.invalidate(); crop = nil; creatorCrop?.invalidate(); creatorCrop = nil
+        audio = nil; review = nil; state = .awaitingSelection
     }
     func retire() {
         dropCandidate(); scope?.retire(); scope = nil; owner = nil; generation = nil

@@ -1,55 +1,83 @@
 import SwiftUI
 
-/// Additive sheet; host constructs one coordinator per identity and destroys the sheet on epoch changes.
-/// Existing official read views remain unchanged.
+/// Original shared sheet. Each occurrence owns its review; host identity gates remain in force.
 @MainActor struct OfficialActionSheet: View {
     let coordinator: OfficialActionCoordinator
     let command: OfficialActionCommand
+    /// Optional source confirmation copy (e.g. official-inbox modal title/content).
+    var noticeTitleKey: String? = nil
+    var noticeBodyKey: String? = nil
     @Environment(\.dismiss) private var dismiss
-    @State private var review: OfficialActionReview?
-    @State private var busy = false
-    @State private var message: String?
-    @State private var receipt: OfficialActionReceipt?
-    @State private var rejectionReason: String?
+    @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var model: OfficialActionPresentationModel
+    init(coordinator: OfficialActionCoordinator, command: OfficialActionCommand,
+         noticeTitleKey: String? = nil, noticeBodyKey: String? = nil) {
+        self.coordinator = coordinator; self.command = command
+        self.noticeTitleKey = noticeTitleKey; self.noticeBodyKey = noticeBodyKey
+        _model = StateObject(wrappedValue: OfficialActionPresentationModel(coordinator: coordinator, command: command))
+    }
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    Label("officialAction.reviewNotice", systemImage: "lock.shield")
-                    Text(LocalizedStringKey(command.titleKey)).font(.headline)
-                    Text("officialAction.noOutcomePromise").foregroundStyle(.secondary)
-                }
-                if let review {
-                    Section("officialAction.target") {
-                        Text(review.command.scope).textSelection(.enabled)
-                        if let event = review.snapshot.event { Text(event.title) }
-                        if let invite = review.snapshot.invite { Text(invite.title) }
-                        // Exact immutable payload, including explicit audience/channel and location details.
-                        if let body = review.body, let object = try? JSONSerialization.jsonObject(with: body),
-                           let pretty = try? JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys]) {
-                            Text(String(decoding: pretty, as: UTF8.self)).font(.body.monospaced())
-                                .textSelection(.enabled).accessibilityIdentifier("officialAction.reviewPayload")
-                        }
-                    }
-                    Section {
-                        Button("officialAction.confirm") { submit(review) }
-                            .disabled(busy || !coordinator.enabled || receipt != nil)
-                            .frame(minHeight: 44).accessibilityIdentifier("officialAction.confirm")
-                        if !coordinator.enabled { Text("officialAction.disabled").foregroundStyle(.secondary) }
-                    }
-                }
-                if busy { ProgressView().accessibilityLabel(Text("officialAction.working")) }
-                if let message { Text(LocalizedStringKey(message)).accessibilityIdentifier("officialAction.message") }
-                if let rejectionReason { Text(rejectionReason).accessibilityIdentifier("officialAction.rejectionReason") }
-                if let receipt { receiptView(receipt) }
+            Group {
+                if model.isBound(to: coordinator, command: command) {
+                    form
+                } else { Text("officialAction.stale") }
             }
             .navigationTitle("officialAction.review")
             .toolbar { ToolbarItem(placement: .cancellationAction) {
-                Button("officialAction.close") { coordinator.cancelReview(); dismiss() }.disabled(busy)
+                Button("officialAction.close") { model.disappear(); dismiss() }.disabled(model.busy)
             } }
-            .interactiveDismissDisabled(busy)
-            .task { await prepare() }
-            .onDisappear { coordinator.cancelReview() }
+            .interactiveDismissDisabled(model.busy)
+            .onAppear { model.appear(isActive: scenePhase == .active) }
+            .onChange(of: scenePhase) { _, phase in model.sceneChanged(isActive: phase == .active) }
+            .onChange(of: coordinator.identity) { _, _ in model.synchronizeIdentity() }
+            .onChange(of: ObjectIdentifier(coordinator)) { _, _ in model.disappear() }
+            .onChange(of: command) { _, _ in model.disappear() }
+            .onDisappear { model.disappear() }
+        }
+    }
+    private var form: some View {
+        Form {
+            Section {
+                Label("officialAction.reviewNotice", systemImage: "lock.shield")
+                Text(LocalizedStringKey(command.titleKey)).font(.headline)
+                Text("officialAction.noOutcomePromise").foregroundStyle(.secondary)
+            }
+            if noticeTitleKey != nil || noticeBodyKey != nil {
+                Section {
+                    if let noticeTitleKey { Text(LocalizedStringKey(noticeTitleKey)).font(.headline) }
+                    if let noticeBodyKey { Text(LocalizedStringKey(noticeBodyKey)).foregroundStyle(.secondary) }
+                }.accessibilityIdentifier("official.inbox.confirmation.\(command.scope)")
+            }
+            if let review = model.review {
+                Section("officialAction.target") {
+                    Text(review.command.scope).textSelection(.enabled)
+                    if let event = review.snapshot.event { Text(event.title) }
+                    if let invite = review.snapshot.invite { Text(invite.title) }
+                    // Exact immutable payload, including explicit audience/channel and location details.
+                    if let body = review.body, let object = try? JSONSerialization.jsonObject(with: body),
+                       let pretty = try? JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys]) {
+                        Text(String(decoding: pretty, as: UTF8.self)).font(.body.monospaced())
+                            .textSelection(.enabled).accessibilityIdentifier("officialAction.reviewPayload")
+                    }
+                }
+                Section {
+                    Button("officialAction.confirm") { model.submit(review) }
+                        .disabled(!model.canConfirm)
+                        .frame(minHeight: 44).accessibilityIdentifier("officialAction.confirm")
+                    if !coordinator.enabled { Text("officialAction.disabled").foregroundStyle(.secondary) }
+                }
+            }
+            if model.busy { ProgressView().accessibilityLabel(Text("officialAction.working")) }
+            if let message = model.message {
+                Text(LocalizedStringKey(message)).accessibilityIdentifier("officialAction.message")
+                if model.canReview {
+                    Button("officialAction.review") { model.readAgain() }
+                        .frame(minHeight: 44).accessibilityIdentifier("officialAction.review")
+                }
+            }
+            if let rejectionReason = model.rejectionReason { Text(rejectionReason).accessibilityIdentifier("officialAction.rejectionReason") }
+            if let receipt = model.receipt { receiptView(receipt) }
         }
     }
     @ViewBuilder private func receiptView(_ receipt: OfficialActionReceipt) -> some View {
@@ -64,32 +92,6 @@ import SwiftUI
             case .acknowledged: Text("officialAction.acknowledged")
             }
             Text("officialAction.refreshFacts").foregroundStyle(.secondary)
-        }
-    }
-    private func prepare() async {
-        busy = true; defer { busy = false }
-        do { review = try await coordinator.prepare(command) }
-        catch { message = issue(error) }
-    }
-    private func submit(_ review: OfficialActionReview) {
-        busy = true; message = nil
-        Task { defer { busy = false }
-            do { receipt = try await coordinator.confirm(review) }
-            catch {
-                if case let OfficialActionFailure.rejected(_, reason) = error { rejectionReason = reason }
-                message = issue(error); self.review = nil
-            }
-        }
-    }
-    private func issue(_ error: Error) -> String {
-        switch error {
-        case OfficialActionFailure.disabled: return "officialAction.disabled"
-        case OfficialActionFailure.locked: return "officialAction.locked"
-        case OfficialActionFailure.unknown: return "officialAction.unknown"
-        case OfficialActionFailure.storage: return "officialAction.storage"
-        case OfficialActionFailure.stale: return "officialAction.stale"
-        case OfficialActionFailure.forbidden: return "officialAction.forbidden"
-        default: return coordinator.state == .unknown ? "officialAction.unknown" : "officialAction.rejected"
         }
     }
 }
@@ -191,28 +193,79 @@ import SwiftUI
 }
 
 /// A caller must fetch the current account's inbox and permission before exposing controls.
+/// Source official-inbox eligibility and fixed audit reasons; no free-text reason is sent.
+/// Visibility is not authority: the coordinator re-reads the server row (and publisher
+/// permission for OFFICIAL rows), and every write stays behind the dormant approval gate.
 @MainActor struct OfficialInviteResponseActions: View {
     let coordinator: OfficialActionCoordinator
     let invite: OfficialPartyInvite
+    /// Kept for callers; the source shows organizer controls without a client-side publisher check.
     let publisher: Bool
-    @State private var reason = ""
+    var window: OfficialServiceWindow? = nil
     @State private var reviewed: OfficialActionCommand?
-    private var actions: [OfficialResponseAction] {
-        if invite.partyType == "OFFICIAL" { return publisher && invite.status == "INVITED" ? [.accept, .decline] : [] }
-        guard ["MERCHANT", "CLUB"].contains(invite.partyType ?? "") else { return [] }
-        return invite.status == "INVITED" ? [.accept, .decline] : (["ACCEPTED", "ACTIVE"].contains(invite.status ?? "") ? [.withdraw] : [])
-    }
+    @State private var reviewedAction: OfficialResponseAction?
+    @State private var transferHint = false
+    private var actions: [OfficialResponseAction] { OfficialInboxPresentation.actions(for: invite) }
     var body: some View {
         Section("officialAction.respond") {
-            if !actions.isEmpty, invite.partyType != "OFFICIAL" { TextField("officialAction.reason", text: $reason, axis: .vertical) }
-            ForEach(actions, id: \.self) { action in
-                Button(LocalizedStringKey("officialAction." + action.rawValue.lowercased())) {
-                    reviewed = .respond(partyID: invite.id, type: invite.partyType ?? "", action: action, reason: reason.isEmpty ? nil : reason)
-                }.frame(minHeight: 44)
+            if let window {
+                LabeledContent("official.privateParity.inbox.window") {
+                    Text(verbatim: window.sourceText)
+                }.font(.footnote).accessibilityIdentifier("official.inbox.actionWindow.\(invite.id)")
             }
-        }.sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) {
-            if let reviewed { OfficialActionSheet(coordinator: coordinator, command: reviewed) }
+            if OfficialInboxPresentation.showsOrganizerTransferNotice(invite) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("official.privateParity.inbox.organizerTransferHint").font(.subheadline)
+                    Text("official.privateParity.inbox.organizerTransferDetail").font(.footnote).foregroundStyle(.secondary)
+                }.fixedSize(horizontal: false, vertical: true)
+                    .accessibilityElement(children: .combine).accessibilityIdentifier("official.inbox.organizerTransfer.\(invite.id)")
+            }
+            ForEach(actions, id: \.self) { action in
+                Button(LocalizedStringKey(OfficialInboxPresentation.buttonKey(action))) {
+                    if OfficialInboxPresentation.requiresOrganizerTransfer(invite, action: action) { transferHint = true; return }
+                    transferHint = false
+                    reviewedAction = action
+                    reviewed = OfficialActionCommand.sourceInboxResponse(to: invite, action: action)
+                }.frame(minHeight: 44)
+                    .accessibilityIdentifier("official.inbox.\(action.rawValue.lowercased()).\(invite.id)")
+            }
+            if transferHint {
+                Text("official.privateParity.inbox.organizerTransferHint").font(.footnote).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("official.inbox.transferHint.\(invite.id)")
+            }
+        }.sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil; reviewedAction = nil } })) {
+            if let reviewed {
+                OfficialActionSheet(coordinator: coordinator, command: reviewed,
+                                    noticeTitleKey: reviewedAction.map { OfficialInboxPresentation.confirmationTitleKey(invite, action: $0) },
+                                    noticeBodyKey: reviewedAction.map { OfficialInboxPresentation.confirmationBodyKey(invite, action: $0) })
+            }
         }
+    }
+}
+
+/// One sheet occurrence stays occupied until its matching dismissal finishes.
+struct OfficialParticipationPresentation {
+    struct Entry {
+        let id = UUID()
+        let command: OfficialActionCommand
+        let onReturn: (() -> Void)?
+    }
+    private(set) var entry: Entry?
+    private(set) var isPresented = false
+    mutating func open(command: OfficialActionCommand, onReturn: (() -> Void)?) {
+        guard entry == nil else { return }
+        entry = Entry(command: command, onReturn: onReturn)
+        isPresented = true
+    }
+    mutating func beginDismiss(id: UUID) {
+        guard entry?.id == id else { return }
+        isPresented = false
+    }
+    mutating func finishDismiss(id: UUID) -> (() -> Void)? {
+        guard let current = entry, current.id == id else { return nil }
+        entry = nil
+        isPresented = false
+        return current.onReturn
     }
 }
 
@@ -220,7 +273,8 @@ import SwiftUI
     let coordinator: OfficialActionCoordinator
     let event: OfficialEvent
     var arrival: OfficialArrivalEvidence? = nil
-    @State private var reviewed: OfficialActionCommand?
+    var onReturn: (() -> Void)? = nil
+    @State private var presentation = OfficialParticipationPresentation()
     private var command: OfficialActionCommand? {
         guard !event.paused else { return nil }
         if event.signed == false && [2, 3].contains(event.status ?? -1) { return .signup(event.id) }
@@ -232,13 +286,23 @@ import SwiftUI
         return nil
     }
     var body: some View {
+        let presentationID = presentation.entry?.id
         Section("officialAction.participation") {
             if let command {
-                Button(LocalizedStringKey(command.titleKey)) { reviewed = command }.frame(minHeight: 44)
+                Button(LocalizedStringKey(command.titleKey)) {
+                    // Capture the detail visit at presentation time. A late dismissal
+                    // must not use a callback supplied by a newer account or page.
+                    presentation.open(command: command, onReturn: onReturn)
+                }.frame(minHeight: 44)
+                    .disabled(presentation.entry != nil)
                     .accessibilityIdentifier("officialAction.participationReview")
             } else { Text("officialAction.noAction").foregroundStyle(.secondary) }
-        }.sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) {
-            if let reviewed { OfficialActionSheet(coordinator: coordinator, command: reviewed) }
+        }.sheet(isPresented: Binding(get: { presentation.isPresented }, set: { if !$0, let presentationID { presentation.beginDismiss(id: presentationID) } }), onDismiss: {
+            guard let presentationID else { return }
+            let callback = presentation.finishDismiss(id: presentationID)
+            callback?()
+        }) {
+            if let entry = presentation.entry { OfficialActionSheet(coordinator: coordinator, command: entry.command) }
         }
     }
 }

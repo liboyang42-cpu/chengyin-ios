@@ -1,0 +1,422 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "usageEvidence.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My consent records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的同意记录"
+          }
+        }
+      }
+    },
+    "usageEvidence.boundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only records for this account’s app-launch purpose. A recorded event is not proof of current permission and does not authorize AI, photos, location, or other processing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只读查看本账号的应用启动用途记录。留痕不代表当前授权，不授权 AI、照片、位置或其他用途处理。"
+          }
+        }
+      }
+    },
+    "usageEvidence.request": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始请求标识"
+          }
+        }
+      }
+    },
+    "usageEvidence.readOriginal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read original record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取原记录"
+          }
+        }
+      }
+    },
+    "usageEvidence.history": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded events"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已留存事件"
+          }
+        }
+      }
+    },
+    "usageEvidence.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No app-launch records were found for this account. Local choices are not server receipts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本账号暂无应用启动用途的服务端记录。本地选择不等于服务端回执。"
+          }
+        }
+      }
+    },
+    "usageEvidence.more": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load earlier records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载更早记录"
+          }
+        }
+      }
+    },
+    "usageEvidence.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新记录"
+          }
+        }
+      }
+    },
+    "usageEvidence.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in with a configured service to read your records. This does not accept or revoke anything."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需登录并具备已配置的服务才能读取本人记录。此页面不会接受或撤回任何内容。"
+          }
+        }
+      }
+    },
+    "usageEvidence.original": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request evidence"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求留痕"
+          }
+        }
+      }
+    },
+    "usageEvidence.timeUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded time unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录时间不可用"
+          }
+        }
+      }
+    },
+    "usageEvidence.latest": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest recorded event for this exact document type, not a current permission decision."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是此原始文档类型最新的留痕事件，并非当前权限判定。"
+          }
+        }
+      }
+    },
+    "usageEvidence.historical": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historical event. Other events may supersede it; it does not grant permission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "历史事件，可能已有后续记录，不代表当前授权。"
+          }
+        }
+      }
+    },
+    "usageEvidence.nativeBindingUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved native-app and market binding is not available. This is the currently stored source for the recorded type and version, not proof of the text originally shown. Acceptance and revocation are not offered here. Existing audit records are not deleted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚无已批准的原生应用及市场绑定。所示为原记录类型及版本当前留存的来源，不证明当时展示的正文。此处不提供接受或撤回，也不删除既有留痕。"
+          }
+        }
+      }
+    },
+    "usageEvidence.event.AGREE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded event: agreed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "留痕事件：同意"
+          }
+        }
+      }
+    },
+    "usageEvidence.event.REVOKE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded event: revoked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "留痕事件：撤回"
+          }
+        }
+      }
+    },
+    "usageEvidence.source.SOURCE_AVAILABLE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exact published source available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "精确版本的已发布来源可读"
+          }
+        }
+      }
+    },
+    "usageEvidence.source.MISSING": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No source exists for this exact type and version. No other version is substituted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缺少此原始类型及精确版本的来源，不替换为其他版本。"
+          }
+        }
+      }
+    },
+    "usageEvidence.source.MISMATCH": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source identity mismatch; text unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源标识不一致，正文不可用。"
+          }
+        }
+      }
+    },
+    "usageEvidence.source.UNPUBLISHED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The exact source is not published; text unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "精确来源尚未发布，正文不可用。"
+          }
+        }
+      }
+    },
+    "usageEvidence.source.INCOMPLETE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The exact source is incomplete; text unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "精确来源不完整，正文不可用。"
+          }
+        }
+      }
+    },
+    "usageEvidence.error.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This read endpoint has not been independently approved. No consent was changed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此只读端点尚未独立批准，未更改任何同意。"
+          }
+        }
+      }
+    },
+    "usageEvidence.error.missing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No record matches this request for the current account and purpose."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本账号此用途下未找到该原请求记录。"
+          }
+        }
+      }
+    },
+    "usageEvidence.error.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to read records. Check the connection and retry the read. No change was sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取失败，请检查连接后重试读取。未发送任何更改。"
+          }
+        }
+      }
+    },
+    "usageEvidence.error.malformed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record proof is incomplete or inconsistent. It cannot be shown as a confirmed result."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录证据不完整或不一致，不能显示为已确认结果。"
+          }
+        }
+      }
+    },
+    "usageEvidence.error.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account or read authorization changed. Reopen this page to read current records."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号或读取授权已变化，请重新打开此页读取。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

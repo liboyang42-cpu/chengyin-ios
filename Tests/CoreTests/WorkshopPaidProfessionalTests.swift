@@ -37,6 +37,8 @@ import XCTest
         var requests: [URLRequest] = [], writes = 0, delay = false, commitThenThrow = false
         var target = F.target, detailTarget: [String: Any]?, status = "NOT_FOUND", writeState = "CREATED"
         var recorded: WorkshopPaidProfessionalCommand?, emptyNextPage = false, nextPages = 0
+        var continuationFailure: WorkshopPaidProfessionalIssue?
+        var targetPages: [[String: Any]] = [], historyPages: [[String: Any]] = []
         var suspended: CheckedContinuation<(Data, Int), Never>?
         init(_ context: RuntimeDependencyContext) { self.context = context }
         func wait() async { for _ in 0..<1000 { if suspended != nil { return }; await Task.yield() }; XCTFail("Expected suspended real service transport") }
@@ -46,6 +48,12 @@ import XCTest
             requests.append(request)
             if delay { delay = false; return await withCheckedContinuation { suspended = $0 } }
             let path = request.url!.path
+            let fields = (try? JSONSerialization.jsonObject(with: request.httpBody ?? Data())) as? [String: Any]
+            if fields?["beforeTopicId"] != nil || fields?["beforeOperationKey"] != nil {
+                if let failure = continuationFailure { continuationFailure = nil; throw failure }
+            }
+            if path.hasSuffix("/professional-targets/list"), !targetPages.isEmpty { return try envelope(targetPages.removeFirst()) }
+            if path.hasSuffix("/professional-operations/history"), !historyPages.isEmpty { return try envelope(historyPages.removeFirst()) }
             if path.hasSuffix("/installed-text/detail") { return (try WorkshopPaidTextFixture.envelope(),200) }
             if path.hasSuffix("/install/targets") { return try envelope(["schema":"w18-paid-install-targets-v1","scope":"OWNER_DRAFT_METADATA_ONLY","licenseId":"w18-paid-11","checkedAt":F.instant,"items":[F.draft],"hasMore":false,"nextBeforeDraftId":NSNull()]) }
             if path.hasSuffix("/professional-targets/list") { return try envelope(["schema":"w18-owned-professional-topic-targets-v1","scope":"INDIVIDUAL_CONTENT_OWNER_AND_PUBLISHER_METADATA_ONLY","licenseId":"w18-paid-11","checkedAt":F.instant,"items":[target],"hasMore":false,"nextBeforeTopicId":NSNull()]) }
@@ -79,7 +87,7 @@ import XCTest
         lazy var lease = ContentDraftSessionLease(context:context,current:{[weak self] in self?.current})
         lazy var store = try! WorkshopPaidProfessionalPendingStore(storage:memory,context:context,reference:reference)
         lazy var service = WorkshopPaidProfessionalService(api:try! APIConfiguration(baseURL:context.baseURL),transport:wire,lease:lease,readApproval:read,currentReadApproval:{[weak self] in self?.read},writeApproval:write,currentWriteApproval:{[weak self] in self?.write},onUnauthorized:{[weak self] _ in self?.unauthorized += 1})
-        lazy var preparation = WorkshopPaidProfessionalPreparation(bodyReader:WorkshopPaidInstalledTextService(api:try! APIConfiguration(baseURL:context.baseURL),transport:wire,lease:lease,approval:bodyApproval,currentApproval:{[weak self] in self?.bodyApproval}), installReader:WorkshopPaidInstallService(api:try! APIConfiguration(baseURL:context.baseURL),transport:wire,lease:lease,approval:installApproval,currentApproval:{[weak self] in self?.installApproval}))
+        lazy var preparation = WorkshopPaidProfessionalPreparation(bodyReader:WorkshopPaidInstalledTextService(api:try! APIConfiguration(baseURL:context.baseURL),transport:wire,lease:lease,approval:bodyApproval,currentApproval:{[weak self] in self?.bodyApproval},onUnauthorized:{[weak self] _ in self?.unauthorized += 1}), installReader:WorkshopPaidInstallService(api:try! APIConfiguration(baseURL:context.baseURL),transport:wire,lease:lease,approval:installApproval,currentApproval:{[weak self] in self?.installApproval}))
         lazy var controller = WorkshopPaidProfessionalController(reference:reference,service:service,preparation:preparation,store:store,lease:lease)
         init(read: Bool = true, write: Bool = true) throws {
             context = .init(market:.china,baseURL:URL(string:"https://example.com/native")!,role:"player",session:try .init(accountID:7,epoch:1,namespace:"synthetic",token:"synthetic-test-7",role:"player"))
@@ -219,4 +227,200 @@ import XCTest
         do { _ = try await h.service.submit(confirmation); XCTFail("Wrong purpose must fail") } catch { }
         XCTAssertEqual(h.wire.writes,0)
     }
+    func testBackgroundClearsReviewAndRequiresFreshExplicitPreparation() async throws {
+        let h = try Harness(), a = WorkshopPaidProfessionalAppearance(); try await h.review(a)
+        let count = h.wire.requests.count
+        h.controller.suspend(a)
+        XCTAssertNil(h.controller.body); XCTAssertNil(h.controller.currentDraft); XCTAssertNil(h.controller.selectedTarget)
+        XCTAssertNil(h.controller.offerSubmit(a, confirmedMode: .city))
+        XCTAssertNil(h.controller.offerRecovery(a)); XCTAssertEqual(h.wire.requests.count, count)
+        await (try XCTUnwrap(h.controller.resume(a)))()
+        XCTAssertEqual(h.controller.phase, .history); XCTAssertNil(h.controller.body)
+        XCTAssertTrue(h.wire.requests.dropFirst(count).allSatisfy { $0.url!.path.hasSuffix("/professional-operations/history") })
+        XCTAssertNil(h.controller.offerSubmit(a, confirmedMode: .city)); XCTAssertNil(h.controller.resume(a))
+        await (try XCTUnwrap(h.controller.offerNewReview(a)))()
+        XCTAssertNotNil(h.controller.body); XCTAssertEqual(h.controller.phase, .targets)
+        XCTAssertEqual(h.wire.writes, 0)
+    }
+    func testBackgroundQueuedSubmitKeepsOriginalUnknownAndResumeNeverWrites() async throws {
+        let h = try Harness(), a = WorkshopPaidProfessionalAppearance(); try await h.review(a)
+        let queued = try XCTUnwrap(h.controller.offerSubmit(a, confirmedMode: .city))
+        let bytes = h.memory.values, original = try XCTUnwrap(h.store.load())
+        h.controller.suspend(a); await queued()
+        XCTAssertEqual(h.wire.writes, 0); XCTAssertEqual(h.memory.values, bytes)
+        await (try XCTUnwrap(h.controller.resume(a)))()
+        XCTAssertEqual(h.controller.operation?.state, .notFound)
+        XCTAssertEqual(h.controller.command?.requestId, original.requestId)
+        XCTAssertNil(h.controller.offerAcknowledge(a)); XCTAssertEqual(h.memory.values, bytes)
+        XCTAssertEqual(h.wire.writes, 0)
+    }
+    func testBackgroundAfterLostCommittedResponseReadsOriginalStatusOnly() async throws {
+        let h = try Harness(), a = WorkshopPaidProfessionalAppearance(); try await h.review(a)
+        h.wire.commitThenThrow = true
+        await (try XCTUnwrap(h.controller.offerSubmit(a, confirmedMode: .city)))()
+        let original = try XCTUnwrap(h.store.load()), bytes = h.memory.values
+        h.controller.suspend(a); h.wire.commitThenThrow = false
+        await (try XCTUnwrap(h.controller.resume(a)))()
+        XCTAssertEqual(h.controller.operation?.state, .created)
+        XCTAssertEqual(h.controller.command?.requestId, original.requestId)
+        XCTAssertEqual(h.memory.values, bytes); XCTAssertEqual(h.wire.writes, 1)
+    }
+    func testBackgroundLateBodyCannotRepopulateOrExpireSessionAfterResume() async throws {
+        let h = try Harness(), a = WorkshopPaidProfessionalAppearance(); try await h.appear(a)
+        h.wire.delay = true
+        let old = try XCTUnwrap(h.controller.offerNewReview(a)), task = Task { await old() }
+        await h.wire.wait(); h.controller.suspend(a)
+        await (try XCTUnwrap(h.controller.resume(a)))()
+        h.wire.resume401(); await task.value
+        XCTAssertEqual(h.controller.phase, .history); XCTAssertNil(h.controller.body)
+        XCTAssertNil(h.controller.currentDraft); XCTAssertEqual(h.unauthorized, 0); XCTAssertEqual(h.wire.writes, 0)
+    }
+    func testBackgroundQueuedAppearAndClosedResumeCannotReadOrResurrect() async throws {
+        let h = try Harness(), a = WorkshopPaidProfessionalAppearance()
+        let queued = try XCTUnwrap(h.controller.appear(a))
+        h.controller.suspend(a); await queued(); XCTAssertTrue(h.wire.requests.isEmpty)
+        h.controller.close(a); XCTAssertNil(h.controller.resume(a)); XCTAssertNil(h.controller.appear(a))
+        let fresh = WorkshopPaidProfessionalAppearance(); try await h.appear(fresh)
+        h.controller.suspend(a); XCTAssertEqual(h.controller.phase, .history)
+        XCTAssertNil(h.controller.resume(a)); XCTAssertNotNil(h.controller.offerRecovery(fresh))
+    }
+    func testBackgroundScopeLossPreservesPendingForOriginalOwnerReconstruction() async throws {
+        let h = try Harness(), a = WorkshopPaidProfessionalAppearance(); try await h.review(a)
+        let queued = try XCTUnwrap(h.controller.offerSubmit(a, confirmedMode: .city))
+        let bytes = h.memory.values, original = try XCTUnwrap(h.store.load())
+        h.controller.suspend(a); h.current = nil
+        XCTAssertNil(h.controller.resume(a)); await queued()
+        XCTAssertEqual(h.controller.phase, .invalidated); XCTAssertEqual(h.memory.values, bytes)
+        h.current = h.context
+        let lease = ContentDraftSessionLease(context: h.context, current: { h.current })
+        // Recreate the original service as well: invalidation revokes its old lease.
+        let service = WorkshopPaidProfessionalService(api: try APIConfiguration(baseURL: h.context.baseURL), transport: h.wire,
+            lease: lease, readApproval: h.read, currentReadApproval: { h.read })
+        let restarted = WorkshopPaidProfessionalController(reference: h.reference, service: service, store: h.store, lease: lease)
+        await (try XCTUnwrap(restarted.appear(.init())))()
+        XCTAssertEqual(restarted.command?.requestId, original.requestId)
+        XCTAssertEqual(restarted.operation?.state, .notFound); XCTAssertEqual(h.memory.values, bytes)
+        XCTAssertEqual(h.wire.writes, 0)
+    }
+    func testBackgroundRetiresGeneratedCurrentDetailReference() async throws {
+        let h = try Harness(), a = WorkshopPaidProfessionalAppearance(); try await h.review(a)
+        await (try XCTUnwrap(h.controller.offerSubmit(a, confirmedMode: .city)))()
+        let result = try XCTUnwrap(h.controller.operation), revision = h.controller.generatedDetailRevision
+        XCTAssertNotNil(h.controller.generatedTemplateID(a, expected: result))
+        h.controller.suspend(a)
+        XCTAssertNotEqual(h.controller.generatedDetailRevision, revision)
+        XCTAssertNil(h.controller.generatedTemplateID(a, expected: result)); XCTAssertNil(h.controller.operation)
+        await (try XCTUnwrap(h.controller.resume(a)))()
+        XCTAssertNotNil(h.controller.generatedTemplateID(a, expected: result))
+        XCTAssertEqual(h.wire.writes, 1)
+    }
+
+    func testBackgroundLateSuccessfulBodyCannotRefillFreshHistory() async throws {
+        let h = try Harness(), a = WorkshopPaidProfessionalAppearance(); try await h.appear(a)
+        h.wire.delay = true
+        let old = try XCTUnwrap(h.controller.offerNewReview(a)), task = Task { await old() }
+        await h.wire.wait(); h.controller.suspend(a)
+        await (try XCTUnwrap(h.controller.resume(a)))()
+        let suspended = h.wire.suspended; h.wire.suspended = nil
+        suspended?.resume(returning: (try WorkshopPaidTextFixture.envelope(), 200)); await task.value
+        XCTAssertEqual(h.controller.phase, .history); XCTAssertNil(h.controller.body)
+        XCTAssertNil(h.controller.currentDraft); XCTAssertTrue(h.controller.targets.isEmpty)
+        XCTAssertEqual(h.wire.writes, 0)
+    }
+    func testBackgroundInflightCreateCannotOverwriteIndependentStatusRead() async throws {
+        let h = try Harness(), a = WorkshopPaidProfessionalAppearance(); try await h.review(a)
+        h.wire.delay = true
+        let old = try XCTUnwrap(h.controller.offerSubmit(a, confirmedMode: .city)), task = Task { await old() }
+        await h.wire.wait(); let original = try XCTUnwrap(h.store.load()), bytes = h.memory.values
+        h.controller.suspend(a); await (try XCTUnwrap(h.controller.resume(a)))()
+        XCTAssertEqual(h.controller.operation?.state, .created)
+        let suspended = h.wire.suspended; h.wire.suspended = nil
+        suspended?.resume(returning: (try F.data(["code":200,"data":F.operation(original,state:"PREPARED")]), 200))
+        await task.value
+        XCTAssertEqual(h.controller.operation?.state, .created)
+        XCTAssertEqual(h.controller.command?.requestId, original.requestId)
+        XCTAssertEqual(h.memory.values, bytes); XCTAssertEqual(h.wire.writes, 1)
+    }
+
+    private func targetPage(_ ids: [Int], more: Bool = false) -> [String: Any] {
+        let items = ids.map { id -> [String: Any] in var value = F.target; value["topicId"] = id; return value }
+        return ["schema":"w18-owned-professional-topic-targets-v1", "scope":"INDIVIDUAL_CONTENT_OWNER_AND_PUBLISHER_METADATA_ONLY",
+                "licenseId":"w18-paid-11", "checkedAt":F.instant, "items":items, "hasMore":more,
+                "nextBeforeTopicId":more ? ids.last! as Any : NSNull()]
+    }
+    private func historyPage(key: String, next: String? = nil) throws -> [String: Any] {
+        var record = try F.record(F.command()); record["operationKey"] = key
+        return ["schema":"w18-paid-professional-operation-history-v1", "scope":"OWNER_OPERATION_INTENT_REFERENCES_ONLY",
+                "licenseId":"w18-paid-11", "items":[record], "scannedCount":next == nil ? 1 : 50,
+                "hasMore":next != nil, "nextBeforeOperationKey":next.map { $0 as Any } ?? NSNull()]
+    }
+    private func cursors(_ h: Harness, field: String) throws -> [String] {
+        try h.wire.requests.compactMap { request in
+            guard let data = request.httpBody, let values = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let cursor = values[field] else { return nil }
+            return String(describing: cursor)
+        }
+    }
+    func testHistoryContinuationFailureKeepsRowsAndRetriesExactCursor() async throws {
+        let h = try Harness(), a = WorkshopPaidProfessionalAppearance()
+        let high = String(repeating:"f",count:64), cursor = String(repeating:"e",count:64), low = String(repeating:"d",count:64)
+        h.wire.historyPages = [try historyPage(key:high,next:cursor), try historyPage(key:low)]
+        try await h.appear(a); h.wire.continuationFailure = .unavailable
+        await (try XCTUnwrap(h.controller.offerMoreOperations(a)))()
+        XCTAssertEqual(h.controller.phase,.history); XCTAssertEqual(h.controller.operations.map(\.id),[high])
+        XCTAssertEqual(h.controller.nextOperationCursor,cursor); XCTAssertEqual(h.controller.issue,.unavailable)
+        await (try XCTUnwrap(h.controller.offerMoreOperations(a)))()
+        XCTAssertEqual(h.controller.operations.map(\.id),[high,low]); XCTAssertNil(h.controller.nextOperationCursor)
+        XCTAssertNil(h.controller.issue); XCTAssertEqual(try cursors(h,field:"beforeOperationKey"),[cursor,cursor])
+        XCTAssertEqual(h.wire.writes,0); XCTAssertNil(try h.store.load())
+    }
+    func testTargetsContinuationFailureKeepsPreparationAndExactCursor() async throws {
+        let h = try Harness(), a = WorkshopPaidProfessionalAppearance()
+        h.wire.targetPages = [targetPage(Array((452...501).reversed()),more:true),targetPage([451])]
+        try await h.appear(a); await (try XCTUnwrap(h.controller.offerNewReview(a)))()
+        let body = try XCTUnwrap(h.controller.body); h.wire.continuationFailure = .unavailable
+        await (try XCTUnwrap(h.controller.offerMoreTargets(a)))()
+        XCTAssertEqual(h.controller.phase,.targets); XCTAssertEqual(h.controller.targets.count,50)
+        XCTAssertEqual(h.controller.nextTargetCursor,452); XCTAssertEqual(h.controller.body?.contentHash,body.contentHash)
+        await (try XCTUnwrap(h.controller.offerMoreTargets(a)))()
+        XCTAssertEqual(h.controller.targets.count,51); XCTAssertEqual(h.controller.targets.last?.topicId,451)
+        XCTAssertNil(h.controller.nextTargetCursor); XCTAssertNil(h.controller.issue)
+        XCTAssertEqual(try cursors(h,field:"beforeTopicId"),["452","452"])
+        XCTAssertEqual(h.wire.writes,0); XCTAssertNil(try h.store.load())
+    }
+    func testMalformedContinuationNeverPartiallyAppendsAndCanRetryOriginalCursor() async throws {
+        let h = try Harness(), a = WorkshopPaidProfessionalAppearance()
+        let high = String(repeating:"f",count:64), cursor = String(repeating:"e",count:64), low = String(repeating:"d",count:64)
+        // The real service rejects a row above the requested cursor before controller append.
+        h.wire.historyPages = [try historyPage(key:high,next:cursor),try historyPage(key:high),try historyPage(key:low)]
+        try await h.appear(a); await (try XCTUnwrap(h.controller.offerMoreOperations(a)))()
+        XCTAssertEqual(h.controller.issue,.malformed); XCTAssertEqual(h.controller.phase,.history)
+        XCTAssertEqual(h.controller.operations.map(\.id),[high]); XCTAssertEqual(h.controller.nextOperationCursor,cursor)
+        await (try XCTUnwrap(h.controller.offerMoreOperations(a)))()
+        XCTAssertEqual(h.controller.operations.map(\.id),[high,low]); XCTAssertEqual(try cursors(h,field:"beforeOperationKey"),[cursor,cursor])
+    }
+    func testContinuationReadGrantRevocationDoesNotPreserveProtectedPreparation() async throws {
+        let h = try Harness(), a = WorkshopPaidProfessionalAppearance()
+        h.wire.targetPages = [targetPage(Array((452...501).reversed()),more:true)]
+        try await h.appear(a); await (try XCTUnwrap(h.controller.offerNewReview(a)))()
+        let count = h.wire.requests.count; h.read = nil
+        await (try XCTUnwrap(h.controller.offerMoreTargets(a)))()
+        XCTAssertEqual(h.controller.phase,.unavailable); XCTAssertEqual(h.controller.issue,.disabled)
+        XCTAssertNil(h.controller.body); XCTAssertNil(h.controller.offerMoreTargets(a))
+        XCTAssertEqual(h.wire.requests.count,count); XCTAssertEqual(h.wire.writes,0)
+    }
+    func testBackgroundLateContinuationFailureCannotRestoreOldTargets() async throws {
+        let h = try Harness(), a = WorkshopPaidProfessionalAppearance()
+        h.wire.targetPages = [targetPage(Array((452...501).reversed()),more:true)]
+        try await h.appear(a); await (try XCTUnwrap(h.controller.offerNewReview(a)))()
+        h.wire.delay = true
+        let old = try XCTUnwrap(h.controller.offerMoreTargets(a)), task = Task { await old() }
+        await h.wire.wait(); h.controller.suspend(a); await (try XCTUnwrap(h.controller.resume(a)))()
+        let suspended = h.wire.suspended; h.wire.suspended = nil
+        suspended?.resume(returning:(Data(),503)); await task.value
+        XCTAssertEqual(h.controller.phase,.history); XCTAssertNil(h.controller.body)
+        XCTAssertTrue(h.controller.targets.isEmpty); XCTAssertNil(h.controller.nextTargetCursor)
+        XCTAssertNil(h.controller.issue); XCTAssertEqual(h.wire.writes,0)
+    }
+
 }

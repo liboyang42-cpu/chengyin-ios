@@ -59,9 +59,10 @@ public struct ClubRosterPresentation: Equatable {
     public func correctionRoute(memberID: Int, bucket: ClubRosterBucket, context: ClubGovernanceReadContext,
                                 snapshotGeneration: UInt64, namespace: String) -> ClubRosterCorrectionRoute? {
         guard context == sourceContext, context.accepts(source), bucket != .waitlist, correctionOperable != false,
-              let member = members(in: bucket).first(where: { $0.id == memberID }), let version = member.correctionVersion else { return nil }
+              let member = members(in: bucket).first(where: { $0.id == memberID }), let version = member.correctionVersion,
+              let arrived = ClubOpsEventAttendance.arrivedTarget(bucket) else { return nil }
         return .init(scope: .init(clubID: scope.clubID, activityID: scope.activityID, memberID: memberID),
-                     version: version, source: source, context: context, generation: snapshotGeneration, namespace: namespace)
+                     version: version, arrived: arrived, source: source, context: context, generation: snapshotGeneration, namespace: namespace)
     }
 }
 
@@ -69,12 +70,14 @@ public struct ClubRosterPresentation: Equatable {
 public struct ClubRosterCorrectionRoute: Equatable {
     public let scope: ClubGovernanceScope
     public let version: Int
+    /// Derived from the source bucket, never a free toggle.
+    public let arrived: Bool
     public let namespace: String
     private let source: ClubGovernanceSnapshot
     private let context: ClubGovernanceReadContext
     private let generation: UInt64
-    fileprivate init(scope: ClubGovernanceScope, version: Int, source: ClubGovernanceSnapshot, context: ClubGovernanceReadContext, generation: UInt64, namespace: String) {
-        self.scope = scope; self.version = version; self.source = source; self.context = context; self.generation = generation; self.namespace = namespace
+    fileprivate init(scope: ClubGovernanceScope, version: Int, arrived: Bool, source: ClubGovernanceSnapshot, context: ClubGovernanceReadContext, generation: UInt64, namespace: String) {
+        self.scope = scope; self.version = version; self.arrived = arrived; self.source = source; self.context = context; self.generation = generation; self.namespace = namespace
     }
     public func isCurrent(snapshot: ClubGovernanceSnapshot?, context: ClubGovernanceReadContext, snapshotGeneration: UInt64, namespace: String) -> Bool {
         self.context == context && self.generation == snapshotGeneration && self.namespace == namespace && source == snapshot

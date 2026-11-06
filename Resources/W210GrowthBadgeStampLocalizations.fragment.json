@@ -1,0 +1,308 @@
+{
+  "badgeWall.explore": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Go explore"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "去探索"
+        }
+      }
+    }
+  },
+  "badgeWall.focus.elsewhere": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This badge is not an identity card; it is recorded in the growth center"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这枚不是身份卡，记在成长中心"
+        }
+      }
+    }
+  },
+  "badgeWall.focus.locked %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "“%@” is not lit yet"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "「%@」还没点亮"
+        }
+      }
+    }
+  },
+  "badgeWall.focus.onWall %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "“%@” is on your wall"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "「%@」已在墙上"
+        }
+      }
+    }
+  },
+  "badgeWall.summary %lld %lld %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%1$lld of %2$lld lit · %3$lld still waiting to be explored"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已点亮 %1$lld / %2$lld · 还有 %3$lld 枚等待探索"
+        }
+      }
+    }
+  },
+  "badgeWall.threeD.open": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "View 3D badge"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查看 3D 徽章"
+        }
+      }
+    }
+  },
+  "growth.badges.newlyLit": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "New badges lit"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "新徽章已点亮"
+        }
+      }
+    }
+  },
+  "growth.board.meTag": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Me"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "我"
+        }
+      }
+    }
+  },
+  "growth.board.podium.first": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "First place"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "第一名"
+        }
+      }
+    }
+  },
+  "growth.board.podium.second": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Second place"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "第二名"
+        }
+      }
+    }
+  },
+  "growth.board.podium.third": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Third place"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "第三名"
+        }
+      }
+    }
+  },
+  "growth.denied": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This account cannot view growth records. Check its access and refresh."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前账号无法查看成长记录，请确认当前账号的查看权限"
+        }
+      }
+    }
+  },
+  "objectCards.denied": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This account cannot view this collection. Go back and open it again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前账号无法查看，请返回后重新进入"
+        }
+      }
+    }
+  },
+  "objectCards.emptyAll": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "You have not collected anything yet"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "还没有收过东西"
+        }
+      }
+    }
+  },
+  "objectCards.emptyHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Photograph an item at a node you have played; once it passes review it is collected here"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "在玩过的节点里拍一件东西，判过就收进这里"
+        }
+      }
+    }
+  },
+  "stampAlbum.denied": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This account cannot view this album. Go back and open it again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前账号无法查看，请返回后重新进入"
+        }
+      }
+    }
+  },
+  "stampAlbum.openCamera": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Open stamp camera"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "打开集邮相机"
+        }
+      }
+    }
+  },
+  "stampAlbum.total %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Stamps: %lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld 枚"
+        }
+      }
+    }
+  }
+}

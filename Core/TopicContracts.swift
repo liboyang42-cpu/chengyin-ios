@@ -272,6 +272,13 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
     public let isOwner: Bool
     public let betaFlag: Int
     public let merchantClosed: Bool
+    /// Source venue `名称（地址）`, finish medal, completion coupon, club and comment count (topic/index extras).
+    public let addressName: String?
+    public let finishMedalName: String?
+    public let finishMedalImage: String?
+    public let completeRewardCouponID: Int?
+    public let clubID: Int?
+    public let commentCount: Int?
     public let storyLocked: Bool
     public let totalChapterCount: Int
     public let unlockedChapterCount: Int?
@@ -316,6 +323,11 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
         isOwner = c.flag("isOwner")
         betaFlag = c.int("betaFlag") ?? 0
         merchantClosed = (try? c.decode(Bool.self, forKey: TopicKey("merchantClosed"))) == true
+        addressName = c.text("addressName")
+        finishMedalName = c.text("finishMedalName"); finishMedalImage = c.text("finishMedalImg")
+        completeRewardCouponID = c.int("completeRewardCouponId").flatMap { $0 > 0 ? $0 : nil }
+        clubID = c.int("clubId").flatMap { $0 > 0 ? $0 : nil }
+        commentCount = c.int("commentCount").flatMap { $0 >= 0 ? $0 : nil }
         storyLocked = c.flag("storyLocked")
         totalChapterCount = c.int("totalChapterCount") ?? 0
         unlockedChapterCount = c.int("unlockedChapterCount")

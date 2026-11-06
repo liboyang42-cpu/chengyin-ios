@@ -1,0 +1,79 @@
+# C06 knowledge-review writer — manage attach stays closed
+
+Issue: https://github.com/liboyang42-cpu/chengyin-remote-ops/issues/5
+Repo: github.com/liboyang42-cpu/chengyin-ios
+Branch: cursor/c06-knowledge-review-writer-e504
+Base: cursor/c06-theme-draft-idea-body-e504 @ 2d4345987e1f84f913c3e64d12e575aa66533723
+
+`MerchantNPCKnowledgeReviewWriter` implements `MerchantNPCOriginalReviewPublishing`.
+This is the contract being written, not a route discovered in the supplied sources.
+`submitForOriginalReview` POSTs the four draft fields and the given request id to
+`api/merchant/npc/knowledge-review` on the held https APIConfiguration, with the
+logged-in member token in the Authorization header. The token is not placed in the URL.
+It returns a ticket only when the response requestId equals the submitted id and the
+member matches. Otherwise it throws the existing waitingSource failure and does not publish.
+It does not mint a second id. A missing review permission does not publish. A nil approval
+does not publish.
+
+`publishApproved` throws waitingSource for `MerchantNpcKnowledgeDraftService.http`
+and does not send a publish request.
+
+This writer does not call `POST api/ai/theme/draft`. It does not call
+`POST api/merchant/npc/save` or `api/merchant/npc/save/result`. It does not call
+merchant authoring generate/createDraft. It does not wrap `MerchantNPCOriginalDraftWriter`.
+The paired read on the contract being written is
+`GET api/merchant/npc/knowledge-review/request?requestId=`. This writer does not call it.
+
+The character page stays the existing character fields. The manage page stays
+`MerchantOperationsDocumentView`. This hunk does not replace either page.
+
+## Not applied
+
+Giving this writer the running transport needs the session. That attach is only
+the paste below. Do not apply it. Do not edit:
+
+```
+App/AppSession.swift
+App/AppCompositionRoot.swift
+Questify.xcodeproj/project.pbxproj
+```
+
+Not inserted into `merchantOperationsDestination`. The paste passes this writer
+as the publisher into the existing manage flow. publisher stays nil in AppSession.
+The factory does not mint a second request id. Submit happens later, on the flow
+that already holds the request id. Not inserted.
+`Core/MerchantNPCKnowledgeReviewWriter.swift` is not added to the Xcode project from this branch.
+
+```swift
+if destination == .character,
+   let merchantID = access.identity.merchantID,
+   let row = PublicMerchantRowID(merchantID),
+   let scope = merchantNPCScope(row: row) {
+    var writer: MerchantNPCKnowledgeReviewWriter? = nil
+    if let api = regionalConfiguration?.apiConfiguration {
+        writer = MerchantNPCKnowledgeReviewWriter(
+            configuration: api,
+            transport: runtimeHTTPTransport,
+            memberID: { [weak self] in self?.account.map { Int64($0.id) } },
+            token: { [weak self] in self?.token })
+    }
+    let flow = MerchantNPCKnowledgeAuthorFlow(
+        scope: scope,
+        publisher: writer,
+        currentScope: { [weak self] in self?.merchantNPCScope(row: row) })
+    return AnyView(MerchantOperationsDocumentView(
+        reader: merchantOperationsReader,
+        destination: destination,
+        imageHost: retainedMerchantImages,
+        templateAssistFactory: { [weak self] coordinator in
+            self?.merchantTemplateAssistFlow(coordinator: coordinator) ?? MerchantTemplateAssistFlow(coordinator: coordinator, client: nil)
+        },
+        authorFlow: flow))
+}
+```
+
+The paste passes `writer` as `publisher` into the existing manage flow. It does
+not drop that value. It does not call `submitForOriginalReview` or `publishApproved`
+from the session. Not inserted. publisher stays nil in AppSession.
+
+XCTest / App / CI = NOT_RUN where swiftc is absent. HTTP is NOT_RUN. Not 100%.

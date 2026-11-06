@@ -7,6 +7,7 @@ struct ClubDirectoryView<Reader: ClubReading & ObservableObject>: View {
     var actionCoordinator: ClubActionCoordinator? = nil
     var management:ClubManagementContext? = nil
     var community: ClubCommunityContext? = nil
+    var publicRoster: ClubPublicRosterReader? = nil
     @State private var searchText = ""
     @State private var submittedName = ""
     var body: some View {
@@ -18,7 +19,7 @@ struct ClubDirectoryView<Reader: ClubReading & ObservableObject>: View {
                 List {
                     ForEach(Array(rows.enumerated()), id: \.offset) { _, club in
                         NavigationLink {
-                            ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community)
+                            ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
                         } label: { ClubRow(club: club) }
                         .buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
                         .accessibilityIdentifier("club.directory.\(club.id)")
@@ -43,6 +44,7 @@ struct ClubOwnedView<Reader: ClubReading & ObservableObject>: View {
     var actionCoordinator: ClubActionCoordinator? = nil
     var management:ClubManagementContext? = nil
     var community: ClubCommunityContext? = nil
+    var publicRoster: ClubPublicRosterReader? = nil
     var body: some View {
         ClubReadScreen(reader: reader, accessibilityPrefix: "club.owned", requiresSignIn: true,
                        onSignIn: onSignIn, load: { try await reader.clubOwned() }) { rows in
@@ -52,7 +54,7 @@ struct ClubOwnedView<Reader: ClubReading & ObservableObject>: View {
                 List {
                     ForEach(Array(rows.enumerated()), id: \.offset) { _, club in
                         NavigationLink {
-                            ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community)
+                            ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
                         } label: { ClubRow(club: club) }
                         .buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
                         .accessibilityIdentifier("club.owned.\(club.id)")

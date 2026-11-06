@@ -14,7 +14,8 @@ extension EnvironmentValues {
     var body: some View {
         NativeVerificationView(flow: session.nativeVerificationFlow, cameraEnabled: session.verificationCameraEnabled,
             records: { AnyView(MerchantBusinessPage(reader: session.merchantBusinessReader,
-                journal: session.merchantBusinessJournal, query: .redemptions(filter: "all", page: 1))) })
+                journal: session.merchantBusinessJournal, query: .redemptions(filter: "all", page: 1))) },
+            pledge: session.makeRewardPledgeEntry())
             .id(session.sessionRevision)
     }
 }
@@ -24,6 +25,7 @@ extension EnvironmentValues {
     @Bindable var flow: NativeVerificationWorkflow
     var cameraEnabled = false
     let records: @MainActor () -> AnyView
+    var pledge: RewardPledgeEntry? = nil
     @State private var raw = ""
     @State private var camera = false
     @Environment(\.scenePhase) private var scenePhase
@@ -66,6 +68,25 @@ extension EnvironmentValues {
                 }
             }
             Section {
+                if let pledge, pledge.current()?.preview == true, flow.access?.allows("merchant:verify") == true {
+                    NavigationLink { RewardPledgeStaffHost(entry: pledge) } label: { Text("rewards.pledge.redeem") }
+                        .accessibilityIdentifier("rewards.pledge.merchant")
+                } else if pledge?.current()?.draft != true {
+                    Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.merchantClosed")
+                }
+                if let pledge, pledge.current()?.draft == true, flow.access?.allows("merchant:coupon:manage") == true {
+                    NavigationLink { RewardPledgeMerchantHost(entry: pledge) } label: { Text("rewards.pledge.draft") }
+                        .accessibilityIdentifier("rewards.pledge.supplyEntry")
+                }
+                if let pledge, flow.access?.allows("merchant:coupon:manage") == true,
+                   pledge.current()?.manage == true || pledge.current()?.hold == true || pledge.current()?.withdrawVersion == true || pledge.current()?.stats == true {
+                    NavigationLink { RewardPledgeMerchantHost(entry: pledge) } label: { Text("rewards.pledge.stats") }
+                        .accessibilityIdentifier("rewards.pledge.manageEntry")
+                }
+                if let pledge, pledge.current()?.freeze == true, flow.access?.allows("merchant:basic:read") == true {
+                    NavigationLink { RewardPledgeReviewHost(entry: pledge) } label: { Text("rewards.pledge.freeze") }
+                        .accessibilityIdentifier("rewards.pledge.reviewEntry")
+                }
                 if !flow.current { Button("verification.refreshAccess") { Task { await flow.activate() } }.disabled(flow.phase == .loading) }
                 NavigationLink { records() } label: { Label("verification.records", systemImage: "list.bullet.rectangle") }
                 if !flow.canDispatch { Text("verification.dispatchDisabled").font(.footnote).foregroundStyle(.secondary) }

@@ -1,15 +1,15 @@
 {
   "creatorContent.projects": {
     "en": "My published content",
-    "zh-Hans": "我发布的内容"
+    "zh-Hans": "我的项目"
   },
   "creatorContent.center": {
     "en": "Creator center",
     "zh-Hans": "创作者中心"
   },
   "creatorContent.offlineExample": {
-    "en": "Synthetic offline example",
-    "zh-Hans": "离线示例数据"
+    "en": "Example content",
+    "zh-Hans": "示例内容"
   },
   "creatorContent.retry": {
     "en": "Try again",
@@ -24,8 +24,8 @@
     "zh-Hans": "暂无发布内容"
   },
   "creatorContent.truncated": {
-    "en": "Showing the first 200 results. Narrow the filters to find more content.",
-    "zh-Hans": "仅显示前 200 条，请筛选以查找更多内容。"
+    "en": "Reached the 200-item load limit. Use filters to narrow results.",
+    "zh-Hans": "已达到200条加载上限，请筛选查找"
   },
   "creatorContent.readOnly": {
     "en": "Editing, publishing, deleting, cancellation and refunds are not available here yet.",

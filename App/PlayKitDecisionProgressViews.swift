@@ -4,7 +4,7 @@ extension PlayKitScreen {
     @ViewBuilder var coinFace: some View {
         let side = (raw["side"].text ?? "").uppercased()
         let key = ["HEADS", "H", "正面"].contains(side) ? "heads" : ["TAILS", "T", "反面"].contains(side) ? "tails" : ""
-        Image(systemName: key.isEmpty ? "circle.dashed" : "circle.inset.filled").font(.system(size: 100)).frame(maxWidth: .infinity).accessibilityHidden(true)
+        Image(systemName: key.isEmpty ? "circle.dashed" : "circle.inset.filled").resizable().scaledToFit().frame(width: 100, height: 100).frame(maxWidth: .infinity).accessibilityHidden(true)
         if !key.isEmpty {
             Text(verbatim: raw[key]["label"].text ?? side).font(.largeTitle.bold()).frame(maxWidth: .infinity)
             if let action = raw[key]["action"].text, !action.isEmpty { Text(verbatim: action) }
@@ -17,14 +17,14 @@ extension PlayKitScreen {
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        Button("playkit.coin.flip") { prepare("FLIP_COIN") }.buttonStyle(.borderedProminent).disabled(!enabled)
+        Button("playkit.coin.flip") { prepare("FLIP_COIN") }.buttonStyle(.questifyPrimary).disabled(!enabled)
     }
     @ViewBuilder var diceFaces: some View {
         let values = (raw["pips"].array ?? []).compactMap(\.integer)
         let d20 = raw["mode"].text == "d20"
         HStack {
             ForEach(Array(values.enumerated()), id: \.offset) { _, value in
-                if !d20 && (1...6).contains(value) { Image(systemName: "die.face.\(value).fill").font(.system(size: 72)).accessibilityLabel(Text(verbatim: String(value))) }
+                if !d20 && (1...6).contains(value) { Image(systemName: "die.face.\(value).fill").resizable().scaledToFit().frame(width: 72, height: 72).accessibilityLabel(Text(verbatim: String(value))) }
                 else { Text(verbatim: String(value)).font(.system(.largeTitle, design: .rounded).bold()).padding().background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16)) }
             }
         }.frame(maxWidth: .infinity)
@@ -35,7 +35,7 @@ extension PlayKitScreen {
         if d20, let dc = raw["dc"].integer { LabeledContent("playkit.dice.target") { Text(verbatim: String(dc)) } }
         if d20, projection.complete, let success = raw["success"].bool { Text(success ? "playkit.result.passed" : "playkit.result.notPassed") }
         if !d20, values.count == 1, let pip = values.first, let faces = raw["faces"].array, faces.indices.contains(pip - 1), let task = faces[pip - 1].text { Text(verbatim: task) }
-        Button("playkit.dice.roll") { prepare("ROLL_DICE") }.buttonStyle(.borderedProminent).disabled(!enabled)
+        Button("playkit.dice.roll") { prepare("ROLL_DICE") }.buttonStyle(.questifyPrimary).disabled(!enabled)
     }
     @ViewBuilder var randomDeck: some View {
         if let name = raw["deckName"].text { Text(verbatim: name).font(.title2.bold()) }
@@ -48,10 +48,10 @@ extension PlayKitScreen {
             }.padding().frame(maxWidth: .infinity, alignment: .leading).background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20))
         }
         if count > drawn.count {
-            Image(systemName: "rectangle.stack").font(.system(size: 80)).frame(maxWidth: .infinity).accessibilityHidden(true)
+            Image(systemName: "rectangle.stack").resizable().scaledToFit().frame(width: 80, height: 80).frame(maxWidth: .infinity).accessibilityHidden(true)
             LabeledContent("playkit.random.remaining") { Text(verbatim: String(count - drawn.count)) }
         }
-        Button("playkit.random.draw") { prepare("DRAW") }.buttonStyle(.borderedProminent).disabled(!enabled || count <= drawn.count)
+        Button("playkit.random.draw") { prepare("DRAW") }.buttonStyle(.questifyPrimary).disabled(!enabled || count <= drawn.count)
     }
     @ViewBuilder var dailySignForm: some View {
         if let address = raw["address"].text { Text(verbatim: address).font(.headline) }
@@ -61,7 +61,7 @@ extension PlayKitScreen {
         if let signer = raw["signer"].text, !signer.isEmpty { Text(verbatim: signer).foregroundStyle(.secondary) }
         if let date = raw["leftAt"].text, !date.isEmpty { Text(verbatim: date).font(.caption) }
         artwork(raw["photoUrl"].text)
-        let limit = max(1, raw["textMax"].integer ?? 40)
+        let limit = PlayKitShortMessageLimit.resolve(raw["textMax"])
         TextField("playkit.daily.message", text: textBinding(limit: limit), axis: .vertical).textFieldStyle(.roundedBorder).disabled(!enabled)
         Text("playkit.daily.audience").font(.footnote)
         submitButton("CLAIM_DAILY_SIGN", payload: ["text": .string(text), "photoUrl": .string(avatarURL)], valid: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -75,10 +75,10 @@ extension PlayKitScreen {
             }
         } else { Text("playkit.walk.noReading") }
         if let goal = raw["goal"].integer, goal > 0 { LabeledContent("playkit.walk.goal") { Text(verbatim: goal.formatted()) } }
-        Text("playkit.walk.goalLocked").font(.footnote)
-        Label("playkit.walk.providerGate", systemImage: "lock.shield")
-        // No native pedometer value substitutes for the service's WeChat encrypted proof.
-        Button("playkit.walk.sync") {}.disabled(true)
+        // No native pedometer value substitutes for the service's WeChat encrypted proof, so there is
+        // no sync button here; the reason is stated once.
+        Label("playkit.walk.providerGate", systemImage: "figure.walk")
+            .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
     }
     @ViewBuilder var bingoBoard: some View {
         let board = PlayKitBingoBoard(raw)
@@ -102,6 +102,5 @@ extension PlayKitScreen {
         LabeledContent("playkit.bingo.lines") { Text(verbatim: String(board.completedLines.count)) }
         if let line = raw["lineReward"].text, !line.isEmpty { LabeledContent("playkit.bingo.lineReward") { Text(verbatim: line) } }
         if let full = raw["fullReward"].text, !full.isEmpty { LabeledContent("playkit.bingo.fullReward") { Text(verbatim: full) } }
-        Text("playkit.bingo.authority").font(.footnote)
     }
 }

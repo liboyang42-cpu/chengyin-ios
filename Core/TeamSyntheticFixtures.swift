@@ -28,7 +28,7 @@ public enum TeamSyntheticFixtures {
     }
 }
 @MainActor public final class TeamSyntheticService: TeamServing {
-    public enum Scenario: String { case content, empty, failure, retry, guest, unconfigured, invitation, full, inProgress, ended, disbanded, unknownStatus, missingRole, unknownOutcome, rejected, notSent }
+    public enum Scenario: String { case content, empty, failure, retry, guest, unconfigured, invitation, full, inProgress, ended, disbanded, unknownStatus, missingRole, unknownOutcome, rejected, notSent, invitationFull, invitationEnded, networkFailure, forbidden, invitationRejected }
     public var authority: TeamServiceAuthority { scenario == .unconfigured ? .unconfigured : .synthetic }
     public let scenario: Scenario
     public var currentDetail: TeamDetail
@@ -43,6 +43,10 @@ public enum TeamSyntheticFixtures {
         var json = TeamSyntheticFixtures.detailJSON
         switch scenario {
         case .invitation: json = json.replacingOccurrences(of: "\"joined\":true,\"leader\":true", with: "\"joined\":false,\"leader\":false")
+        case .invitationRejected: json = json.replacingOccurrences(of: "\"joined\":true,\"leader\":true", with: "\"joined\":false,\"leader\":false")
+        case .invitationFull, .invitationEnded:
+            json = json.replacingOccurrences(of: "\"joined\":true,\"leader\":true", with: "\"joined\":false,\"leader\":false")
+                .replacingOccurrences(of: "\"status\":0", with: scenario == .invitationFull ? "\"status\":1" : "\"status\":3")
         case .full: json = json.replacingOccurrences(of: "\"status\":0", with: "\"status\":1")
         case .inProgress: json = json.replacingOccurrences(of: "\"status\":0", with: "\"status\":2")
         case .ended: json = json.replacingOccurrences(of: "\"status\":0", with: "\"status\":3")
@@ -57,6 +61,8 @@ public enum TeamSyntheticFixtures {
         if let beforeRead { await beforeRead() }
         if scenario == .unconfigured { throw TeamFailure.notConfigured }
         if scenario == .failure { throw TeamFailure.unavailable }
+        if scenario == .networkFailure { throw URLError(.notConnectedToInternet) }
+        if scenario == .forbidden { throw TeamFailure.rejected(403) }
         if scenario == .retry { attempts += 1; if attempts == 1 { throw TeamFailure.unavailable } }
     }
     public func myTeams(session: TeamSession) async throws -> [OwnedTeam] {
@@ -80,10 +86,15 @@ public enum TeamSyntheticFixtures {
         let result: TeamWriteOutcome
         switch scenario {
         case .unknownOutcome: return .unknown
-        case .rejected: result = .rejected
+        case .rejected, .invitationRejected: result = .rejected
         case .notSent: result = .notSent
         default:
-            do { try applyLocal(action); result = .simulated(operationID: operationID, teamID: action.teamID ?? 4101) }
+            do {
+                try applyLocal(action)
+                if case .changeJoinMode(let teamID, let mode) = action {
+                    result = .joinModeSimulated(operationID: operationID, teamID: teamID, mode: mode)
+                } else { result = .simulated(operationID: operationID, teamID: action.teamID ?? 4101) }
+            }
             catch { return .unknown }
         }
         outcomes[operationID] = result; return result
@@ -91,6 +102,22 @@ public enum TeamSyntheticFixtures {
     public func receipt(operationID: UUID, session: TeamSession) async throws -> TeamWriteOutcome? { outcomes[operationID] }
     private func applyLocal(_ action: TeamAction) throws {
         // Offline fixture-only state. Never announces real membership changes or notifications.
+        if case .changeJoinMode(let teamID, let mode) = action {
+            guard currentDetail.team.id == teamID, action.isAllowed(detail: currentDetail) else { throw TeamFailure.invalidRequest }
+            let team = currentDetail.team
+            var value: [String: Any] = ["id": team.id, "title": team.title,
+                "status": team.status.rawValue, "joinMode": mode.rawValue]
+            value["joinedCount"] = team.joinedCount; value["maxMembers"] = team.maxMembers
+            value["ownerType"] = team.ownerType; value["ownerId"] = team.ownerID
+            value["expireTime"] = team.expireTime; value["inviteCode"] = team.inviteCode
+            var object: [String: Any] = ["team": value, "members": currentDetail.members.map { member in
+                var row: [String: Any] = ["memberId": member.id, "memberName": member.name]
+                row["role"] = member.role; return row
+            }]
+            object["joined"] = currentDetail.joined; object["leader"] = currentDetail.leader
+            currentDetail = try JSONDecoder().decode(TeamDetail.self, from: JSONSerialization.data(withJSONObject: object))
+            return
+        }
         guard var object = try JSONSerialization.jsonObject(with: Data(TeamSyntheticFixtures.detailJSON.utf8)) as? [String: Any] else { throw TeamFailure.invalidContract }
         switch action {
         case .join: object["joined"] = true; object["leader"] = false
@@ -98,6 +125,7 @@ public enum TeamSyntheticFixtures {
         case .remove(_, let memberID): object["members"] = (object["members"] as? [[String: Any]])?.filter { $0["memberId"] as? Int != memberID }
         case .disband:
             guard var team = object["team"] as? [String: Any] else { throw TeamFailure.invalidContract }; team["status"] = 4; object["team"] = team; object["joined"] = false; object["leader"] = false
+        case .changeJoinMode: throw TeamFailure.invalidRequest // Handled above with current-detail preservation.
         case .create(_, let size, let inviteOnly):
             guard var team = object["team"] as? [String: Any] else { throw TeamFailure.invalidContract }; team["maxMembers"] = size; team["joinMode"] = inviteOnly ? 1 : 2; object["team"] = team
         }

@@ -75,6 +75,13 @@ public struct ApprovedTopicReleasePublicationCredentials: Equatable {
         public let id = UUID()
         fileprivate let snapshot: ApprovedTopicReleasePublicationJournal.Snapshot
     }
+    /// A read-only capture of one saved request, never a lookup of the latest preparation.
+    /// Only its validated server receipt establishes an allocated release; an intent alone does not.
+    public struct ResultInspection: Identifiable {
+        public let id = UUID()
+        public let record: ApprovedTopicReleasePublicationJournal.Record
+        fileprivate init(record: ApprovedTopicReleasePublicationJournal.Record) { self.record = record }
+    }
     public enum State: Equatable {
         case idle, reviewing, sending, unconfirmed, known(ApprovedTopicReleasePublicationReceipt), unavailable, closed
     }
@@ -83,6 +90,8 @@ public struct ApprovedTopicReleasePublicationCredentials: Equatable {
     public let topicID: Int
     public private(set) var state: State = .idle
     public private(set) var confirmation: Confirmation?
+    public private(set) var inspectedResult: ResultInspection?
+    public private(set) var lastStatusCheckFailed = false
     public private(set) var snapshot: ApprovedTopicReleasePublicationJournal.Snapshot?
     private let source: any ApprovedTopicReleasePublishing
     private let journal: ApprovedTopicReleasePublicationJournal
@@ -96,9 +105,9 @@ public struct ApprovedTopicReleasePublicationCredentials: Equatable {
     }
     public var isCurrent: Bool { state != .closed && stillCurrent() && source.isCurrent(session: session) }
     public var canPublish: Bool { isCurrent && source.canPublish(session: session) }
-    public var canCheckStatus: Bool { isCurrent && source.canCheckStatus(session: session) && snapshot?.current != nil && ownedTask == nil && claimID == nil && confirmation == nil }
+    public var canCheckStatus: Bool { isCurrent && source.canCheckStatus(session: session) && snapshot?.current != nil && ownedTask == nil && claimID == nil && confirmation == nil && inspectedResult == nil }
     public var canRetryExact: Bool {
-        canPublish && ownedTask == nil && confirmation == nil && claimID == nil && snapshot?.current != nil && snapshot?.current?.receipt == nil
+        canPublish && ownedTask == nil && confirmation == nil && inspectedResult == nil && claimID == nil && snapshot?.current != nil && snapshot?.current?.receipt == nil
     }
     public func reload() {
         guard isCurrent, ownedTask == nil, confirmation == nil, claimID == nil else { return }
@@ -110,8 +119,23 @@ public struct ApprovedTopicReleasePublicationCredentials: Equatable {
         else { state = snapshot?.current == nil ? .idle : .unconfirmed }
     }
     public func canReview(_ prepared: ApprovedTopicReleasePreparation) -> Bool {
-        guard canPublish, ownedTask == nil, claimID == nil, confirmation == nil, state != .unavailable, let snapshot else { return false }
+        guard canPublish, ownedTask == nil, claimID == nil, confirmation == nil, inspectedResult == nil, state != .unavailable, let snapshot else { return false }
         return journal.canBegin(prepared, expected: snapshot)
+    }
+    public func inspect(_ record: ApprovedTopicReleasePublicationJournal.Record) -> ResultInspection? {
+        guard isCurrent, state != .unavailable, ownedTask == nil, claimID == nil, confirmation == nil,
+              inspectedResult == nil, let snapshot, snapshot.records.contains(record) else { return nil }
+        do {
+            guard try journal.read(session: session, topicID: topicID) == snapshot else { state = .unavailable; return nil }
+        } catch { state = .unavailable; return nil }
+        let original = ResultInspection(record: record); inspectedResult = original; return original
+    }
+    public func isInspecting(_ original: ResultInspection) -> Bool {
+        isCurrent && state != .unavailable && inspectedResult?.id == original.id
+            && snapshot?.records.contains(original.record) == true
+    }
+    public func dismiss(_ original: ResultInspection) {
+        guard inspectedResult?.id == original.id else { return }; inspectedResult = nil
     }
     public func review(_ prepared: ApprovedTopicReleasePreparation) -> Confirmation? {
         guard canPublish, prepared.topicID == topicID, ownedTask == nil, claimID == nil, confirmation == nil else { return nil }
@@ -148,8 +172,9 @@ public struct ApprovedTopicReleasePublicationCredentials: Equatable {
         guard isCurrent, ownedTask == nil, let record = original.current else { return }
         do { guard try journal.read(session: session, topicID: topicID) == original else { state = .unavailable; return } }
         catch { state = .unavailable; return }
-        let request = UUID(); requestID = request; state = .sending
-        let task = Task { [source, session] in
+        let request = UUID(); requestID = request; state = .sending; lastStatusCheckFailed = false
+        let task = Task { [source, session, weak self] in
+            guard self?.isCurrent == true else { throw ApprovedTopicReleaseError.changedContext }
             if publication { return try await source.publish(record, session: session) }
             return try await source.status(record, session: session)
         }
@@ -164,10 +189,14 @@ public struct ApprovedTopicReleasePublicationCredentials: Equatable {
         } catch {
             guard requestID == request else { return }
             guard !Task.isCancelled, !task.isCancelled, isCurrent else { close(); return }
-            state = .unconfirmed
+            // A failed read cannot undo an already-validated immutable receipt. Retain
+            // its original manifest and show that current approval was not refreshed.
+            if !publication, record.receipt != nil {
+                updateFromSnapshot(); lastStatusCheckFailed = true
+            } else { state = .unconfirmed }
         }
     }
     public func close() {
-        ownedTask?.cancel(); ownedTask = nil; requestID = nil; claimID = nil; confirmation = nil; state = .closed
+        ownedTask?.cancel(); ownedTask = nil; requestID = nil; claimID = nil; confirmation = nil; inspectedResult = nil; state = .closed
     }
 }

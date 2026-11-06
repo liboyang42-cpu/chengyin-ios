@@ -1,0 +1,38 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "strings": {
+    "groupCode.image": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "限时团码二维码"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temporary group verification QR code"
+          }
+        }
+      }
+    },
+    "groupCode.imageUnavailable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原回执未提供可显示的二维码图片。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original receipt has no displayable QR image."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

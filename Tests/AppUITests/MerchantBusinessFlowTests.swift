@@ -35,7 +35,7 @@ final class MerchantBusinessFlowTests: XCTestCase {
         let field = app.descendants(matching: .any)["merchant.business.editor.content"]; XCTAssertTrue(field.waitForExistence(timeout: 5)); field.tap(); field.typeText("Example note")
         app.buttons["merchant.business.editor.review"].tap()
         let cancel = app.buttons["merchant.business.cancelReview"]; XCTAssertTrue(cancel.waitForExistence(timeout: 5)); cancel.tap()
-        XCTAssertFalse(app.staticTexts["Synthetic response received"].exists)
+        XCTAssertFalse(app.staticTexts["Example submitted"].exists)
     }
     func testProductionDisabledPreviewHasNoDispatchButton() {
         let app = launch("disabled"); openCustomer(app); tap("merchant.business.addNote", app: app)

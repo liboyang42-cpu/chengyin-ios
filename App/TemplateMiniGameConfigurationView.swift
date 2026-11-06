@@ -11,7 +11,6 @@ import SwiftUI
                 Text(LocalizedStringKey("playkitAuthor.instructions." + game.rawValue)).font(.footnote)
                 if game == .sort {
                     TemplateAuthoringField("maxAttempts", text: binding("maxAttempts"))
-                    Text("creatorRoot.sortAttempts").font(.footnote)
                     sortEditor
                 }
                 else if game == .match { matchEditor }
@@ -23,10 +22,8 @@ import SwiftUI
                     TemplateAuthoringField("tolerance", text: binding("tolerance"))
                     TemplateAuthoringField("holdSeconds", text: binding("holdSeconds"))
                     TemplateAuthoringField("compassHint", text: binding("hint"), multiline: true)
-                    Text("playkitAuthor.compass.boundary").font(.footnote)
                 } else {
                     TemplateAuthoringField("seconds", text: binding("seconds"))
-                    Text("playkitAuthor.shout.boundary").font(.footnote)
                 }
                 TemplateAuthoringField("xp", text: binding("xp"))
             }
@@ -131,7 +128,6 @@ import SwiftUI
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                Text("playkitAuthor.previewBoundary").font(.callout)
                 if let segment, let kind = PlayKitScreenKind(rawValue: game.section) {
                     if game.isReasoning {
                         if let prompt = segment["prompt"].text { Text(verbatim: prompt).font(.title2.bold()) }
@@ -139,7 +135,6 @@ import SwiftUI
                         if let previewPayload { Text("playkitAuthor.previewPayload").font(.headline); PlayKitPayloadReadback(payload: previewPayload) }
                     } else {
                         PlayKitSensorChallengeView(kind: kind, segment: segment, enabled: false, active: false, onDirty: {}, requestReview: { _, _, _ in })
-                        Text("playkitAuthor.sensorPreviewBoundary").font(.footnote)
                     }
                 } else { Text("playkit.configurationInvalid") }
             }.padding()

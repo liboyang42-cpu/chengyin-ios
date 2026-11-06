@@ -4,6 +4,7 @@ import Foundation
 /// No payment parameters, signed codes, personal contact fields or transaction identifiers.
 public struct OrderLifecycleDetail: Decodable, Equatable, Identifiable {
     public let id: Int
+    public let memberID: Int?
     public let ownerType: Int?
     public let ownerID: Int?
     public let registrationNumber: String?
@@ -31,7 +32,7 @@ public struct OrderLifecycleDetail: Decodable, Equatable, Identifiable {
     public let entitlements: [TicketWalletEntitlement]
 
     enum CodingKeys: String, CodingKey {
-        case id, ownerType, ownerId, registrationNo, registrationStatus, paymentStatus, verificationStatus
+        case id, memberId, ownerType, ownerId, registrationNo, registrationStatus, paymentStatus, verificationStatus
         case payableAmount, ticketName, purchaseKind, createTime, paymentTime, verificationTime, payExpireTime
         case cmsActivity, cmsTopic, refundInfo, refundApplication, manualRefundCaseStatus, entitlements
     }
@@ -50,6 +51,7 @@ public struct OrderLifecycleDetail: Decodable, Equatable, Identifiable {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(Int.self, forKey: .id)
         guard id > 0 else { throw APIError.malformedResponse }
+        memberID = try c.decodeIfPresent(Int.self, forKey: .memberId)
         ownerType = try c.decodeIfPresent(Int.self, forKey: .ownerType)
         ownerID = try c.decodeIfPresent(Int.self, forKey: .ownerId)
         registrationNumber = try c.decodeIfPresent(String.self, forKey: .registrationNo)

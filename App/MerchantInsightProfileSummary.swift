@@ -30,8 +30,6 @@ struct MerchantInsightProfileSummary: View {
             if canOpen, let origin {
                 Button(LocalizedStringKey(configurationState == true ? "merchant.insightProfile.edit" : "merchant.insightProfile.configure")) { open(origin) }
                     .accessibilityIdentifier("merchant.insightProfile.open")
-            } else {
-                Text("merchant.insightProfile.unavailable").font(.footnote).foregroundStyle(.secondary)
             }
         }
     }

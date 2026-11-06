@@ -158,10 +158,10 @@ public enum TemplateShelfReadRoute: Equatable {
         let (data, _) = try await send(request, acceptsResult: acceptsResult)
         return try OwnedTemplateConfigurationSnapshot(response: data, requestedID: id, accountID: context.session.accountID)
     }
-    public func detail(_ id: MemberPlayTemplateID) async throws -> MemberTemplateDetail {
+    public func detail(_ id: MemberPlayTemplateID, acceptsResult: () -> Bool = { true }) async throws -> MemberTemplateDetail {
         guard available, let context = current() else { throw APIError.notConfigured }
         let request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/template/myinfo"), fields: ["id": String(id.rawValue)], token: context.session.token)
-        let (data, _) = try await send(request)
+        let (data, _) = try await send(request, acceptsResult: acceptsResult)
         let wire = try JSONDecoder().decode(PlayWireValue.self, from: data)
         let value = try wire["data"].decoded(MemberTemplateDetail.self)
         // This destination is the owned shelf, not the broader public-eligible myinfo
@@ -183,8 +183,20 @@ public enum TemplateShelfReadRoute: Equatable {
     public init(transport: TemplateShelfReadTransport?, authenticated: @escaping () -> Bool) {
         self.transport = transport; self.authenticated = authenticated
     }
+    /// Same independently approved transport, additionally bound to one receipt ID/visit.
+    /// Constructing the host performs no read and grants no new capability.
+    public func configurationHost(id: MemberPlayTemplateID, acceptsResult: @escaping () -> Bool) -> OwnedTemplateConfigurationHost {
+        let capturedScope = scope
+        return OwnedTemplateConfigurationHost(transport: transport, expectedID: id, acceptsResult: { [weak self] in
+            guard let self, self.isAuthenticated, self.scope == capturedScope else { return false }
+            return acceptsResult()
+        })
+    }
     public func memberTemplate(id: MemberPlayTemplateID) async throws -> MemberTemplateDetail {
-        guard let transport, isConfigured else { throw APIError.notConfigured }
-        return try await transport.detail(id)
+        try await memberTemplate(id: id, acceptsResult: { true })
+    }
+    public func memberTemplate(id: MemberPlayTemplateID, acceptsResult: () -> Bool) async throws -> MemberTemplateDetail {
+        guard let transport, isConfigured, acceptsResult() else { throw APIError.notConfigured }
+        return try await transport.detail(id, acceptsResult: acceptsResult)
     }
 }

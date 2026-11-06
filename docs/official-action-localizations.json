@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submission is not configured"
+            "value": "Submitting isn't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提交功能尚未配置"
+            "value": "提交暂不可用"
           }
         }
       }
@@ -278,13 +278,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server response"
+            "value": "Result"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端响应"
+            "value": "结果"
           }
         }
       }
@@ -294,13 +294,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Published. Cover approval is separate"
+            "value": "Published. The cover is reviewed separately"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已发布。封面审核单独处理"
+            "value": "已发布，封面将单独审核"
           }
         }
       }
@@ -342,13 +342,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrival evidence accepted by server"
+            "value": "Arrival accepted"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已接受到达证据"
+            "value": "到达已确认"
           }
         }
       }
@@ -374,13 +374,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server reports this arrival completed"
+            "value": "Arrival completed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端报告本次到达已完成"
+            "value": "本次到达已完成"
           }
         }
       }
@@ -390,13 +390,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server has not confirmed completion"
+            "value": "Completion not confirmed yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端未确认完成"
+            "value": "尚未确认完成"
           }
         }
       }
@@ -422,13 +422,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh server details to see current participation and reward facts"
+            "value": "Refresh to see the latest participation and reward details"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请刷新服务端详情，查看最新参与及奖励信息"
+            "value": "刷新查看最新参与及奖励信息"
           }
         }
       }
@@ -774,13 +774,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You can edit this unsent draft. Updating a published event is not supported by the supplied API"
+            "value": "You can edit this unsent draft. Published events can't be edited right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "可编辑未发送草稿；提供的接口不支持修改已发布活动"
+            "value": "可编辑未发送的草稿；已发布的活动暂不支持修改"
           }
         }
       }

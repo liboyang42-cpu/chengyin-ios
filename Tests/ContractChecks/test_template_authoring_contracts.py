@@ -135,11 +135,11 @@ class TemplateAuthoringContracts(unittest.TestCase):
         self.assertEqual(app.count('contains("--ui-template-authoring")'),2)
     def test_guide_roam_routes_to_actual_roam_tab_tag(self):
         app=self.read('App/QuestifyApp.swift')
-        actual=re.search(r'Label\("roam.title",systemImage:[^\n]+\) \}\.tag\((\d+)\)',app)
-        selected=re.search(r'destination == \.roam \? (\d+) : (\d+)',app)
+        actual=re.search(r'\{ rootTabLabel\(\.roam\) \}\.tag\(RootTab\.(\w+)\)',app)
+        selected=re.search(r'destination == \.roam \? \.(\w+) : \.(\w+)',app)
         self.assertIsNotNone(actual);self.assertIsNotNone(selected)
         self.assertEqual(actual.group(1),selected.group(1))
-        home=re.search(r'SessionHomeFeedView[^\n]+\.tag\((\d+)\)',app)
+        home=re.search(r'SessionHomeFeedView[^\n]+\.tag\(RootTab\.(\w+)\)',app)
         self.assertIsNotNone(home);self.assertEqual(home.group(1),selected.group(2))
     def test_no_false_gameplay_in_prefab_preview(self):
         native=self.read('App/PrefabPreviewView.swift')

@@ -222,3 +222,57 @@ import XCTest
         XCTAssertEqual(service.reads, 1); XCTAssertEqual(service.saves, 0)
     }
 }
+
+extension ProfileTextFieldEditTests {
+    func testBackgroundPreservesSameTextPresentationUntilExplicitCancel() async throws {
+        for field in [ProfileTextField.name, .introduction] {
+            let (model, service, _) = try await harness()
+            let original = model.draft; model.beginTextEdit(field)
+            let edit = try XCTUnwrap(model.textEdit), binding = model.textEditPresentation(for: model.textEdit)
+            model.suspendForBackground()
+            XCTAssertEqual(model.textEdit?.id, edit.id); XCTAssertEqual(binding.wrappedValue?.id, edit.id)
+            assertExact(model.draft, original); XCTAssertFalse(model.canBeginTextEdit)
+            model.activateAvatar()
+            XCTAssertEqual(binding.wrappedValue?.id, edit.id)
+            model.cancelTextEdit(edit); model.beginTextEdit(field)
+            let reopened = try XCTUnwrap(model.textEdit)
+            XCTAssertNotEqual(reopened.id, edit.id); XCTAssertEqual(reopened.originalText, edit.originalText)
+            XCTAssertEqual(service.reads, 1); XCTAssertEqual(service.saves, 0)
+        }
+    }
+    func testBackgroundLateApplyCannotStageOrSave() async throws {
+        let (model, service, _) = try await harness(); let original = model.draft
+        model.beginTextEdit(.name); let edit = try XCTUnwrap(model.textEdit)
+        model.suspendForBackground()
+        XCTAssertFalse(model.confirmTextEdit(edit, text: "Late scratch"))
+        assertExact(model.draft, original); XCTAssertNil(model.textEdit); XCTAssertEqual(service.saves, 0)
+    }
+    func testTrueOwnerRetirementAfterBackgroundStillClearsTextAndRejectsOldApply() async throws {
+        let (model, service, _) = try await harness(); let original = model.draft
+        model.beginTextEdit(.name); let edit = try XCTUnwrap(model.textEdit)
+        model.suspendForBackground(); model.retireAvatar(); model.activateAvatar()
+        XCTAssertNil(model.textEdit); XCTAssertFalse(model.confirmTextEdit(edit, text: "Retired"))
+        assertExact(model.draft, original); XCTAssertEqual(service.saves, 0)
+    }
+    func testBackgroundAfterOwnerChangeAndNonTextEditorsRemainStrictlyRetired() async throws {
+        for field in [ProfileTextField.contactQR, .casePictures, .preferences] {
+            let (model, service, _) = try await harness(); model.beginTextEdit(field)
+            let edit = try XCTUnwrap(model.textEdit); model.suspendForBackground(); model.activateAvatar()
+            XCTAssertNil(model.textEdit); XCTAssertFalse(model.confirmTextEdit(edit, text: ""))
+            XCTAssertEqual(service.saves, 0)
+        }
+        let (model, service, box) = try await harness(); model.beginTextEdit(.name)
+        let edit = try XCTUnwrap(model.textEdit)
+        box.value = try .init(accountID: 902, epoch: 2, token: "synthetic-other", viewerRevision: 2)
+        model.suspendForBackground(); model.activateAvatar()
+        XCTAssertNil(model.textEdit); XCTAssertFalse(model.confirmTextEdit(edit, text: "Other owner"))
+        XCTAssertEqual(service.saves, 0)
+    }
+    func testResumedCurrentTextApplyStillConsumesOnceWithoutWriting() async throws {
+        let (model, service, _) = try await harness(); model.beginTextEdit(.introduction)
+        let edit = try XCTUnwrap(model.textEdit); model.suspendForBackground(); model.activateAvatar()
+        XCTAssertTrue(model.confirmTextEdit(edit, text: "Current scratch"))
+        XCTAssertFalse(model.confirmTextEdit(edit, text: "Repeated"))
+        XCTAssertEqual(model.draft.introduction, "Current scratch"); XCTAssertEqual(service.saves, 0)
+    }
+}

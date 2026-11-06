@@ -13,7 +13,6 @@ import SwiftUI
                 Toggle("templateAuthor.moduleEnabled", isOn: Binding(get: { model.draft.advanced.enabled(game.section) }, set: { enabled in
                     model.setGameEnabled(game, enabled)
                 })).accessibilityIdentifier("creatorComposition.enabled." + game.rawValue)
-                Text("creatorComposition.coexist").font(.caption).foregroundStyle(.secondary)
             }
 #if DEBUG
             if ProcessInfo.processInfo.arguments.contains("--ui-template-authoring") &&

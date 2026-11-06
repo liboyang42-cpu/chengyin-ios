@@ -21,9 +21,9 @@ class RoamAccountEntryContracts(unittest.TestCase):
         self.assertNotIn("AccountView(", section)
 
     def test_normal_root_selects_existing_current_account_tab(self):
-        self.assertIn("onOpenAccount:{ selectedTab=4 }", self.root)
+        self.assertIn("onOpenAccount:{ selectedTab = .mine }", self.root)
         self.assertEqual(self.root.count("onOpenAccount:"), 1)
-        self.assertIn('}.tabItem { Label("account.title",systemImage:"person.crop.circle") }.tag(4)', self.root)
+        self.assertIn('}.tabItem { rootTabLabel(.mine) }.tag(RootTab.mine)', self.root)
         self.assertIn("if let account=session.account { AccountView(account:account", self.root)
         self.assertIn("else { WelcomeView() }", self.root)
 
@@ -37,7 +37,7 @@ class RoamAccountEntryContracts(unittest.TestCase):
 
     def test_callback_does_not_change_subject_or_start_a_walk(self):
         action = self.root.split("onOpenAccount:{", 1)[1].split("}", 1)[0].strip()
-        self.assertEqual(action, "selectedTab=4")
+        self.assertEqual(action, "selectedTab = .mine")
         for token in ["memberID", "profileReader", "makeRoamLive", "start", "request", "token", "grant"]:
             self.assertNotIn(token, action)
 

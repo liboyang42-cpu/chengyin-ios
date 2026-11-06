@@ -1,0 +1,74 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "profile.currentReview.rejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your latest recorded avatar submission did not pass the image safety review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近一次有记录的头像提交未通过图片安全复核。"
+          }
+        }
+      }
+    },
+    "profile.currentReview.liveWhenRead": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server reported that submission as displayed when checked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次读取时，服务端报告该次提交仍在展示。"
+          }
+        }
+      }
+    },
+    "profile.currentReview.notLiveWhenRead": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server reported that submission as not displayed when checked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次读取时，服务端报告该次提交未在展示。"
+          }
+        }
+      }
+    },
+    "profile.currentReview.notImageBinding": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a submission record, not a review label for the image shown here or an unsaved draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是提交记录，不是对当前预览图或未保存草稿的审核标记。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -37,6 +37,7 @@ import SwiftUI
             Section("merchant.categories.title") {
                 MerchantTemplateCategorySummary(categories: value.categories)
                 Button("merchant.categories.choose", action: open)
+                    .buttonStyle(.bordered).controlSize(.large)
                     .disabled(!editable).accessibilityIdentifier("merchant.categories.open")
                 Text("merchant.categories.scope").font(.footnote).foregroundStyle(.secondary)
             }
@@ -81,7 +82,7 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             List {
-                if !model.selection.isCurrent { Text("merchant.categories.stale") }
+                if !model.selection.isCurrent { merchantCreationNotice(Text("merchant.categories.stale"), systemImage: "lock") }
                 else if model.busy { ProgressView("merchant.categories.loading") }
                 else if let issue = model.selection.issue {
                     MerchantOperationsIssueView(issue: issue)
@@ -90,7 +91,7 @@ import SwiftUI
                 else {
                     if model.selection.needsReplacement {
                         Section {
-                            Text("merchant.categories.unsupported")
+                            merchantCreationNotice(Text("merchant.categories.unsupported"), systemImage: "exclamationmark.triangle")
                             Button("merchant.categories.replace") { model.replaceUnsupported() }
                                 .accessibilityIdentifier("merchant.categories.replace")
                         }
@@ -104,28 +105,35 @@ import SwiftUI
                             }
                         }
                     }
+                    Section {
+                        Text("merchant.categories.selectionCount \(model.selection.selectedIDs.count)")
+                            .font(Theme.Font.cardTitle).fixedSize(horizontal: false, vertical: true)
+                        Text("merchant.categories.minimum").font(.footnote).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                     if model.selection.rows.isEmpty { Text("merchant.categories.empty").accessibilityIdentifier("merchant.categories.empty") }
                     else if filtered.isEmpty { Text("merchant.categories.noMatches") }
                     else {
                         Section("merchant.categories.catalog") {
                             ForEach(filtered) { row in
                                 Button { model.toggle(row.id) } label: {
-                                    HStack {
-                                        Text(verbatim: row.name)
-                                        Spacer()
-                                        if model.selection.selectedIDs.contains(row.id) { Image(systemName: "checkmark") }
-                                    }
+                                    HStack(alignment: .center, spacing: Theme.Space.s3) {
+                                        Text(verbatim: row.name).foregroundStyle(Theme.Color.textPrimary(in: .merchant))
+                                            .fixedSize(horizontal: false, vertical: true)
+                                        Spacer(minLength: Theme.Space.s2)
+                                        Image(systemName: model.selection.selectedIDs.contains(row.id) ? "checkmark.circle.fill" : "circle")
+                                            .foregroundStyle(Theme.Color.accent(in: .merchant)).accessibilityHidden(true)
+                                    }.frame(minHeight: 44).contentShape(Rectangle())
                                 }.disabled(model.selection.needsReplacement)
                                     .accessibilityAddTraits(model.selection.selectedIDs.contains(row.id) ? .isSelected : [])
                                     .accessibilityIdentifier("merchant.categories.option.\(row.id)")
                             }
                         }
                     }
-                    Text("merchant.categories.selectionCount \(model.selection.selectedIDs.count)").font(.footnote)
-                    Text("merchant.categories.minimum").font(.footnote)
                     Button("merchant.categories.reload") { Task { await model.reload() } }.accessibilityIdentifier("merchant.categories.reload")
                 }
             }
+            .merchantCreationSurface()
             .searchable(text: $search, prompt: "merchant.categories.search")
             .appNavigationTitle("merchant.categories.choose")
             .toolbar {
@@ -144,15 +152,15 @@ private struct MerchantTemplateCategorySummary: View {
     let categories: MerchantTemplateCategories
     var body: some View {
         if !categories.isSupported {
-            Text("merchant.categories.unsupported")
+            merchantCreationNotice(Text("merchant.categories.unsupported"), systemImage: "exclamationmark.triangle")
             if let raw = categories.rawIDs { Text(verbatim: raw).fixedSize(horizontal: false, vertical: true) }
         } else if categories.selectedIDs.isEmpty { Text("merchant.categories.none") }
         else {
             ForEach(categories.selectedIDs, id: \.self) { id in
-                HStack {
-                    if let name = categories.name(id), !name.isEmpty { Text(verbatim: name) }
-                    Text("merchant.categories.id \(id)").foregroundStyle(.secondary)
-                }.accessibilityIdentifier("merchant.categories.selected.\(id)")
+                VStack(alignment: .leading, spacing: Theme.Space.s1) {
+                    if let name = categories.name(id), !name.isEmpty { Text(verbatim: name).font(Theme.Font.cardTitle).fixedSize(horizontal: false, vertical: true) }
+                    Text("merchant.categories.id \(id)").font(Theme.Font.label).foregroundStyle(.secondary)
+                }.padding(.vertical, Theme.Space.s1).accessibilityElement(children: .combine).accessibilityIdentifier("merchant.categories.selected.\(id)")
             }
         }
         if let id = categories.primaryID {

@@ -29,10 +29,14 @@ final class EntryFlowTests: XCTestCase {
         XCTAssertTrue(browse.waitForExistence(timeout:10))
         if !browse.isHittable { app.swipeUp() }
         browse.tap()
-        let activities=app.tabBars.buttons["Activities"]
-        XCTAssertTrue(activities.waitForExistence(timeout:10));activities.tap()
-        XCTAssertTrue(app.navigationBars["Activities"].waitForExistence(timeout:5))
-        let account=app.tabBars.buttons["Account"]
+        // Mini-program consumer tab bar: 首页 · 漫游 · 发布 · 俱乐部 · 我的; activities live inside Home.
+        let publish=app.tabBars.buttons["Publish"]
+        XCTAssertTrue(publish.waitForExistence(timeout:10))
+        XCTAssertEqual(app.tabBars.buttons.allElementsBoundByIndex.map(\.label), ["Home","Roam","Publish","Clubs","Me"])
+        XCTAssertFalse(app.tabBars.buttons["Activities"].exists)
+        publish.tap()
+        XCTAssertTrue(app.navigationBars["Browse templates"].waitForExistence(timeout:5))
+        let account=app.tabBars.buttons["Me"]
         XCTAssertTrue(account.exists);account.tap()
         XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:5))
         XCTAssertTrue(app.buttons["welcome.merchant"].exists)

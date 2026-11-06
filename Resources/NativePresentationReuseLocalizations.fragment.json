@@ -88,13 +88,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photo loading is not enabled"
+            "value": "Photos can't be loaded right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "图片加载尚未启用"
+            "value": "图片暂不可用"
           }
         }
       }

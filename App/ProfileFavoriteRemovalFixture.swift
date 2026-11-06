@@ -48,6 +48,7 @@ import Observation
     private let controller: ProfileFavoriteRemovalController
     private let post: SquarePost
     @State private var refreshed = false
+    @State private var visibleSavedRow = true
     init(scenario: String = "success") {
         let scope = UUID(), context = ProfileFavoriteRemovalFixtureContext(scope: scope), wire = ProfileFavoriteRemovalFixtureWire(scenario)
         let config = try! APIConfiguration(baseURL: URL(string:"https://profile.example/native")!)
@@ -64,8 +65,12 @@ import Observation
                 Text(verbatim:"Reads: \(wire.reads)").accessibilityIdentifier("profile.favoriteFixture.reads")
                 Button("Retire synthetic account") { context.session=nil }.accessibilityIdentifier("profile.favoriteFixture.retire")
                 Button("Resolve synthetic server state") { wire.marked=false;wire.scenario="success" }.accessibilityIdentifier("profile.favoriteFixture.resolve")
+                Button("Refresh synthetic saved collection") { visibleSavedRow = wire.marked }
+                    .accessibilityIdentifier("profile.favoriteFixture.refreshList")
+                ProfileFavoriteRecoverySection(scope: scope, controller: controller,
+                    isCurrent: { context.session?.collectionScope == scope }, onRemoved: { refreshed = true })
                 if refreshed { Text("Refreshed after verified removal").accessibilityIdentifier("profile.favoriteFixture.refreshed") }
-                else {
+                else if visibleSavedRow {
                     Text(verbatim:post.contents ?? "")
                     ProfileFavoriteRemovalEntry(post:post,scope:scope,controller:controller,isCurrent:{ context.session?.collectionScope == scope },onRemoved:{ refreshed=true })
                 }

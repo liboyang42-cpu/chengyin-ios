@@ -1,10 +1,12 @@
 # Questify · native iOS
 
+> **主线整合 / Main consolidation (2026-11-01): [source integration and evidence boundaries](docs/main-consolidation-20261101.md).** The [October scope review](docs/ios-current-status.md) remains historical evidence. The module overview below is not a completion tally.
+
 SwiftUI-first iOS app, with UIKit bridges only when a feature needs them. Independent of the preserved Flutter app, which remains a candidate Android client. This folder is a new implementation, not a completed migration.
 
 ## Current implemented slices, with limits
 
-Development is on `migration/native-ios`, not the foundation-only `main`. See [current branch checks](https://github.com/liboyang42-cpu/chengyin-ios/actions?query=branch%3Amigration%2Fnative-ios) and `PROGRESS.md` for exact commit/run evidence. This is not a finished migration or a release-ready application.
+`main` is the maintained development and CI target. Migration, wave, and feature branches retain source provenance; the consolidation candidate must pass its current checks before entering main. See [main checks](https://github.com/liboyang42-cpu/chengyin-ios/actions?query=branch%3Amain) and `PROGRESS.md` for exact evidence. Source consolidation does not establish a finished migration or a release-ready application.
 
 - Player/merchant entry intent, persistent English/Chinese/System language, separate CN/US operational profiles
 - Home feed, activity and route/topic detail, templates and read-only route previews
@@ -70,4 +72,4 @@ Target repository: `chengyin-ios` (public). Flutter history, deployment scripts,
 
 `Native iOS checks` runs on pushes to `main` and `migration/native-ios`, PRs and manual dispatch. It uses GitHub-hosted macOS for pure Swift tests, unsigned simulator/device compilation and targeted simulator UI tests, plus a separate read-only Gitleaks job. It does not connect a production backend, sign a distribution IPA or upload to a store. No release credentials or installable distribution artifacts are used. Explicit synthetic UI screenshots are retained for one day; they are not real business data or release packages. A successful compile or limited UI suite is not complete product acceptance.
 
-Development stays on `migration/native-ios`; one overall PR follows completion of the full migration and its acceptance gates.
+Development continues from `main` after the reviewed consolidation. Feature branches return through the same current-source checks; signing and distribution require their own acceptance.

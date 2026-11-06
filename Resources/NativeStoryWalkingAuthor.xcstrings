@@ -1,0 +1,941 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "walkingAuthor.entry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story walking entrance details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剧情步行入口资料"
+          }
+        }
+      }
+    },
+    "walkingAuthor.scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Declare walking entrances only for this topic’s saved original nodes. This does not change story order, arrival checks, completion or rewards. A map pin is not an entrance. Leave an unknown entrance undeclared; do not copy the pin or assume the site is open."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅声明本主题已保存原节点的步行入口，不改变剧情顺序、到场判定或完成/奖励。显示图钉不是入口；未知可保留‘未声明入口’，不得抄图钉当入口或推定现场开放。"
+          }
+        }
+      }
+    },
+    "walkingAuthor.reviewScope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original author’s save and submission establish authorship. The original platform topic review is still required. Navigation uses the reviewer and time from the actual approval record. Merchant editing rights, this checkbox and a publication draft are not review approval."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原本人保存/提交生成作者来源；必须经原平台主题审核，导航只读真实批准记录中的审核人与时间。不将商家编辑权限、自己勾选或发布草稿当审核批准。"
+          }
+        }
+      }
+    },
+    "walkingAuthor.legacy.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legacy node navigation declaration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "旧版原节点导航声明"
+          }
+        }
+      }
+    },
+    "walkingAuthor.legacy.scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version 1 contains only nodes, regions and authorization duration, without entrances. Viewing preserves the original content and existing sessions. A new declaration is used only after explicit upgrade, save and the original review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原 v1 只含节点/地区与授权时长，不含入口。查看不会改写旧 hash/旧局；只有明确升级、保存并经原审核后才使用新声明。"
+          }
+        }
+      }
+    },
+    "walkingAuthor.legacy.upgrade": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicitly upgrade this draft to entrance declaration v2"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明确将此草稿升级为入口声明 v2"
+          }
+        }
+      }
+    },
+    "walkingAuthor.ttl": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navigation authorization duration (1–300 seconds; required)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原导航授权时长（1–300 秒，须明确填写）"
+          }
+        }
+      }
+    },
+    "walkingAuthor.node.add": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a saved original node"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加已保存的原节点"
+          }
+        }
+      }
+    },
+    "walkingAuthor.acknowledge": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I have checked each original node, region, entrance source, coordinate reference and explicit closure status, without inventing unknown details."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我已逐项复核原节点、地区、入口来源/坐标基准与明确关闭状态；未知内容没有补造"
+          }
+        }
+      }
+    },
+    "walkingAuthor.apply": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm changes to the original local topic draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认写回原本地主题草稿"
+          }
+        }
+      }
+    },
+    "walkingAuthor.saveScope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This page does not save to the server, request permissions or enable location. The original save, review, publication and navigation authorization still apply. New entrances are not added to existing sessions. If an entrance changes or review is withdrawn, the original source must be read again explicitly; no automatic rerouting or task completion occurs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不在此保存服务器、申请新权限或启用定位。仍需原保存/审核/发布及原导航许可；旧局不会补入新入口。入口变更或撤审使旧导航来源不可确认时，只能显式回读，不自动绕路或完成任务。"
+          }
+        }
+      }
+    },
+    "walkingAuthor.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story walking entrances"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剧情步行入口"
+          }
+        }
+      }
+    },
+    "walkingAuthor.region": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicit region code (two uppercase letters; not inferred from language)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明确地区代码（两位大写；不按语言猜）"
+          }
+        }
+      }
+    },
+    "walkingAuthor.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrance name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入口名称"
+          }
+        }
+      }
+    },
+    "walkingAuthor.source": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Information source / reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "资料来源／出处"
+          }
+        }
+      }
+    },
+    "walkingAuthor.floor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Floor (leave blank if unknown)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "楼层（未知留空）"
+          }
+        }
+      }
+    },
+    "walkingAuthor.approach": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approach notes (leave blank if unknown)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接近说明（未知留空）"
+          }
+        }
+      }
+    },
+    "walkingAuthor.longitude": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrance longitude (not copied from the node)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入口经度（不自动复制节点）"
+          }
+        }
+      }
+    },
+    "walkingAuthor.latitude": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrance latitude"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入口纬度"
+          }
+        }
+      }
+    },
+    "walkingAuthor.datum": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicit coordinate reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明确原坐标基准"
+          }
+        }
+      }
+    },
+    "walkingAuthor.closed.yes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Declared: temporarily closed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已声明：临时关闭"
+          }
+        }
+      }
+    },
+    "walkingAuthor.closed.no": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Declared: not temporarily closed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已声明：未临时关闭"
+          }
+        }
+      }
+    },
+    "walkingAuthor.closed.required": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicit temporary closure status required"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "必须明确临时关闭状态"
+          }
+        }
+      }
+    },
+    "walkingAuthor.closed.chooseYes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Declare temporarily closed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "声明临时关闭"
+          }
+        }
+      }
+    },
+    "walkingAuthor.closed.chooseNo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Declare not temporarily closed (not verified to be open)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "声明未临时关闭（不是实测开放保证）"
+          }
+        }
+      }
+    },
+    "walkingAuthor.businessTime": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Business hours notes (leave blank if unknown; not an access permit)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "营业说明（未知留空；不是接取许可）"
+          }
+        }
+      }
+    },
+    "walkingAuthor.alternative": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessible alternative notes (leave blank if unknown)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无障碍替代说明（未知留空）"
+          }
+        }
+      }
+    },
+    "walkingAuthor.entranceScope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A closed entrance shows only the source notes and alternative text. It does not start routing or automatically select an alternative. Accessibility notes are an approved declaration, not route certification. Do not promise what is unknown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭入口只显示源说明/替代文字，不发起路线或自动选替代点。无障碍文字是批准声明，不是路线认证；未知时不填保证。"
+          }
+        }
+      }
+    },
+    "walkingAuthor.entrance.remove": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave this node’s entrance undeclared"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将此节点改为未声明入口"
+          }
+        }
+      }
+    },
+    "walkingAuthor.entrance.undeclared": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrance undeclared: original node pin behavior and unknown-status notices are retained. This is not a reviewed entrance."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未声明入口：保持原节点图钉行为与未知提示，不能认为已审核入口。"
+          }
+        }
+      }
+    },
+    "walkingAuthor.entrance.add": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicitly declare a new entrance for this node"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为此节点明确声明新入口"
+          }
+        }
+      }
+    },
+    "walkingAuthor.node.remove": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove this node from the local navigation declaration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从本地导航声明移除此节点"
+          }
+        }
+      }
+    },
+    "walkingAuthor.unsupported": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original navigation declaration cannot be read or its version is unsupported. Unknown fields have not been overwritten."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原导航声明缺失或版本不支持，未覆盖未知字段。"
+          }
+        }
+      }
+    },
+    "walkingAuthor.saveUnconfirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving the complete original local draft is unconfirmed. This page retains your configuration copy so you can retry. Nothing has been saved to the server, published or run."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原完整本地草稿保存未确认；本次配置副本保留，可重试写回。未保存服务器、发布或执行玩法。"
+          }
+        }
+      }
+    },
+    "walkingAuthor.invalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the original nodes, explicit region and duration, information source, coordinates, coordinate reference and closure status. The original draft has not changed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请复核原节点、明确地区/时长、资料来源、坐标及基准与关闭状态；原草稿未改动。"
+          }
+        }
+      }
+    },
+    "walkingAuthor.retired.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This editing session has ended"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次编辑已结束"
+          }
+        }
+      }
+    },
+    "walkingAuthor.retired.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After this page leaves the foreground or the original draft or editing identity changes, its unconfirmed entrance configuration copy is cleared. Return to the original topic draft and reopen entrance details. This copy will not be restored or written back automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "页面离开前台、原草稿或编辑身份变化后，本次未确认的入口配置副本已清除。请返回原主题草稿，再重新打开入口资料；不会自动恢复或写回本次副本。"
+          }
+        }
+      }
+    },
+    "walkingAuthor.return": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return to the original topic draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回原主题草稿"
+          }
+        }
+      }
+    },
+    "walkingAuthor.scope.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Declaration scope and review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "声明范围与审核"
+          }
+        }
+      }
+    },
+    "walkingAuthor.notice.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current notice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前提示"
+          }
+        }
+      }
+    },
+    "walkingAuthor.authorization.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navigation authorization duration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导航授权时长"
+          }
+        }
+      }
+    },
+    "walkingAuthor.confirmation.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review and update the local draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复核并写回本地草稿"
+          }
+        }
+      }
+    },
+    "walkingAuthor.nodes.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No node navigation declarations have been added."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未添加节点导航声明。"
+          }
+        }
+      }
+    },
+    "walkingAuthor.nodes.noneSaved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There are no saved original nodes to add. Return to the original topic draft to manage them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有可添加的已保存原节点，请返回原主题草稿处理。"
+          }
+        }
+      }
+    },
+    "walkingAuthor.nodes.allAdded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All saved original nodes are included in the local navigation declaration."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的原节点均已加入本地导航声明。"
+          }
+        }
+      }
+    },
+    "walkingAuthor.back": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回"
+          }
+        }
+      }
+    },
+    "walkingAuthor.discard.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard this page’s unconfirmed entrance changes?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃本页未确认的入口配置？"
+          }
+        }
+      }
+    },
+    "walkingAuthor.discard.confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard changes and return"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃配置并返回"
+          }
+        }
+      }
+    },
+    "walkingAuthor.discard.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue editing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续编辑"
+          }
+        }
+      }
+    },
+    "walkingAuthor.discard.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This page’s entrance changes have not been confirmed in the original local topic draft. Returning clears only this page’s copy. It does not write changes, undo a save or confirm an earlier unconfirmed save."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本页入口配置尚未确认写回原本地主题草稿。返回只清除此页副本，不会写入、撤销或确认此前未确认的保存结果。"
+          }
+        }
+      }
+    },
+    "walkingAuthor.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original topic draft cannot be edited right now. Return, check the current account, draft and editing state, then reopen. No entrance configuration copy was created."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前不能编辑原主题草稿。请返回确认当前账号、草稿与编辑状态后重新打开；未创建入口配置副本。"
+          }
+        }
+      }
+    },
+    "walkingAuthor.node.number": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original node #%lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原节点 #%lld"
+          }
+        }
+      }
+    },
+    "walkingAuthor.choose": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择"
+          }
+        }
+      }
+    },
+    "walkingAuthor.duration.value": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ seconds"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 秒"
+          }
+        }
+      }
+    },
+    "walkingAuthor.nodes.limit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The limit of 2,000 node navigation declarations has been reached. You can remove a node from this local declaration first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已达到 2000 个节点导航声明上限；可先从本地导航声明移除节点。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

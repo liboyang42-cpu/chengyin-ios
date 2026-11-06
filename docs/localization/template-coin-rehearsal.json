@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Heads is the source preview default. Choose either face to inspect its text; repeating never rolls a real or random outcome."
+            "value": "The preview starts on heads. Pick either side to check its text; this preview never gives a real or random result."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原预览默认正面。可选择正反面核对文案；再次演示不会生成真实或随机结果。"
+            "value": "预览默认显示正面。可选择正反面核对文案，预览不会产生真实或随机结果。"
           }
         }
       }
@@ -182,13 +182,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No result text configured"
+            "value": "No result text yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "尚未配置结果文案"
+            "value": "尚未设置结果文案"
           }
         }
       }

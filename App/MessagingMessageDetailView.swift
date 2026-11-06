@@ -26,6 +26,15 @@ struct MessagingMessageDetailView: View {
                     Section("messaging.message.content") {
                         MessagingMessageContent(message: message).textSelection(.enabled)
                     }
+                    if message.isPayloadVisible, message.type == 2, let preview = expanded?.attachmentPreview?(message) {
+                        Section {
+                            NavigationLink("messaging.attachment.open") {
+                                NativeChannelAttachmentPreviewEntry(flow: preview, current: {
+                                    reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
+                                })
+                            }
+                        }
+                    }
                     if message.isPayloadVisible, message.type == 2, let mediaReader, let identity {
                         Section {
                             NavigationLink { SocialMessageMediaView(message: message, reader: mediaReader, expectedIdentity: identity,
@@ -34,13 +43,58 @@ struct MessagingMessageDetailView: View {
                             }.accessibilityIdentifier("messaging.message.preview")
                         }
                     }
+                    if IMVoiceReference.read(message) != nil, let owner = expanded?.voiceCoordinator?(message.conversationID) {
+                        Section {
+                            NavigationLink("messaging.voice.play") { IMVoicePlaybackView(message: message, owner: owner, current: {
+                                reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
+                            }) }
+                        }
+                    }
+                    if IMFileReference.read(message) != nil, let owner = expanded?.fileCoordinator?(message.conversationID) {
+                        Section {
+                            NavigationLink("messaging.file.open") { IMFilePreviewView(message: message, owner: owner, current: {
+                                reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
+                            }) }
+                        }
+                    }
+                    if IMVideoReference.read(message) != nil, let owner = expanded?.videoCoordinator?(message.conversationID) {
+                        Section {
+                            NavigationLink("messaging.video.play") { IMVideoPlaybackView(message: message, owner: owner, current: {
+                                reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
+                            }) }
+                        }
+                    }
                     if message.isPayloadVisible, let reference = message.pollReference {
                         Section {
                             NavigationLink {
-                                if currentSnapshot?.isPayloadVisible == true, currentSnapshot?.pollReference == reference, let owner = expanded?.pollCoordinator?(message.conversationID, reference) { GroupPollView(owner: owner) }
+                                if currentSnapshot?.isPayloadVisible == true, currentSnapshot?.pollReference == reference,
+                                   let owner = expanded?.pollCoordinator?(message.conversationID, reference) {
+                                    if message.type == 9 {
+                                        GroupPollOriginalResultView(owner: owner, reference: reference, current: {
+                                            reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
+                                        })
+                                    } else {
+                                        GroupPollView(owner: owner, current: {
+                                            reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
+                                                && owner.reference == reference && owner.scope.conversationID == message.conversationID
+                                        })
+                                    }
+                                }
                                 else { GroupPollUnavailableView() }
                             } label: { Label("poll.openResults", systemImage: "chart.bar.xaxis") }
                             .accessibilityIdentifier("poll.messageEntry")
+                        }
+                    }
+                    if let notice = NativeChannelGovernanceNotice.parse(message: message, conversation: conversation, identity: identity) {
+                        Section("messaging.governance.section") {
+                            NavigationLink {
+                                if reader.identity == identity, currentSnapshot == message,
+                                   let destination = expanded?.channelGovernanceDestination?(notice) { destination }
+                                else {
+                                    ContentUnavailableView("messaging.governance.unavailable", systemImage: "exclamationmark.circle")
+                                }
+                            } label: { Label("messaging.governance.open", systemImage: "doc.text.magnifyingglass") }
+                            .accessibilityIdentifier("channel.governance.originalNotice")
                         }
                     }
                     Section("messaging.message.details") {
@@ -48,9 +102,6 @@ struct MessagingMessageDetailView: View {
                             MessagingSenderName(message: message, conversation: conversation, accountID: identity?.accountID ?? 0)
                         }
                         MessagingOptionalRow(title: "messaging.message.created", value: message.createdAt)
-                        LabeledContent("messaging.message.id", value: String(message.id))
-                        LabeledContent("messaging.message.conversation", value: String(message.conversationID))
-                        if let type = message.type { LabeledContent("messaging.message.type", value: String(type)) }
                     }
                     if message.isPayloadVisible, expanded != nil, message.card != nil {
                         Section("messaging.card.actions") {
@@ -67,28 +118,30 @@ struct MessagingMessageDetailView: View {
                     if let card = message.card {
                         if let topicID = card.topicID {
                             Section {
-                                LabeledContent("messaging.card.topicID", value: String(topicID))
-                                Text("messaging.card.routeHint").foregroundStyle(.secondary)
+                                // w2-20: source route/signup cards read their display fresh.
+                                if let topicReader = expanded?.topicReader {
+                                    IMRouteCardPreview(topicID: topicID, isSignup: card.kind == .signup, reader: topicReader)
+                                }
                             }
+                        }
+                        if card.kind == .location, let latitude = card.latitude, let longitude = card.longitude {
+                            Section { IMLocationCardMap(title: card.title, latitude: latitude, longitude: longitude) }
                         }
                         if expanded == nil, !card.buttonLabels.isEmpty {
                             Section("messaging.card.actions") {
                                 ForEach(Array(card.buttonLabels.enumerated()), id: \.offset) { _, label in Text(verbatim: label) }
-                                Text("messaging.card.actionsHint").font(.footnote).foregroundStyle(.secondary)
                             }
                         }
                         if message.senderID == 0, let result = card.result {
                             Section("messaging.card.result") {
-                                MessagingOptionalRow(title: "messaging.card.taskID", value: result.taskID)
-                                MessagingOptionalRow(title: "messaging.card.businessID", value: result.businessID)
                                 MessagingOptionalRow(title: "messaging.card.outcome", value: result.outcome)
                                 MessagingOptionalRow(title: "messaging.card.reason", value: result.reason)
                                 MessagingOptionalRow(title: "messaging.card.followUp", value: result.followUp)
                             }
                         }
                     }
-                    Section { Text("messaging.snapshotHint").font(.footnote).foregroundStyle(.secondary) }
-                }.accessibilityIdentifier("messaging.message.detail")
+                }.environment(\.defaultMinListRowHeight, 44)
+                .accessibilityIdentifier("messaging.message.detail")
             } else {
                 MessagingIssueView(issue: .init(APIError.unauthorized), identifier: "messaging.message.signedOut", retry: {})
             }
@@ -100,14 +153,15 @@ struct MessagingMessageDetailView: View {
             if reader.identity == identity, currentSnapshot?.isPayloadVisible == true, let result = selectedReview {
                 NavigationStack {
                     List {
-                        MessagingOptionalRow(title: "messaging.card.taskID", value: result.taskID)
-                        MessagingOptionalRow(title: "messaging.card.businessID", value: result.businessID)
                         MessagingOptionalRow(title: "messaging.card.outcome", value: result.outcome)
                         MessagingOptionalRow(title: "messaging.card.reason", value: result.reason)
                         MessagingOptionalRow(title: "messaging.card.followUp", value: result.followUp)
                     }.navigationTitle(Text("im.full.reviewResult"))
-                    .toolbar { Button("action.cancel") { selectedReview = nil } }
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar { Button("action.done") { selectedReview = nil } }
                 }.privacySensitive()
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
             }
         }
         .onChange(of: currentSnapshot) { _, _ in selectedTopicID = nil; selectedReview = nil }
@@ -141,9 +195,15 @@ struct MessagingMessageContent: View {
             if message.pollReference != nil {
                 VStack(alignment: .leading, spacing: 6) {
                     Label("poll.title", systemImage: "chart.bar.xaxis").font(.headline)
-                    Text("poll.cardHint").font(.caption)
                 }.accessibilityIdentifier("poll.messageCard")
             } else { Label("poll.invalidCard", systemImage: "exclamationmark.bubble").accessibilityIdentifier("poll.invalidCard") }
+        case 13:
+            if let place = IMStaticLocation.read(message) { IMStaticLocationCardView(place: place) }
+            else { Label("messaging.unsupported", systemImage: "questionmark.bubble").foregroundStyle(.secondary) }
+        case 9:
+            if message.pollReference != nil {
+                Label("poll.openResults", systemImage: "chart.bar.xaxis")
+            } else { Label("messaging.unsupported", systemImage: "questionmark.bubble").foregroundStyle(.secondary) }
         default:
             Label("messaging.unsupported", systemImage: "questionmark.bubble").foregroundStyle(.secondary)
         }
@@ -161,23 +221,17 @@ private struct MessagingCardContent: View {
                 Label("messaging.card.location", systemImage: "mappin.and.ellipse").font(.headline)
                 if let title = card.title { Text(verbatim: title) }
                 if let address = card.address { Text(verbatim: address).foregroundStyle(.secondary) }
-                if let latitude = card.latitude, let longitude = card.longitude {
-                    Text(verbatim: "\(latitude), \(longitude)").font(.caption).foregroundStyle(.secondary)
-                }
             case .route:
                 Label("messaging.card.route", systemImage: "point.topleft.down.to.point.bottomright.curvepath").font(.headline)
-                if let id = card.topicID { Text(verbatim: "#\(id)") }
-                Text("messaging.card.routeHint").font(.caption).foregroundStyle(.secondary)
+                if let title = card.title { Text(verbatim: title) }
             case .signup:
                 Label("messaging.card.signup", systemImage: "ticket").font(.headline)
-                if let id = card.topicID { Text(verbatim: "#\(id)") }
-                Text("messaging.card.routeHint").font(.caption).foregroundStyle(.secondary)
+                if let title = card.title { Text(verbatim: title) }
             case .generic:
                 if let title = card.title { Text(verbatim: title).font(.headline) }
                 else { Text("messaging.card.notification").font(.headline) }
                 if let subtitle = card.subtitle { Text(verbatim: subtitle) }
                 if let meta = card.meta { Text(verbatim: meta).font(.caption).foregroundStyle(.secondary) }
-                if isTrustedSystem, card.result != nil { Label("messaging.card.hasResult", systemImage: "doc.text").font(.caption) }
             }
         }
     }

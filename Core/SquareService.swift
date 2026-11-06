@@ -47,6 +47,13 @@ public struct SquareService {
         return SquareFeedPage(items: (payload?.items ?? []).map { $0.qualified(as: .communityV1) }, hasMore: payload?.hasMore == true,
                               nextCursor: payload?.nextCursor.map { SquareCursor(id: $0, score: payload?.nextCursorScore) })
     }
+    /// Source `app.loadFeatureFlags`: `POST api/config/features`; only a literal `true` opens community read/write.
+    public func communityFeatures(token: String?) async throws -> SquareCommunityFeatures {
+        let data = try await post("api/config/features", fields: [:], token: token)
+        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let flags = root["data"] as? [String: Any] else { throw APIError.malformedResponse }
+        func literalTrue(_ value: Any?) -> Bool { (value as? NSNumber).map { CFGetTypeID($0) == CFBooleanGetTypeID() && $0.boolValue } ?? false }
+        return SquareCommunityFeatures(read: literalTrue(flags["communityPostRead"]), write: literalTrue(flags["communityPostWrite"]))
+    }
     public func detail(id: Int, token: String? = nil) async throws -> SquarePost {
         guard id > 0 else { throw APIError.invalidRequest }
         let result: SquareDetailEnvelope = try decode(try await post("api/creativesquare/info", fields: ["id": String(id)], token: token))

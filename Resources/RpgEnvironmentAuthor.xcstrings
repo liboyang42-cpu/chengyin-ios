@@ -1,0 +1,326 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "strings": {
+    "rpgEnvironment.copy.000": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing schema2 rules are required. Missing, older or unrecognized configuration is not overwritten."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "须已有原 schema2 规则；不覆盖缺失、旧版或未识别配置。"
+          }
+        }
+      }
+    },
+    "rpgEnvironment.copy.001": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set the values explicitly according to the original contract. Nothing has been written back."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请按原合同明确配置；未写回。"
+          }
+        }
+      }
+    },
+    "rpgEnvironment.copy.002": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration is unchanged. Original bytes are preserved; no additional save or publication occurred."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置未变，保留原字节；没有新增保存或发布。"
+          }
+        }
+      }
+    },
+    "rpgEnvironment.copy.003": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local saving of the complete draft was not confirmed. Your edits and preview are retained; retry local saving. Nothing has been saved to the server or published."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原完整本地草稿保存未确认；编辑和预览保留，可重试本地保存。尚未保存服务器或发布。"
+          }
+        }
+      }
+    },
+    "rpgEnvironment.copy.004": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original save flow saved the complete local draft. Nothing has been saved to the server or published."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原保存器已保存完整本地草稿，尚未保存服务器或发布。"
+          }
+        }
+      }
+    },
+    "rpgEnvironment.copy.005": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original project or configuration changed. Nothing was overwritten."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原项目或配置已变化，未覆盖。"
+          }
+        }
+      }
+    },
+    "rpgEnvironment.copy.006": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original RPG environment and locations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原 RPG 环境与地点"
+          }
+        }
+      }
+    },
+    "rpgEnvironment.copy.007": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load this topic’s environment configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取本主题原环境配置"
+          }
+        }
+      }
+    },
+    "rpgEnvironment.copy.008": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The project or session changed. Close and reopen the editor."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "项目或会话已变化，请关闭重开。"
+          }
+        }
+      }
+    },
+    "rpgEnvironment.copy.009": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable environment and server time periods"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用环境与服务端时段"
+          }
+        }
+      }
+    },
+    "rpgEnvironment.copy.010": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow scripted template weather overrides"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明确允许模板剧本天气覆盖"
+          }
+        }
+      }
+    },
+    "rpgEnvironment.copy.011": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable original node location facts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用原节点地点事实"
+          }
+        }
+      }
+    },
+    "rpgEnvironment.copy.012": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicitly keep these three switch values"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明确保留当前三个开关"
+          }
+        }
+      }
+    },
+    "rpgEnvironment.copy.013": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scripted weather is not a live observation. It applies only when both environment and author overrides are enabled. Location uses only explicit frozen indoor/outdoor node facts, never venue-name guesses. Weather provider, altitude and server distance remain unknown without a source. Do not enter player coordinates or credentials."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剧本天气不是实时观测；仅在环境与作者覆盖同时开启时生效。地点仅消费明确的冻结节点室内/户外，不从场馆名字推断。天气供应商、海拔和服务端距离缺源仍为未知；不输入玩家坐标或凭据。"
+          }
+        }
+      }
+    },
+    "rpgEnvironment.copy.014": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This page declares only the original three switches. Template weather and indoor configuration editing are not connected. It provides neither live observations nor location authorization. The original project still needs to be saved and published."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本页只声明原三个开关；模板天气与室内配置编辑尚未接入，不提供实时观测或定位授权。仍需原项目保存与发布。"
+          }
+        }
+      }
+    },
+    "rpgEnvironment.copy.015": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review environment configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览原环境配置"
+          }
+        }
+      }
+    },
+    "rpgEnvironment.copy.016": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry saving the complete local draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试保存原完整项目草稿"
+          }
+        }
+      }
+    },
+    "rpgEnvironment.copy.017": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm and save the complete local draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认保存原完整项目草稿"
+          }
+        }
+      }
+    },
+    "rpgEnvironment.copy.018": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close without saving"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭环境编辑副本"
+          }
+        }
+      }
+    },
+    "rpgEnvironment.localOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saves only the local draft. Does not save to the server or publish."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅保存本地草稿，不保存服务器或发布。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

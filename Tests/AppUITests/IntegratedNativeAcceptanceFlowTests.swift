@@ -97,7 +97,7 @@ import XCTest
 
 
     private func tapRoamOverflowToggle(_ app: XCUIApplication) {
-        let navigation = app.navigationBars["Explore the map"]
+        let navigation = app.navigationBars["Roam"]
         let city = navigation.buttons["Official city"]
         guard navigation.exists, city.exists, city.isEnabled, city.isHittable else {
             XCTFail("Expected the visible Explore city toolbar anchor. " + app.debugDescription); return
@@ -226,7 +226,7 @@ import XCTest
     }
     private func orders(_ app: XCUIApplication, owner: Int) {
         assertOrderRowMayMeetButNotCrossNavigationBoundary()
-        tab("Account", app); tap("profile.open.orders", app)
+        tab("Me", app); tap("profile.open.orders", app)
         XCTAssertTrue(app.staticTexts["Owner \(owner) list snapshot"].waitForExistence(timeout: 5))
         tap("profile.order.41", app)
         XCTAssertTrue(app.staticTexts["Activity or route, Owner \(owner) fresh detail"].waitForExistence(timeout: 5))
@@ -234,9 +234,93 @@ import XCTest
         XCTAssertFalse(app.buttons["profile.order.lifecycle"].exists)
     }
 
+    /// Actual SettingsView, reached through the normal Account toolbar and sheet.
+    /// The existing integrated fixture deliberately supplies no favorites grants.
+    /// This is unavailable-state navigation acceptance, not enabled removal coverage.
+    /// Authored offline; compilation and simulator execution remain NOT_RUN.
+    func testActualSettingsFavoritesNoGrantBackDoneAndRepeatedReopen() throws {
+        let app = launch(); signIn(app)
+        tab("Me", app)
+        let favoritesTabs = app.segmentedControls["accountCollection.favorites.tabs"]
+        let unavailable = app.staticTexts["Collections aren't available right now."]
+        func expectDismissed(_ element: XCUIElement) {
+            let absent = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: element)
+            XCTAssertEqual(XCTWaiter.wait(for: [absent], timeout: 5), .completed, app.debugDescription)
+        }
+
+        // Repeat the entire sheet lifetime, not just the collection push.
+        for _ in 0..<2 {
+            tap("Settings", app)
+            XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.buttons["settingsNative.openFavorites"].waitForExistence(timeout: 5))
+            XCTAssertFalse(favoritesTabs.exists, "Reopening Settings must not restore a stale collection")
+
+            // Returning from Topics must consume the old route and local tab state.
+            for _ in 0..<2 {
+                tap("settingsNative.openFavorites", app)
+                XCTAssertTrue(favoritesTabs.waitForExistence(timeout: 5))
+                XCTAssertTrue(favoritesTabs.buttons["Posts"].isSelected,
+                              "A fresh collection route starts on Posts")
+                XCTAssertTrue(unavailable.waitForExistence(timeout: 5))
+                XCTAssertFalse(app.buttons["accountCollection.retry"].exists)
+                XCTAssertFalse(app.buttons.matching(NSPredicate(
+                    format: "identifier BEGINSWITH %@", "profile.favoriteRemoval.")).firstMatch.exists)
+                favoritesTabs.buttons["Topics"].tap()
+                XCTAssertTrue(favoritesTabs.buttons["Topics"].isSelected)
+                XCTAssertTrue(unavailable.waitForExistence(timeout: 5))
+                XCTAssertFalse(app.buttons["accountCollection.retry"].exists)
+
+                // Scope the native Back button to the destination navigation bar.
+                let back = app.navigationBars["Favorites"].buttons["Settings"]
+                XCTAssertTrue(back.waitForExistence(timeout: 5), app.debugDescription)
+                back.tap()
+                XCTAssertTrue(app.buttons["settingsNative.openFavorites"].waitForExistence(timeout: 5))
+                expectDismissed(favoritesTabs)
+            }
+            tap("Done", app)
+            expectDismissed(app.buttons["settingsNative.openFavorites"])
+            XCTAssertTrue(app.navigationBars["Account"].waitForExistence(timeout: 5))
+            expectDismissed(favoritesTabs)
+        }
+        // Evidence is read after sheet dismissal, when the normal root is accessible.
+        // The fixture rejects unreviewed requests before logging successful entries;
+        // evidence() also asserts its separate violations list is empty.
+        let result = try evidence(app)
+        XCTAssertEqual(result.accountID, 7)
+        let forbidden = ["/api/creativesquare/list", "/api/topic/like_list",
+                         "/api/creativesquare/info", "/api/comment/list",
+                         "/api/creativesquare/bookmark"]
+        XCTAssertFalse(result.ledger.contains { entry in
+            guard let path = URL(string: entry.url)?.path else { return true }
+            return forbidden.contains { path.hasSuffix($0) }
+        }, "No favorites list, detail or removal request is authorized by this fixture")
+    }
+
+    /// Mini-program pages/shezhi: 个人资料, 成为俱乐部主理人, 成为商家, 城瘾玩法, 我的收藏 … 退出账号.
+    func testSettingsOffersPlayerApplicationsInMiniProgramOrderAndSignsOut() throws {
+        let app = launch(); signIn(app)
+        tab("Me", app); tap("Settings", app)
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+        let host = app.buttons["settings.becomeClubHost"], merchant = app.buttons["settings.becomeMerchant"]
+        let guide = app.buttons["settings.playGuide"], favorites = app.buttons["settingsNative.openFavorites"]
+        for element in [host, merchant, guide, favorites] { XCTAssertTrue(element.waitForExistence(timeout: 5), app.debugDescription) }
+        XCTAssertEqual(host.label, "Become a club host"); XCTAssertEqual(merchant.label, "Become a merchant")
+        XCTAssertLessThan(host.frame.minY, merchant.frame.minY)
+        XCTAssertLessThan(merchant.frame.minY, guide.frame.minY)
+        XCTAssertLessThan(guide.frame.minY, favorites.frame.minY)
+        tap("settings.signOut", app)
+        let confirmation = app.sheets["Sign out of this account?"]
+        XCTAssertTrue(confirmation.waitForExistence(timeout: 5), app.debugDescription)
+        tapFixtureSheetAction("Sign out", in: confirmation, app: app)
+        XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertFalse(app.tabBars.firstMatch.exists)
+        wait(app) { $0.ledger.last?.route == "logout" }
+        XCTAssertNil(try evidence(app).accountID)
+    }
+
     func testNormalRootOwnedConfigurationReadOnlyAndStoryReturn() throws {
         let app = launch(); signIn(app, owner: 7)
-        tab("Account", app); tap("account.templateAuthoring", app); tap("templateAuthor.openMine", app)
+        tab("Me", app); tap("account.templateAuthoring", app); tap("templateAuthor.openMine", app)
         tap("templateAuthor.shelf.loadMore", app); tap("templateOwnerConfig.open.111", app)
         let answer = app.textFields["templateAuthor.field.questionAnswer"]
         XCTAssertTrue(revealFixtureElement(answer, in: app, requiresHittable: false)); XCTAssertEqual(answer.value as? String, "Synthetic owner answer")
@@ -267,10 +351,14 @@ import XCTest
         XCTAssertEqual(Set(entries.map(\.namespace)).count, 1)
     }
     func testNormalRootIMHistoryNeverMarksReadOrSends() throws {
-        let app = launch(); signIn(app); tab("Account", app); tap("Messages", app)
+        let app = launch(); signIn(app); tab("Me", app); tap("Messages", app)
         XCTAssertTrue(app.buttons["messaging.conversation.901"].waitForExistence(timeout: 5))
         tap("messaging.conversation.901", app)
-        XCTAssertTrue(app.staticTexts["Synthetic latest history"].waitForExistence(timeout: 5))
+        let latest = app.buttons["messaging.message.52"]
+        let latestReady = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            latest.exists && latest.isHittable && latest.label.contains("Synthetic latest history")
+        }, object: latest)
+        XCTAssertEqual(XCTWaiter.wait(for: [latestReady], timeout: 5), .completed)
         XCTAssertFalse(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "SYNTHETIC-RECALLED-PAYLOAD")).firstMatch.exists)
         XCTAssertTrue(app.buttons["messaging.message.53"].exists)
         tap("messaging.message.53", app)
@@ -282,7 +370,11 @@ import XCTest
         XCTAssertFalse(app.textFields["message.send.input"].exists)
         XCTAssertFalse(app.buttons["message.send.button"].exists)
         tap("messaging.history.earlier", app)
-        XCTAssertTrue(app.staticTexts["Synthetic earlier history"].waitForExistence(timeout: 5))
+        let earlier = app.buttons["messaging.message.12"]
+        let earlierReady = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            earlier.exists && earlier.isHittable && earlier.label.contains("Synthetic earlier history")
+        }, object: earlier)
+        XCTAssertEqual(XCTWaiter.wait(for: [earlierReady], timeout: 5), .completed)
         let reads = try evidence(app).ledger.filter { $0.route.hasPrefix("history.") }
         XCTAssertEqual(reads.map(\.route), ["history.conversations", "history.messages", "history.messages"])
         XCTAssertEqual(reads[1].fields, ["conversation_id": "901", "cursor_id": "0", "size": "30"])
@@ -292,7 +384,7 @@ import XCTest
 
     func testNormalRootTeamReadOnlyJourney() throws {
         let app = launch(); signIn(app)
-        tab("Account", app); tap("My teams", app)
+        tab("Me", app); tap("My teams", app)
         XCTAssertTrue(app.buttons["team.row.61"].waitForExistence(timeout: 5))
         tap("team.row.61", app)
         XCTAssertTrue(app.navigationBars["Team details"].waitForExistence(timeout: 5))

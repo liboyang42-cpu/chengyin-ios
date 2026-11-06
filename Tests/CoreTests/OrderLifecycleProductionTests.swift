@@ -289,6 +289,20 @@ import FoundationNetworking
         await coordinator.confirm(reviewID: review.id)
         XCTAssertEqual(harness.http.mutations, 1)
     }
+    func testUnreadableJournalKeepsOneStableUnknownMarkerAndNeverDispatches() async throws {
+        let harness = try replayHarness(); defer { harness.cleanup() }
+        try FileManager.default.createDirectory(at: harness.directory, withIntermediateDirectories: true)
+        try Data("not-a-journal".utf8).write(to: harness.directory.appendingPathComponent("orders.json"))
+        let coordinator = harness.coordinator
+        await coordinator.load(id: 77)
+        let first = try XCTUnwrap(coordinator.attempt(orderID: 77))
+        guard case .outcomeUnknown = first else { return XCTFail("unreadable journal must stay unknown") }
+        XCTAssertEqual(coordinator.attempt(orderID: 77), first)
+        coordinator.prepare(.cancel, orderID: 77)
+        XCTAssertNil(coordinator.review); XCTAssertEqual(coordinator.issue, .alreadyAttempted)
+        XCTAssertEqual(coordinator.attempt(orderID: 77), first)
+        XCTAssertEqual(harness.http.mutations, 0)
+    }
     func testProductionReplayOwnerSeparatesAccountMarketOriginAndNamespace() async throws {
         let harness = try replayHarness(); defer { harness.cleanup() }
         harness.http.failMutation = true

@@ -107,13 +107,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "AI generation is not enabled for this account and deployment. You can keep editing the template manually."
+          "value": "AI generation isn't available right now. You can keep editing the template yourself."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "当前账号和环境尚未启用 AI 生成，你仍可手动编辑模板。"
+          "value": "AI 生成暂不可用，你仍可手动编辑模板。"
         }
       }
     }

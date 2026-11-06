@@ -27,7 +27,6 @@ import SwiftUI
                 document.brandImagesPresentation = .init(document: document)
             }.disabled(!document.coordinator.isCurrent || document.coordinator.isBusy || document.coordinator.isLocked || document.coordinator.confirmation != nil)
                 .accessibilityIdentifier("merchant.brandImages.open")
-            Text("merchant.brandImages.sourceHint").font(.footnote).foregroundStyle(.secondary)
         }
     }
 }
@@ -111,7 +110,6 @@ import SwiftUI
                 HStack { navigation; zoomControls(ticket, index: index) }
                 VStack { navigation; zoomControls(ticket, index: index) }
             }.padding(.horizontal)
-            Text("merchant.brandImages.readOnly").font(.footnote).foregroundStyle(.secondary).padding(.horizontal)
         }
     }
     @ViewBuilder private var navigation: some View {

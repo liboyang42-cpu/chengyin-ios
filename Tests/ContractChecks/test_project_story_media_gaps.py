@@ -23,7 +23,7 @@ class StoryMediaGapContracts(unittest.TestCase):
         self.assertIn('exactData(oldValue.chapters)', s); self.assertIn('oldStory != newStory { storyGapRevision += 1 }', s)
         image = self.read('App/ProjectStoryImagePresentation.swift')
         self.assertIn('editor.storyGapRevision == (expectedGap ?? original.storyGapRevision)', image)
-        self.assertIn('appliedTopology = (original.opening.target.id, editor.storyTopologyRevision, editor.storyGapRevision)', image)
+        self.assertIn('appliedTopology = (original.opening.target.id, editor.storyTopologyRevision, editor.storyGapRevision, editor.draftMutationRevision)', image)
         audio = self.read('App/ProjectStoryAudioPresentation.swift')
         self.assertIn('editor.storyGapRevision == original.gapRevision', audio)
         self.assertIn('appliedGapRevision = (original.opening.block.target.id, editor.storyGapRevision)', audio)
@@ -64,6 +64,13 @@ class StoryMediaGapContracts(unittest.TestCase):
                 self.assertIn('UNMEASURED complete-method estimate: 900 seconds',s)
                 self.assertIn(media.lower()+'Journey(.'+gap.lower()+')',s)
         helper = self.read('Tests/AppUITests/ProjectStoryMediaGapFlowSupport.swift')
+        back = helper.split('private func back(', 1)[1].split('private func insert(', 1)[0]
+        self.assertIn('app.navigationBars["Chapter"].buttons["BackButton"]', back)
+        self.assertIn('exists == true AND enabled == true AND hittable == true', back)
+        self.assertIn('timeout: 5', back)
+        self.assertIn('XCTAssertTrue(button.isEnabled && button.isHittable', back)
+        self.assertLess(back.index('XCTWaiter.wait('), back.index('button.tap()'))
+        self.assertEqual(back.count('button.tap()'), 1)
         for token in ['projectEdit.fixture.reopen','projectEdit.restore','submissionCount, 0','projectStoryImage.prepared.0.','projectStoryAudio.prepared.0.','projectStoryMedia.gap.']:
             self.assertIn(token,helper)
     def test_bilingual_gap_control_and_no_new_transport_or_permission(self):

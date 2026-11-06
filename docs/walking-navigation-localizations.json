@@ -16,8 +16,8 @@
     "zh-Hans": "营业时间"
   },
   "walking.offlineFixture": {
-    "en": "Synthetic route preview; map network disabled",
-    "zh-Hans": "合成路线演示，地图网络已禁用"
+    "en": "Example route. Map is offline.",
+    "zh-Hans": "示例路线，地图未联网"
   },
   "walking.routeDistance": {
     "en": "Walking route distance",
@@ -108,8 +108,8 @@
     "zh-Hans": "导航已取消"
   },
   "walking.error.unavailable": {
-    "en": "Walking navigation is not enabled for this account and environment.",
-    "zh-Hans": "当前账号与环境尚未启用步行导航"
+    "en": "Walking navigation isn't available right now.",
+    "zh-Hans": "步行导航暂不可用"
   },
   "walking.error.targetUnavailable": {
     "en": "This destination is no longer available. Refresh the current task.",
@@ -172,8 +172,8 @@
     "zh-Hans": "目的地与路线"
   },
   "walking.providerDetails": {
-    "en": "Route provider and advisories",
-    "zh-Hans": "路线提供方与提示"
+    "en": "Route details and notices",
+    "zh-Hans": "路线详情与提示"
   },
   "walking.mapPending": {
     "en": "Your walking route will appear here",

@@ -64,14 +64,14 @@ public enum MerchantContentFailure: Error, Equatable {
 }
 public enum MerchantContentQuery: Codable, Hashable, Identifiable {
     case recruiting, projects, nodeAuthoring(chapterID: Int)
-    case chapters(topicID: Int), applications, chapterNodes(topicID: Int?), upcoming(topicID: Int)
+    case chapters(topicID: Int), applications, chapterInvitations, chapterNodes(topicID: Int?), upcoming(topicID: Int)
     case ownerApplications(topicID: Int), invitable(topicID: Int), pendingNodes(topicID: Int)
     case registrations(filter: Int), registration(id: Int), project(topicID: Int?), players(topicID: Int?)
     case city, claimable(keyword: String), cityPlacement, npc(nodeID: Int), voice(nodeID: Int)
     case gameEntries, game(activityID: Int), poster(nodeID: Int), liveCode(activityID: Int, nodeID: Int)
     public var id: String { String(describing: self) }
     public var key: String {
-        switch self { case .recruiting: return "recruiting"; case .projects: return "projects"; case .nodeAuthoring: return "submitNode"; case .chapters: return "chapters"; case .applications: return "applications"; case .chapterNodes: return "nodes"
+        switch self { case .recruiting: return "recruiting"; case .projects: return "projects"; case .nodeAuthoring: return "submitNode"; case .chapters: return "chapters"; case .applications: return "applications"; case .chapterInvitations: return "chapterInvitations"; case .chapterNodes: return "nodes"
         case .upcoming: return "upcoming"; case .ownerApplications: return "reviews"; case .invitable: return "invitable"
         case .pendingNodes: return "nodeReviews"; case .registrations: return "registrations"; case .registration: return "registration"
         case .project: return "project"; case .players: return "players"; case .city: return "city"; case .claimable: return "claimable"
@@ -79,8 +79,11 @@ public enum MerchantContentQuery: Codable, Hashable, Identifiable {
         case .gameEntries: return "games"; case .game: return "game"; case .poster: return "poster"; case .liveCode: return "liveCode" }
     }
     public var requiresProjects: Bool {
-        switch self { case .gameEntries, .game, .npc, .voice, .poster, .liveCode: return false; default: return true }
+        switch self { case .gameEntries, .game, .npc, .voice, .poster, .liveCode, .chapterInvitations: return false; default: return true }
     }
+    /// C7 narrow gate: only the chapter-invitation `mine` leg uses owner + COOP_MANAGE
+    /// instead of PROJECT_MANAGE. No other query is widened or re-gated by this flag.
+    public var requiresCoopOwner: Bool { self == .chapterInvitations }
     public func validate() throws {
         switch self {
         case .nodeAuthoring(let id), .chapters(let id), .upcoming(let id), .ownerApplications(let id), .invitable(let id), .pendingNodes(let id),
@@ -98,7 +101,14 @@ public struct MerchantContentSnapshot: Equatable {
     public let access: MerchantAccess
     public let value: MerchantContentValue
     public let observedAt: Date
-    public static func == (lhs: Self, rhs: Self) -> Bool { lhs.query == rhs.query && lhs.scope == rhs.scope && lhs.access == rhs.access && lhs.value == rhs.value }
+    /// Signed-in member id. Not the merchant archive id in `access.merchantID`.
+    public let ownerMemberID: Int?
+    public init(query: MerchantContentQuery, scope: UUID, access: MerchantAccess, value: MerchantContentValue, observedAt: Date, ownerMemberID: Int? = nil) {
+        self.query = query; self.scope = scope; self.access = access; self.value = value; self.observedAt = observedAt; self.ownerMemberID = ownerMemberID
+    }
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.query == rhs.query && lhs.scope == rhs.scope && lhs.access == rhs.access && lhs.value == rhs.value && lhs.ownerMemberID == rhs.ownerMemberID
+    }
     public var rows: [MerchantContentValue] { value.array ?? value["rows"].array ?? [] }
 }
 public enum MerchantRecruitMode: String {
@@ -114,6 +124,8 @@ public struct MerchantRegistrationContentDraft: Codable, Equatable {
     /// Explicit edited group only; absence preserves the existing server availability.
     public var availabilityReplacement: MerchantRegistrationAvailability? = nil
     public var addressName = "", address = "", longitude = "", latitude = "", activityDesc = "", picUrl = "", limitNum = ""
+    /// Create-only source date range (`YYYY-MM-DD`), sent as `startDate … 00:00:00` / `endDate … 23:59:59`.
+    public var createStartDay: String? = nil, createEndDay: String? = nil
     public init(detail: MerchantContentValue = .object([:])) {
         addressName = detail["addressName"].text ?? ""; address = detail["address"].text ?? ""
         longitude = detail["longitude"].display ?? ""; latitude = detail["latitude"].display ?? ""
@@ -164,6 +176,7 @@ public struct MerchantCityPlacementDraft: Codable, Equatable {
 public struct MerchantContentSupplyContext: Equatable {
     public let applicationID: Int, chapterID: Int
     public let termsMode: String?, offerID: Int?, circleThemeCode: String?
+    public let offerStateRaw: String?, offerWithdrawReason: String?
     public let offerActive: Bool, offerStateKnown: Bool, canEnroll: Bool, canReconfirmOrPause: Bool
     public init(application: MerchantContentValue, recruitmentChapters: [MerchantContentValue]) throws {
         guard let id = application["id"].integer, id > 0, let chapter = application["chapterId"].integer, chapter > 0 else { throw MerchantContentFailure.invalid }
@@ -172,10 +185,45 @@ public struct MerchantContentSupplyContext: Equatable {
         let term = matches.count == 1 ? matches[0]["recruitStatus"]["termsMode"].text : nil
         termsMode = ["TRAFFIC", "PERK", "REVSHARE"].contains(term ?? "") ? term : nil
         offerID = application["offerId"].integer.flatMap { $0 > 0 ? $0 : nil }
+        offerStateRaw = (application["offerState"].text?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 }
+        offerWithdrawReason = (application["offerWithdrawReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 }
         circleThemeCode = application["circleThemeCode"].text
         offerActive = application["offerActive"].flag == true || application["offerActive"].integer == 1
         offerStateKnown = application["offerActive"].flag != nil || [0, 1].contains(application["offerActive"].integer ?? -1)
         canEnroll = application["status"].integer == 1 && offerStateKnown && !offerActive && termsMode != nil
         canReconfirmOrPause = offerActive && offerID != nil && !(circleThemeCode ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+}
+
+
+/// Ordinary type-1 host roster only. No response topic/store IDs or per-player consent are invented.
+public enum MerchantOrdinaryParticipantsProjection {
+    public static func allowsHost(_ value: MerchantContentValue) -> Bool {
+        guard case .integer(1) = value["topic"]["productType"], case .string("host") = value["role"] else { return false }
+        return value["host"].object != nil
+    }
+    public static func sanitized(_ value: MerchantContentValue, mayReadContact: Bool) throws -> MerchantContentValue {
+        guard value.object != nil, let rows = value["rows"].array, value["summary"].object != nil,
+              case .bool(let visible) = value["contactVisible"] else { throw MerchantContentFailure.malformed }
+        func optionalText(_ value: MerchantContentValue) throws -> MerchantContentValue {
+            switch value { case .null, .string: return value; default: throw MerchantContentFailure.malformed }
+        }
+        let hint = try optionalText(value["contactHint"])
+        var summary: [String: MerchantContentValue] = [:]
+        for key in ["paidCount", "arrivedCount", "pendingCount", "contactedCount", "refundedCount"] {
+            guard case .integer(let count) = value["summary"][key], count >= 0 else { throw MerchantContentFailure.malformed }
+            summary[key] = .integer(count)
+        }
+        let allowed = mayReadContact && visible
+        let clean = try rows.map { row -> MerchantContentValue in
+            guard row.object != nil, case .string(let state) = row["state"],
+                  ["refunded", "arrived", "contacted", "pending"].contains(state) else { throw MerchantContentFailure.malformed }
+            let name = try optionalText(row["name"]), ticket = try optionalText(row["ticketName"])
+            let phone = try optionalText(row["phone"])
+            // A globally visible roster does not imply an individual agreed to share a phone.
+            // Preserve null; never restore a withheld phone from another field/cache.
+            return .object(["name": name, "ticketName": ticket, "state": .string(state), "phone": allowed ? phone : .null])
+        }
+        return .object(["rows": .array(clean), "summary": .object(summary), "contactVisible": .bool(allowed), "contactHint": hint])
     }
 }

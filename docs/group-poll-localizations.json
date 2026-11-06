@@ -64,8 +64,8 @@
     "zh-Hans": "预览投票"
   },
   "poll.disabled": {
-    "en": "Group polls are not enabled for this deployment. Nothing has been sent.",
-    "zh-Hans": "当前环境尚未启用群投票，未发送任何内容。"
+    "en": "Group polls aren't available right now. Nothing has been sent.",
+    "zh-Hans": "群投票暂不可用，未发送任何内容。"
   },
   "poll.keyboardDone": {
     "en": "Done",
@@ -192,8 +192,8 @@
     "zh-Hans": "进入俱乐部群聊。服务器将核验当前成员资格，并在需要时创建群聊。"
   },
   "club.chat.disabled": {
-    "en": "Club chat entry is not enabled for this deployment. No group has been created.",
-    "zh-Hans": "当前环境尚未启用俱乐部群聊入口，未创建群聊。"
+    "en": "Club chat isn't available right now. No group has been created.",
+    "zh-Hans": "俱乐部群聊暂不可用，未创建群聊。"
   },
   "club.chat.enter": {
     "en": "Enter group chat",

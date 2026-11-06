@@ -84,7 +84,7 @@ final class AccountCollectionFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Sample weekend benefit"].waitForExistence(timeout: 5))
         let notice = app.staticTexts["accountCollection.coupon.readOnly"]
         reveal(notice)
-        XCTAssertTrue(app.staticTexts["Read-only coupon details. Redemption codes are not available here yet."].exists)
+        XCTAssertTrue(app.staticTexts["Coupon details. Redemption codes aren't available here yet."].exists)
         XCTAssertFalse(app.buttons["Show code"].exists); XCTAssertFalse(app.buttons["Redeem"].exists)
         XCTAssertFalse(app.images["qrcode"].exists)
         attachFixtureScreenshot(self, app: app, name: "Read-only coupon detail")
@@ -127,7 +127,7 @@ final class AccountCollectionFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["Sample weekend benefit"].exists)
     }
     func testGuestEmptyFailureAndConfigurationAreDistinct() {
-        for (scenario, expected) in [("guest", "Sign in to see your saved collections"), ("empty", "No coupons yet"), ("failure", "These items could not be loaded"), ("unconfigured", "Collection service is not configured")] {
+        for (scenario, expected) in [("guest", "Sign in to see your saved collections"), ("empty", "No coupons yet"), ("failure", "These items could not be loaded"), ("unconfigured", "Collections aren't available right now.")] {
             launch(scenario); open("accountCollection.openCoupons")
             XCTAssertTrue(app.staticTexts[expected].waitForExistence(timeout: 10), scenario)
             XCTAssertFalse(app.staticTexts["Sample weekend benefit"].exists)
@@ -178,4 +178,41 @@ final class AccountCollectionFlowTests: XCTestCase {
 
 
 
+}
+
+extension AccountCollectionFlowTests {
+    func testFutureCouponListAndDetailKeepUnusedStatusAndShowStartDayWithoutCode() {
+        launch(); open("accountCollection.openCoupons")
+        let row = app.buttons["accountCollection.coupon.706"]
+        reveal(row); row.tap()
+        XCTAssertTrue(app.navigationBars["Coupon details"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Sample future benefit"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["accountCollection.coupon.futureStart"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["accountCollection.coupon.futureStart"].label, "Not yet started")
+        XCTAssertGreaterThanOrEqual(app.staticTexts.matching(NSPredicate(format: "label == %@", "2099.01.01")).count, 1)
+        XCTAssertFalse(app.buttons["couponCode.open"].exists)
+        XCTAssertFalse(app.images["qrcode"].exists)
+    }
+    func testFutureCouponApprovedCodeEntrySaysViewAvailabilityAndDoesNotRequestCodeOnItsOwn() {
+        launch("codePresentation"); open("accountCollection.openCoupons")
+        let row = app.buttons["accountCollection.coupon.706"]
+        reveal(row); row.tap()
+        let action = app.buttons["couponCode.open"]
+        reveal(action)
+        XCTAssertEqual(action.label, "View availability")
+        XCTAssertEqual(app.staticTexts["ownedCoupon.fixture.issueCount"].label, "0")
+        XCTAssertFalse(app.images["qrcode"].exists)
+    }
+    func testFutureCouponHintCannotRemainAfterCurrentOwnerSignsOut() {
+        launch("sessionChange"); open("accountCollection.openCoupons")
+        let row = app.buttons["accountCollection.coupon.706"]
+        reveal(row); row.tap()
+        XCTAssertTrue(app.staticTexts["accountCollection.coupon.futureStart"].waitForExistence(timeout: 5))
+        open("accountCollection.fixture.signOut")
+        open("accountCollection.openCoupons")
+        XCTAssertTrue(app.staticTexts["Sign in to see your saved collections"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["accountCollection.coupon.futureStart"].exists)
+        XCTAssertFalse(app.buttons["accountCollection.coupon.706"].exists)
+        XCTAssertFalse(app.buttons["couponCode.open"].exists)
+    }
 }

@@ -18,6 +18,7 @@ struct SearchMapCanvas: View {
     var offline = false
     var onViewportChange: ((SearchMapViewport?) -> Void)? = nil
     var onSelect: ((String) -> Void)? = nil
+    @Environment(\.colorScheme) private var colorScheme
     var body: some View {
         Group {
             if offline {
@@ -35,13 +36,19 @@ struct SearchMapCanvas: View {
                             .accessibilityIdentifier("searchMap.pin.\(pin.id)")
                             .accessibilityAddTraits(pin.id == selectedID ? .isSelected : [])
                     }
-                }.padding().frame(maxWidth: .infinity).background(.secondary.opacity(0.08))
+                }.padding().frame(maxWidth: .infinity).background(offlineGround)
             } else {
                 QuestifyDensityMap(area: area, pins: pins, selectedID: selectedID,
                     polyline: polyline, onViewportChange: onViewportChange, onSelect: onSelect)
                     .accessibilityIdentifier("searchMap.map")
             }
         }.frame(minHeight: 240).clipShape(RoundedRectangle(cornerRadius: 20))
+    }
+    /// Reform plan v9 §12.2 MV01: the offline canvas uses the versioned ground token for the
+    /// system appearance. MapKit tiles keep QuestifyMapAppearance; the palette is still a candidate.
+    private var offlineGround: Color {
+        let token = MapVisualStyleManifest.candidate.color(.ground, MapAppearance.resolve(systemIsDark: colorScheme == .dark))
+        return Color(.sRGB, red: token.red, green: token.green, blue: token.blue, opacity: token.opacity)
     }
     private func coordinate(_ value: RoamCoordinate) -> CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: value.latitude, longitude: value.longitude)

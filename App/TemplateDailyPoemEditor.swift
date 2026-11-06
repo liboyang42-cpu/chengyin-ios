@@ -116,7 +116,7 @@ import Combine
             }
             if !editor.issues.isEmpty {
                 Section("templateAuthor.validationTitle") {
-                    ForEach(Array(editor.issues.enumerated()), id: \.offset) { _, issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)); Text(verbatim: issue.path).font(.caption) } }
+                    ForEach(Array(editor.issues.enumerated()), id: \.offset) { _, issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(.red) } }
                 }
             }
         }.navigationTitle("templatePoems.title")

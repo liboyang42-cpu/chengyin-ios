@@ -17,8 +17,6 @@ class NativeDesignMotionGuards(unittest.TestCase):
         self.assertIn("struct QuestifyCardButtonStyle: ButtonStyle", source)
         self.assertIn("accessibilityReduceMotion", source)
         self.assertIn("@propertyWrapper", source)
-        self.assertIn("return systemValue || Self.fixtureValue", source)
-        self.assertIn("#if DEBUG", source)
         self.assertIn("configuration.isPressed && !reduceMotion", source)
         self.assertIn("reduceMotion ? nil", source)
         self.assertIn("duration: 0.12", source)
@@ -27,6 +25,26 @@ class NativeDesignMotionGuards(unittest.TestCase):
         self.assertIn("minHeight: 44", source)
         for forbidden in ("DragGesture", "Task.sleep", "asyncAfter", "repeatForever", "sensoryFeedback"):
             self.assertNotIn(forbidden, source)
+
+    def test_reduce_motion_composes_system_local_and_debug_only_fixture(self):
+        source = app("QuestifyMotion.swift")
+        # Check each build branch, not merely the presence of a DEBUG directive.
+        fixture = re.search(r"#if DEBUG\s+(private static let fixtureValue[^\n]+)\s+#endif", source)
+        self.assertIsNotNone(fixture)
+        self.assertIn('ProcessInfo.processInfo.arguments.contains("--uitesting-reduce-motion")', fixture[1])
+        wrapped = re.search(r"var wrappedValue\s*:\s*Bool\s*\{\s*#if DEBUG\s+(.*?)\s*#else\s+(.*?)\s*#endif\s*\}", source, re.S)
+        self.assertIsNotNone(wrapped)
+        effective = "ReducedMotionPreference.effective(system: systemValue, local: localValue)"
+        self.assertEqual(wrapped[1].strip(), "return " + effective + " || Self.fixtureValue")
+        self.assertEqual(wrapped[2].strip(), "return " + effective)
+        outside_fixture = source.replace(fixture[0], "").replace(wrapped[0], "")
+        for token in ("fixtureValue", "--uitesting-reduce-motion", "ProcessInfo"):
+            self.assertNotIn(token, outside_fixture)
+        self.assertIn(r"@Environment(\.accessibilityReduceMotion) private var systemValue", source)
+        self.assertIn("@AppStorage(ReducedMotionPreference.storageKey) private var localValue = ReducedMotionPreference.defaultValue", source)
+        preference = (ROOT / "Core/ReducedMotionPreference.swift").read_text()
+        self.assertRegex(preference, r"func effective\(system: Bool, local: Bool\) -> Bool\s*\{\s*system \|\| local\s*\}")
+        self.assertIn("static let defaultValue = false", preference)
 
     def test_content_animation_is_local_and_not_a_refresh_success(self):
         source = app("QuestifyMotionComponents.swift")
@@ -55,19 +73,72 @@ class NativeDesignMotionGuards(unittest.TestCase):
         self.assertIn("if start <= context.date", source)
         self.assertNotIn("TimeZone.current", source)
 
-    def test_navigation_scope_pagination_and_duplicate_rows_stay_explicit(self):
+    def test_home_navigation_preserves_results_and_retires_scoped_reads(self):
         home = app("HomeFeedView.swift")
-        for required in ("onDestination(item.id)", 'homeFeed.\\(section).\\(item.accessibilityKey)', "model.loadMore(reader: reader)", "model.invalidate()"):
+        for required in ("onDestination(item.id)", 'homeFeed.\\(section).\\(item.accessibilityKey)', "model.schedule(.page, reader: reader, permit: permit)", "model.suspend()", "model.canOpen(reader)"):
             self.assertIn(required, home)
+        model = app("HomeFeedModel.swift")
+        suspend = model.split("func suspend()", 1)[1].split("func resume(", 1)[0]
+        self.assertIn("cancelScheduledReads()", suspend)
+        self.assertIn("active = false; generation = UUID(); pageGeneration = UUID()", suspend)
+        self.assertNotIn("pagination =", suspend)
+        self.assertIn("if let existing = scheduled[slot] { return existing.task }", model)
+        self.assertIn("expectedPage: pageTicket", model)
+    def test_navigation_scope_pagination_and_duplicate_rows_stay_explicit(self):
         wallet = app("TicketWalletView.swift")
         self.assertIn("ForEach(Array(snapshot.tickets.enumerated()), id: \\.offset)", wallet)
         self.assertIn("if ticket.action == .detail", wallet)
-        self.assertIn("TicketWalletDetailView(id: ticket.id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator)", wallet)
-        self.assertIn("model.cancelPending()", wallet)
+        # Check the native destination and arguments inside the detail-only branch.
+        route = re.search(r"if ticket.action == \.detail\s*\{\s*NavigationLink\s*\{\s*TicketWalletDetailView\(([^()]*)\)\s*\} label:", wallet)
+        self.assertIsNotNone(route)
+        arguments = dict(part.strip().split(":", 1) for part in route[1].split(","))
+        self.assertEqual({key: value.strip() for key, value in arguments.items()}, {
+            "id": "ticket.id", "reader": "reader",
+            "lifecycleCoordinator": "orderLifecycleCoordinator",
+            "makeTeamCoordinator": "makeTeamCoordinator",
+        })
         detail = app("TicketWalletDetailView.swift")
         self.assertIn("ticket.id == id", detail)
         self.assertIn("try await reader.ticketDetail(id: id)", detail)
         self.assertIn('accessibilityIdentifier("ticketWallet.redemption.notice")', detail)
+
+    def test_wallet_departure_retires_presentation_and_cancels_owned_reads(self):
+        for name in ("TicketWalletView.swift", "TicketWalletDetailView.swift"):
+            source = app(name)
+            self.assertRegex(source, r"\.onDisappear\s*\{[^{}]*model\.endPresentation\(\)")
+            self.assertIn("if phase == .background { refreshOnActive = true; model.endPresentation() }", source)
+        adapter = app("TicketWalletModel.swift").split("func endPresentation(", 1)[1].split("func accepts(", 1)[0]
+        self.assertIn("task?.cancel(); task = nil", adapter)
+        self.assertIn("state.endPresentation(preservingValues: preservingValues)", adapter)
+        core = (ROOT / "Core/TicketWalletReading.swift").read_text()
+        end = core.split("public func endPresentation(", 1)[1].split("public func accepts(", 1)[0]
+        self.assertIn("presentation = nil", end)
+        self.assertIn("if preservingValues { cancelPending() } else { invalidate() }", end)
+        accepts = core.split("public func accepts(", 1)[1].split("public func load(", 1)[0]
+        self.assertIn("presentation == permit && permit.owner == currentOwner && currentOwner.canRead", accepts)
+
+    def test_optional_wallet_providers_do_not_create_unguarded_destinations(self):
+        wallet = app("TicketWalletView.swift")
+        detail = app("TicketWalletDetailView.swift")
+        pending = app("TicketWalletPendingOrderNavigation.swift")
+        self.assertIn("static let defaultValue: TicketWalletPendingOrderProvider? = nil", pending)
+        self.assertIn("static let defaultValue: TicketWalletPlayProvider? = nil", detail)
+        for source, provider, entry, owner in (
+            (wallet, "pendingOrderProvider", "pendingOrderEntry", "pendingOrderReadOwner"),
+            (detail, "playProvider", "playEntry", "playReadOwner"),
+        ):
+            destination = source.split(".navigationDestination(item: $" + entry + ".target)", 1)[1].split(".refreshable", 1)[0].split(".onChange(of: scenePhase)", 1)[0]
+            bound = "provider" if provider == "pendingOrderProvider" else "playProvider"
+            binding = "if let provider = pendingOrderProvider" if bound == "provider" else "if let playProvider"
+            self.assertIn(binding, destination)
+            self.assertIn(owner + " == " + bound + ".owner", destination)
+            self.assertIn("!model.isLoading", destination)
+            self.assertIn(entry + ".matches(target,", destination)
+            self.assertIn("let destination = " + bound + ".destination(target: target, reader: reader)", destination)
+        self.assertRegex(detail, r"if let lifecycleCoordinator\s*\{\s*Section\s*\{\s*NavigationLink\s*\{\s*OrderLifecycleView")
+        self.assertRegex(detail, r"if let makeTeamCoordinator\s*\{\s*TicketWalletTeamEntrySection")
+        self.assertIn("guard owner == target.owner, matches(reader: reader) else { return nil }", detail)
+        self.assertIn("matches(reader: reader) else { return nil }", pending)
 
     def test_source_price_and_read_only_disclosures_remain(self):
         home = app("HomeFeedView.swift")

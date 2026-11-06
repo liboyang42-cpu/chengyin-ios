@@ -119,7 +119,6 @@ import Combine
     var body: some View {
         Form {
             Section {
-                Text("templateScan.instructions").font(.callout)
                 if editor.needsReload {
                     Text("templateScan.changed").font(.caption)
                     Button("templateScan.reload") { editor.reload() }.disabled(!editor.canReload)
@@ -141,14 +140,12 @@ import Combine
             }
             if !editor.retainedFields.isEmpty || editor.showsRetainedAR {
                 Section("templateScan.retained") {
-                    Text("templateScan.retainedNotice").font(.caption)
                     if editor.showsRetainedAR { arPicker }
                     ForEach(editor.retainedFields) { field in textField(field) }
                 }.disabled(!editor.canEdit)
             }
             if editor.kind == .image || editor.kind == .overlay {
                 Section("templateScan.preview") {
-                    Text("templateScan.previewNotice").font(.caption)
                     Button("templateScan.load", systemImage: "photo", action: editor.loadAction()).disabled(!editor.canLoad).accessibilityIdentifier("templateScan.load")
                     if let scene = editor.scene {
                         AsyncImage(url: scene.url) { phase in
@@ -168,7 +165,7 @@ import Combine
             }
             if !editor.issues.isEmpty {
                 Section("templateAuthor.validationTitle") {
-                    ForEach(editor.issues) { issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)); Text(verbatim: issue.path).font(.caption) } }
+                    ForEach(editor.issues) { issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(.red) } }
                 }
             }
             Section { Button("templateAuthor.saveLocal", action: editor.saveAction()).disabled(!editor.canEdit || !model.draft.canSave).accessibilityIdentifier("templateScan.saveLocal") }
@@ -188,7 +185,6 @@ import Combine
             TextField(LocalizedStringKey(field.labelKey), text: editor.textInput(field), axis: .vertical).textInputAutocapitalization(.never).autocorrectionDisabled()
                 .accessibilityIdentifier("templateScan.field." + field.rawValue)
             if field == .modelUrl {
-                Text("templateScan.modelNotice").font(.caption)
                 Button("templateScan.clearModel", role: .destructive, action: editor.clearModelAction()).disabled(!editor.canClearModel).accessibilityIdentifier("templateScan.clearModel")
             }
         }

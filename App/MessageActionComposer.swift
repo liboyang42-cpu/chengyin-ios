@@ -78,11 +78,16 @@ struct MessageComposerSubmission: Equatable {
     let conversationReady:Bool
     let canReply: () -> Bool
     let onAcknowledged:(MessagingMessage)->Void
+    /// The view's existing poll entry, shown as the leading `+` when the history offers it.
+    let createPoll:(() -> Void)?
+    @Environment(\.themeDomain) private var domain
     @State private var confirmsRetry=false
     @FocusState private var typing:Bool
     init(coordinator:MessageActionCoordinator,identity:MessagingReadIdentity?,conversationReady:Bool,
          canReply: @escaping () -> Bool = { true },
+         createPoll: (() -> Void)? = nil,
          onAcknowledged:@escaping (MessagingMessage)->Void) {
+        self.createPoll=createPoll
         _model=StateObject(wrappedValue:MessageComposerModel(coordinator))
         self.identity=identity;self.conversationReady=conversationReady;self.canReply=canReply;self.onAcknowledged=onAcknowledged
     }
@@ -104,21 +109,42 @@ struct MessageComposerSubmission: Equatable {
             case .acknowledged: Text("message.send.accepted").font(.footnote).accessibilityIdentifier("message.send.receipt")
             case .idle: EmptyView()
             }
-            HStack(alignment:.bottom) {
-                TextField("message.send.placeholder",text:$model.draft,axis:.vertical)
-                    .lineLimit(1...5).textFieldStyle(.roundedBorder).frame(minHeight:44).focused($typing).disabled(!canCompose)
-                    .accessibilityIdentifier("message.send.input")
-                Button {
-                    typing=false
-                    guard let token = model.prepare(.send(model.draft), identity: identity, canReply: ready) else { return }
-                    Task { await model.perform(token, canReply: { ready }) }
-                } label: { Label("message.send.button",systemImage:"arrow.up.circle.fill").frame(minWidth:44,minHeight:44).contentShape(Rectangle()) }
-                .disabled(!canCompose || model.draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty)
-                .accessibilityIdentifier("message.send.button")
+            // `+` on the left, then a rounded field with the send control inside it.
+            HStack(alignment:.bottom,spacing:Theme.Space.s2) {
+                if let createPoll {
+                    Button(action: createPoll) {
+                        Label("poll.create",systemImage:"plus").labelStyle(.iconOnly)
+                            .font(.title3.weight(.medium)).frame(minWidth:44,minHeight:44).contentShape(Rectangle())
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityIdentifier("poll.createEntry")
+                }
+                HStack(alignment:.bottom,spacing:4) {
+                    TextField("message.send.placeholder",text:$model.draft,axis:.vertical)
+                        .lineLimit(1...5).textFieldStyle(.plain).padding(.vertical,11).padding(.leading,16).focused($typing).disabled(!canCompose)
+                        .accessibilityIdentifier("message.send.input")
+                    let draftIsEmpty = model.draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty
+                    Button {
+                        typing=false
+                        guard let token = model.prepare(.send(model.draft), identity: identity, canReply: ready) else { return }
+                        Task { await model.perform(token, canReply: { ready }) }
+                    } label: {
+                        Label("message.send.button",systemImage:"arrow.up.circle.fill").labelStyle(.iconOnly)
+                            .font(.title2).frame(minWidth:44,minHeight:44).contentShape(Rectangle())
+                            // Quiet while there is nothing to send; the accent returns with text.
+                            .foregroundStyle(draftIsEmpty || !canCompose ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.tint))
+                    }
+                    .buttonStyle(.borderless)
+                    .disabled(!canCompose || draftIsEmpty)
+                    .accessibilityIdentifier("message.send.button")
+                }
+                .frame(minHeight:44)
+                .background(Theme.Color.bgRaised(in:domain),in:RoundedRectangle(cornerRadius:22,style:.continuous))
             }
             if !conversationReady { Text("message.send.historyRequired").font(.caption).foregroundStyle(.secondary) }
         }
-        .padding().background(.regularMaterial).privacySensitive()
+        // Same surface as the page, so the composer doesn't read as a separate band.
+        .padding(.horizontal,Theme.Space.pageX).padding(.vertical,Theme.Space.s2).background(.background).privacySensitive()
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()

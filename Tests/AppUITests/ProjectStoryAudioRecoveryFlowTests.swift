@@ -5,9 +5,48 @@ import XCTest
     private var app: XCUIApplication?
     override func setUpWithError() throws { continueAfterFailure = false }
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app?.terminate(); app = nil }
+    private func revealRootChapter(_ element: XCUIElement, in app: XCUIApplication) -> Bool {
+        let forms = app.collectionViews
+        let navigation = app.navigationBars["路线编辑器"]
+        let save = app.buttons["projectEdit.saveLocal"]
+        let review = app.buttons["projectEdit.review"]
+        for attempt in 0...45 {
+            guard forms.count == 1, app.navigationBars.count == 1, navigation.exists,
+                  app.buttons.matching(identifier: "projectEdit.saveLocal").count == 1,
+                  app.buttons.matching(identifier: "projectEdit.review").count == 1,
+                  save.exists, review.exists, save.isHittable, review.isHittable else { return false }
+            let form = forms.element(boundBy: 0)
+            let formFrame = form.frame
+            let visible = formFrame.intersection(app.frame)
+            let top = max(visible.minY, navigation.frame.maxY + 8)
+            var bottom = min(visible.maxY, min(save.frame.minY, review.frame.minY) - 24)
+            let keyboard = app.keyboards.firstMatch
+            if keyboard.exists { bottom = min(bottom, keyboard.frame.minY - 4) }
+            guard !visible.isEmpty, !visible.isNull, bottom - top > 80 else { return false }
+            let viewport = CGRect(x: visible.minX, y: top, width: visible.width, height: bottom - top)
+            var towardTop = false
+            if element.exists {
+                let frame = element.frame
+                if !frame.isEmpty, viewport.contains(frame), element.isHittable { return true }
+                if !frame.isEmpty { towardTop = frame.midY < viewport.midY }
+            }
+            guard attempt < 45 else { return false }
+            // Use the actual Form gutter, excluding fixed controls and keyboard.
+            let origin = form.coordinate(withNormalizedOffset: .zero)
+            let x = viewport.minX + viewport.width * 0.06 - formFrame.minX
+            let startY = viewport.minY + viewport.height * (towardTop ? 0.3 : 0.75) - formFrame.minY
+            let endY = viewport.minY + viewport.height * (towardTop ? 0.75 : 0.3) - formFrame.minY
+            origin.withOffset(CGVector(dx: x, dy: startY)).press(forDuration: 0.05,
+                thenDragTo: origin.withOffset(CGVector(dx: x, dy: endY)))
+        }
+        return false
+    }
     private func tap(_ id: String, _ app: XCUIApplication, fixed: Bool = false) {
         let button = app.buttons[id]
-        if !fixed { XCTAssertTrue(revealFixtureElement(button, in: app, maximumSwipes: 45), app.debugDescription) }
+        if !fixed {
+            if id.hasPrefix("projectEdit.chapter.") { XCTAssertTrue(revealRootChapter(button, in: app), app.debugDescription) }
+            else { XCTAssertTrue(revealFixtureElement(button, in: app, maximumSwipes: 45), app.debugDescription) }
+        }
         XCTAssertTrue(button.waitForExistence(timeout: 5)); XCTAssertEqual(app.buttons.matching(identifier: id).count, 1)
         XCTAssertTrue(button.isEnabled && button.isHittable, app.debugDescription)
         XCTAssertTrue(app.windows.firstMatch.frame.contains(button.frame)); button.tap()

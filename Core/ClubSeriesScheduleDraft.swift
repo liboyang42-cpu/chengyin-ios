@@ -3,7 +3,7 @@ import Foundation
 /// A local copy of the five scheduling fields. It never creates an occurrence or grants write authority.
 public struct ClubSeriesScheduleDraft: Equatable {
     public enum Recurrence: String, CaseIterable { case once = "ONCE", weekly = "WEEKLY", custom = "CUSTOM_DATES" }
-    public enum Issue: String { case recurrence, date, time, count, past
+    public enum Issue: String { case recurrence, date, time, count, past, futureOnly
         public var localizationKey: String { "club.schedule.error." + rawValue }
     }
     public struct CustomDate: Identifiable, Equatable {
@@ -17,21 +17,34 @@ public struct ClubSeriesScheduleDraft: Equatable {
     public var startTime: String
     public var occurrenceCount: Int
     public var customDates: [CustomDate]
+    private let operation: ClubGovernanceMutation
+    public private(set) var preservesReadbackAsCustomDates = false
 
     public init(form: ClubGovernanceFormDraft, now: Date) {
+        operation = form.operation
         recurrence = form.text["recurrenceType"] ?? "ONCE"
         let raw = form.text["customDates"] ?? ""
         let dates = raw.isEmpty ? [] : raw.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         let unedited = (form.text["startDate"] ?? "").isEmpty
-        // Existing seriesDetail provides dates only; 09:00 is the Mini's explicit new-date default.
-        startDate = unedited ? (dates.sorted().first ?? Self.day(now)) : (form.text["startDate"] ?? "")
-        startTime = form.text["startTime"] ?? "09:00"
-        occurrenceCount = unedited && !dates.isEmpty ? dates.count : (Int(form.text["occurrenceCount"] ?? "") ?? 0)
-        customDates = (dates.isEmpty ? [startDate] : dates).map { CustomDate(day: $0) }
+        let readingUpdate = form.operation == .updateSeries && unedited
+        // The explicit remaining dates, not the saved recurrence label, are authoritative.
+        // An empty detail must not silently create an occurrence; Add date is deliberate.
+        startDate = unedited ? (dates.sorted().first ?? (readingUpdate ? "" : Self.day(now))) : (form.text["startDate"] ?? "")
+        startTime = form.text["startTime"] ?? (form.operation == .createSeries ? "09:00" : "")
+        occurrenceCount = readingUpdate || (unedited && !dates.isEmpty) ? dates.count : (Int(form.text["occurrenceCount"] ?? "") ?? 0)
+        customDates = (dates.isEmpty && !readingUpdate ? [startDate] : dates).map { CustomDate(day: $0) }
+        if readingUpdate, Recurrence(rawValue: recurrence) != nil,
+           dates.isEmpty || requestedDates != dates.sorted() {
+            // WEEKLY cannot encode a cancelled middle date. The editor discloses this
+            // existing CUSTOM_DATES representation before Apply and final review.
+            preservesReadbackAsCustomDates = recurrence != Recurrence.custom.rawValue
+            recurrence = Recurrence.custom.rawValue
+        }
     }
-    public mutating func addDate() {
+    public mutating func addDate(now: Date = Date()) {
         guard customDates.count < 64 else { return }
-        customDates.append(.init(day: startDate))
+        let minimum = Self.day(minimumDate(now: now))
+        customDates.append(.init(day: Self.parseDay(startDate) != nil && startDate >= minimum ? startDate : minimum))
     }
     public mutating func removeDate(id: UUID) {
         guard customDates.count > 1 else { return }
@@ -50,6 +63,9 @@ public struct ClubSeriesScheduleDraft: Equatable {
         }
     }
     public func issue(now: Date) -> Issue? {
+        issue(now: now, operation: operation)
+    }
+    private func issue(now: Date, operation: ClubGovernanceMutation) -> Issue? {
         guard let kind = Recurrence(rawValue: recurrence) else { return .recurrence }
         guard Self.parseTime(startTime) != nil else { return .time }
         if kind == .weekly && !(1...64).contains(occurrenceCount) { return .count }
@@ -57,13 +73,16 @@ public struct ClubSeriesScheduleDraft: Equatable {
         let days = requestedDates
         guard !days.isEmpty, days.allSatisfy({ Self.parseDay($0) != nil }) else { return .date }
         let today = Self.day(now)
+        // updateFuture is tomorrow-only, even if today's assembly time is still ahead.
+        // Never filter today's readback out: omission could cancel that occurrence.
+        if operation == .updateSeries, days.contains(where: { $0 <= today }) { return .futureOnly }
         guard days.allSatisfy({ $0 >= today }) else { return .past }
         // Minute equality is already past, matching Mini assemblyAlreadyPast.
         if days.contains(today), startTime <= Self.time(now) { return .past }
         return nil
     }
     public func applying(to form: ClubGovernanceFormDraft, now: Date) throws -> ClubGovernanceFormDraft {
-        guard [.createSeries, .updateSeries].contains(form.operation), issue(now: now) == nil else { throw ClubGovernanceFailure.invalidRequest }
+        guard [.createSeries, .updateSeries].contains(form.operation), issue(now: now, operation: form.operation) == nil else { throw ClubGovernanceFailure.invalidRequest }
         var result = form
         let custom = recurrence == Recurrence.custom.rawValue
         result.text["recurrenceType"] = recurrence
@@ -72,6 +91,10 @@ public struct ClubSeriesScheduleDraft: Equatable {
         result.text["occurrenceCount"] = String(recurrence == Recurrence.once.rawValue ? 1 : custom ? uniqueCustomDates.count : occurrenceCount)
         result.text["customDates"] = uniqueCustomDates.joined(separator: ",")
         return result
+    }
+    public func minimumDate(now: Date) -> Date {
+        let today = Self.calendar.startOfDay(for: now)
+        return operation == .updateSeries ? Self.calendar.date(byAdding: .day, value: 1, to: today)! : today
     }
     public static var timeZone: TimeZone { TimeZone(identifier: "Asia/Shanghai")! }
     public static var calendar: Calendar {

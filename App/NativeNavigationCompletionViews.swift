@@ -8,7 +8,12 @@ import SwiftUI
         ContentUnavailableView {
             Label("nativeNav.error.title", systemImage: "questionmark.folder")
         } description: {
-            Text(failure == .cannotOpen ? "nativeNav.error.cannotOpen" : "nativeNav.error.detail")
+            if failure == .legacyTeamLink {
+                Text("team.page.legacyLink").font(.headline)
+                Text("team.page.legacyLink.detail")
+            } else {
+                Text(failure == .cannotOpen ? "nativeNav.error.cannotOpen" : "nativeNav.error.detail")
+            }
         } actions: {
             Button("nativeNav.close") { dismiss() }.accessibilityIdentifier("nativeNav.error.close")
             Button("homeFeed.title", action: goHome).accessibilityIdentifier("nativeNav.error.home")

@@ -58,8 +58,8 @@ final class SquareFlowTests: XCTestCase {
     }
     func testChineseEmptyStateUsesLocalizedControls() {
         launch("empty", chinese: true)
-        XCTAssertTrue(app.navigationBars["广场"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.staticTexts["暂无动态"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["动态"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["广场还很安静"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label == %@", "square.empty")).firstMatch.exists)
     }
     func testSearchSubmitAndClearRestoreFeed() {
@@ -90,7 +90,7 @@ final class SquareFlowTests: XCTestCase {
     }
     func testUnconfiguredAndUnauthorizedStayHonest() {
         launch("unconfigured")
-        XCTAssertTrue(app.staticTexts["Square service is not configured"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Square isn't available right now"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.buttons["square.row.701"].exists)
         app.terminate(); launch("unauthorized")
         XCTAssertTrue(app.staticTexts["Your session could not be verified. Sign in again to continue"].waitForExistence(timeout: 10))

@@ -1,0 +1,262 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "participant.recovery.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry original participant creation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试原新增请求"
+          }
+        }
+      }
+    },
+    "participant.recovery.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original save is still uncertain. Retry uses the same request ID and frozen details, never a new participant request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存结果尚未确定。此操作只会用原请求编号和原资料重试新增，不会生成新的参与人请求。"
+          }
+        }
+      }
+    },
+    "participant.recovery.name": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "姓名"
+          }
+        }
+      }
+    },
+    "participant.recovery.phone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phone"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手机号"
+          }
+        }
+      }
+    },
+    "participant.recovery.request": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求编号"
+          }
+        }
+      }
+    },
+    "participant.recovery.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry original save"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试保存原参与人"
+          }
+        }
+      }
+    },
+    "participant.recovery.retention": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completion requires the authoritative participant returned by this original request. Leaving this page clears the local retry details; a similar list row does not prove the request succeeded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅服务器返回这次原请求的权威参与人记录后才完成。离开本页会清除本地重试资料，列表相似记录不代表原请求已成功。"
+          }
+        }
+      }
+    },
+    "participant.recovery.readUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current-state reading is unavailable. The original result remains uncertain; no request has been replayed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前状态读取暂不可用。原请求结果仍不确定，未重放任何请求。"
+          }
+        }
+      }
+    },
+    "participant.recovery.inspect": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspect uncertain participant save"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看未确定的参与人请求"
+          }
+        }
+      }
+    },
+    "participant.recovery.safetyUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Safety checks are unavailable. Try again later. No new request was sent by this action."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法完成安全检查，请稍后重试。本次操作未发出新请求。"
+          }
+        }
+      }
+    },
+    "participant.recovery.invalidForm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the participant details before continuing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查参与人资料后再继续。"
+          }
+        }
+      }
+    },
+    "participant.recovery.pendingOperation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An earlier operation is still unresolved. Inspecting current data does not clear that operation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一笔操作仍未确定。查看当前资料不会解除这笔未决操作。"
+          }
+        }
+      }
+    },
+    "participant.recovery.confirmationExpired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This confirmation is no longer valid. Return to the form and review the details again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次确认已失效，请返回表单重新核对资料。"
+          }
+        }
+      }
+    },
+    "participant.recovery.cancelledBeforeDispatch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action was cancelled before sending."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次操作已在发送前取消。"
+          }
+        }
+      }
+    },
+    "participant.recovery.noUncertainOutcome": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There is no unresolved operation available to inspect in this session."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前会话没有可核对的未决操作。"
+          }
+        }
+      }
+    },
+    "participant.recovery.readInProgress": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A current-result check is already in progress."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在核对当前结果，请稍候。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -61,18 +61,18 @@
   },
   {
     "key": "registration.form.creationDisabled",
-    "en": "Live registration is not enabled",
-    "zh-Hans": "实时报名尚未开放"
+    "en": "Registration isn't available right now",
+    "zh-Hans": "报名暂不可用"
   },
   {
     "key": "registration.form.creationDisabledHint",
-    "en": "Creating an order is disabled until the app privacy policy, server-recorded data-sharing consent, protected intent recovery and order reconciliation are approved and integrated.",
-    "zh-Hans": "应用隐私政策、服务端信息分享同意记录、安全报名意图恢复及订单核对流程完成审核和接入前，无法创建订单。"
+    "en": "Sign-up isn't available right now.",
+    "zh-Hans": "报名暂不可用。"
   },
   {
     "key": "registration.form.currencyHint",
-    "en": "Ticket and total currency are not supplied by this contract. Yuan-named deductions are shown in CNY. Amounts are never converted to USD.",
-    "zh-Hans": "此接口未提供票价和总额的币种。以“元”命名的抵扣项显示为 CNY，不换算为美元。"
+    "en": "Deductions in yuan are shown in CNY. Amounts are never converted to USD.",
+    "zh-Hans": "以“元”计的抵扣显示为人民币，金额不会换算为美元。"
   },
   {
     "key": "registration.form.currencyUnknown",
@@ -141,8 +141,8 @@
   },
   {
     "key": "registration.form.noPaymentProof",
-    "en": "No payment parameters were returned. This does not confirm payment or completed registration. Read the server status.",
-    "zh-Hans": "未返回支付参数，这不能证明支付或报名已完成。请读取服务端状态。"
+    "en": "Payment couldn't be started. This doesn't mean payment or registration is complete. Check your registration status.",
+    "zh-Hans": "未能发起支付，这不代表支付或报名已完成。请查看报名状态。"
   },
   {
     "key": "registration.form.noTickets",
@@ -181,8 +181,8 @@
   },
   {
     "key": "registration.form.paymentNotStarted",
-    "en": "Payment parameters were received, but no payment was started. Check the server status separately.",
-    "zh-Hans": "已收到支付参数，但未发起支付。请单独读取服务端状态。"
+    "en": "Payment wasn't started. Check your registration status.",
+    "zh-Hans": "尚未发起支付，请查看报名状态。"
   },
   {
     "key": "registration.form.phone",
@@ -191,8 +191,8 @@
   },
   {
     "key": "registration.form.phoneHint",
-    "en": "The current source contract requires an 11-digit mobile number starting with 1. International numbers are not supported yet.",
-    "zh-Hans": "当前来源接口要求以 1 开头的 11 位手机号，尚未支持国际号码。"
+    "en": "Enter an 11-digit mainland China mobile number starting with 1. International numbers aren't supported yet.",
+    "zh-Hans": "请输入以 1 开头的 11 位中国大陆手机号，暂不支持国际号码。"
   },
   {
     "key": "registration.form.pointsDiscount",
@@ -211,8 +211,8 @@
   },
   {
     "key": "registration.form.quoteDisabled",
-    "en": "Quotes are disabled until an approved service is configured. No quote request has been sent.",
-    "zh-Hans": "配置获批准的服务前无法获取报价，尚未发送报价请求。"
+    "en": "Price quotes aren't available right now.",
+    "zh-Hans": "报价暂不可用。"
   },
   {
     "key": "registration.form.quoteFailed",
@@ -236,8 +236,8 @@
   },
   {
     "key": "registration.form.readingStatus",
-    "en": "Reading server status…",
-    "zh-Hans": "正在读取服务端状态…"
+    "en": "Checking status…",
+    "zh-Hans": "正在查询状态…"
   },
   {
     "key": "registration.form.refreshQuote",
@@ -291,13 +291,13 @@
   },
   {
     "key": "registration.form.separateStatusHint",
-    "en": "These are separate server fields. A registration label does not resolve conflicting payment or verification states.",
-    "zh-Hans": "以上是相互独立的服务端字段。报名文案不能替代或消除支付、核销状态之间的冲突。"
+    "en": "These statuses are tracked separately. The registration label doesn't resolve a mismatch between payment and redemption status.",
+    "zh-Hans": "以上状态分别记录。报名状态不能替代或消除支付与核销状态之间的冲突。"
   },
   {
     "key": "registration.form.serverStatus",
-    "en": "Server status snapshot",
-    "zh-Hans": "服务端状态快照"
+    "en": "Current status",
+    "zh-Hans": "当前状态"
   },
   {
     "key": "registration.form.sessionChanged",
@@ -321,8 +321,8 @@
   },
   {
     "key": "registration.form.statusUnavailable",
-    "en": "Server status could not be read. The existing submission remains locked.",
-    "zh-Hans": "无法读取服务端状态，原报名提交仍保持锁定。"
+    "en": "Status couldn't be loaded. Your existing submission stays locked.",
+    "zh-Hans": "无法获取状态，原报名提交仍保持锁定。"
   },
   {
     "key": "registration.form.ticket",

@@ -6,9 +6,11 @@ import FoundationNetworking
 public enum CoopFlowRead: Equatable {
     case invitations, pool, applications, receivedApplications, registrations
     case finance, myBusiness, templates, perks(inviteID: Int), reviewSummary(memberID: Int), credit(memberID: Int?)
-    case complaintTopics, relations, clubs(name: String?), nearby(longitude: Double, latitude: Double)
+    case complaintTopics, complaintProgress, relations, clubs(name: String?), nearby(longitude: Double, latitude: Double)
     case depositStatus(inviteID: Int)
     case merchants(name: String?), ownedTopics(kind: CoopFlowTargetKind, scope: String?, page: Int)
+    /// Source `pages/coop/list` legs: official merchant invites (GET) and merchant chapter applications.
+    case officialMerchantInvites, chapterApplicationsOwned(scope: String?), chapterApplicationsMine
     public var path: String {
         switch self {
         case .invitations: return "api/coop/list"; case .pool: return "api/coop/pool/list"
@@ -17,14 +19,19 @@ public enum CoopFlowRead: Equatable {
         case .finance: return "api/coop/finance"; case .myBusiness: return "api/coop/mybiz"
         case .templates: return "api/coop/perk-template/list"; case .perks: return "api/coop/perks/list"
         case .reviewSummary: return "api/coop/review/summary"; case .credit: return "api/coop/credit"
-        case .complaintTopics: return "api/coop/complaint/topics"; case .relations: return "api/merchant/relation-home"
+        case .complaintTopics: return "api/coop/complaint/topics"; case .complaintProgress: return "api/coop/complaint/mine"
+        case .relations: return "api/merchant/relation-home"
         case .clubs: return "api/merchant/clubs"; case .nearby: return "api/merchant/nearby"
         case .depositStatus: return "api/coop/deposit/status"
         case .merchants: return "api/club/merchants"
         case .ownedTopics: return "api/topic/list"
+        case .officialMerchantInvites: return "api/official/merchant-invites"
+        case .chapterApplicationsOwned: return "api/merchant/chapter-application/owner-mine"
+        case .chapterApplicationsMine: return "api/merchant/chapter-application/mine"
         }
     }
-    public var expectsArray: Bool { switch self { case .applications, .receivedApplications, .templates, .perks, .complaintTopics, .clubs, .merchants, .nearby: return true; default: return false } }
+    public var expectsArray: Bool { switch self { case .applications, .receivedApplications, .templates, .perks, .complaintTopics, .complaintProgress, .clubs, .merchants, .nearby,
+                                                   .officialMerchantInvites, .chapterApplicationsOwned, .chapterApplicationsMine: return true; default: return false } }
     public func body() throws -> CoopFlowJSON {
         switch self {
         case .perks(let id), .depositStatus(let id): guard id > 0 else { throw APIError.invalidRequest }; return .object(["inviteId": .id(id)])
@@ -37,6 +44,9 @@ public enum CoopFlowRead: Equatable {
             return .object(fields)
         case .clubs(let name), .merchants(let name): return .object(name.map { ["name": .string($0)] } ?? [:])
         case .relations: return .object(["limit": .id(10)])
+        case .chapterApplicationsOwned(let scope):
+            guard scope == nil || scope == "MERCHANT" else { throw APIError.invalidRequest }
+            return .object(["scope": .string(scope ?? "")])
         case .nearby(let lng, let lat):
             guard lng.isFinite, lat.isFinite, (-180...180).contains(lng), (-90...90).contains(lat) else { throw APIError.invalidRequest }
             return .object(["longitude": .string(String(lng)), "latitude": .string(String(lat)), "radius": .string("5000"), "limit": .string("30")])
@@ -59,15 +69,20 @@ public struct CoopFlowService {
     /// Not enabled by any shipped UI or configuration. Protected effects have no production execution route.
     private let dormantWritesEnabled: Bool
     private let protectedDispatch: CoopFlowProtectedDispatch?
+    /// Real-transport approval. Nil stays on the dormant path. Offline transports ignore it.
+    private let executionApproval: () -> CoopFlowExecutionApproval?
     var dispatchScope: String { configuration.baseURL.absoluteString }
     public init(configuration: APIConfiguration, transport: any HTTPTransport, dormantWritesEnabled: Bool = false,
-                protectedDispatch: CoopFlowProtectedDispatch? = nil) {
+                protectedDispatch: CoopFlowProtectedDispatch? = nil,
+                executionApproval: @escaping () -> CoopFlowExecutionApproval? = { nil }) {
         self.configuration = configuration; self.transport = transport; self.dormantWritesEnabled = dormantWritesEnabled
-        self.protectedDispatch = protectedDispatch
+        self.protectedDispatch = protectedDispatch; self.executionApproval = executionApproval
     }
     public func read(_ resource: CoopFlowRead, session: CoopFlowSession) async throws -> CoopFlowJSON {
         let body = try resource.body()
         var request = try makeRequest(path: resource.path, body: body, session: session)
+        // Nearby composition is token-only; Foundation defaults cookie handling to true.
+        if case .nearby = resource { request.httpShouldHandleCookies = false }
         let isForm: Bool
         switch resource { case .nearby, .ownedTopics: isForm = true; default: isForm = false }
         if isForm {
@@ -78,7 +93,14 @@ public struct CoopFlowService {
             request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
             request.httpBody = Data((parts + "--\(boundary)--\r\n").utf8)
         }
-        let value = try await send(request)
+        if resource == .officialMerchantInvites { request.httpMethod = "GET"; request.httpBody = nil; request.setValue(nil, forHTTPHeaderField: "Content-Type") }
+        let value: CoopFlowJSON
+        do { value = try await send(request) }
+        catch CoopFlowFailure.inactiveMerchant(let code, let message) {
+            // Non-merchants have no official invites; every other read keeps its original server failure.
+            guard resource == .officialMerchantInvites else { throw CoopFlowFailure.server(code, message) }
+            return .array([])
+        }
         if resource.expectsArray { guard value.rows != nil else { throw CoopFlowFailure.malformed } }
         else { guard case .object = value else { throw CoopFlowFailure.malformed } }
         switch resource {
@@ -101,6 +123,10 @@ public struct CoopFlowService {
         return CoopFlowSettlement(source: source, record: matches[0])
     }
     func permitsDispatch(_ operation: CoopFlowMutation) -> Bool {
+        if !(transport is any CoopFlowOfflineHTTPTransport),
+           executionApproval()?.permits(operation, endpoint: configuration.baseURL) == true {
+            return true
+        }
         guard dormantWritesEnabled else { return false }
         guard operation.requiresSeparateEnablement else { return true }
         return transport is any CoopFlowOfflineHTTPTransport &&
@@ -114,6 +140,7 @@ public struct CoopFlowService {
         case .complaint, .enrollOffer: guard case .object = result else { throw CoopFlowFailure.ambiguous }
         case .createTemplate: guard (result["id"].integer ?? 0) > 0 else { throw CoopFlowFailure.ambiguous }
         case .attachPerks: guard let count = result["count"].integer, count >= 0 else { throw CoopFlowFailure.ambiguous }
+        case .withdrawOffer: guard case .object = result, result["enrollmentPaused"] != .null else { throw CoopFlowFailure.ambiguous }
         default: break
         }
         return result
@@ -131,7 +158,10 @@ public struct CoopFlowService {
         guard let envelope = try? JSONDecoder().decode(CoopFlowJSON.self, from: data) else { throw CoopFlowFailure.malformed }
         let code = envelope["code"].integer
         if status == 401 || code == 401 { throw APIError.unauthorized }
-        guard (200..<300).contains(status), code == 200 else { throw CoopFlowFailure.server(code ?? status, envelope["msg"].text) }
+        guard (200..<300).contains(status), code == 200 else {
+            if envelope["errorCode"].text == "NOT_ACTIVE_MERCHANT" { throw CoopFlowFailure.inactiveMerchant(code ?? status, envelope["msg"].text) }
+            throw CoopFlowFailure.server(code ?? status, envelope["msg"].text)
+        }
         return envelope["data"]
     }
 }
@@ -176,3 +206,4 @@ extension CoopFlowReading {
         }
     }
 }
+

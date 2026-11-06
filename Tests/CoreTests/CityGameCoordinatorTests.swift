@@ -1,0 +1,360 @@
+import XCTest
+@testable import QuestifyCore
+
+/// Synthetic numbers for contract shape only; no CITY cost, reward or budget is approved.
+@MainActor final class CityGameCoordinatorTests: XCTestCase {
+    private final class Service: CityGameServing {
+        var snapshotValue: CityGameSnapshot
+        var quoteValue: ((CityActionKind, String) -> CityActionQuote)?
+        var failSubmit = false
+        var missingReceipt = false
+        var failReceipt = false
+        var receiptRequests: [String] = []
+        var decision: CityActionReceipt.Decision = .applied
+        var submitted: [CityActionIntent] = []
+        var snapshots = 0
+        var receipts: [String: CityActionReceipt] = [:]
+        init(_ snapshot: CityGameSnapshot) { snapshotValue = snapshot }
+        func snapshot(for read: CityReadSnapshot) async throws -> CityGameSnapshot { snapshots += 1; return snapshotValue }
+        func deltas(after cursor: CityStreamCursor) async throws -> [CityDelta] { [] }
+        func quote(_ kind: CityActionKind, targetId: String, read: CityReadSnapshot) async throws -> CityActionQuote {
+            try XCTUnwrap(quoteValue)(kind, targetId)
+        }
+        func submit(_ intent: CityActionIntent) async throws -> CityActionReceipt {
+            submitted.append(intent)
+            let receipt = receipts[intent.requestId] ?? CityActionReceipt(requestId: intent.requestId, boardId: intent.boardId, action: intent.kind.rawValue,
+                decision: decision, currentVersion: decision == .applied ? intent.expectedVersion + 1 : intent.expectedVersion,
+                reasonCode: decision == .applied || decision == .quoteChanged ? nil : "SYNTHETIC", taskAttemptKept: false)
+            receipts[intent.requestId] = receipt
+            if failSubmit { failSubmit = false; throw URLError(.networkConnectionLost) }
+            return receipt
+        }
+        func receipt(for intent: CityActionIntent) async throws -> CityActionReceipt? {
+            receiptRequests.append(intent.requestId)
+            if failReceipt { throw URLError(.networkConnectionLost) }
+            if missingReceipt { missingReceipt = false; return nil }
+            return receipts[intent.requestId]
+        }
+    }
+
+    private func board(_ lifecycle: String = "OPEN") -> CityReadBoard {
+        CityReadBoard(gameId: "g1", boardId: "b1", regionId: "r1", seasonId: "s1", rulesReleaseId: "rr1", rulesHash: String(repeating: "f", count: 64),
+                      lifecycle: lifecycle, title: "Synthetic board", revision: 4)
+    }
+    private func read(_ lifecycle: String = "OPEN", joined: Bool = true) -> CityReadSnapshot {
+        CityReadSnapshot(board: board(lifecycle), membership: joined ? .joined : .notJoined,
+                         participation: joined ? CityParticipation(participationId: "p1", membershipVersion: 2) : nil,
+                         points: [CityReadPoint(pointId: "pt-a", title: "A", latitude: 1, longitude: 2, mine: false),
+                                  CityReadPoint(pointId: "pt-b", title: "B", latitude: 1.001, longitude: 2.001, mine: false)])
+    }
+    private func property(_ id: String = "prop-a", point: String = "pt-a", role: CityPropertyRole = .operable, status: CityPropertyStatus = .available,
+                          mine: Bool = false, services: [CityServiceOffer] = [], protectedUntil: Int64? = nil) -> CityPropertyState {
+        CityPropertyState(propertyId: id, pointId: point, role: role, status: status, stateVersion: 7, heldByMyTeam: mine,
+                          protectedUntilMillis: protectedUntil, services: services, challenge: nil, taskAttemptKept: false)
+    }
+    private func snapshot(lifecycle: CityBoardLifecycle = .open, points: Int64? = 5, actions: Int? = 2, limit: Int? = 2,
+                          properties: [CityPropertyState]? = nil, round: Int64? = 1, version: Int64 = 4, sequence: Int64 = 9) -> CityGameSnapshot {
+        CityGameSnapshot(contract: "CITY_GAME_SNAPSHOT_V1", scope: "CITY", boardId: "b1", seasonId: "s1", boardVersion: version, sequence: sequence,
+                         lifecycle: lifecycle, roundSeq: round,
+                         rules: CityRulesSummary(rulesReleaseId: "rr1", ruleVersion: "synthetic", validFromMillis: 1, validUntilMillis: nil,
+                                                 actionsRemaining: actions, actionsPerRound: actions == nil ? nil : 3, holdingLimit: limit),
+                         properties: properties ?? [property(), property("prop-b", point: "pt-b", role: .neutral)],
+                         memberPoints: points, neutralTasksAvailable: true)
+    }
+    nonisolated private func quote(_ kind: CityActionKind, _ target: String, payer: String = "me", cost: Int64 = 3) -> CityActionQuote {
+        CityActionQuote(quoteId: "q-\(target)", quoteVersion: 1, action: kind.rawValue, boardId: "b1", targetId: target, payerMemberId: payer,
+                        ruleVersion: "synthetic", memberPointsCost: cost, actionCost: 1, beneficiaryMemberIds: ["me"],
+                        expiresAtMillis: Int64((Date().timeIntervalSince1970 + 600) * 1000))
+    }
+    private func model(_ service: Service?, read value: CityReadSnapshot? = nil, capabilities: ReformWorldCapabilities = .syntheticFixture([.cityActions]),
+                       current: @escaping () -> Bool = { true }, journal: CityActionRecoveryJournal? = nil) -> CityGameCoordinator {
+        CityGameCoordinator(read: value ?? read(), service: service, capabilities: capabilities, memberId: "me", isCurrent: current, journal: journal)
+    }
+
+    func testProjectionValidationRejectsLeaksAndInventedFacts() async throws {
+        try snapshot().validate(against: read())
+        // Property on a point the player cannot see.
+        XCTAssertThrowsError(try snapshot(properties: [property(point: "pt-hidden")]).validate(against: read()))
+        // Neutral goals cannot be held or sell services.
+        XCTAssertThrowsError(try snapshot(properties: [property(role: .neutral, status: .held)]).validate(against: read()))
+        // Protected requires a published protection end; available cannot carry services.
+        XCTAssertThrowsError(try snapshot(properties: [property(status: .protected)]).validate(against: read()))
+        XCTAssertThrowsError(try snapshot(properties: [property(services: [CityServiceOffer(serviceId: "s1", title: "S", memberPointsFee: 1)])]).validate(against: read()))
+        // Half-published budget and over-limit holdings are invalid.
+        XCTAssertThrowsError(try CityGameSnapshot(contract: "CITY_GAME_SNAPSHOT_V1", scope: "CITY", boardId: "b1", seasonId: "s1", boardVersion: 4, sequence: 1,
+            lifecycle: .open, roundSeq: 1, rules: CityRulesSummary(rulesReleaseId: "rr1", ruleVersion: "x", validFromMillis: 1, validUntilMillis: nil,
+            actionsRemaining: 1, actionsPerRound: nil, holdingLimit: nil), properties: [], memberPoints: nil, neutralTasksAvailable: true).validate(against: read()))
+        XCTAssertThrowsError(try snapshot(limit: 1, properties: [property(status: .held, mine: true), property("prop-c", point: "pt-b", status: .held, mine: true)]).validate(against: read()))
+        // Another board/release or a non-member with "my team" facts.
+        XCTAssertThrowsError(try snapshot().validate(against: CityReadSnapshot(board: CityReadBoard(gameId: "g1", boardId: "b2", regionId: "r1", seasonId: "s1",
+            rulesReleaseId: "rr1", rulesHash: String(repeating: "f", count: 64), lifecycle: "OPEN", title: "B", revision: 1), membership: .joined,
+            participation: CityParticipation(participationId: "p1", membershipVersion: 1), points: read().points))) { XCTAssertEqual($0 as? CityGameProjectionIssue, .boardMismatch) }
+        XCTAssertThrowsError(try snapshot().validate(against: read(joined: false)))
+        // Unpublished facts stay nil rather than defaulting.
+        try snapshot(points: nil, actions: nil, limit: nil).validate(against: read())
+    }
+
+    func testEndpointAllowlistIsEmptyAndCapabilityIsOffByDefault() async {
+        for market in RegionalMarket.allCases {
+            XCTAssertFalse(CityGameEndpointAllowlist.playable(market: market))
+            XCTAssertTrue(CityGameOperation.allCases.allSatisfy { !CityGameEndpointAllowlist.allows($0, market: market) })
+        }
+        let service = Service(snapshot())
+        let off = model(service, capabilities: .disabled)
+        XCTAssertEqual(off.phase, .disabled)
+        await off.load()
+        XCTAssertEqual(service.snapshots, 0)
+        XCTAssertEqual(model(nil).phase, .disabled)
+    }
+
+    func testPaidActionNeedsReviewAndSendsOnlyAfterConfirmation() async throws {
+        let service = Service(snapshot()); service.quoteValue = { self.quote($0, $1) }
+        let game = model(service)
+        await game.load()
+        XCTAssertEqual(game.phase, .ready)
+        let target = try XCTUnwrap(game.snapshot?.properties.first)
+        XCTAssertEqual(game.actions(for: target), [.acceptTask, .acquireProperty])
+        await game.prepare(.acquireProperty, property: target)
+        XCTAssertEqual(game.phase, .review); XCTAssertEqual(game.review?.quote?.memberPointsCost, 3)
+        game.cancelReview()
+        XCTAssertTrue(service.submitted.isEmpty)
+        await game.prepare(.acquireProperty, property: target)
+        await game.confirm()
+        XCTAssertEqual(service.submitted.count, 1)
+        let body = String(decoding: try service.submitted[0].body(), as: UTF8.self)
+        XCTAssertTrue(body.contains("\"payerMemberId\":\"me\"")); XCTAssertFalse(body.contains("memberPointsCost"))
+        XCTAssertEqual(game.lastOutcome, .applied(version: 8)); XCTAssertEqual(game.phase, .ready)
+    }
+
+    func testTeammatePayerQuoteIsRefusedAndInsufficientPointsNeverSend() async throws {
+        let service = Service(snapshot(points: 0)); service.quoteValue = { self.quote($0, $1, payer: "teammate") }
+        let game = model(service); await game.load()
+        let target = try XCTUnwrap(game.snapshot?.properties.first)
+        await game.prepare(.acquireProperty, property: target)
+        XCTAssertEqual(game.notice, .payerMismatch); XCTAssertNil(game.review)
+        service.quoteValue = { self.quote($0, $1) }
+        await game.prepare(.acquireProperty, property: target)
+        XCTAssertFalse(game.reviewAffordable)
+        await game.confirm()
+        XCTAssertEqual(game.notice, .insufficientPoints); XCTAssertTrue(service.submitted.isEmpty)
+        // Neutral goals remain available at zero points.
+        let neutral = try XCTUnwrap(game.snapshot?.properties.last)
+        game.cancelReview()
+        XCTAssertEqual(game.actions(for: neutral), [.acceptTask])
+    }
+
+    func testUnknownOutcomeIsReadBackAndRetryKeepsTheSameRequest() async throws {
+        let service = Service(snapshot()); service.failSubmit = true; service.missingReceipt = true
+        let game = model(service); await game.load()
+        let neutral = try XCTUnwrap(game.snapshot?.properties.last)
+        await game.prepare(.acceptTask, property: neutral)
+        await game.confirm()
+        XCTAssertEqual(game.phase, .unknown); XCTAssertTrue(game.canRetryExact)
+        let requestId = try XCTUnwrap(game.pendingIntent?.requestId)
+        // A fresh snapshot never settles the unknown outcome.
+        service.failReceipt = true
+        await game.load(); XCTAssertEqual(game.phase, .unknown)
+        service.failReceipt = false
+        await game.readBack()
+        XCTAssertEqual(game.notice, .noReceiptYet); XCTAssertEqual(game.phase, .unknown)
+        await game.retryExact()
+        XCTAssertEqual(service.submitted.map(\.requestId), [requestId])
+        XCTAssertEqual(service.receiptRequests, [requestId, requestId, requestId])
+        XCTAssertEqual(game.lastOutcome, .applied(version: 8)); XCTAssertNil(game.pendingIntent)
+    }
+
+    func testChangedQuoteRequiresANewReviewAndBlockedAreShown() async throws {
+        let service = Service(snapshot()); service.quoteValue = { self.quote($0, $1) }; service.decision = .quoteChanged
+        let game = model(service); await game.load()
+        let target = try XCTUnwrap(game.snapshot?.properties.first)
+        await game.prepare(.acquireProperty, property: target); await game.confirm()
+        XCTAssertEqual(game.lastOutcome, .requote); XCTAssertNil(game.review); XCTAssertEqual(service.submitted.count, 1)
+        service.decision = .blocked
+        await game.prepare(.acceptTask, property: target); await game.confirm()
+        XCTAssertEqual(game.lastOutcome, .blocked("SYNTHETIC"))
+    }
+
+    func testFrozenPausedSafetyAndBudgetGateEveryChoice() async throws {
+        let frozen = model(Service(snapshot(lifecycle: .frozen)), read: read("FROZEN")); await frozen.load()
+        XCTAssertEqual(frozen.boardNotice, .boardNotOpen); XCTAssertFalse(frozen.canRoll)
+        XCTAssertTrue(try XCTUnwrap(frozen.snapshot).properties.allSatisfy { frozen.actions(for: $0).isEmpty })
+        let fee = CityServiceOffer(serviceId: "svc", title: "S", memberPointsFee: 1), hidden = CityServiceOffer(serviceId: "svc2", title: "T", memberPointsFee: nil)
+        let paused = model(Service(snapshot(properties: [property(status: .paused, services: [fee]), property("prop-b", point: "pt-b", status: .safetyBlocked)]))); await paused.load()
+        let pausedProps = try XCTUnwrap(paused.snapshot).properties
+        XCTAssertTrue(pausedProps.allSatisfy { paused.actions(for: $0).isEmpty }); XCTAssertFalse(paused.canAcceptService(fee, on: pausedProps[0]))
+        let held = model(Service(snapshot(properties: [property(status: .held, services: [fee, hidden])]))); await held.load()
+        let heldProp = try XCTUnwrap(held.snapshot?.properties.first)
+        XCTAssertEqual(held.actions(for: heldProp), [.acceptTask, .startChallenge])
+        XCTAssertTrue(held.canAcceptService(fee, on: heldProp)); XCTAssertFalse(held.canAcceptService(hidden, on: heldProp))
+        let spent = model(Service(snapshot(actions: 0))); await spent.load()
+        XCTAssertFalse(spent.canRoll); XCTAssertTrue(try XCTUnwrap(spent.snapshot).properties.allSatisfy { spent.actions(for: $0).isEmpty })
+        let unpublished = model(Service(snapshot(limit: nil))); await unpublished.load()
+        XCTAssertEqual(unpublished.actions(for: try XCTUnwrap(unpublished.snapshot?.properties.first)), [.acceptTask])
+    }
+
+    func testSessionChangeInvalidatesEverything() async throws {
+        var current = true
+        let service = Service(snapshot()); service.failSubmit = true
+        let game = model(service, current: { current }); await game.load()
+        game.prepareRoll(); await game.confirm()
+        XCTAssertEqual(game.phase, .unknown)
+        current = false
+        await game.retryExact()
+        XCTAssertEqual(game.phase, .invalidated); XCTAssertNil(game.pendingIntent); XCTAssertNil(game.snapshot)
+        XCTAssertEqual(service.submitted.count, 1)
+    }
+
+    func testRetryReadFailureNeverResubmitsAndMissingReceiptKeepsExactBody() async throws {
+        let service = Service(snapshot()); service.failSubmit = true
+        let game = model(service); await game.load()
+        game.prepareRoll(); await game.confirm()
+        let original = try XCTUnwrap(game.pendingIntent)
+        service.failReceipt = true
+        await game.retryExact()
+        XCTAssertEqual(game.phase, .unknown)
+        XCTAssertEqual(service.submitted.count, 1)
+        service.failReceipt = false; service.missingReceipt = true
+        await game.retryExact()
+        XCTAssertEqual(service.submitted.count, 2)
+        XCTAssertEqual(try service.submitted.last?.body(), try original.body())
+    }
+
+    func testRelaunchReadsOriginalReceiptBeforeSnapshotAndNeverResubmits() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("city-recovery-test-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let journal = try CityActionRecoveryJournal(directory: directory, namespace: "synthetic.cn.player")
+        let service = Service(snapshot()); service.failSubmit = true
+        let first = model(service, journal: journal); await first.load()
+        first.prepareRoll(); await first.confirm()
+        let original = try XCTUnwrap(first.pendingIntent)
+        first.invalidate() // leaving a screen or session must not erase unknown work
+        let reopened = model(service, journal: try CityActionRecoveryJournal(directory: directory, namespace: "synthetic.cn.player"))
+        XCTAssertEqual(reopened.phase, .unknown)
+        XCTAssertEqual(reopened.pendingIntent, original)
+        XCTAssertEqual(try reopened.pendingIntent?.body(), try original.body())
+        await reopened.load()
+        XCTAssertEqual(service.receiptRequests, [original.requestId])
+        XCTAssertEqual(service.submitted.count, 1)
+        XCTAssertEqual(reopened.lastOutcome, .applied(version: 5))
+        XCTAssertEqual(reopened.phase, .ready)
+        XCTAssertNil(try journal.restore(memberId: "me", read: read()))
+    }
+
+    func testJournalIsolatesAccountEnvironmentAndPreservesOriginalAgainstOverwrite() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("city-recovery-test-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let journal = try CityActionRecoveryJournal(directory: directory, namespace: "synthetic.cn.player")
+        let service = Service(snapshot()); service.failSubmit = true
+        let game = model(service, journal: journal); await game.load()
+        game.prepareRoll(); await game.confirm()
+        let original = try XCTUnwrap(game.pendingIntent)
+        XCTAssertNil(try journal.restore(memberId: "other", read: read()))
+        XCTAssertNil(try CityActionRecoveryJournal(directory: directory, namespace: "synthetic.us.player").restore(memberId: "me", read: read()))
+        let another = try CityActionIntent(kind: .roll, board: board(), lifecycle: .open, participation: read().participation,
+            targetId: "b1", roundSeq: 1, expectedVersion: 4, consent: nil)
+        XCTAssertThrowsError(try journal.save(another, memberId: "me", read: read()))
+        XCTAssertEqual(try journal.restore(memberId: "me", read: read()), original)
+        XCTAssertThrowsError(try journal.clear(another, memberId: "me", read: read()))
+        let files = try XCTUnwrap(FileManager.default.enumerator(at: directory, includingPropertiesForKeys: nil))
+        let file = try XCTUnwrap(files.allObjects.compactMap { $0 as? URL }.first { $0.lastPathComponent == "pending.json" })
+        try Data("broken".utf8).write(to: file, options: .atomic)
+        let reopened = model(service, journal: journal)
+        await reopened.load(); await reopened.retryExact()
+        XCTAssertEqual(reopened.phase, .unknown)
+        XCTAssertFalse(reopened.canRetryExact)
+        XCTAssertEqual(service.submitted.count, 1)
+    }
+
+
+    func testJournalWriteFailurePreventsDispatch() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("city-recovery-test-" + UUID().uuidString)
+        try Data("file blocks directory creation".utf8).write(to: directory)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let journal = try CityActionRecoveryJournal(directory: directory, namespace: "synthetic.cn.player")
+        let service = Service(snapshot())
+        let game = model(service, journal: journal); await game.load()
+        game.prepareRoll(); await game.confirm()
+        XCTAssertEqual(game.phase, .unknown)
+        XCTAssertFalse(game.canRetryExact)
+        XCTAssertTrue(service.submitted.isEmpty)
+    }
+
+    func testFrozenBoardCanRecoverButMismatchedReceiptNeverUnlocks() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("city-recovery-test-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let journal = try CityActionRecoveryJournal(directory: directory, namespace: "synthetic.cn.player")
+        let service = Service(snapshot()); service.failSubmit = true
+        let game = model(service, journal: journal); await game.load()
+        game.prepareRoll(); await game.confirm()
+        let original = try XCTUnwrap(game.pendingIntent)
+        let validReceipt = service.receipts[original.requestId]
+        service.receipts[original.requestId] = CityActionReceipt(requestId: "another-request", boardId: "b1", action: "ROLL_ROUND",
+            decision: .applied, currentVersion: 5, reasonCode: nil, taskAttemptKept: false)
+        let reopened = model(service, read: read("FROZEN"), journal: journal)
+        await reopened.retryExact()
+        XCTAssertEqual(reopened.phase, .unknown)
+        XCTAssertEqual(service.submitted.count, 1)
+        XCTAssertEqual(try journal.restore(memberId: "me", read: read()), original)
+        service.receipts[original.requestId] = validReceipt
+        service.snapshotValue = snapshot(lifecycle: .frozen)
+        await reopened.load()
+        XCTAssertEqual(reopened.phase, .ready)
+        XCTAssertFalse(reopened.canRoll)
+        XCTAssertEqual(reopened.lastOutcome, .applied(version: 5))
+    }
+
+
+    func testPaidRelaunchPreservesConsentAndCanonicalBody() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("city-recovery-test-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let journal = try CityActionRecoveryJournal(directory: directory, namespace: "synthetic.cn.player")
+        let service = Service(snapshot()); service.failSubmit = true; service.quoteValue = { self.quote($0, $1) }
+        let game = model(service, journal: journal); await game.load()
+        let property = try XCTUnwrap(game.snapshot?.properties.first)
+        await game.prepare(.acquireProperty, property: property); await game.confirm()
+        let original = try XCTUnwrap(game.pendingIntent)
+        let reopened = model(service, journal: journal)
+        XCTAssertEqual(reopened.pendingIntent?.consent, original.consent)
+        XCTAssertEqual(try reopened.pendingIntent?.body(), try original.body())
+        service.missingReceipt = true
+        await reopened.retryExact()
+        XCTAssertEqual(service.submitted, [original, original])
+        XCTAssertEqual(reopened.lastOutcome, .applied(version: 8))
+    }
+
+
+    func testActionSelectionMustComeFromCurrentServerSnapshot() async throws {
+        let service = Service(snapshot()), game = model(service)
+        await game.load()
+        let foreign = property("another-property", role: .neutral)
+        XCTAssertTrue(game.actions(for: foreign).isEmpty)
+        await game.prepare(.acceptTask, property: foreign)
+        XCTAssertEqual(game.phase, .ready)
+        XCTAssertNil(game.review)
+        let offer = CityServiceOffer(serviceId: "published", title: "Service", memberPointsFee: 1)
+        let held = property(status: .held, services: [offer])
+        service.snapshotValue = snapshot(properties: [held])
+        await game.load()
+        let invented = CityServiceOffer(serviceId: "unpublished", title: "Service", memberPointsFee: 1)
+        XCTAssertFalse(game.canAcceptService(invented, on: held))
+        XCTAssertTrue(game.canAcceptService(offer, on: held))
+        XCTAssertTrue(service.submitted.isEmpty)
+    }
+
+    func testSnapshotWatermarkSurvivesRejectedReload() async throws {
+        let service = Service(snapshot(version: 6, sequence: 10)), game = model(service)
+        await game.load()
+        XCTAssertEqual(game.snapshot?.boardVersion, 6)
+        service.snapshotValue = snapshot(version: 5, sequence: 9)
+        await game.load()
+        XCTAssertEqual(game.phase, .unavailable)
+        XCTAssertNil(game.snapshot)
+        await game.load() // failure must not reset the watermark and accept the same regression
+        XCTAssertEqual(game.phase, .unavailable)
+        service.snapshotValue = snapshot(version: 7, sequence: 11)
+        await game.load()
+        XCTAssertEqual(game.phase, .ready)
+        XCTAssertEqual(game.snapshot?.boardVersion, 7)
+    }
+
+}

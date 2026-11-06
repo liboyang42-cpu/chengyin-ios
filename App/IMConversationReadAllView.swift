@@ -76,41 +76,40 @@ struct IMConversationReadAllButtonToken: Equatable {
             List {
                 if model.batch.isCurrent {
                     Section {
-                        Text("im.readAll.scopeHint")
-                        LabeledContent("im.readAll.frozenCount") { Text(verbatim: String(model.items.count)) }
-                        Text("im.readAll.cancelHint").font(.footnote).foregroundStyle(.secondary)
+                        LabeledContent("d7.readAll.count") { Text(verbatim: String(model.items.count)) }
                     }
                     Section {
                         switch model.phase {
                         case .reviewing:
-                            Button("im.readAll.confirm") {
-                                guard let token = model.prepare(appearance: appearance) else { return }
-                                Task { await model.perform(token) }
-                            }
-                            .disabled(model.isActionPending || !model.batch.canConfirm)
-                            .accessibilityIdentifier("im.readAll.confirmButton")
-                            if !model.batch.canConfirm { Text("im.readAll.unavailable") }
+                            if model.batch.canConfirm {
+                                Button("d7.readAll.confirm") {
+                                    guard let token = model.prepare(appearance: appearance) else { return }
+                                    Task { await model.perform(token) }
+                                }
+                                .disabled(model.isActionPending)
+                                .accessibilityIdentifier("im.readAll.confirmButton")
+                            } else { Text("d7.readAll.unavailable") }
                         case .running:
-                            ProgressView("im.readAll.running")
-                            Button("im.readAll.stop") { model.stop() }
-                                .disabled(model.stopRequested)
-                                .accessibilityIdentifier("im.readAll.stopButton")
-                            if model.stopRequested { Text("im.readAll.stopping") }
+                            ProgressView("d7.readAll.running")
+                            if model.stopRequested {
+                                Text("d7.readAll.stopping")
+                            } else {
+                                Button("d7.readAll.stop", role: .destructive) { model.stop() }
+                                    .accessibilityIdentifier("im.readAll.stopButton")
+                            }
                         case .finished:
-                            Text("im.readAll.finished")
                             summary
-                            Text("im.readAll.readbackHint").font(.footnote)
-                            if model.batch.unknownCount > 0 { Text("im.readAll.unknownHint").font(.footnote) }
+                            if model.batch.unknownCount > 0 { Text("d7.readAll.unknownHint") }
                         case .cancelled:
-                            Text("im.readAll.cancelled")
+                            Text("d7.readAll.cancelled")
                         }
                     }
-                    Section("im.readAll.conversations") {
+                    Section("d7.readAll.conversations") {
                         ForEach(model.items) { item in
-                            VStack(alignment: .leading, spacing: 4) {
-                                MessagingConversationName(conversation: item.conversation)
+                            LabeledContent {
                                 Text(LocalizedStringKey(outcomeKey(item.outcome)))
-                                    .font(.caption).foregroundStyle(.secondary)
+                            } label: {
+                                MessagingConversationName(conversation: item.conversation).lineLimit(1)
                             }
                             .accessibilityIdentifier("im.readAll.item.\(item.id)")
                         }
@@ -121,11 +120,13 @@ struct IMConversationReadAllButtonToken: Equatable {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("action.close") { model.dismiss(); dismiss() }
+                    Button(model.phase == .reviewing ? LocalizedStringKey("action.cancel") : LocalizedStringKey("action.close")) { model.dismiss(); dismiss() }
                         .accessibilityIdentifier("im.readAll.closeButton")
                 }
             }
         }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
         .privacySensitive()
         .accessibilityIdentifier("im.readAll.reviewSheet")
         .onAppear { model.observe() }
@@ -133,21 +134,21 @@ struct IMConversationReadAllButtonToken: Equatable {
     }
     private var summary: some View {
         Group {
-            LabeledContent("im.readAll.acknowledged") { Text(verbatim: String(model.batch.acknowledgedCount)) }
-            LabeledContent("im.readAll.unknown") { Text(verbatim: String(model.batch.unknownCount)) }
-            LabeledContent("im.readAll.rejected") { Text(verbatim: String(model.batch.rejectedCount)) }
-            LabeledContent("im.readAll.remaining") { Text(verbatim: String(model.batch.remainingCount)) }
+            LabeledContent("d7.readAll.acknowledged") { Text(verbatim: String(model.batch.acknowledgedCount)) }
+            LabeledContent("d7.readAll.unknown") { Text(verbatim: String(model.batch.unknownCount)) }
+            LabeledContent("d7.readAll.rejected") { Text(verbatim: String(model.batch.rejectedCount)) }
+            LabeledContent("d7.readAll.remaining") { Text(verbatim: String(model.batch.remainingCount)) }
         }
     }
     private func outcomeKey(_ outcome: IMConversationReadAllOutcome) -> String {
         switch outcome {
-        case .notAttempted: return "im.readAll.remaining"
-        case .submitting: return "im.readAll.running"
-        case .acknowledged: return "im.readAll.acknowledged"
-        case .rejected: return "im.readAll.rejected"
-        case .outcomeUnknown: return "im.readAll.unknown"
-        case .protectedIntent: return "im.readAll.protected"
-        case .unavailable: return "im.readAll.unavailable"
+        case .notAttempted: return "d7.readAll.remaining"
+        case .submitting: return "d7.readAll.itemRunning"
+        case .acknowledged: return "d7.readAll.acknowledged"
+        case .rejected: return "d7.readAll.rejected"
+        case .outcomeUnknown: return "d7.readAll.unknown"
+        case .protectedIntent: return "d7.readAll.skipped"
+        case .unavailable: return "d7.readAll.itemUnavailable"
         }
     }
 }

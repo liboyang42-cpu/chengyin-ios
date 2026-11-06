@@ -45,6 +45,38 @@ final class TopicFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["Buy"].exists)
     }
 
+    func testSecondPageSurvivesDetailBackAndCanBeOpenedAgain() {
+        launch()
+        revealAndTap(app.buttons["topic.loadMore"])
+        revealAndTap(app.buttons["topic.row.9"])
+        XCTAssertTrue(app.navigationBars["Route details"].waitForExistence(timeout: 5))
+        app.navigationBars["Route details"].buttons.firstMatch.tap()
+        XCTAssertTrue(app.navigationBars["Routes"].waitForExistence(timeout: 5))
+        // Page two has only row 9. Returning must not silently reset to rows 7 and 8.
+        revealAndTap(app.buttons["topic.row.9"])
+        XCTAssertTrue(app.navigationBars["Route details"].waitForExistence(timeout: 5))
+        app.navigationBars["Route details"].buttons.firstMatch.tap()
+        XCTAssertFalse(app.buttons["topic.loadMore"].exists)
+    }
+
+    func testChangedKeywordAfterDetailBackStartsANewFirstPage() {
+        launch()
+        revealAndTap(app.buttons["topic.loadMore"])
+        revealAndTap(app.buttons["topic.row.9"])
+        XCTAssertTrue(app.navigationBars["Route details"].waitForExistence(timeout: 5))
+        app.navigationBars["Route details"].buttons.firstMatch.tap()
+        let search = app.searchFields["Search routes"]
+        XCTAssertTrue(search.waitForExistence(timeout: 5))
+        search.tap(); search.typeText("Sample route 7\n")
+        let oldSecondPage = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.buttons["topic.row.9"])
+        let oldFirstPage = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.buttons["topic.row.8"])
+        XCTAssertEqual(XCTWaiter.wait(for: [oldSecondPage, oldFirstPage], timeout: 5), .completed)
+        XCTAssertTrue(app.buttons["topic.row.7"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["topic.row.9"].exists)
+        XCTAssertFalse(app.buttons["topic.row.8"].exists)
+        XCTAssertEqual(search.value as? String, "Sample route 7")
+    }
+
     private func walkingEstimate(_ position: Int) -> XCUIElement {
         app.descendants(matching: .any).matching(identifier: "topic.itinerary.walk.\(position)").firstMatch
     }

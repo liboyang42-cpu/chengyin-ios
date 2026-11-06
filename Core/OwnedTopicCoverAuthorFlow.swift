@@ -60,6 +60,9 @@ import CryptoKit
     public func beginPicking() -> UUID? {
         guard canPick else { return nil }; let id = UUID(); pickerID = id; return id
     }
+    public func canContinuePicking(_ original: UUID) -> Bool {
+        pickerID == original && isCurrent && mayChangeSelection() && source.permitsNativePicker(session: session)
+    }
     public func finishPicking(_ image: RetainedSelectedImage?, original: UUID) {
         guard pickerID == original else { return }; pickerID = nil
         guard let image else { return }; setPicked(image)
@@ -121,7 +124,10 @@ import CryptoKit
         claimID = nil
         do {
             guard try journal.read(session:session,topicID:topicID) == original.snapshot else { throw OwnedTopicCoverFailure.changedContext }
-            let asset = try await execute { [source,session] in try await source.upload(original.image,session:session) }
+            let asset = try await execute { [source,session,weak self] in
+                guard self?.isCurrent == true, self?.mayChangeSelection() == true else { throw OwnedTopicCoverFailure.changedContext }
+                return try await source.upload(original.image,session:session)
+            }
             journal.rememberUpload(asset,id:original.uploadID,session:session,topicID:topicID)
             uploadedAsset = asset; unsavedUpload = (asset,original.uploadID,original.snapshot)
             persistUploadReceipt()
@@ -178,8 +184,12 @@ import CryptoKit
         guard isCurrent, !hasUnstoredReceipt, let saved = original.currentSelection, source.permits(writing ? .select : .status,session:session) else { return }
         do {
             guard try journal.read(session:session,topicID:topicID) == original else { throw OwnedTopicCoverFailure.changedContext }
-            let receipt = try await execute { [source,session] in
-                if writing { return try await source.select(saved.command,session:session) }
+            let receipt = try await execute { [source,session,weak self] in
+                guard self?.isCurrent == true else { throw OwnedTopicCoverFailure.changedContext }
+                if writing {
+                    guard self?.mayChangeSelection() == true else { throw OwnedTopicCoverFailure.changedContext }
+                    return try await source.select(saved.command,session:session)
+                }
                 return try await source.status(saved.command,session:session)
             }
             journal.rememberSelection(receipt,session:session); unsavedSelection = receipt

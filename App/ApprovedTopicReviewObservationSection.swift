@@ -36,10 +36,10 @@ import SwiftUI
         }
     }
     private func field(_ label: String, _ value: String, _ suffix: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: Theme.Space.s2) {
             Text(verbatim: label).font(.caption).foregroundStyle(.secondary)
-            Text(verbatim: value).textSelection(.enabled).accessibilityIdentifier("topicReview.current." + suffix)
-        }
+            Text(verbatim: value).textSelection(.enabled).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("topicReview.current." + suffix)
+        }.p04FactRow()
     }
     private func status(_ value: ApprovedTopicReviewObservation.Status) -> String {
         switch value {

@@ -21,7 +21,7 @@ struct PlaySessionView: View {
             } else if reader.identity == nil {
                 PlayIssueView(issue: .init(APIError.unauthorized))
             } else if model.isLoading {
-                ProgressView("play.loading").accessibilityIdentifier("play.loading")
+                ProgressView("play.loading").frame(maxWidth: .infinity, maxHeight: .infinity).accessibilityIdentifier("play.loading")
             } else if let issue = model.visibleIssue {
                 PlayIssueView(issue: issue) { Task { await model.load(keepingReceipt: true) } }
             } else if let snapshot = model.visibleSnapshot {
@@ -32,7 +32,6 @@ struct PlaySessionView: View {
                                 guard model.visibleSnapshot == snapshot, model.visibleSnapshot?.result.mode == 2 else { return }
                                 selectedNodeID = id
                             }
-                            Text("playFree.readOnly").font(.footnote)
                         }.padding()
                     }.accessibilityIdentifier("playFree.read.overview")
                 } else if snapshot.result.mode == 1 { overview(snapshot) }
@@ -119,6 +118,7 @@ struct PlaySessionView: View {
                 }
             }
         }
+        .listStyle(.insetGrouped)
         .refreshable { await model.load(keepingReceipt: true) }
         .accessibilityIdentifier("play.overview")
     }
@@ -135,7 +135,6 @@ struct PlayReceiptView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Label("play.answer.accepted", systemImage: "checkmark.circle").font(.headline)
-            Text("play.answer.readback").font(.footnote).foregroundStyle(.secondary)
             if let xp = receipt.xp { LabeledContent("play.xp") { Text(verbatim: String(xp)) } }
             if let score = receipt.puzzleScore { LabeledContent("play.puzzleScore") { Text(verbatim: String(score)) } }
             if receipt.completed == true { Text("play.answer.routeCompleted") }

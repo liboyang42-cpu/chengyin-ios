@@ -187,6 +187,7 @@ public struct NearbyTeamReview: Identifiable, Equatable {
     }
     private func failure(_ error: Error) {
         if error as? NearbyTeamFailure == .unauthorized { bind(nil); busy = false; messageKey = "nearby.signIn"; return }
+        if error as? NearbyTeamFailure == .role { messageKey = "nearby.w208.denied"; return }
         if case NearbyTeamFailure.rejected(let code, let message) = error { errorCode = code; serverMessage = message }
         messageKey = error as? NearbyTeamFailure == .unconfigured ? "nearby.unconfigured" : "nearby.loadFailed"
     }

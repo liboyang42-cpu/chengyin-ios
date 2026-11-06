@@ -5,8 +5,13 @@ import SwiftUI
     let reader: any CoopFlowReading
     var operationScope: String? = nil
     @Environment(\.merchantOfficialRecruitmentDestination) private var officialRecruitmentDestination
+    @Environment(\.cooperationNearbyDestination) private var nearbyDestination
     var body: some View {
         List {
+            // Source pages/merchant/relation is the 合作 tab: partners come first.
+            Section {
+                link("coopflow.relations", resource: .relations)
+            }
             if operationScope == "MERCHANT", let officialRecruitmentDestination {
                 Section {
                     NavigationLink { officialRecruitmentDestination(reader) } label: {
@@ -17,14 +22,17 @@ import SwiftUI
             Section("coopflow.business") {
                 link("coopflow.finance", resource: .finance)
                 link("coopflow.mybiz", resource: .myBusiness)
-                link("coopflow.relations", resource: .relations)
                 link("coopflow.clubs", resource: .clubs(name: nil))
-                NavigationLink { CoopFlowNearbyGate(reader: reader) } label: { Text("coopflow.nearby") }
-                    .accessibilityIdentifier("coopflow.route.coopflow.nearby")
+                // Hidden until nearby search is wired; the gate alone would only say it is unavailable.
+                if nearbyDestination != nil {
+                    NavigationLink { CoopFlowNearbyGate(reader: reader) } label: { Text("coopflow.nearby") }
+                        .accessibilityIdentifier("coopflow.route.coopflow.nearby")
+                }
+                CoopWithdrawEntryLinks(isSignedIn: reader.session != nil)
             }
             Section("coopflow.supply") {
                 link("coopflow.templates", resource: .templates)
-                NavigationLink { CoopFlowTemplateEditor(currentCalendarSession: { reader.session }) } label: { Label("coopflow.template.new", systemImage: "plus.circle") }
+                // 添加常备权益 is hidden: its review screen ends at a submit that is not wired in the app.
             }
             Section("coopflow.workflows") {
                 NavigationLink { CoopFlowNewInvitationView(reader: reader, operationScope: operationScope) } label: { Label("context.coop.new", systemImage: "person.crop.circle.badge.plus") }
@@ -36,12 +44,12 @@ import SwiftUI
                 link("coopflow.registrations", resource: .registrations)
                 link("coopflow.complaints", resource: .complaintTopics)
             }
-            Section { CoopFlowSafetyNotice() }
         }.navigationTitle("coopflow.title").accessibilityIdentifier("coopflow.workbench")
     }
     private func link(_ key: String, resource: CoopFlowRead) -> some View {
         NavigationLink {
             if resource == .relations { CoopRelationDiscoveryEntry(reader: reader) }
+            else if resource == .finance { CoopFinanceProfitView(reader: reader) }
             else { CoopFlowReadView(reader: reader, resource: resource, title: key) }
         } label: { Text(LocalizedStringKey(key)) }.accessibilityIdentifier("coopflow.route.\(key)")
     }
@@ -67,11 +75,10 @@ import SwiftUI
     }
 }
 
+/// The old "submitting isn't available here" footnote was a placeholder notice; screens hide
+/// actions they can't perform instead, so this renders nothing.
 struct CoopFlowSafetyNotice: View {
-    var body: some View {
-        Label("coopflow.dormant", systemImage: "lock.shield")
-            .font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("coopflow.dormant")
-    }
+    var body: some View { EmptyView() }
 }
 @MainActor struct CoopFlowReadView: View {
     @Environment(\.merchantAcceptedProjectDestination) private var acceptedProjectDestination
@@ -135,7 +142,14 @@ struct CoopFlowSafetyNotice: View {
     }
     @ViewBuilder private func content(_ value: CoopFlowJSON) -> some View {
         switch resource {
-        case .finance: settlementRows(value["topics"].rows ?? [], source: .finance)
+        case .finance:
+            if value["topics"].rows != nil {
+                CoopFinanceSummarySection(summary: CoopFinanceSummary(value))
+            } else {
+                Text("coopflow.amount.unknown")
+                    .accessibilityIdentifier("coopflow.summary.unknown")
+            }
+            settlementRows(value["topics"].rows ?? [], source: .finance)
         case .myBusiness:
             Section("coopflow.credit") { CoopFlowFields(value: value["credit"], keys: ["fulfillmentRate", "violationCount"]) }
             Section("coopflow.reviews") {
@@ -160,7 +174,7 @@ struct CoopFlowSafetyNotice: View {
                 let settlement = CoopFlowSettlement(source: source, record: row)
                 if let id = settlement.id, id > 0 {
                     NavigationLink {
-                        CoopFlowSettlementDetail(reader: reader, source: source, id: id)
+                        CoopSettlementDetailView(reader: reader, source: source, id: id)
                     } label: {
                         VStack(alignment: .leading, spacing: 8) {
                             Text(row["topicName"].text ?? appLocalized("cooperation.unnamedTopic", locale: locale)).font(.headline)

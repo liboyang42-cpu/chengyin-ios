@@ -71,9 +71,11 @@ struct TicketWalletIssueView: View {
 
 struct TicketWalletTitle: View {
     let title: String?
+    /// Lane-specific source fallback; callers without a ticket keep the generic copy.
+    var untitledKey: String = "ticketWallet.untitled"
     var body: some View {
         if let title, !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text(verbatim: title) }
-        else { Text("ticketWallet.untitled") }
+        else { Text(LocalizedStringKey(untitledKey)) }
     }
 }
 

@@ -7,6 +7,9 @@ a=(r/'Core/PlatformAudioPlayback.swift').read_text()
 m=(r/'Core/PlatformExternalMaps.swift').read_text()
 n=(r/'App/NativePlatformAdapters.swift').read_text()
 v=(r/'App/PlatformConsumerViews.swift').read_text()
+lp=(r/'Core/PlatformAudioLifecycle.swift').read_text()
+lo=(r/'App/NativeAudioLifecycleObservation.swift').read_text()
+info=''.join(p.read_text() for p in r.glob('Config/*.plist'))
 checks = {
     'default-off audio': 'enabled: Bool = false' in a,
     'default-off maps': 'enabled: Bool = false' in m,
@@ -20,7 +23,13 @@ checks = {
     'no gameplay mutations': all(x not in a+n+v for x in ['completeTask(', 'submitProof(', 'claimReward(']),
     'map branches distinct': all(x in m for x in ['noCoordinates','launchFailed','copyFailed','copied']),
     'finite coordinate validation': 'latitude.isFinite' in m and 'abs(latitude) <= 90' in m,
-    'adapters concrete': 'AVAudioPlayer(data: data)' in n and 'item.openInMaps' in n,
+    'adapters concrete': 'makePlayer: { try AVAudioPlayer(data: $0) }' in n and 'item.openInMaps' in n,
+    'audio lifecycle shared': 'NativeAudioLifecycleObservation' in n and 'lifecycle.invalidate()' in n
+        and 'PlatformAudioLifecyclePolicy.action(' in n and 'case .interruptionEnded: return .ignore' in lp
+        and all(x in lo for x in ['AVAudioSession.interruptionNotification', 'AVAudioSession.routeChangeNotification',
+                                  'AVAudioSession.mediaServicesWereResetNotification', 'UIApplication.didEnterBackgroundNotification',
+                                  'self.generation == token']),
+    'no background audio entitlement': 'UIBackgroundModes' not in info,
 }
 chapter=(r/'Core/PlatformChapterAudioBridge.swift').read_text()
 patch=(r/'docs/community-media-templates/chapter-audio-reader.patch').read_text()

@@ -41,7 +41,11 @@ public struct PrivateHomeSnapshot: Decodable, Equatable, CustomStringConvertible
             guard let label, PrivateHomeMutation.validLabel(label), let latitude, let longitude,
                   datum == "WGS84", let changedAt, changedAt >= 0, let effectiveAt, effectiveAt >= changedAt else { throw PrivateHomeIssue.invalid }
             _ = try PrivateHomePoint(latitude: latitude, longitude: longitude)
-        } else if label != nil || latitude != nil || longitude != nil || datum != nil { throw PrivateHomeIssue.invalid }
+        } else if label != nil || latitude != nil || longitude != nil || datum != nil || changedAt != nil || effectiveAt != nil {
+            // The original deleted snapshot clears both snapshot timestamps. The server's
+            // separate lastSetAt cooldown fence is not part of this response contract.
+            throw PrivateHomeIssue.invalid
+        }
     }
     public var description: String { "PrivateHome[redacted]" }
     public var debugDescription: String { description }
@@ -67,6 +71,21 @@ public struct PrivateHomeMutation: Codable, Equatable, CustomStringConvertible, 
             guard Self.validLabel(label), let latitude, let longitude, datum == "WGS84" else { throw PrivateHomeIssue.invalid }
             _ = try PrivateHomePoint(latitude: latitude, longitude: longitude)
         } else if latitude != nil || longitude != nil || datum != nil { throw PrivateHomeIssue.invalid }
+    }
+    /// The original server digest compares label UTF-8 bytes, not Unicode canonical
+    /// equivalence. Journal recovery must keep the same payload under the request ID.
+    /// Coordinates remain numeric: the server strips insignificant decimal zeroes.
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.requestId.utf8.elementsEqual(rhs.requestId.utf8) &&
+        lhs.expectedVersion == rhs.expectedVersion && sameWireText(lhs.label, rhs.label) &&
+        lhs.latitude == rhs.latitude && lhs.longitude == rhs.longitude && sameWireText(lhs.datum, rhs.datum)
+    }
+    private static func sameWireText(_ lhs: String?, _ rhs: String?) -> Bool {
+        switch (lhs, rhs) {
+        case (nil, nil): return true
+        case let (lhs?, rhs?): return lhs.utf8.elementsEqual(rhs.utf8)
+        default: return false
+        }
     }
     static func validLabel(_ value: String) -> Bool {
         !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && value.utf16.count <= 40 &&

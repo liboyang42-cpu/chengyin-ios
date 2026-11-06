@@ -91,8 +91,6 @@ import Combine
     var body: some View {
         Form {
             Section {
-                Text("templateCoin.localOnly").font(.callout)
-                Text("templateCoin.deterministic").font(.footnote).foregroundStyle(.secondary)
                 if controller.mode == .sourceExample { Text("templateCoin.exampleOnly").font(.footnote) }
             }
             if let state = controller.visibleState {

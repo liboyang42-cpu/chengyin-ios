@@ -1,0 +1,36 @@
+{
+  "code": 503,
+  "msg": "unavailable",
+  "data": {
+    "accountId": 7,
+    "queryId": "q-self",
+    "asOf": 12000,
+    "metricVersion": null,
+    "formulaId": null,
+    "factRevision": null,
+    "boardId": "board-1",
+    "regionId": "region-1",
+    "seasonId": "season-1",
+    "rulesVersion": "rules-1",
+    "status": null,
+    "maturity": null,
+    "t0": null,
+    "missing": ["city_fairness_read"],
+    "coverageGaps": [
+      "outing_id",
+      "novice-label",
+      "headcount",
+      "join-time",
+      "revenue",
+      "gps-false-rejections",
+      "safety-tickets",
+      "verification-latency"
+    ],
+    "outings": [],
+    "cursor": null,
+    "nextCursor": null,
+    "readBack": false,
+    "errorCode": "unavailable"
+  },
+  "candidate": true
+}

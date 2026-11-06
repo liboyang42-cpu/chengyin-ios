@@ -38,7 +38,9 @@ import Observation
         } catch {
             guard action.isLive, current(), generation == ticket else { return }
             guard !Task.isCancelled else { close(); return }
-            issue = (error as? WorkshopOwnedIssue) ?? .unavailable
+            let failure = (error as? WorkshopOwnedIssue) ?? .unavailable
+            if failure == .unauthorized { invalidate(); issue = failure; return }
+            issue = failure
             phase = issue == .disabled || issue == .notFound ? .unavailable : .failed
         }
     }

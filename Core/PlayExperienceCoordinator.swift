@@ -66,6 +66,13 @@ public struct PlayInteractionContext: Equatable {
     var lifetimeIdentity: String { "\(owner.uuidString):\(generation):\(mode.rawValue)" }
 }
 
+/// Action id and route session id already stored on one completion journal or receipt.
+/// A missing id is not filled from the live route snapshot and is not minted.
+public struct HeldRouteActionIdentity: Equatable {
+    public let actionID: String
+    public let routeSessionID: Int64
+}
+
 public struct PlayCompletionReview: Equatable {
     public let nodeID: Int
     public let evidence: PlayCompletionEvidence
@@ -112,6 +119,10 @@ public struct PlayCompletionReview: Equatable {
     public private(set) var remoteRunSaveFailed = false
     public private(set) var unresolved = false
     public private(set) var leaderOutcomeUnknown = false
+    /// The latest applied team-progress read failed; the last applied lead stays as read.
+    public private(set) var leadReadFailed = false
+    private var leadReadIssued: UInt64 = 0
+    private var leadReadApplied: UInt64 = 0
     public enum Phase: String { case idle, loading, ready, reviewing, submitting, needsReadback, unknown, failed }
     private let service: PlayExperienceService
     private let currentSession: () -> PlayExperienceSession?
@@ -147,6 +158,29 @@ public struct PlayCompletionReview: Equatable {
         guard let mode = gameplayMode, let pending = cachedCompletion?.value else { return false }
         return pending.intent.gameplayMode != mode
     }
+    /// Both ids from the current completion journal, or both from the current receipt.
+    /// Does not mint an action id or a session id, and does not pair an older journal with a newer receipt.
+    public var heldRouteActionIdentity: HeldRouteActionIdentity? {
+        journalRouteActionIdentity ?? receiptRouteActionIdentity
+    }
+    private var journalRouteActionIdentity: HeldRouteActionIdentity? {
+        guard let pending = cachedCompletion?.value,
+              let routeSessionID = pending.intent.routeSessionID, routeSessionID > 0,
+              let stored = pending.intent.advance?.actionID else { return nil }
+        let actionID = stored.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !actionID.isEmpty, actionID.count <= 96 else { return nil }
+        return HeldRouteActionIdentity(actionID: actionID, routeSessionID: Int64(routeSessionID))
+    }
+    private var receiptRouteActionIdentity: HeldRouteActionIdentity? {
+        guard let reward else { return nil }
+        let stored = reward["routeActionId"].text ?? reward["actionId"].text
+        let actionID = stored?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let session = reward["routeState"]["sessionId"].integer
+            ?? reward["themeRuntime"]["sessionId"].integer
+            ?? reward["sessionId"].integer
+        guard !actionID.isEmpty, actionID.count <= 96, let session, session > 0 else { return nil }
+        return HeldRouteActionIdentity(actionID: actionID, routeSessionID: Int64(session))
+    }
     public var available: Bool { service.enabled.contains(.reads) }
     public var gameplayMode: PlayGameplayMode? { PlayGameplayMode(serverValue: snapshot?.result.mode) }
     public var interactionContext: PlayInteractionContext? {
@@ -167,7 +201,7 @@ public struct PlayCompletionReview: Equatable {
     private func retireChildRead(generation request: UInt64) {
         guard generation == request else { return }
         generation &+= 1; loadedSession = nil; snapshot = nil; extras = [:]
-        reward = nil; hint = nil; ending = nil; leaderboard = nil; lead = nil; advancedReadyNodeIDs = []
+        reward = nil; hint = nil; ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false; advancedReadyNodeIDs = []
         // Keep durable completion/pause records and pending thought keys intact.
         // Nothing about a changed mode proves an earlier mutation's outcome.
         thoughtSyncNonce = UUID(); thoughtSyncInFlight = false
@@ -199,7 +233,7 @@ public struct PlayCompletionReview: Equatable {
         phase = .loading; issue = nil; snapshot = nil; extras = [:]; cachedCompletion = nil; retryReadbackVerified = false
         guard let session = currentSession(), scope.isValid else { phase = .failed; issue = .staleSession; return }
         if authorityOwner != session {
-            reward = nil; hint = nil; ending = nil; leaderboard = nil; lead = nil
+            reward = nil; hint = nil; ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false
             advancedReadyNodeIDs = []
             hintUnknownNodes = Set((unknownHintRequests[PlayRunStorageKey.make(session: session, scope: scope)] ?? [:]).keys)
             leaderOutcomeUnknown = unknownLeaderKeys.contains(PlayRunStorageKey.make(session: session, scope: scope))
@@ -233,7 +267,7 @@ public struct PlayCompletionReview: Equatable {
             unresolved = pending != nil || !hintUnknownNodes.isEmpty || leaderOutcomeUnknown
             let mode = PlayGameplayMode(serverValue: snapshot.result.mode)
             if authorityMode != mode {
-                reward = nil; hint = nil; ending = nil; leaderboard = nil; lead = nil
+                reward = nil; hint = nil; ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false
                 advancedReadyNodeIDs = []
             }
             authorityMode = mode
@@ -339,6 +373,8 @@ public struct PlayCompletionReview: Equatable {
     public func submit(_ review: PlayCompletionReview) async {
         guard service.enabled.contains(.classicCompletion), review.gameplayMode == gameplayMode, gameplayMode != nil, phase == .reviewing, review.session == currentSession(), review.session == loadedSession,
               review.generation == generation, !unresolved else { return }
+        do { try review.evidence.validateNewLocationMeasurement() }
+        catch { issue = .invalidAction; return }
         await dispatch(review)
     }
     private func dispatch(_ review: PlayCompletionReview, recovering: PlayCompletionRecoverySnapshot? = nil) async {
@@ -462,12 +498,45 @@ public struct PlayCompletionReview: Equatable {
         } catch { fail(error, session: session, generation: request) }
     }
     public func loadLead(context: PlayInteractionContext? = nil) async {
+        await readLead(context: context, polling: false)
+    }
+    /// Mini pages/play polls team-progress every 4s while a team exists. The loop
+    /// ends when its task is cancelled (page left or scene inactive), the context
+    /// changes or a read reports exists=false. It never dispatches a leader command.
+    public func pollLead(context: PlayInteractionContext?, intervalNanoseconds: UInt64 = PlayLeadProgressPolling.intervalNanoseconds,
+                         sleep: (UInt64) async throws -> Void = { try await Task.sleep(nanoseconds: $0) }) async {
+        while PlayLeadProgressPolling.continues(lead: lead), accepts(context), !Task.isCancelled {
+            do { try await sleep(intervalNanoseconds) } catch { return }
+            guard !Task.isCancelled, accepts(context) else { return }
+            await readLead(context: context, polling: true)
+        }
+    }
+    private func readLead(context: PlayInteractionContext?, polling: Bool) async {
         // The source's club lead tools are mode-independent, but a queued
         // request from an earlier render must not acquire a new mode's lease.
         guard accepts(context), case .activity(let activity) = scope, let session = currentSession(), phase != .submitting else { return }
         let request = generation
-        do { let result = try await service.teamProgress(activityID: activity, token: session.token); try check(session, request); lead = result }
-        catch { fail(error, session: session, generation: request) }
+        leadReadIssued &+= 1; let epoch = leadReadIssued
+        do {
+            let result = try await service.teamProgress(activityID: activity, token: session.token); try check(session, request)
+            // Poll, manual reload and post-command readback can overlap. Only a response
+            // newer than the one already applied lands; "latest issued" would starve
+            // every response once a GET is slower than the poll interval.
+            guard claimLeadRead(epoch) else { return }
+            lead = result; leadReadFailed = false
+        } catch {
+            guard generation == request, currentSession() == session else { fail(error, session: session, generation: request); return }
+            if polling && Task.isCancelled { return }
+            guard claimLeadRead(epoch) else { return }
+            leadReadFailed = true
+            // A background poll failure keeps the page phase and the last applied lead;
+            // manual reads and revoked credentials keep the existing failure path.
+            if !polling || (error as? PlayExperienceError) == .unauthorized { fail(error, session: session, generation: request) }
+        }
+    }
+    private func claimLeadRead(_ epoch: UInt64) -> Bool {
+        guard epoch >= leadReadApplied else { return false }
+        leadReadApplied = epoch; return true
     }
     public func performLead(_ action: PlayLeadAction, text: String? = nil, context: PlayInteractionContext? = nil) async {
         guard accepts(context), service.enabled.contains(.leader), canWrite, !leaderOutcomeUnknown, let session = loadedSession, case .activity(let activity) = scope,
@@ -605,7 +674,7 @@ public struct PlayCompletionReview: Equatable {
         thoughtSyncNonce = UUID(); thoughtSyncInFlight = false; pendingThoughtKeys = []; thoughtClaimSessionID = nil; thoughtSyncPhase = .idle
         chapterStories = [:]; storyVariables = [:]; storyVoices = [:]; storyThoughts = []
         generation &+= 1; loadedSession = nil; authorityMode = nil; snapshot = nil; extras = [:]; reward = nil; hint = nil; cachedCompletion = nil
-        ending = nil; leaderboard = nil; lead = nil; advancedReadyNodeIDs = []; clock.restore(nil); phase = .idle
+        ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false; advancedReadyNodeIDs = []; clock.restore(nil); phase = .idle
     }
     private func landed(_ review: PlayCompletionIntent, snapshot: PlaySnapshot) -> Bool {
         // Legacy records without mode stay unresolved; another mode's same node

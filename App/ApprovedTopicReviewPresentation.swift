@@ -19,7 +19,7 @@ import SwiftUI
     @Published private(set) var presentation: Presentation?
     init(model: ProjectEditModel) { self.model = model }
     func capture() -> Opening? {
-        guard presentation == nil, model.coverSelectionIsResolved, model.submissionEvidence?.bundleAcknowledgment != nil,
+        guard !model.coordinator.isReadOnly, presentation == nil, model.coverSelectionIsResolved, model.submissionEvidence?.bundleAcknowledgment != nil,
               let pending = model.coordinator.pending, let session = model.coordinator.session,
               let origin = ApprovedTopicReleaseReadTarget(pending: pending, session: session),
               let source = model.coordinator.releaseReviewSource, source.isCurrent(session: session),
@@ -27,7 +27,7 @@ import SwiftUI
         return .init(pending: pending, session: session, incarnation: model.editorIncarnation, origin: origin, source: source, journal: journal)
     }
     func isCurrent(_ original: Opening) -> Bool {
-        guard model.ownsVisit, model.coverSelectionIsResolved, model.editorIncarnation == original.incarnation, model.coordinator.session == original.session,
+        guard !model.coordinator.isReadOnly, model.ownsVisit, model.coverSelectionIsResolved, model.editorIncarnation == original.incarnation, model.coordinator.session == original.session,
               model.submissionEvidence?.operationID == original.pending.operationID,
               let pending = model.coordinator.pending, let source = model.coordinator.releaseReviewSource,
               let journal = model.coordinator.releaseReviewJournal, ObjectIdentifier(source) == ObjectIdentifier(original.source),
@@ -63,7 +63,9 @@ import SwiftUI
                 Button(String(localized: LocalizedStringResource("topicReview.open", defaultValue: "Prepare a new review request", locale: locale))) {
                     guard let opening else { return }; controller.open(opening)
                 }.buttonStyle(.borderless).disabled(opening == nil).accessibilityIdentifier("topicReview.open")
-                if opening == nil {
+                if model.coordinator.isReadOnly {
+                    Text("projectEdit.lockedFields").font(.footnote)
+                } else if opening == nil {
                     Text(String(localized: LocalizedStringResource("topicReview.unconfigured", defaultValue: "New review requests are not configured for this account, mode or submission. The original submission receipt is retained.", locale: locale)))
                         .font(.footnote).accessibilityIdentifier("topicReview.unconfigured")
                 }

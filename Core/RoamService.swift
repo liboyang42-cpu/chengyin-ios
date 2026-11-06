@@ -88,6 +88,7 @@ public struct RoamService {
         let (data, status) = try await transport.send(request)
         try Task.checkCancellation()
         if status == 401 { throw APIError.unauthorized }
+        if nodeDetail, status == 410 { throw RoamReadFailure.nodeUnavailable }
         guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
         let envelope = try decode(RoamStatusEnvelope.self, data)
         if envelope.code == 401 { throw APIError.unauthorized }
@@ -95,6 +96,7 @@ public struct RoamService {
             if nodeDetail, envelope.msg?.contains("节点不存在") == true || envelope.msg?.contains("据点不存在") == true {
                 throw RoamReadFailure.nodeNotFound
             }
+            if nodeDetail, envelope.code == 410 { throw RoamReadFailure.nodeUnavailable }
             throw APIError.businessCode(envelope.code)
         }
         return data

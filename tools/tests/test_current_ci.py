@@ -15,8 +15,11 @@ final class Real: XCTestCase {
         self.assertEqual(ci.swift_methods(source, 'Target'), ['Target/Real/testOne','Target/Real/testTwo'])
 
     def test_python_method_ledger_never_imports_module(self):
-        source = "raise RuntimeError('must not import')\nclass Cases:\n def test_one(self): pass\ndef test_two(): pass\n"
-        self.assertEqual(ci.python_methods(source, 'tests.py'), ['tests.py::Cases.test_one','tests.py::test_two'])
+        source = "raise RuntimeError('must not import')\nclass Cases:\n def test_one(self): pass\n def testCamel(self): pass\n async def testAsync(self): pass\n def helper(self): pass\ndef test_two(): pass\ndef helper(): pass\n"
+        self.assertEqual(unittest.TestLoader().testMethodPrefix, 'test')
+        self.assertEqual(ci.python_methods(source, 'tests.py'), [
+            'tests.py::Cases.test_one', 'tests.py::Cases.testCamel',
+            'tests.py::Cases.testAsync', 'tests.py::test_two'])
 
     def test_duplicate_or_unclosed_declarations_fail(self):
         for source in ['class A: XCTestCase { func testA(){} func testA(){} }', 'class A: XCTestCase { func testA(){}', '/* unclosed']:
@@ -37,6 +40,58 @@ final class Real: XCTestCase {
         self.assertEqual(sum(row['seconds'] for row in groups),sum(costs.values()))
         for value in [True,0,-1,901,float('inf'),float('nan')]:
             with self.assertRaises(ValueError): ci.partition({'a':value})
+
+    def test_isolated_capture_partition_preserves_exact_once_budgets_and_original_remainder(self):
+        from collections import Counter
+        costs={'captureFast':60,'captureSlow':600,'otherA':900,'otherB':700,'otherC':50}
+        isolated=['captureSlow','captureFast'];groups=ci.partition(costs,isolated=isolated)
+        self.assertEqual(groups[:2],[{'methods':['captureFast'],'seconds':60},{'methods':['captureSlow'],'seconds':600}])
+        self.assertEqual(groups[2:],ci.partition({method:cost for method,cost in costs.items() if method not in isolated}))
+        self.assertEqual(Counter(method for row in groups for method in row['methods']),Counter(costs.keys()))
+        self.assertEqual(sum(row['seconds'] for row in groups),sum(costs.values()))
+        self.assertTrue(all(row['seconds']<=1500 for row in groups))
+        self.assertEqual(ci.partition({'a':900,'b':700,'c':600,'d':10}),[
+            {'methods':['a','d'],'seconds':910},{'methods':['b','c'],'seconds':1300}])
+        for bad in [['captureFast','captureFast'],['unknown'],[True],'captureFast']:
+            with self.subTest(isolated=bad),self.assertRaises(ValueError):ci.partition(costs,isolated=bad)
+        for bad_cost in (True,0,-1,901,float('inf'),float('nan')):
+            with self.subTest(cost=bad_cost),self.assertRaises(ValueError):ci.partition({'capture':bad_cost},isolated=['capture'])
+
+    def test_capture_declaration_is_bound_literal_never_imported_and_related_uses_only_intersection(self):
+        import tempfile
+        from pathlib import Path
+        path='tools/export_current_ui_audit.py'
+        methods={'QuestifyUITests/Capture/testFast':'fast.swift','QuestifyUITests/Capture/testSlow':'slow.swift','QuestifyUITests/Other/testOne':'other.swift'}
+        literal="{'Capture/testFast':['Fast image'],'Capture/testSlow':['Slow image']}"
+        def snapshot(raw):
+            return {'sources':[{'path':path,'sha256':ci.digest(raw)}],'native_methods':methods}
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);source=root/path;source.parent.mkdir()
+            raw=("raise RuntimeError('must never import')\nWANTED = "+literal+"\n").encode();source.write_bytes(raw)
+            captures=ci.current_ui_capture_methods(root,snapshot(raw))
+            self.assertEqual(captures,{'QuestifyUITests/Capture/testFast','QuestifyUITests/Capture/testSlow'})
+            selected={'QuestifyUITests/Capture/testFast':60,'QuestifyUITests/Other/testOne':120}
+            groups=ci.partition(selected,isolated=captures & set(selected))
+            self.assertEqual(groups,[{'methods':['QuestifyUITests/Capture/testFast'],'seconds':60},{'methods':['QuestifyUITests/Other/testOne'],'seconds':120}])
+            self.assertEqual(ci.partition({'QuestifyUITests/Other/testOne':120},isolated=captures & {'QuestifyUITests/Other/testOne'}),[{'methods':['QuestifyUITests/Other/testOne'],'seconds':120}])
+            bad_declarations=[
+                'WANTED = dict()', 'WANTED = {}', 'WANTED = []',
+                "WANTED = {'Capture/testUnknown':['Image']}",
+                "WANTED = {True:['Image']}",
+                "WANTED = {'Capture/testFast':'Image'}",
+                "WANTED = {'Capture/testFast':[]}",
+                "WANTED = {'Capture/testFast':[' ']}",
+                "WANTED = {'Capture/testFast':['Image','Image']}",
+                "WANTED = {'Capture/testFast':['Image'],'Capture/testFast':['Other']}",
+                'WANTED = '+literal+'\nWANTED = '+literal,
+                'WANTED = OTHER = '+literal,
+                'WANTED: dict = '+literal,
+            ]
+            for declaration in bad_declarations:
+                changed=("raise RuntimeError('must never import')\n"+declaration+'\n').encode();source.write_bytes(changed)
+                with self.subTest(declaration=declaration),self.assertRaises(ValueError):ci.current_ui_capture_methods(root,snapshot(changed))
+            source.write_bytes(raw+b'\n')
+            with self.assertRaisesRegex(ValueError,'source is not verified'):ci.current_ui_capture_methods(root,snapshot(raw))
 
     def test_related_select_uses_explicit_transitive_sources_and_keeps_smoke(self):
         ledger={'native_methods':{'QuestifyCoreTests/A/testOne':'Tests/CoreTests/A.swift','QuestifyCoreTests/B/testTwo':'Tests/CoreTests/B.swift','QuestifyUITests/Smoke/testLaunch':'Tests/AppUITests/Smoke.swift'}}
@@ -127,37 +182,160 @@ final class Real: XCTestCase {
 
     def test_ui_workers_require_successful_same_run_build_artifact(self):
         source=(ci.ROOT/'.github/workflows/native-ios.yml').read_text()
-        native=source.split('  native:\n',1)[1].split('  ui:\n',1)[0]
+        native=source.split('  native:\n',1)[1].split('  ui_build:\n',1)[0]
+        build=source.split('  ui_build:\n',1)[1].split('  ui:\n',1)[0]
         ui=source.split('  ui:\n',1)[1].split('  platforms:\n',1)[0]
-        self.assertIn("ui_build_artifact: ${{ steps.ui_build_upload.outputs.artifact-id }}", native)
-        self.assertIn("id: ui_build_upload\n        if: ${{ success() && matrix.partition == 'ui-build' }}", native)
-        self.assertIn("if: ${{ always() && needs.controls.result == 'success' && needs.native.outputs.ui_build_artifact != '' }}", ui)
-        self.assertIn('needs: [controls, native]', ui)
-        self.assertNotIn("needs.native.result == 'success'", ui)
+        self.assertIn('partition: [core, app-unit]', native)
+        self.assertNotIn('ui_build_artifact', native)
+        self.assertIn('needs: [controls]', native)
+        self.assertIn('needs: [controls]', build)
+        aggregate=source.split('  current-checks:\n',1)[1]
+        self.assertIn('needs: [controls, secrets, native, ui_build, ui, platforms]', aggregate)
+        self.assertIn("--role 'ui-build'", build)
+        self.assertIn("ui_build_artifact: ${{ steps.ui_build_upload.outputs.artifact-id }}", build)
+        self.assertIn("id: ui_build_upload\n        if: success()", build)
+        self.assertIn("if: ${{ always() && needs.controls.result == 'success' && needs.ui_build.result == 'success' && needs.ui_build.outputs.ui_build_artifact != '' }}", ui)
+        self.assertIn('needs: [controls, ui_build]', ui)
+        self.assertNotIn('needs.native', ui)
         name='current-ui-build-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
-        self.assertIn('name: '+name,native);self.assertIn('name: '+name,ui)
+        self.assertIn('name: '+name,build);self.assertIn('name: '+name,ui)
         for section in (native,ui):
-            self.assertIn('max-parallel: 3',section);self.assertIn('timeout-minutes: 45',section)
+            self.assertIn('max-parallel: 20',section)
+        for section in (native,build,ui):
+            self.assertIn('timeout-minutes: 45',section)
+
+    def test_platform_compiles_start_after_bound_ui_build_without_waiting_for_ui_execution(self):
+        import copy, os, tempfile, textwrap
+        from pathlib import Path
+        from unittest.mock import patch
+        from tools import current_native as native
+        source=(ci.ROOT/'.github/workflows/native-ios.yml').read_text()
+        build=source.split('  ui_build:\n',1)[1].split('  ui:\n',1)[0]
+        platforms=source.split('  platforms:\n',1)[1].split('  current-checks:\n',1)[0]
+        self.assertTrue(platforms.startswith('    needs: [controls, ui_build]\n'))
+        for condition in ("needs.controls.outputs.scope == 'full-current-regression'", "needs.ui_build.result == 'success'", "needs.ui_build.outputs.ui_build_artifact != ''"):
+            self.assertIn(condition,platforms)
+        name='current-ui-build-metadata-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
+        self.assertEqual(source.count('name: '+name),2)
+        metadata=build.split('      - name: Transfer same-run UI build identity for platform checks\n',1)[1]
+        self.assertIn('if: success()',metadata)
+        self.assertIn('path: ${{ runner.temp }}/current-native/receipt.json',metadata)
+        self.assertEqual(metadata.count('path:'),1);self.assertNotIn('products.tar.gz',metadata)
+        self.assertIn('if-no-files-found: error',metadata)
+        self.assertNotIn('-ui-0',platforms)
+        self.assertIn('needs: [controls, secrets, native, ui_build, ui, platforms]',source.split('  current-checks:\n',1)[1])
+        script=textwrap.dedent(platforms.split("          python3 -B - <<'PYCODE'\n",1)[1].split('\n          PYCODE',1)[0])
+        plan={'identity':{'sha':'a'*40,'tree':'b'*40,'run_id':'123','attempt':'1'}}
+        toolchain={key:'observed' for key in ('xcode','developer','swift','sdk_version','sdk_path')}
+        toolchain['architecture']=native.platform.machine()
+        prior={'identity':plan['identity'],'plan_sha256':ci.digest(ci.encode(plan)),'role':'ui-build','status':'BUILT','executed_methods':[],'build_returncode':0,'toolchain':toolchain}
+        cases=[(None,None)]+[(field,'foreign') for field in ('identity.sha','identity.tree','identity.run_id','identity.attempt','plan_sha256','role','status','toolchain.architecture','toolchain.swift')]
+        cases += [('executed_methods',['QuestifyUITests/A/testOne']),('executed_methods',False)]
+        cases += [('build_returncode',value) for value in (False,True,1,-1,0.0,None)]
+        cases += [('toolchain_process',value) for value in (False,True,1)]
+        with tempfile.TemporaryDirectory() as tmp:
+            stage=Path(tmp);(stage/'current-ui-identity').mkdir()
+            for field,value in cases:
+                bad=copy.deepcopy(prior);code=0
+                if field=='toolchain_process':code=value
+                elif field:
+                    parts=field.split('.')
+                    if len(parts)==2:bad[parts[0]][parts[1]]=value
+                    else:bad[field]=value
+                native.write_json(stage/'current-ui-identity/receipt.json',bad)
+                with self.subTest(field=field,value=value),patch.dict(os.environ,{'RUNNER_TEMP':tmp}),patch.object(native,'verify_plan',return_value=plan) as verify,patch.object(native,'execute',return_value=(code,b'observed\n')):
+                    if field is None:
+                        exec(compile(script,'platform workflow binding','exec'),{})
+                        verify.assert_called_once_with(Path.cwd(),stage/'current-plan/plan.json')
+                    else:
+                        with self.assertRaises(ValueError):exec(compile(script,'platform workflow binding','exec'),{})
 
     def test_missing_ui_execution_or_failed_units_still_fail_current_aggregate(self):
         from tools import current_native as native
-        good={key:{'result':'success'} for key in ['controls','secrets','native','ui']}
+        good={key:{'result':'success'} for key in ['controls','secrets','native','ui_build','ui']}
         good['platforms']={'result':'skipped'}
-        for part,result in [('ui','skipped'),('ui','failure'),('ui','cancelled'),('native','failure')]:
+        for part,result in [('ui','skipped'),('ui','failure'),('ui','cancelled'),('native','failure'),('ui_build','failure')]:
             needs={key:dict(value) for key,value in good.items()};needs[part]['result']=result
             with self.subTest(part=part,result=result),self.assertRaisesRegex(ValueError,'required current worker'):
                 native.aggregate_current({}, {}, needs)
 
     def test_failed_ui_build_retains_small_raw_diagnostics_only(self):
         source=(ci.ROOT/'.github/workflows/native-ios.yml').read_text()
-        step=source.split('      - name: Preserve exact command and result diagnostics\n',1)[1].split('      - name: Transfer one same-run UI build\n',1)[0]
-        self.assertIn("if: ${{ always() && (matrix.partition != 'ui-build' || failure()) }}",step)
+        build=source.split('  ui_build:\n',1)[1].split('  ui:\n',1)[0]
+        step=build.split('      - name: Preserve exact command and result diagnostics\n',1)[1].split('      - name: Transfer one same-run UI build\n',1)[0]
+        self.assertIn('if: failure()',step)
         for suffix in ('*.json','*.xml','*.stdout'):
             self.assertIn('${{ runner.temp }}/current-native/'+suffix,step)
         self.assertNotIn('products.tar.gz',step)
         self.assertNotIn('ui-build/',step)
         self.assertIn('if-no-files-found: error',step)
-        self.assertIn("name: ${{ matrix.partition == 'ui-build' && 'current-diagnostics' || 'current-result' }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}",step)
+        self.assertIn("name: current-diagnostics-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-ui-build",step)
+
+
+    def test_swift_dictionary_key_exception_cannot_allow_credentials_or_other_files(self):
+        import re, tomllib
+        rules = tomllib.loads((ci.ROOT / '.gitleaks.toml').read_text())['rules']
+        rule = next(row for row in rules if row['id'] == 'generic-api-key')
+        entries = [row for row in rule['allowlists']
+                   if row['description'] == 'Exact Swift dictionary-key validation expression, not a credential']
+        self.assertEqual(len(entries), 1)
+        entry = entries[0]
+        self.assertEqual((entry['condition'], entry['regexTarget']), ('AND', 'line'))
+        self.assertEqual(len(entry['paths']), 1)
+        self.assertIsNotNone(re.fullmatch(entry['paths'][0], 'Core/PartyRosterProjection.swift'))
+        self.assertIsNone(re.fullmatch(entry['paths'][0], 'App/PartyRosterProjection.swift'))
+        pattern = re.compile(entry['regexes'][0])
+        line = 'guard !key.isEmpty, ' + 'key.utf16.count <= 64, ids.insert(key).inserted else { return .unknown }'
+        self.assertIsNotNone(pattern.fullmatch(line))
+        for changed in ['let key = userCredential', line + '; additionalStatement()', line.replace('64', '65')]:
+            with self.subTest(changed=changed):
+                self.assertIsNone(pattern.fullmatch(changed))
+
+
+    def test_exact_public_key_and_fixture_exceptions_are_path_and_line_bound(self):
+        import re, tomllib
+        rule = next(row for row in tomllib.loads((ci.ROOT / '.gitleaks.toml').read_text())['rules']
+                    if row['id'] == 'generic-api-key')
+        expected = {
+            'Exact public nearby role-message key branch': 'Core/NearbyTeamCoordinator.swift',
+            'Exact opaque redemption test credential fixture': 'Tests/CoreTests/CommerceOrderLifecycleBridgeTests.swift',
+            'Exact public nearby badge-key assertion': 'Tests/CoreTests/NearbyTeamPresentationTests.swift',
+            'Exact public nearby denied-key argument': 'Tests/CoreTests/NearbyTeamPresentationTests.swift',
+            'Exact public nearby read-denial assertion': 'Tests/CoreTests/NearbyTeamPresentationTests.swift',
+        }
+        entries = [row for row in rule['allowlists'] if row['description'] in expected]
+        self.assertEqual(len(entries), len(expected))
+        self.assertEqual({row['description'] for row in entries}, set(expected))
+
+        def allowed(path, line):
+            return any(any(re.fullmatch(pattern, path) for pattern in row['paths'])
+                       and any(re.fullmatch(pattern, line) for pattern in row['regexes'])
+                       for row in entries)
+
+        for entry in entries:
+            path = expected[entry['description']]
+            with self.subTest(entry=entry['description']):
+                self.assertEqual((entry['condition'], entry['regexTarget']), ('AND', 'line'))
+                self.assertEqual((len(entry['paths']), len(entry['regexes'])), (1, 1))
+                self.assertTrue(entry['paths'][0].startswith('^') and entry['paths'][0].endswith('$'))
+                pattern = entry['regexes'][0]
+                self.assertTrue(pattern.startswith('^') and pattern.endswith('$'))
+                lines = [line for line in (ci.ROOT / path).read_text().splitlines()
+                         if re.fullmatch(pattern, line)]
+                self.assertEqual(len(lines), 1)
+                line = lines[0]
+                self.assertTrue(allowed(path, line))
+                literal = re.search(r'"([^"]+)"', line)
+                self.assertIsNotNone(literal)
+                for value in (literal.group(1) + 'x', 'A' * 64):
+                    changed = line[:literal.start(1)] + value + line[literal.end(1):]
+                    self.assertFalse(allowed(path, changed))
+                for changed in (line + '; additionalStatement()', 'unrelatedAssignment(); ' + line):
+                    self.assertFalse(allowed(path, changed))
+                for wrong_path in ('App/Unreviewed.swift', path + '.backup'):
+                    self.assertFalse(allowed(wrong_path, line))
+                for wrong_path in set(expected.values()) - {path}:
+                    self.assertFalse(allowed(wrong_path, line))
 
 
 class DeviceOnlyClassificationControls(unittest.TestCase):

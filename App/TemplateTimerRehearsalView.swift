@@ -123,8 +123,6 @@ typealias TemplateTimerCancellation = @MainActor () -> Void
     var body: some View {
         Form {
             Section {
-                Text("templateTimer.localOnly").font(.callout)
-                Text("templateTimer.background").font(.footnote).foregroundStyle(.secondary)
                 if controller.mode == .sourceExample { Text("templateTimer.exampleOnly").font(.footnote) }
             }
             if let state = controller.visibleState {
@@ -141,15 +139,17 @@ typealias TemplateTimerCancellation = @MainActor () -> Void
                 }
                 Section {
                     if state.kind == .countdown {
-                        Text(verbatim: countdown(state.remainingSeconds)).font(.largeTitle.monospacedDigit())
-                            .accessibilityIdentifier("templateTimer.countdown")
+                        TemplateTimerRehearsalReading(value: countdown(state.remainingSeconds), identifier: "templateTimer.countdown")
                         ProgressView(value: state.progress)
-                        if state.phase == .finished { Text(verbatim: state.doneText).accessibilityIdentifier("templateTimer.doneText") }
+                        if state.phase == .finished {
+                            Text(verbatim: state.doneText).fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("templateTimer.doneText")
+                        }
                     } else if state.isMasked {
-                        Text("templateTimer.hidden").font(.largeTitle).accessibilityIdentifier("templateTimer.masked")
+                        Text("templateTimer.hidden").font(.largeTitle)
+                            .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("templateTimer.masked")
                     } else {
-                        Text(verbatim: seconds(state.elapsedMs / 1000)).font(.largeTitle.monospacedDigit())
-                            .accessibilityIdentifier("templateTimer.stopwatch")
+                        TemplateTimerRehearsalReading(value: seconds(state.elapsedMs / 1000), identifier: "templateTimer.stopwatch")
                     }
                     if state.phase == .paused { Text("templateTimer.paused") }
                     if let reason = state.abortReason {
@@ -200,4 +200,224 @@ typealias TemplateTimerCancellation = @MainActor () -> Void
     }
     private func seconds(_ value: Double) -> String { String(format: "%.2f", value) }
     private func countdown(_ value: Int) -> String { String(format: "%02d:%02d", value / 60, value % 60) }
+}
+
+/// Keep one complete numeric value at the user's text size. The containing Form
+/// still owns vertical scrolling; only a wide accessibility readout scrolls sideways.
+private struct TemplateTimerRehearsalReading: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    let value: String
+    let identifier: String
+    private var reading: some View {
+        Text(verbatim: value).font(.largeTitle.monospacedDigit())
+            .accessibilityIdentifier(identifier)
+    }
+    var body: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            ScrollView(.horizontal) { reading.fixedSize() }
+                .fixedSize(horizontal: false, vertical: true)
+        } else { reading }
+    }
+}
+
+// This editor changes local configuration only. It never runs a gameplay timer.
+enum TemplateTimerOutcome: String, CaseIterable {
+    case failed = "FAILED", expired = "EXPIRED"
+}
+
+struct TemplateTimerOutcomeDraft {
+    var enabled: Bool
+    var seconds: String
+    var outcome: String
+    init?(_ source: TemplateAdvancedDraft) {
+        guard let timer = source.value["timer"]?.object,
+              case .bool(let enabled)? = timer["enabled"],
+              case .string(let outcome)? = timer["timeoutResult"] else { return nil }
+        let seconds: String
+        switch timer["durationSeconds"] {
+        case .number(let value)? where value.isFinite:
+            seconds = value.rounded() == value ? String(format: "%.0f", value) : String(value)
+        case .string(let value)?: seconds = value
+        default: return nil
+        }
+        self.enabled = enabled; self.seconds = seconds; self.outcome = outcome
+    }
+    var duration: Int? {
+        let value = seconds.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty, value.utf8.allSatisfy({ (48...57).contains($0) }),
+              let number = Int(value), (10...86400).contains(number) else { return nil }
+        return number
+    }
+    var isValid: Bool { duration != nil && TemplateTimerOutcome(rawValue: outcome) != nil }
+    func applying(to original: TemplateAuthoringDraft) -> TemplateAuthoringDraft? {
+        guard let duration, TemplateTimerOutcome(rawValue: outcome) != nil else { return nil }
+        var next = original
+        next.advanced.set("timer", "enabled", .bool(enabled))
+        next.advanced.set("timer", "durationSeconds", .number(Double(duration)))
+        next.advanced.set("timer", "timeoutResult", .string(outcome))
+        return next
+    }
+}
+
+@MainActor final class TemplateTimerOutcomeController: ObservableObject {
+    private let model: TemplateAuthoringModel
+    private var observation: AnyCancellable?
+    private var generation = UUID()
+    private var owner: TemplateAuthoringSession?
+    private var identity: TemplateAuthoringIdentity?
+    private var source: Data?
+    private var metadata = UUID(), media = UUID()
+    private(set) var isVisible = false
+    private var sceneActive = false
+    @Published private(set) var draft: TemplateTimerOutcomeDraft?
+    @Published private(set) var statusKey: String?
+    init(model: TemplateAuthoringModel) {
+        self.model = model
+        observation = model.objectWillChange.sink { [weak self] _ in self?.retire() }
+    }
+    private var canLoad: Bool {
+        isVisible && sceneActive && model.canEdit && !model.busy && model.review == nil
+    }
+    private var current: Bool {
+        canLoad && owner != nil && owner == model.coordinator.session && identity == model.coordinator.identity &&
+        metadata == model.metadataGeneration && media == model.mediaReviewGeneration &&
+        source != nil && source == TemplateSamplePreview.snapshot(model.draft)
+    }
+    var visibleDraft: TemplateTimerOutcomeDraft? { current ? draft : nil }
+    var canSave: Bool { visibleDraft?.isValid == true }
+    func viewAppeared(sceneIsActive: Bool) {
+        isVisible = true; sceneActive = sceneIsActive
+        guard sceneActive else { retire(); return }
+        if draft == nil { reload() }
+    }
+    func viewDisappeared() { isVisible = false; retire() }
+    func sceneChanged(isActive: Bool) {
+        let becameActive = !sceneActive && isActive
+        sceneActive = isActive
+        guard isVisible && sceneActive else { retire(); return }
+        if becameActive { reload() }
+    }
+    func reload() {
+        retire()
+        guard canLoad, let source = TemplateSamplePreview.snapshot(model.draft),
+              let next = TemplateTimerOutcomeDraft(model.draft.advanced) else { return }
+        owner = model.coordinator.session; identity = model.coordinator.identity
+        metadata = model.metadataGeneration; media = model.mediaReviewGeneration
+        self.source = source; draft = next
+    }
+    func retire() {
+        generation = UUID(); draft = nil; source = nil; owner = nil; identity = nil; statusKey = nil
+    }
+    private func binding<Value>(_ key: WritableKeyPath<TemplateTimerOutcomeDraft, Value>, stale: Value) -> Binding<Value> {
+        let stamp = generation
+        return .init(get: { [weak self] in
+            guard let self, self.generation == stamp, let current = self.visibleDraft else { return stale }
+            return current[keyPath: key]
+        }, set: { [weak self] value in
+            guard let self, self.generation == stamp, var current = self.visibleDraft else { return }
+            current[keyPath: key] = value; self.draft = current; self.statusKey = nil
+        })
+    }
+    var enabledBinding: Binding<Bool> { binding(\.enabled, stale: false) }
+    var secondsBinding: Binding<String> { binding(\.seconds, stale: "") }
+    var outcomeBinding: Binding<String> { binding(\.outcome, stale: "") }
+    func saveAction() -> () -> Void {
+        let stamp = generation
+        return { [weak self] in
+            guard let self, self.generation == stamp, let value = self.visibleDraft,
+                  let next = value.applying(to: self.model.draft) else { return }
+            let owner = self.owner, identity = self.identity
+            // One assignment preserves every unrelated field. Saving uses the existing local store only.
+            self.model.draft = next; self.model.changed(); self.model.save()
+            guard self.canLoad, self.model.coordinator.session == owner,
+                  self.model.coordinator.identity == identity else { self.retire(); return }
+            let result = self.model.coordinator.messageKey
+            self.reload(); self.statusKey = result
+        }
+    }
+    func cancelAction(_ dismiss: @escaping () -> Void) -> () -> Void {
+        let stamp = generation, session = model.coordinator.session, identity = model.coordinator.identity
+        return { [weak self] in
+            guard let self, self.isVisible, self.sceneActive, self.generation == stamp,
+                  self.model.coordinator.session == session, self.model.coordinator.identity == identity else { return }
+            self.retire(); dismiss()
+        }
+    }
+    func reloadAction() -> () -> Void {
+        let stamp = generation, session = model.coordinator.session, identity = model.coordinator.identity
+        return { [weak self] in
+            guard let self, self.generation == stamp,
+                  self.model.coordinator.session == session, self.model.coordinator.identity == identity else { return }
+            self.reload()
+        }
+    }
+}
+
+// Keep this destination's two supported languages self-contained, without shared catalog changes.
+enum TemplateTimerOutcomeText: CaseIterable {
+    case title, scope, enabled, seconds, outcome, failed, expired, unknown, validation, preview, disabled, save, cancel, unavailable, reload
+    func value(_ locale: Locale) -> String {
+        appLocalized(String.LocalizationValue(stringLiteral: "templateTimerOutcome." + String(describing: self)), locale: locale)
+    }
+}
+
+@MainActor struct TemplateTimerOutcomeEntryLabel: View {
+    @Environment(\.locale) private var locale
+    var body: some View { Text(verbatim: TemplateTimerOutcomeText.title.value(locale)) }
+}
+
+@MainActor struct TemplateTimerOutcomeEditorView: View {
+    @ObservedObject var model: TemplateAuthoringModel
+    @StateObject private var controller: TemplateTimerOutcomeController
+    @Environment(\.locale) private var locale
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dismiss) private var dismiss
+    init(model: TemplateAuthoringModel) {
+        self.model = model; _controller = StateObject(wrappedValue: .init(model: model))
+    }
+    private func text(_ key: TemplateTimerOutcomeText) -> String { key.value(locale) }
+    var body: some View {
+        Form {
+            Section { Text(verbatim: text(.scope)).font(.callout) }
+            if let value = controller.visibleDraft {
+                Section {
+                    Toggle(text(.enabled), isOn: controller.enabledBinding).accessibilityIdentifier("templateTimerOutcome.enabled")
+                    TextField(text(.seconds), text: controller.secondsBinding)
+                        .keyboardType(.numberPad).accessibilityIdentifier("templateTimerOutcome.seconds")
+                    Picker(text(.outcome), selection: controller.outcomeBinding) {
+                        if TemplateTimerOutcome(rawValue: value.outcome) == nil {
+                            Text(verbatim: text(.unknown)).tag(value.outcome)
+                        }
+                        Text(verbatim: text(.failed)).tag(TemplateTimerOutcome.failed.rawValue)
+                        Text(verbatim: text(.expired)).tag(TemplateTimerOutcome.expired.rawValue)
+                    }.accessibilityIdentifier("templateTimerOutcome.outcome")
+                    if !value.isValid { Text(verbatim: text(.validation)).accessibilityIdentifier("templateTimerOutcome.invalid") }
+                }
+                Section(text(.preview)) {
+                    if !value.enabled { Text(verbatim: text(.disabled)) }
+                    LabeledContent(text(.seconds), value: value.seconds)
+                    LabeledContent(text(.outcome), value: value.outcome)
+                }
+                Section {
+                    Button(text(.save), action: controller.saveAction()).disabled(!controller.canSave)
+                        .accessibilityIdentifier("templateTimerOutcome.saveLocal")
+                }
+            } else {
+                Section {
+                    Text(verbatim: text(.unavailable))
+                    Button(text(.reload), action: controller.reloadAction()).accessibilityIdentifier("templateTimerOutcome.reload")
+                }
+            }
+            if let status = controller.statusKey {
+                Section { Text(LocalizedStringKey(status)).accessibilityIdentifier("templateTimerOutcome.status") }
+            }
+            Section {
+                Button(text(.cancel), action: controller.cancelAction { dismiss() })
+                    .accessibilityIdentifier("templateTimerOutcome.cancel")
+            }
+        }.navigationTitle(text(.title))
+            .onAppear { controller.viewAppeared(sceneIsActive: scenePhase == .active) }
+            .onDisappear { controller.viewDisappeared() }
+            .onChange(of: scenePhase) { _, phase in controller.sceneChanged(isActive: phase == .active) }
+    }
 }

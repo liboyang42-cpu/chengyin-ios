@@ -185,12 +185,24 @@ import SwiftUI
             fields = ["phone": owner == 7 ? "10000000000" : "10000000001", "code": "123456"]
             json = "{\"code\":200,\"token\":\"synthetic-\(owner)\",\"data\":{\"id\":\(owner),\"role\":\"player\"}}"
         } else if path == "api/userInfo" {
-            guard let owner = pendingAccount, token == "synthetic-\(owner)", session.account == nil,
-                  request.httpMethod == "POST", request.httpBody == nil, url.query == nil,
+            guard request.httpMethod == "POST", request.httpBody == nil, url.query == nil,
                   request.value(forHTTPHeaderField: "Accept") == "application/json",
                   request.value(forHTTPHeaderField: "Content-Type") == nil else { try reject("account readback") }
-            route = "userInfo"; pendingAccount = nil
-            json = "{\"code\":200,\"appUser\":{\"userId\":\(owner),\"role\":\"player\",\"nickname\":\"Synthetic owner \(owner)\"}}"
+            let owner: Int
+            if let pending = pendingAccount {
+                guard session.account == nil, vault.value == nil, token == "synthetic-\(pending)" else { try reject("account readback") }
+                owner = pending; pendingAccount = nil
+            } else {
+                // The normal Me header reuses this body-less read after admission.
+                // Its session reader and the composed transport keep the epoch fence.
+                let epoch = session.sessionRevision
+                guard let account = session.account, [7, 8].contains(account.id), account.effectiveRole == "player",
+                      epoch > 0, session.sessionRevision == epoch,
+                      token == "synthetic-\(account.id)", token == vault.value else { try reject("account readback") }
+                owner = account.id
+            }
+            route = "userInfo"
+            json = "{\"code\":200,\"appUser\":{\"userId\":\(owner),\"role\":\"player\",\"nickname\":\"Synthetic owner \(owner)\"},\"data\":{\"id\":\(owner),\"role\":\"player\",\"nickname\":\"Synthetic owner \(owner)\"}}"
         } else if path == "api/logout" {
             guard session.account == nil, vault.value == nil, session.roamArea == nil,
                   ["synthetic-7", "synthetic-8"].contains(token ?? ""), matchesForm(request, fields: [:]) else { try reject("logout isolation") }

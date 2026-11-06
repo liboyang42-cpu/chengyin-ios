@@ -40,6 +40,8 @@ public enum RoamRecoveryPhase: Equatable {
     public private(set) var loading = false
     public private(set) var error: Error?
     public private(set) var loaded = false
+    /// Server total from the latest successful page; nil until a page is actually read.
+    public private(set) var total: Int?
     private let reader: any RoamExperienceReading
     private var identity: RoamExperienceIdentity?
     private var nextPage = 1
@@ -48,7 +50,7 @@ public enum RoamRecoveryPhase: Equatable {
     public init(reader: any RoamExperienceReading, pageSize: Int = 20) { self.reader = reader; self.pageSize = pageSize }
     public func reset() {
         generation += 1; identity = reader.identity; nextPage = 1
-        stamps = []; hasMore = true; loading = false; error = nil; loaded = false
+        stamps = []; hasMore = true; loading = false; error = nil; loaded = false; total = nil
     }
     /// Preserve rows when a detail is pushed; invalidate only unfinished work.
     public func cancelPending() { generation += 1; loading = false }
@@ -67,9 +69,14 @@ public enum RoamRecoveryPhase: Equatable {
                 stamps.removeAll { $0.id == stamp.id }
                 if stamp.isVisible { stamps.append(stamp) }
             }
-            hasMore = result.hasMore; nextPage += 1; loaded = true
+            hasMore = result.hasMore; nextPage += 1; loaded = true; total = result.total
         } catch {
             guard !Task.isCancelled, generation == ticket, reader.identity == snapshot else { return }
+            if CollectionReadAccess(error) != nil {
+                // A current login/permission refusal cannot keep private rows or
+                // continue its old page. Explicit refresh starts over at page one.
+                reset(); hasMore = false
+            }
             self.error = error
         }
     }
@@ -150,6 +157,11 @@ public struct RoamCityStampDraft: Equatable {
             guard generation == ticket else { return }
             guard reader.identity == snapshot else { reset(); return }
             guard !Task.isCancelled else { return }
+            if CollectionReadAccess(error) != nil {
+                // A current access refusal cannot retain private exploration memory.
+                // A later explicit refresh starts from the original zero cursor.
+                reset(); hasMore = false
+            }
             self.error = error
         }
     }

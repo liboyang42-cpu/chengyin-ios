@@ -37,6 +37,7 @@ struct ClubStorySourceRevision: Equatable {
     let context: ClubGovernanceReadContext
     let snapshotGeneration: UInt64
     let sourceIsCurrent: Bool
+    let viewerRevision: UInt64
     let readerScope: UUID?
     let destinationAvailable: Bool
 }
@@ -45,18 +46,21 @@ struct ClubStorySourceRevision: Equatable {
 struct ClubStoryTemplateSelection: Identifiable, Hashable {
     let route: ClubStoryTemplateRoute
     let readerScope: UUID
+    let viewerRevision: UInt64
     var id: UUID { route.id }
     @MainActor init?(gameplay: ClubStoryGameplay, snapshot: ClubGovernanceSnapshot,
           context: ClubGovernanceReadContext, snapshotGeneration: UInt64, templates: ClubStoryTemplateContext) {
         guard templates.isAvailable, let readerScope = templates.readerScope,
+              context.viewerRevision == templates.viewerRevision,
               context.readerIdentity == templates.readerIdentity,
               let route = ClubStoryTemplateRoute(gameplay: gameplay, snapshot: snapshot,
                   context: context, snapshotGeneration: snapshotGeneration) else { return nil }
-        self.route = route; self.readerScope = readerScope
+        self.route = route; self.readerScope = readerScope; viewerRevision = templates.viewerRevision
     }
     @MainActor func isCurrent(snapshot: ClubGovernanceSnapshot?, context: ClubGovernanceReadContext,
                    snapshotGeneration: UInt64, templates: ClubStoryTemplateContext) -> Bool {
-        templates.isAvailable && templates.readerScope == readerScope && context.readerIdentity == templates.readerIdentity &&
+        templates.isAvailable && templates.viewerRevision == viewerRevision &&
+        templates.readerScope == readerScope && context.readerIdentity == templates.readerIdentity &&
         route.isCurrent(snapshot: snapshot, context: context, snapshotGeneration: snapshotGeneration)
     }
     static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
@@ -67,10 +71,8 @@ struct ClubStoryEmptyState: View {
     let title: LocalizedStringKey
     let detail: LocalizedStringKey
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title).font(.headline)
-            Text(detail).font(.subheadline).foregroundStyle(.secondary)
-        }.padding(.vertical, 12)
+        // Mini-program cy-empty: title only; the explanatory detail line is no longer shown.
+        Text(title).foregroundStyle(.secondary).padding(.vertical, 8)
     }
 }
 struct ClubStoryChapterTitle: View {
@@ -117,6 +119,13 @@ struct ClubStoryChapterHeader: View {
     let imageReader: (any RetainedPublicImageReading)?
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
+            if let minutes = stop.estimatedWalkingMinutes {
+                VStack(alignment: .leading, spacing: 4) {
+                    LabeledContent("topic.itinerary.estimatedWalkMinutes") { Text(minutes, format: .number) }
+                    Text("topic.itinerary.estimateNotice").font(.caption).foregroundStyle(.secondary)
+                }.accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("club.story.walk.\(stop.id)")
+            }
             Label("club.story.stop \(stop.sequence)", systemImage: "mappin.circle.fill").font(.caption.weight(.semibold))
             ClubStoryCover(raw: stop.imgUrl, imageReader: imageReader)
             if let name = stop.name { Text(verbatim: name).font(.headline) }

@@ -50,6 +50,9 @@ struct MessagingHistoryView: View {
     let sender: MessageActionCoordinator?
     let mediaReader: (any SocialMessageMediaReading)?
     let expanded: IMExpandedNavigationContext?
+    let admission: ChannelAdmissionRoute?
+    let directory: ChannelDirectoryAdmissionRequest?
+    let onConversationMutationAccepted: (IMScope) -> Void
     @StateObject private var replyAuthority = IMConversationReplyAuthority()
     @State private var history: MessagingHistory
     @State private var loadedIdentity: MessagingReadIdentity?
@@ -61,10 +64,33 @@ struct MessagingHistoryView: View {
     @State private var generation: UInt64 = 0
     @State private var visibleMessageID: Int?
     @State private var showingPollComposer = false
+    @State private var pageBlocked: Bool?
+    @State private var pageBlockedByMe: Bool?
+    @State private var safety: IMSafetyPresentation?
+    @Environment(\.dismiss) private var dismissHistory
 
-    init(conversationID: Int, conversation: MessagingConversation? = nil, reader: any MessagingReading, sender:MessageActionCoordinator?=nil,mediaReader:(any SocialMessageMediaReading)?=nil,expanded:IMExpandedNavigationContext?=nil) {
+    init(conversationID: Int, conversation: MessagingConversation? = nil, reader: any MessagingReading, sender:MessageActionCoordinator?=nil,mediaReader:(any SocialMessageMediaReading)?=nil,expanded:IMExpandedNavigationContext?=nil, admission: ChannelAdmissionRoute? = nil, directory: ChannelDirectoryAdmissionRequest? = nil, onConversationMutationAccepted: @escaping (IMScope) -> Void = { _ in }) {
         self.conversationID = conversationID; self.conversation = conversation; self.reader = reader;self.sender=sender;self.mediaReader=mediaReader;self.expanded=expanded
+        self.admission = admission
+        self.directory = directory
+        self.onConversationMutationAccepted = onConversationMutationAccepted
         _history = State(initialValue: MessagingHistory(conversationID: conversationID))
+    }
+    private var replyBlock: IMReplyBlock? {
+        IMReplyBlock.from(conversation: conversation, page: pageBlocked, blockedByMe: pageBlockedByMe)
+    }
+    /// Type 5 only, and only after this page has loaded. Appearance does not send it.
+    private var channelReadCursor: Int? {
+        guard conversation?.type == 5, currentHistoryReady else { return nil }
+        if let id = history.messages.last?.id, id > 0 { return id }
+        return history.messages.isEmpty ? 0 : nil
+    }
+    private var canCreatePoll: Bool { conversation?.supportsGroupPolls == true && currentHistoryReady }
+    /// Mirrors the bottom inset branches: the composer shows only when no notice replaces it.
+    private var showsComposer: Bool {
+        if replyPolicy.isSystemNotice, currentHistoryReady { return false }
+        if let block = replyBlock, block != .systemNotice, currentHistoryReady { return false }
+        return replyPolicy.permitsReply && sender != nil
     }
     private var replyPolicy: IMConversationReplyPolicy {
         .init(conversationID: conversationID, conversation: conversation)
@@ -88,7 +114,15 @@ struct MessagingHistoryView: View {
             } else if isLoading {
                 ProgressView("messaging.loading").accessibilityIdentifier("messaging.history.loading")
             } else if let issue {
-                MessagingIssueView(issue: issue, identifier: "messaging.history.error") { Task { await reload() } }
+                VStack {
+                    MessagingIssueView(issue: issue, identifier: "messaging.history.error") { Task { await reload() } }
+                    // Source closed hangout: 「返回消息列表」 instead of a dead end.
+                    if issue.titleKey == "messaging.closed" {
+                        Button("im.chat.returnToList") { dismissHistory() }
+                            .buttonStyle(.questifyPrimary)
+                            .accessibilityIdentifier("im.chat.returnToList")
+                    }
+                }
             } else if currentHistoryReady {
                 transcript
             } else {
@@ -99,12 +133,19 @@ struct MessagingHistoryView: View {
             if replyPolicy.isSystemNotice, currentHistoryReady {
                 Label("im.reply.systemNotice", systemImage: "info.circle")
                     .font(.footnote).frame(maxWidth: .infinity, alignment: .leading)
-                    .padding().background(.regularMaterial)
+                    .padding(.horizontal, Theme.Space.pageX).padding(.vertical, Theme.Space.s3).background(.bar)
                     .accessibilityIdentifier("im.reply.systemNotice")
+            } else if let block = replyBlock, block != .systemNotice, currentHistoryReady {
+                Label(LocalizedStringKey(block == .blockedByMe ? "im.chat.blockedByMe" : "im.chat.peerUnavailable"),
+                      systemImage: "hand.raised")
+                    .font(.footnote).frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, Theme.Space.pageX).padding(.vertical, Theme.Space.s3).background(.bar)
+                    .accessibilityIdentifier("im.chat.replyBlocked")
             } else if replyPolicy.permitsReply, let sender {
                 MessageActionComposer(coordinator: sender, identity: reader.identity,
                     conversationReady: currentHistoryReady,
-                    canReply: { authority.permitsReply(lease) }) { _ in
+                    canReply: { authority.permitsReply(lease) },
+                    createPoll: canCreatePoll ? { showingPollComposer = true } : nil) { _ in
                     Task { await reload() }
                 }
             }
@@ -119,36 +160,51 @@ struct MessagingHistoryView: View {
         .appNavigationTitle("messaging.history.title")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
+            ToolbarItem(placement: .topBarTrailing) {
                 if currentHistoryReady,
                    let owner = expanded?.coordinator(conversationID) {
                     NavigationLink {
                         IMConversationControlsView(coordinator: owner, identity: reader.identity,
-                            uploadOwner: replyPolicy.permitsReply ? expanded?.uploadCoordinator(conversationID) : nil,
+                            uploadOwner: replyPolicy.permitsReply && replyBlock == nil ? expanded?.uploadCoordinator(conversationID) : nil,
                             topicReader: expanded?.topicReader, replyPolicy: replyPolicy,
-                            isConversationCurrent: { authority.isCurrent(lease) }) { _ in Task { await reload() } }
-                    } label: { Label("im.full.title", systemImage: "ellipsis.circle") }
+                            isConversationCurrent: { authority.isCurrent(lease) },
+                            readCursor: channelReadCursor,
+                            admission: admission,
+                            directory: directory,
+                            showsAdmissionEntry: directory != nil || conversation?.kind == .group,
+                            isMuted: conversation?.muted,
+                            onConversationMutationAccepted: onConversationMutationAccepted) { _ in Task { await reload() } }
+                    } label: { Label("im.full.title", systemImage: "info.circle") }
                     .accessibilityIdentifier("im.full.controlsEntry")
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
-                if conversation?.supportsGroupPolls == true, currentHistoryReady {
-                    Button("poll.create", systemImage: "chart.bar.xaxis") { showingPollComposer = true }
+                // With a composer the poll entry is its leading `+`; otherwise it joins the … menu.
+                let createPoll: (() -> Void)? = canCreatePoll && !showsComposer ? { showingPollComposer = true } : nil
+                if currentHistoryReady, let owner = expanded?.safetyCoordinator?(conversationID), owner.isCurrent {
+                    IMChatMoreMenu(owner: owner, conversation: conversation, blockedByMe: pageBlockedByMe,
+                                   messages: history.messages, createPoll: createPoll) { safety = .init(owner: owner) }
+                } else if let createPoll {
+                    Button("poll.create", systemImage: "chart.bar.xaxis", action: createPoll)
                         .accessibilityIdentifier("poll.createEntry")
                 }
             }
             ToolbarItem(placement: .principal) {
-                if currentHistoryReady {
+                if conversation != nil {
                     MessagingConversationName(conversation: conversation).font(.headline).lineLimit(1)
-                } else { Text("messaging.history.title") }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("messaging.refresh", systemImage: "arrow.clockwise") { Task { await reload() } }
-                    .disabled(isLoading || isLoadingEarlier || !reader.isConfigured || reader.identity == nil || issue?.isTerminal == true)
-                    .accessibilityIdentifier("messaging.history.refresh")
+                } else { Text("messaging.history.title").font(.headline) }
             }
         }
-        .onChange(of: reader.identity) { _, _ in showingPollComposer = false }
+        .sheet(item: $safety) { presentation in
+            IMSafetyReviewView(owner: presentation.owner) { action in
+                switch action {
+                case .hide: dismissHistory()                       // source navigateBack after hide
+                case .block, .unblock: Task { await reload() }     // blockedByMe is read back, not assumed
+                case .report: break
+                }
+            }
+        }
+        .onChange(of: reader.identity) { _, _ in showingPollComposer = false; safety = nil }
         .refreshable { if issue?.isTerminal != true { await reload() } }
         .task(id: MessagingHistoryLoadKey(identity: reader.identity, conversationID: conversationID,
             readerID: ObjectIdentifier(reader), configured: reader.isConfigured)) {
@@ -160,8 +216,7 @@ struct MessagingHistoryView: View {
     }
     private var transcript: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 16) {
-                if sender == nil && !replyPolicy.isSystemNotice { Text("messaging.readOnly").font(.footnote).foregroundStyle(.secondary) }
+            LazyVStack(alignment: .leading, spacing: Theme.Space.s2) {
                 if history.hasMore {
                     if isLoadingEarlier {
                         ProgressView("messaging.loadingEarlier").accessibilityIdentifier("messaging.history.loadingEarlier")
@@ -178,23 +233,39 @@ struct MessagingHistoryView: View {
                     }
                 }
                 if history.messages.isEmpty {
-                    MessagingEmptyView(title: "messaging.history.empty", hint: "messaging.history.emptyHint", identifier: "messaging.history.empty")
+                    MessagingEmptyView(title: "messaging.history.empty",
+                                       hint: replyPolicy.isSystemNotice ? "im.chat.emptySystemHint"
+                                           : (sender != nil && replyBlock == nil ? "im.chat.emptyReplyHint" : "messaging.history.emptyHint"),
+                                       identifier: "messaging.history.empty")
                 }
+                let dividers = IMInboxTime.dividers(for: history.messages, now: Date())
                 ForEach(history.messages) { message in
-                    NavigationLink {
-                        MessagingMessageDetailView(message: message, conversation: conversation,
-                            reader: reader, identity: loadedIdentity, mediaReader: mediaReader, expanded: expanded,
-                            currentMessage: { history.messages.first { $0.id == message.id } })
-                    } label: {
-                        MessagingBubble(message: message, conversation: conversation,
-                            accountID: loadedIdentity?.accountID ?? 0)
+                    VStack(spacing: Theme.Space.s2) {
+                        // Time is grouped: one divider per burst, not a stamp on every bubble.
+                        if let divider = dividers[message.id] {
+                            IMChatDividerLabel(divider: divider).font(.caption).foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity).accessibilityIdentifier("im.chat.divider.\(message.id)")
+                        }
+                        NavigationLink {
+                            MessagingMessageDetailView(message: message, conversation: conversation,
+                                reader: reader, identity: loadedIdentity, mediaReader: mediaReader, expanded: expanded,
+                                currentMessage: { history.messages.first { $0.id == message.id } })
+                        } label: {
+                            MessagingBubble(message: message, conversation: conversation,
+                                accountID: loadedIdentity?.accountID ?? 0)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("messaging.message.\(message.id)")
                     }
-                    .buttonStyle(.plain)
                     .id(message.id)
-                    .accessibilityIdentifier("messaging.message.\(message.id)")
                 }
-            }.padding().scrollTargetLayout()
+            }
+            .padding(.horizontal, Theme.Space.pageX).padding(.vertical, Theme.Space.s3)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .scrollTargetLayout()
         }
+        // Few messages sit just above the composer and grow upward, as in native chat.
+        .defaultScrollAnchor(.bottom)
         .scrollPosition(id: $visibleMessageID, anchor: .top)
         .scrollDismissesKeyboard(.interactively)
     }
@@ -205,6 +276,7 @@ struct MessagingHistoryView: View {
         let request = generation, identity = reader.identity, source = ObjectIdentifier(reader)
         history = MessagingHistory(conversationID: conversationID)
         loadedIdentity = nil; loadedReaderID = nil; issue = nil; earlierIssue = nil; isLoading = true; isLoadingEarlier = false
+        pageBlocked = nil; pageBlockedByMe = nil
         guard reader.isConfigured, identity != nil, conversationID > 0,
               conversation == nil || conversation?.id == conversationID else { isLoading = false; return }
         defer { if generation == request { isLoading = false } }
@@ -212,6 +284,7 @@ struct MessagingHistoryView: View {
             let page = try await reader.messagingMessages(conversationID: conversationID, cursor: 0)
             guard isCurrent(request, identity, source: source) else { return }
             try history.replace(with: page)
+            pageBlocked = page.blocked; pageBlockedByMe = page.blockedByMe
             loadedIdentity = identity; loadedReaderID = source; visibleMessageID = history.messages.last?.id
         } catch is CancellationError {} catch {
             guard isCurrent(request, identity, source: source) else { return }
@@ -250,14 +323,86 @@ private struct MessagingBubble: View {
     let message: MessagingMessage
     let conversation: MessagingConversation?
     let accountID: Int
+    @ScaledMetric(relativeTo: .caption) private var avatarSize: CGFloat = 28
     private var isOwn: Bool { message.senderID == accountID && accountID > 0 }
+    /// Received messages show a small avatar beside the bubble; only groups add the sender name.
+    private var isGroup: Bool { conversation?.kind == .group }
     var body: some View {
-        ChatMessageBubble(isOwn: isOwn, timestamp: message.createdAt) {
-            MessagingSenderName(message: message, conversation: conversation, accountID: accountID)
-        } content: {
-            MessagingMessageContent(message: message)
+        HStack(alignment: .bottom, spacing: Theme.Space.s2) {
+            if !isOwn {
+                Image(systemName: "person.fill")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(width: avatarSize, height: avatarSize)
+                    .background(Circle().fill(Color(uiColor: .tertiarySystemFill)))
+                    .accessibilityHidden(true)
+            }
+            ChatMessageBubble(isOwn: isOwn) {
+                if isGroup && !isOwn {
+                    MessagingSenderName(message: message, conversation: conversation, accountID: accountID)
+                }
+            } content: {
+                MessagingMessageContent(message: message)
+            }
         }
         .accessibilityElement(children: .combine)
         .accessibilityHint(Text("messaging.openDetail"))
+    }
+}
+
+/// Source chat 「更多」 option sheet. Entries are offered only when the reviewed
+/// runtime grants the exact path; selection opens an explicit review sheet.
+@MainActor private struct IMChatMoreMenu: View {
+    let owner: IMSafetyCoordinator
+    let conversation: MessagingConversation?
+    let blockedByMe: Bool?
+    let messages: [MessagingMessage]
+    var createPoll: (() -> Void)? = nil
+    let present: () -> Void
+    private var conversationID: Int { owner.scope.conversationID }
+    var body: some View {
+        let items = IMSafetyMenu(conversation: conversation, blockedByMe: blockedByMe).items.filter(granted)
+        if !items.isEmpty || createPoll != nil {
+            Menu {
+                if let createPoll {
+                    Button("poll.create", systemImage: "chart.bar.xaxis", action: createPoll)
+                        .accessibilityIdentifier("poll.createEntry")
+                    if !items.isEmpty { Divider() }
+                }
+                ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+                    Button(role: item == .hide || item == .block ? .destructive : nil) { select(item) } label: {
+                        Label(title(item), systemImage: symbol(item))
+                    }.accessibilityIdentifier("im.chat.more.\(identifier(item))")
+                }
+            } label: { Label("im.chat.more", systemImage: "ellipsis") }
+            .accessibilityIdentifier("im.chat.more")
+        }
+    }
+    private func granted(_ item: IMSafetyMenu.Item) -> Bool {
+        switch item {
+        case .report: return owner.permits(.report(conversationID: conversationID, messageID: 1))
+        case .block: return owner.permits(.block(conversationID: conversationID, targetMemberID: 1))
+        case .unblock: return owner.permits(.unblock(conversationID: conversationID, targetMemberID: 1))
+        case .hide: return owner.permits(.hide(conversationID: conversationID))
+        }
+    }
+    private func select(_ item: IMSafetyMenu.Item) {
+        if case .outcomeUnknown = owner.visibleState { present(); return }
+        switch item {
+        case .report: owner.reviewReport(messages: messages); present()
+        case .hide: if owner.review(.hide(conversationID: conversationID)) { present() }
+        case .block, .unblock:
+            present()
+            Task { await owner.reviewBlock(unblock: item == .unblock) }
+        }
+    }
+    private func title(_ item: IMSafetyMenu.Item) -> LocalizedStringKey {
+        switch item { case .report: return "im.chat.more.report"; case .block: return "im.chat.more.block"; case .unblock: return "im.chat.more.unblock"; case .hide: return "im.chat.more.hide" }
+    }
+    private func symbol(_ item: IMSafetyMenu.Item) -> String {
+        switch item { case .report: return "exclamationmark.bubble"; case .block: return "hand.raised"; case .unblock: return "hand.raised.slash"; case .hide: return "eye.slash" }
+    }
+    private func identifier(_ item: IMSafetyMenu.Item) -> String {
+        switch item { case .report: return "report"; case .block: return "block"; case .unblock: return "unblock"; case .hide: return "hide" }
     }
 }

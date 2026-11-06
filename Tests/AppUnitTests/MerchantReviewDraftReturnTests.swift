@@ -200,3 +200,172 @@ import XCTest
         XCTAssertNil(h.flow.capture(review)); XCTAssertFalse(h.flow.beginConfirmation(id: review.id)); XCTAssertEqual(h.reader.writes, 0)
     }
 }
+
+@MainActor final class MerchantAftercareDraftReturnTests: XCTestCase {
+    private final class Reader: MerchantBusinessReading {
+        var scope: MerchantBusinessScope? = .init(realm: "synthetic://aftercare-return", accountID: 9001, epoch: 1)
+        var authorizationGeneration: UUID? = UUID()
+        var isConfigured = true, isOfflineExample = true, canExecuteSyntheticMutation = true
+        var reads = 0, writes = 0
+        var reason = "Original reason"
+        var denied = false, succeeds = false
+        func access() async throws -> MerchantBusinessAccess {
+            var fields = try MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.access).object!
+            if denied { fields["permissions"] = .array([]) }
+            return try .init(fields)
+        }
+        func snapshot(_ query: MerchantBusinessQuery) async throws -> MerchantBusinessSnapshot {
+            reads += 1
+            var fields = try MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.refund).object!
+            fields["reason"] = .string(reason)
+            return try .init(access: await access(), document: .init(query: query, payload: .object(fields)))
+        }
+        func execute(_ mutation: MerchantBusinessMutation, requestID: String, scope: MerchantBusinessScope) async throws -> MerchantBusinessReceipt {
+            writes += 1
+            if succeeds, case .aftercare(let id, let decision, _, _) = mutation {
+                return try .init(mutation: mutation, message: nil, data: .object([
+                    "id": .int(62099), "refundId": .int(id.rawValue), "decision": .string(decision.rawValue),
+                    "processing": .string("WAITING_PLATFORM_REVIEW"), "merchantOpinion": .string("PENDING"), "refunded": .bool(false)]))
+            }
+            throw URLError(.timedOut)
+        }
+    }
+    @MainActor private final class Harness {
+        let reader = Reader(), journal = MerchantBusinessMemoryIntentStore()
+        let owner: MerchantBusinessViewModel
+        let flow: MerchantAftercareDraftReturn
+        init() { owner = .init(reader: reader, journal: journal); flow = .init(owner: owner) }
+        func start() async throws { await owner.load(.refund(try .init(62001))); flow.appear(active: true) }
+        func review(_ decision: MerchantAftercareDecision = .reject, content: String = "  Exact e\u{0301} explanation\n ", evidence: String? = "upload/merchant-aftercare-evidence/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.png") throws -> MerchantBusinessConfirmation {
+            owner.prepare(.aftercare(refund: try .init(62001), decision: decision, content: content, evidenceKey: evidence))
+            return try XCTUnwrap(owner.coordinator.confirmation)
+        }
+        func returned(_ review: MerchantBusinessConfirmation) throws -> MerchantAftercareDraftReturn.Return {
+            XCTAssertTrue(flow.requestReturn(try XCTUnwrap(flow.capture(review))))
+            return try XCTUnwrap(flow.didDismiss(reviewID: review.id))
+        }
+    }
+    func testEveryAllowedDecisionReturnsExactLocalFieldsWithoutReadsWritesOrReservation() async throws {
+        for decision in MerchantAftercareDecision.allCases {
+            let h = Harness(); try await h.start()
+            let text = "  e\u{0301} 👩🏽‍💻\n local  ", evidence = "upload/merchant-aftercare-evidence/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.png"
+            let review = try h.review(decision, content: text, evidence: evidence), reads = h.reader.reads
+            let ticket = try h.returned(review), editor = try XCTUnwrap(h.flow.resume(ticket, editorIsVacant: true))
+            let draft = try XCTUnwrap(h.flow.initialDraft(for: editor.id))
+            XCTAssertEqual(draft.decision, decision)
+            XCTAssertEqual(Data(draft.content.utf8), Data(text.utf8)); XCTAssertEqual(Data(draft.evidence.utf8), Data(evidence.utf8))
+            guard case .aftercare(let row) = editor.kind else { return XCTFail("Wrong editor kind") }
+            XCTAssertEqual(row.id, "62001"); XCTAssertNil(h.owner.coordinator.confirmation)
+            XCTAssertEqual(h.reader.reads, reads); XCTAssertEqual(h.reader.writes, 0); XCTAssertTrue(try h.journal.intents().isEmpty)
+        }
+    }
+    func testCancelDiscardsReviewWithoutCreatingReturnTicket() async throws {
+        let h = Harness(); try await h.start(); let review = try h.review(), capture = try XCTUnwrap(h.flow.capture(review))
+        h.flow.cancelReview(id: review.id)
+        XCTAssertNil(h.owner.coordinator.confirmation); XCTAssertFalse(h.flow.requestReturn(capture))
+        XCTAssertNil(h.flow.didDismiss(reviewID: review.id)); XCTAssertNil(h.flow.resumedEditorID)
+        XCTAssertEqual(h.reader.writes, 0)
+    }
+    func testOldReviewCaptureAndCancelCannotTouchReplacementReview() async throws {
+        let h = Harness(); try await h.start(); let old = try h.review(), capture = try XCTUnwrap(h.flow.capture(old))
+        let replacement = try h.review(.agree, content: "Different opinion")
+        XCTAssertFalse(h.flow.requestReturn(capture)); h.flow.cancelReview(id: old.id)
+        XCTAssertEqual(h.owner.coordinator.confirmation?.id, replacement.id)
+    }
+    func testReturnAndDismissAndResumeAreEachOnceOnly() async throws {
+        let h = Harness(); try await h.start(); let review = try h.review(), capture = try XCTUnwrap(h.flow.capture(review))
+        XCTAssertTrue(h.flow.requestReturn(capture)); XCTAssertFalse(h.flow.requestReturn(capture))
+        let ticket = try XCTUnwrap(h.flow.didDismiss(reviewID: review.id))
+        XCTAssertNil(h.flow.didDismiss(reviewID: review.id))
+        XCTAssertNotNil(h.flow.resume(ticket, editorIsVacant: true)); XCTAssertNil(h.flow.resume(ticket, editorIsVacant: true))
+    }
+    func testOldQueuedReturnCannotReplaceNewerEditor() async throws {
+        let h = Harness(); try await h.start(); let old = try h.returned(h.review())
+        h.flow.discard(); let fresh = try h.returned(h.review(.agree, content: "Fresh opinion"))
+        XCTAssertNil(h.flow.resume(old, editorIsVacant: true))
+        XCTAssertEqual(h.flow.resume(fresh, editorIsVacant: true)?.id, fresh.context.id)
+    }
+    func testOccupiedEditorRejectsAndConsumesTheReturnTicket() async throws {
+        let h = Harness(); try await h.start(); let ticket = try h.returned(h.review())
+        XCTAssertNil(h.flow.resume(ticket, editorIsVacant: false)); XCTAssertNil(h.flow.resume(ticket, editorIsVacant: true))
+    }
+    func testScopeAndAuthorizationChangesRejectReturnBeforeHostObservers() async throws {
+        for auth in [false, true] {
+            let h = Harness(); try await h.start(); let review = try h.review(), capture = try XCTUnwrap(h.flow.capture(review))
+            if auth { h.reader.authorizationGeneration = UUID() } else { h.reader.scope = nil }
+            XCTAssertFalse(h.flow.requestReturn(capture)); XCTAssertNil(h.flow.capture(review)); XCTAssertEqual(h.reader.writes, 0)
+        }
+    }
+    func testBackgroundAndHiddenSceneReactivationCannotReviveOldReview() async throws {
+        let h = Harness(); try await h.start(); let review = try h.review(), capture = try XCTUnwrap(h.flow.capture(review))
+        h.flow.disappear(); h.flow.sceneChanged(active: false); h.flow.sceneChanged(active: true)
+        XCTAssertFalse(h.flow.requestReturn(capture)); XCTAssertNil(h.flow.capture(review))
+        h.flow.appear(active: true); XCTAssertNil(h.flow.capture(review))
+        let fresh = try h.review(); XCTAssertNotNil(h.flow.capture(fresh))
+    }
+    func testDispatchBoundaryRetiresReturnBeforeAnyQueuedSend() async throws {
+        let h = Harness(); try await h.start(); let review = try h.review(), capture = try XCTUnwrap(h.flow.capture(review))
+        XCTAssertTrue(h.flow.beginConfirmation(id: review.id))
+        XCTAssertFalse(h.flow.requestReturn(capture)); XCTAssertNil(h.flow.capture(review)); XCTAssertEqual(h.reader.writes, 0)
+    }
+    func testUnknownOutcomeCannotReturnOrReleaseExistingReservation() async throws {
+        let h = Harness(); try await h.start(); let review = try h.review(), capture = try XCTUnwrap(h.flow.capture(review))
+        XCTAssertTrue(h.flow.beginConfirmation(id: review.id)); await h.owner.confirm(review)
+        XCTAssertEqual(h.reader.writes, 1); XCTAssertTrue(h.owner.coordinator.isLocked)
+        let intents = try h.journal.intents(); XCTAssertEqual(intents.count, 1)
+        XCTAssertFalse(h.flow.requestReturn(capture)); XCTAssertNil(h.flow.capture(review))
+        XCTAssertEqual(try h.journal.intents(), intents); XCTAssertEqual(h.reader.writes, 1)
+        // Existing same-review retry remains the coordinator's decision; local Edit stays unavailable.
+        if h.owner.coordinator.confirmation?.id == review.id {
+            XCTAssertTrue(h.flow.beginConfirmation(id: review.id)); XCTAssertNil(h.flow.capture(review))
+        }
+    }
+    func testSnapshotRefreshAndReadPermissionLossInvalidateReturn() async throws {
+        let h = Harness(); try await h.start(); let review = try h.review(), ticket = try h.returned(review)
+        h.reader.denied = true; await h.owner.load(.refund(try .init(62001)))
+        XCTAssertNil(h.flow.resume(ticket, editorIsVacant: true)); XCTAssertNil(h.flow.initialDraft(for: ticket.context.id))
+    }
+    func testReturnedEmptyEvidenceStaysEmptyWithoutAddingAttachment() async throws {
+        let h = Harness(); try await h.start(); let ticket = try h.returned(h.review(.agree, evidence: nil))
+        let editor = try XCTUnwrap(h.flow.resume(ticket, editorIsVacant: true))
+        XCTAssertEqual(h.flow.initialDraft(for: editor.id)?.evidence, "")
+        XCTAssertEqual(h.reader.writes, 0)
+    }
+}
+
+
+@MainActor extension MerchantAftercareDraftReturnTests {
+    func testActualHostEditorBindingRejectsOldGetterAndNilSetterAfterReplacement() {
+        let first = MerchantBusinessEditorContext(kind: .invite), second = MerchantBusinessEditorContext(kind: .invite)
+        var current: MerchantBusinessEditorContext? = first
+        let source = Binding<MerchantBusinessEditorContext?>(get: { current }, set: { current = $0 })
+        let old = MerchantAftercareDraftReturn.editorBinding(source, presentedID: first.id)
+        XCTAssertEqual(old.wrappedValue?.id, first.id)
+        current = second
+        XCTAssertNil(old.wrappedValue); old.wrappedValue = nil
+        XCTAssertEqual(current?.id, second.id)
+        let fresh = MerchantAftercareDraftReturn.editorBinding(source, presentedID: second.id)
+        fresh.wrappedValue = nil; XCTAssertNil(current)
+    }
+    func testActualHostDismissalOwnershipRejectsOldOwnerAndPermitsCurrentNilEditor() {
+        let old = UUID(), fresh = UUID()
+        XCTAssertFalse(MerchantAftercareDraftReturn.ownsDismissal(presentedID: old, currentEditorID: nil, pendingEditorID: fresh))
+        XCTAssertFalse(MerchantAftercareDraftReturn.ownsDismissal(presentedID: fresh, currentEditorID: fresh, pendingEditorID: fresh))
+        XCTAssertFalse(MerchantAftercareDraftReturn.ownsDismissal(presentedID: nil, currentEditorID: nil, pendingEditorID: nil))
+        XCTAssertTrue(MerchantAftercareDraftReturn.ownsDismissal(presentedID: fresh, currentEditorID: nil, pendingEditorID: fresh))
+    }
+}
+
+
+@MainActor extension MerchantAftercareDraftReturnTests {
+    func testAcknowledgedReceiptCannotReopenOldDraftOrSendAgain() async throws {
+        let h = Harness(); try await h.start(); h.reader.succeeds = true
+        let review = try h.review(), captured = try XCTUnwrap(h.flow.capture(review))
+        XCTAssertTrue(h.flow.beginConfirmation(id: review.id)); await h.owner.confirm(review)
+        let receipt = try XCTUnwrap(h.owner.coordinator.receipt)
+        XCTAssertFalse(h.flow.requestReturn(captured)); XCTAssertNil(h.flow.capture(review))
+        XCTAssertFalse(h.flow.beginConfirmation(id: review.id))
+        XCTAssertEqual(h.owner.coordinator.receipt, receipt); XCTAssertEqual(h.reader.writes, 1)
+        XCTAssertTrue(try h.journal.intents().isEmpty)
+    }
+}

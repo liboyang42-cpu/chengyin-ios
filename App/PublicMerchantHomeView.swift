@@ -5,6 +5,9 @@ import SwiftUI
     var reader: any PublicMerchantHomeReading = DisabledPublicMerchantHomeReader()
     var publicReviews: ((PublicMerchantReviewTarget) -> AnyView)?
     var featured: PublicMerchantFeaturedContext?
+    var ownerProfile: PublicMerchantOwnerProfileContext?
+    var gamePlayerDestination: ((PublicMerchantRowID, AnyView?) -> AnyView)?
+    var gameFactsDestination: ((PublicMerchantRowID) -> AnyView)?
     var shopNpcChat = false
     // Correct future consumer: MerchantNpcApi /api/ai/npc/merchant-chat with merchant row ID.
     // Never route this public merchant card into play-node ShopNpc /shop-chat.
@@ -24,6 +27,22 @@ import SwiftUI
     @State private var loadedKey: Key?
     @State private var snapshotID = UUID()
     @State private var featuredSelection: PublicMerchantFeaturedSelection?
+    @State private var ownerSelection: PublicMerchantOwnerProfileSelection?
+    @State private var gameFactsSelection: MerchantGameFactsSelection?
+    private var gameFactsBinding: Binding<MerchantGameFactsSelection?> {
+        let captured = gameFactsSelection?.id
+        return Binding(get: { gameFactsSelection }, set: { next in
+            guard next == nil, let captured, gameFactsSelection?.id == captured else { return }
+            gameFactsSelection = nil
+        })
+    }
+    private var ownerBinding: Binding<PublicMerchantOwnerProfileSelection?> {
+        let captured = ownerSelection?.id
+        return Binding(get: { ownerSelection }, set: { next in
+            guard next == nil, let captured, ownerSelection?.id == captured else { return }
+            ownerSelection = nil
+        })
+    }
     private struct Key: Hashable { let target: PublicMerchantHomeTarget?; let scope: UUID; let configured: Bool }
     private var key: Key { .init(target: target, scope: context.reader.scope, configured: context.reader.isConfigured) }
     var body: some View {
@@ -42,7 +61,19 @@ import SwiftUI
                 destination.destination(selection.route)
             } else { Text("merchant.publicHome.unavailable") }
         }
-        .onChange(of: key) { _, _ in featuredSelection = nil }
+        .navigationDestination(item: ownerBinding) { selection in
+            if let destination = context.ownerProfile, isCurrentOwner(selection) {
+                PublicMerchantOwnerProfileDestination(selection: selection, context: destination,
+                    isCurrent: { isCurrentOwner(selection) })
+                    .id(selection.id)
+            } else { Text("merchant.publicHome.unavailable") }
+        }
+        .navigationDestination(item: gameFactsBinding) { selection in
+            if isCurrentGameFacts(selection), let destination = context.gameFactsDestination {
+                destination(selection.row).id(selection.id)
+            } else { Text("merchant.publicHome.unavailable") }
+        }
+        .onChange(of: key) { _, _ in featuredSelection = nil; ownerSelection = nil; gameFactsSelection = nil }
         .onChange(of: context.featured?.scope) { _, _ in featuredSelection = nil }
         // Preserve the link backing a pushed reviews screen; key fencing still hides stale data.
         .onDisappear { generation += 1; loading = false }
@@ -66,10 +97,36 @@ import SwiftUI
             }
             field(value.address); field(value.businessTime)
         }
+        if context.ownerProfile != nil, let target,
+           let selection = PublicMerchantOwnerProfileSelection(home: value, target: target,
+               scope: context.reader.scope, snapshot: snapshotID), canOpenOwner(selection) {
+            Section {
+                Button {
+                    guard ownerSelection == nil, canOpenOwner(selection) else { return }
+                    ownerSelection = selection
+                } label: { Label("social.profile", systemImage: "person.crop.rectangle") }
+                    .accessibilityIdentifier("merchant.publicHome.ownerProfile")
+            }
+        }
         featuredCard(value)
         if let review = value.reviewTarget, let destination = context.publicReviews {
             NavigationLink { destination(review) } label: { Label("merchant.publicHome.reviews", systemImage: "star.bubble") }
                 .accessibilityIdentifier("merchant.publicHome.reviews")
+        }
+        // Original receipts remain reachable even if the current NPC card was removed.
+        if context.gameFactsDestination != nil, let target,
+           let selection = MerchantGameFactsSelection(home: value, target: target,
+               scope: context.reader.scope, snapshot: snapshotID), canOpenGameFacts(selection) {
+            Section {
+                Button {
+                    guard gameFactsSelection == nil, canOpenGameFacts(selection) else { return }
+                    gameFactsSelection = selection
+                } label: {
+                    Label {
+                        Text(verbatim: locale.identifier.hasPrefix("zh") ? "店内内容与原回复" : "Store content and original reply")
+                    } icon: { Image(systemName: "doc.text.magnifyingglass") }
+                }.accessibilityIdentifier("merchant.publicHome.gameFacts")
+            }
         }
         if value.hasNPCIdentity, let npc = value.npc {
             Section("merchant.publicHome.npc") {
@@ -89,7 +146,7 @@ import SwiftUI
                 ForEach(Array(value.galleryItems.enumerated()), id: \.offset) { _, item in media(item, label: "merchant.publicHome.photo") }
             }.accessibilityIdentifier("merchant.publicHome.gallery")
         }
-        if !value.tagItems.isEmpty { Section("merchant.publicHome.tags") { Text(value.tagItems.joined(separator: " · ")) } }
+        if !value.tagItems.isEmpty { Section("merchant.publicHome.tags") { Text(value.tagItems.joined(separator: " · ")).fixedSize(horizontal: false, vertical: true) } }
         if value.hasCooperation {
             Section("merchant.publicHome.cooperation") {
                 if let capacity = value.capacity, capacity > 0 { LabeledContent("merchant.publicHome.capacity", value: String(capacity)) }
@@ -121,7 +178,23 @@ import SwiftUI
         return selection.isCurrent(home: home, target: target, homeScope: context.reader.scope,
                                    destinationScope: destination.scope, snapshotID: snapshotID)
     }
-    @ViewBuilder private func field(_ value: String?) -> some View { if let value, !value.isEmpty { Text(verbatim: value).textSelection(.enabled) } }
+    private func isCurrentGameFacts(_ selection: MerchantGameFactsSelection) -> Bool {
+        gameFactsSelection?.id == selection.id && canOpenGameFacts(selection)
+    }
+    private func canOpenGameFacts(_ selection: MerchantGameFactsSelection) -> Bool {
+        guard !loading, failure == nil, loadedKey == key, context.reader.isConfigured,
+              context.gameFactsDestination != nil, let home, let target else { return false }
+        return selection.matches(home: home, target: target, scope: context.reader.scope, snapshot: snapshotID)
+    }
+    private func isCurrentOwner(_ selection: PublicMerchantOwnerProfileSelection) -> Bool {
+        ownerSelection?.id == selection.id && canOpenOwner(selection)
+    }
+    private func canOpenOwner(_ selection: PublicMerchantOwnerProfileSelection) -> Bool {
+        guard !loading, failure == nil, loadedKey == key, context.reader.isConfigured,
+              context.ownerProfile != nil, let home, let target else { return false }
+        return selection.matches(home: home, target: target, scope: context.reader.scope, snapshot: snapshotID)
+    }
+    @ViewBuilder private func field(_ value: String?) -> some View { if let value, !value.isEmpty { Text(verbatim: value).textSelection(.enabled).fixedSize(horizontal: false, vertical: true) } }
     @ViewBuilder private func labeled(_ value: String?, label: LocalizedStringKey) -> some View {
         if let value, !value.isEmpty { LabeledContent(label, value: value) }
     }
@@ -135,7 +208,7 @@ import SwiftUI
         generation += 1
         let ticket = generation; let snapshot = key
         home = nil; failure = nil; loadedKey = nil; loading = true
-        snapshotID = UUID(); featuredSelection = nil
+        snapshotID = UUID(); featuredSelection = nil; ownerSelection = nil; gameFactsSelection = nil
         guard let target else { loading = false; failure = .invalid; loadedKey = snapshot; return }
         guard context.reader.isConfigured else { loading = false; failure = .notConfigured; loadedKey = snapshot; return }
         do {
@@ -171,5 +244,58 @@ struct PublicMerchantHomeBusinessStatusLabel: View {
         Label(LocalizedStringKey(localizationKey), systemImage: symbol)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("merchant.publicHome.businessStatus")
+    }
+}
+
+/// The merchant response supplies the owner identity. A merchant row is never a user ID.
+struct PublicMerchantOwnerProfileSelection: Hashable, Identifiable {
+    let id = UUID()
+    let owner: PublicMerchantOwnerID
+    let target: PublicMerchantHomeTarget
+    let scope: UUID
+    let snapshot: UUID
+    init?(home: PublicMerchantHome, target: PublicMerchantHomeTarget, scope: UUID, snapshot: UUID) {
+        guard let raw = home.memberId, let owner = PublicMerchantOwnerID(raw) else { return nil }
+        switch target {
+        case .ownerMemberID(let requested): guard requested == owner else { return nil }
+        case .legacyMerchantRowID(let row): guard home.id == row.rawValue else { return nil }
+        }
+        self.owner = owner; self.target = target; self.scope = scope; self.snapshot = snapshot
+    }
+    func matches(home: PublicMerchantHome, target: PublicMerchantHomeTarget, scope: UUID, snapshot: UUID) -> Bool {
+        guard self.target == target, self.scope == scope, self.snapshot == snapshot,
+              let current = Self(home: home, target: target, scope: scope, snapshot: snapshot) else { return false }
+        return current.owner == owner
+    }
+}
+
+@MainActor struct PublicMerchantOwnerProfileContext {
+    let makeReader: (Int) -> ProfilePublicInfoReader?
+    let squareReader: any SquareReading
+}
+
+/// Reader creation happens only in the opened destination. No social action or
+/// owner-private capability is inherited from the merchant surface.
+@MainActor private struct PublicMerchantOwnerProfileDestination: View {
+    let selection: PublicMerchantOwnerProfileSelection
+    let context: PublicMerchantOwnerProfileContext
+    let isCurrent: () -> Bool
+    @State private var reader: ProfilePublicInfoReader?
+    @State private var prepared = false
+    var body: some View {
+        Group {
+            if !isCurrent() { Text("merchant.publicHome.unavailable") }
+            else if prepared {
+                ProfilePublicInfoHost(reader: reader) { scoped in
+                    SocialPublicProfileView(memberID: selection.owner.rawValue, reader: scoped,
+                        squareReader: context.squareReader, actions: nil,
+                        isCurrent: { isCurrent() && scoped.isCurrent })
+                }
+            } else { ProgressView("social.loading") }
+        }
+        .onAppear {
+            guard !prepared, isCurrent() else { return }
+            reader = context.makeReader(selection.owner.rawValue); prepared = true
+        }
     }
 }

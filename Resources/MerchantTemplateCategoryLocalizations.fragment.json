@@ -192,13 +192,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The server returned no gameplay categories."
+          "value": "No gameplay categories available."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端暂无玩法类别。"
+          "value": "暂无玩法类别。"
         }
       }
     }
@@ -396,13 +396,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Review the selected IDs and primary category. Only server save and readback confirm the stored result."
+          "value": "Check the selected categories and primary category. The result is confirmed once saved."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "请检查分类 ID 与主分类。保存结果以服务端确认和回读为准。"
+          "value": "请检查所选分类与主分类，以保存后的结果为准。"
         }
       }
     }

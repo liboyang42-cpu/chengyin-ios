@@ -1,11 +1,18 @@
 import SwiftUI
 import MapKit
+import Observation
 
 @MainActor struct WalkingNavigationView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var model: WalkingNavigationCoordinator?
     @State private var showsSteps = false
+    @State private var savedDestination: WalkingSavedDestination?
+    @State private var checkpointFailed = false
+    @State private var power = WalkingPowerPresentation()
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var restoreReadGate = WalkingCheckpointReadGate()
+    @State private var restorationAttempted = false
     // Explicit controls adjust the camera within one authorized scope. Same-scope
     // refresh preserves manual pan; a privacy boundary discards the old viewport.
     @State private var cameraPosition: MapCameraPosition = WalkingNavigationView.neutralCamera
@@ -19,10 +26,14 @@ import MapKit
     let factory: NativeWalkingNavigationFactory
     var offline = false
     var onOpenVerification: (() -> Void)? = nil
+    var restoringDestination: WalkingSavedDestination? = nil
+    var powerPolicy = WalkingNavigationRefreshPolicy()
+    var readLowPowerMode: () -> Bool = { ProcessInfo.processInfo.isLowPowerModeEnabled }
 
     var body: some View {
         GeometryReader { geometry in
             mapContent
+                .transaction { if power.isLowPowerMode || reduceMotion { $0.animation = nil } }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 // This reduces the map's safe area; it never paints over Apple attribution.
                 .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -34,6 +45,14 @@ import MapKit
                         } else {
                             ContentUnavailableView("walking.error.unavailable", systemImage: "figure.walk")
                                 .accessibilityIdentifier("walking.unavailable")
+                            if restoringDestination != nil {
+                                let offered = restoreReadGate.ticket
+                                Text("walking.saved.restoreUnavailable").font(.footnote)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Button("walking.saved.retryRead") { restoreSavedDestination(offered) }
+                                    .disabled(offered == nil || !factory.available)
+                                    .accessibilityIdentifier("walking.saved.retryRestore")
+                            }
                         }
                     }
                     .frame(maxHeight: geometry.size.height * (typeSize.isAccessibilitySize ? 0.72 : 0.54))
@@ -42,6 +61,7 @@ import MapKit
                 }
         }
         .appNavigationTitle("walking.title")
+        .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showsSteps, onDismiss: { stepsFocused = model?.route != nil }) {
             NavigationStack {
                 if let model { WalkingStepsDetail(model: model) }
@@ -50,24 +70,49 @@ import MapKit
             .presentationDetents(typeSize.isAccessibilitySize ? [.large] : [.medium, .large])
             .presentationDragIndicator(.visible)
         }
-        .task {
-            if model == nil { model = factory.make(reference: reference) }
+        .task(id: scenePhase) {
+            guard !Task.isCancelled else { return }
+            restoreReadGate.appear(active: scenePhase == .active)
+            power.refresh(using: readLowPowerMode)
+            if model == nil {
+                if restoringDestination != nil {
+                    if !restorationAttempted { restoreSavedDestination(restoreReadGate.ticket) }
+                } else { model = factory.make(reference: reference) }
+            }
             model?.setForeground(scenePhase == .active)
             while !Task.isCancelled {
+                let tick = NativePerformanceSignposts.shared.begin(.walkingRefreshTick)
                 model?.synchronize()
                 synchronizeCamera()
                 if scenePhase == .active { await model?.update() }
                 synchronizeCamera()
-                do { try await Task.sleep(for: .seconds(3)) } catch { break }
+                tick.end()
+                let interval = powerPolicy.interval(foreground: scenePhase == .active, lowPowerMode: power.isLowPowerMode)
+                do { try await Task.sleep(for: .seconds(interval)) } catch { break }
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .NSProcessInfoPowerStateDidChange)) { _ in
+            power.refresh(using: readLowPowerMode)
         }
         .onChange(of: model?.phase) { _, _ in
             if model?.route == nil { showsSteps = false }
         }
         .onChange(of: model?.cameraSnapshot) { _, _ in cameraGate.invalidate() }
         .onChange(of: model?.cameraScope) { _, _ in synchronizeCamera() }
-        .onChange(of: scenePhase) { _, value in model?.setForeground(value == .active) }
-        .onDisappear { cameraGate.invalidate(); showsSteps = false; model?.pause(); synchronizeCamera() }
+        .onChange(of: scenePhase) { _, value in
+            restoreReadGate.setActive(value == .active)
+            model?.setForeground(value == .active)
+        }
+        .onDisappear { restoreReadGate.disappear(); cameraGate.invalidate(); showsSteps = false; model?.pause(); synchronizeCamera() }
+    }
+
+    private func restoreSavedDestination(_ offered: UUID?) {
+        guard restoreReadGate.accepts(offered), model == nil, let restoringDestination,
+              factory.savedDestinationIsCurrent(restoringDestination) else { return }
+        restorationAttempted = true
+        model = restoreReadGate.restore(offered, saved: restoringDestination, factory: factory)
+        if model != nil { savedDestination = restoringDestination }
+        // The restored model remains ready. This local read never calls start or update.
     }
 
     @ViewBuilder private var mapContent: some View {
@@ -79,7 +124,7 @@ import MapKit
                     .accessibilityValue(Text(verbatim: "cameraAction=\(cameraAction)"))
                     #endif
             } else {
-                ContentUnavailableView("walking.mapPending", systemImage: "map", description: Text("walking.safety"))
+                ContentUnavailableView("walking.mapPending", systemImage: "map")
             }
         } else if let model, isCameraScopeCurrent(model) {
             // A map first appears only after an already-authorized route is supplied.
@@ -89,9 +134,11 @@ import MapKit
                 if let snapshot = model.cameraSnapshot {
                     let route = snapshot.route
                     let target = snapshot.target
-                    MapPolyline(coordinates: route.coordinates.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
+                    // Convert once per render; casing and route share the same geometry.
+                    let coordinates = route.coordinates.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+                    MapPolyline(coordinates: coordinates)
                         .stroke(QuestifyMapAppearance.routeCasing, lineWidth: 9)
-                    MapPolyline(coordinates: route.coordinates.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
+                    MapPolyline(coordinates: coordinates)
                         .stroke(QuestifyMapAppearance.route, lineWidth: 5)
                     Marker(target.title, coordinate: .init(latitude: target.coordinate.point.latitude, longitude: target.coordinate.point.longitude))
                 }
@@ -103,7 +150,7 @@ import MapKit
                 .id(retainedCameraScope?.id)
                 .accessibilityIdentifier("walkingCamera.map")
         } else {
-            ContentUnavailableView("walking.mapPending", systemImage: "map", description: Text("walking.safety"))
+            ContentUnavailableView("walking.mapPending", systemImage: "map")
         }
     }
 
@@ -137,6 +184,8 @@ import MapKit
             Button {
                 // Query the live coordinator at action time, even before a scope-change
                 // render arrives. Old buttons cannot focus a revoked or replaced route.
+                let interval = NativePerformanceSignposts.shared.begin(.walkingCameraFit)
+                defer { interval.end() }
                 guard isCameraScopeCurrent(model) else { synchronizeCamera(); return }
                 guard let request, let fit = cameraGate.consume(request, current: model.cameraSnapshot) else {
                     synchronizeCamera(); return
@@ -154,14 +203,11 @@ import MapKit
                 .disabled(request == nil)
                 .accessibilityHint(Text("walkingCamera.focusHint"))
                 .accessibilityIdentifier(key)
-            if request == nil {
-                Text("walkingCamera.unavailable").font(.footnote)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
         }
     }
 
     @ViewBuilder private func actions(_ model: WalkingNavigationCoordinator) -> some View {
+        WalkingPowerNotice(presentation: power)
         if isCameraScopeCurrent(model), model.cameraSnapshot != nil {
             cameraControl(model, action: .route)
             cameraControl(model, action: .target)
@@ -173,18 +219,36 @@ import MapKit
         }
         if model.phase == .nearDestination, let onOpenVerification {
             Button("walking.openVerification", action: onOpenVerification)
-                .buttonStyle(.borderedProminent).frame(minHeight: 44)
+                .buttonStyle(.questifyPrimary).frame(minHeight: 44)
         }
         if model.phase.mayStart {
-            Button { Task { await model.start() } } label: {
+            Button {
+                Task {
+                    await model.start()
+                    guard !offline, model.phase == .navigating || model.phase == .nearDestination else { return }
+                    do { savedDestination = try factory.saveDestination(from: model); checkpointFailed = false }
+                    catch { checkpointFailed = true }
+                }
+            } label: {
                 Text(LocalizedStringKey(model.phase == .ready ? "walking.start" : "walking.resume"))
-            }.buttonStyle(.borderedProminent).frame(minHeight: 44).accessibilityIdentifier("walking.start")
+            }.buttonStyle(.questifyPrimary).frame(minHeight: 44).accessibilityIdentifier("walking.start")
         }
         if model.phase.mayPause {
             Button("walking.pause") { model.pause() }
                 .buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("walking.pause")
         }
-        Button("walking.cancel") { model.cancel() }
+        if checkpointFailed {
+            Text("walking.saved.failed").font(.footnote).accessibilityIdentifier("walking.saved.failed")
+        } else if let savedDestination, factory.savedDestinationIsCurrent(savedDestination) {
+            Text("walking.saved.notice").font(.footnote).accessibilityIdentifier("walking.saved.notice")
+        }
+        Button("walking.cancel") {
+            model.cancel()
+            if let savedDestination {
+                do { try factory.removeSavedDestination(savedDestination); self.savedDestination = nil; checkpointFailed = false }
+                catch { checkpointFailed = true }
+            }
+        }
             .buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("walking.cancel")
     }
 }
@@ -216,7 +280,9 @@ import MapKit
                             if model.progress?.stepIndex == index { Label("walking.nextStep", systemImage: "arrow.turn.up.right").font(.caption) }
                             Text(verbatim: step.instruction).fixedSize(horizontal: false, vertical: true)
                             WalkingDistanceText(meters: step.distanceMeters).foregroundStyle(.secondary)
-                        }.accessibilityElement(children: .combine).accessibilityIdentifier("walking.step.\(index)")
+                        }.accessibilityElement(children: .combine)
+                            .accessibilityAddTraits(model.progress?.stepIndex == index ? .isSelected : [])
+                            .accessibilityIdentifier("walking.step.\(index)")
                     }
                 }
                 if let provider = route.provider {
@@ -225,17 +291,18 @@ import MapKit
                         ForEach(Array(provider.advisoryNotices.enumerated()), id: \.offset) { _, notice in Text(verbatim: notice) }
                     }
                 }
+            } else {
+                ContentUnavailableView("walking.error.unavailable", systemImage: "figure.walk")
+                    .accessibilityIdentifier("walking.steps.unavailable")
             }
-            Section {
-                Text("walking.safety")
-                Text("walking.arrivalBoundary")
-                Text("walking.foregroundOnly")
-            }.font(.footnote)
+            // One safety line; arrival and foreground rules are not repeated here.
+            Section { Label("walking.safety", systemImage: "exclamationmark.triangle") }.font(.footnote)
         }.accessibilityIdentifier("walking.steps.list")
             #if DEBUG
             .accessibilityValue(Text(verbatim: typeSize == .accessibility5 ? "dynamicTypeSize=accessibility5" : "dynamicTypeSize=other"))
             #endif
             .appNavigationTitle("walking.steps")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("walking.closeSteps") { dismiss() }.accessibilityIdentifier("walking.steps.close")
@@ -249,5 +316,22 @@ import MapKit
                 }
                 #endif
             }
+    }
+}
+
+/// Observes a local OS setting only. Changes never invoke a navigation action.
+@MainActor @Observable final class WalkingPowerPresentation {
+    private(set) var isLowPowerMode = false
+    func refresh(using read: () -> Bool) { isLowPowerMode = read() }
+}
+
+@MainActor struct WalkingPowerNotice: View {
+    let presentation: WalkingPowerPresentation
+    var body: some View {
+        if presentation.isLowPowerMode {
+            Label("walking.power.notice", systemImage: "battery.25percent")
+                .font(.footnote).fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("walking.power.notice")
+        }
     }
 }

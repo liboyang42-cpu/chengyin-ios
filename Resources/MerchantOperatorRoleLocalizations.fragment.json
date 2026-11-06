@@ -4,13 +4,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The server lists no permissions for this role."
+          "value": "No permissions are listed for this role."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端未列出此岗位的权限。"
+          "value": "此岗位暂无权限。"
         }
       }
     }
@@ -68,13 +68,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Empty permission code returned by the server"
+          "value": "Unnamed permission"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端返回了空权限代码"
+          "value": "未命名权限"
         }
       }
     }

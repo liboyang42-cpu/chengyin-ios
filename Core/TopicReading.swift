@@ -25,7 +25,7 @@ public struct TopicReadSession: Equatable {
     func topicList(query: TopicQuery, pageNumber: Int) async throws -> TopicPage
     func topicDetail(id: Int) async throws -> TopicDetail
 }
-@MainActor public final class TopicSessionReader: TopicReading {
+@MainActor public final class TopicSessionReader: TopicReading, TopicThemeRecordsReading {
     private let service: TopicService?
     private let currentSession: () -> TopicReadSession?
     private let onUnauthorized: (TopicReadSession) -> Void
@@ -50,6 +50,21 @@ public struct TopicReadSession: Equatable {
         guard service != nil else { throw APIError.notConfigured }
         guard currentSession() != nil else { throw APIError.unauthorized }
         return try await read { try await $0.detail(id: id, token: $1) }
+    }
+    /// Records need a signed-in session; the token never leaves this reader.
+    public func themeHistory(topicID: Int, beforeSessionID: Int?) async throws -> TopicThemeHistoryPage {
+        guard currentSession() != nil else { throw APIError.unauthorized }
+        return try await read { service, token in
+            guard let token else { throw APIError.unauthorized }
+            return try await service.themeHistory(topicID: topicID, beforeSessionID: beforeSessionID, token: token)
+        }
+    }
+    public func themeCard(sessionID: Int) async throws -> TopicThemeCard {
+        guard currentSession() != nil else { throw APIError.unauthorized }
+        return try await read { service, token in
+            guard let token else { throw APIError.unauthorized }
+            return try await service.themeCard(sessionID: sessionID, token: token)
+        }
     }
     private func read<T>(_ operation: (TopicService, String?) async throws -> T) async throws -> T {
         guard let service else { throw APIError.notConfigured }

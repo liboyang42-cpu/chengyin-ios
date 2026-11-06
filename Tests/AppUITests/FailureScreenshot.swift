@@ -24,42 +24,33 @@ func attachFixtureScreenshot(_ test:XCTestCase,app:XCUIApplication,name:String) 
 func revealFixtureElement(_ element: XCUIElement, in app: XCUIApplication,
                           towardTop: Bool = false, maximumSwipes: Int = 10,
                           requiresHittable: Bool = true) -> Bool {
-    func viewport() -> CGRect {
-        var bounds = app.frame.insetBy(dx: 4, dy: 4)
-        // A presented sheet can leave its presenter's bars in the AX tree.
-        // Structural bars need not have an activation point. Check their native
-        // action leaves instead, preferring the last (presented) container.
-        func foregroundBarFrame(_ bars: XCUIElementQuery) -> CGRect? {
-            // Identity-bound array elements become invalid during sheet transitions.
-            // Re-resolve each index and sample its frame once; never retain a bar snapshot handle.
-            for index in (0..<bars.count).reversed() {
-                let bar = bars.element(boundBy: index)
-                guard bar.exists else { continue }
-                let frame = bar.frame
-                guard !frame.isEmpty, app.frame.intersects(frame) else { continue }
-                let buttons = bar.buttons
-                var leafCount = 0
-                var hasHittableAction = false
-                for actionIndex in 0..<buttons.count {
-                    let action = buttons.element(boundBy: actionIndex)
-                    guard action.exists, action.descendants(matching: .button).count == 0 else { continue }
-                    leafCount += 1
-                    if action.isHittable { hasHittableAction = true; break }
-                }
-                if leafCount == 0 || hasHittableAction { return frame }
+    func viewport() -> (bounds: CGRect, screen: CGRect)? {
+        guard let snapshot = try? app.snapshot() else { return nil }
+        let screen = snapshot.frame
+        var bounds = screen.insetBy(dx: 4, dy: 4)
+        func descendants(_ node: any XCUIElementSnapshot) -> [any XCUIElementSnapshot] {
+            var result: [any XCUIElementSnapshot] = []
+            for child in node.children {
+                result.append(child)
+                result.append(contentsOf: descendants(child))
             }
-            return nil
+            return result
         }
-        if let frame = foregroundBarFrame(app.navigationBars) { bounds.origin.y = max(bounds.minY, frame.maxY + 4) }
-        var bottom = app.frame.maxY - 40
-        if let frame = foregroundBarFrame(app.toolbars) { bottom = min(bottom, frame.minY - 4) }
-        let keyboard = app.keyboards.firstMatch
-        if keyboard.exists { bottom = min(bottom, keyboard.frame.minY - 4) }
+        let hierarchy = descendants(snapshot)
+        // One AX generation: later in-screen bars belong to the presented layer.
+        func foregroundBarFrame(_ type: XCUIElement.ElementType) -> CGRect? {
+            hierarchy.last { $0.elementType == type && !$0.frame.isEmpty && screen.intersects($0.frame) }?.frame
+        }
+        if let frame = foregroundBarFrame(.navigationBar) { bounds.origin.y = max(bounds.minY, frame.maxY + 4) }
+        var bottom = screen.maxY - 40
+        if let frame = foregroundBarFrame(.toolbar) { bottom = min(bottom, frame.minY - 4) }
+        if let frame = foregroundBarFrame(.keyboard) { bottom = min(bottom, frame.minY - 4) }
         bounds.size.height = max(0, bottom - bounds.minY)
-        return bounds
+        return (bounds, screen)
     }
     for attempt in 0...maximumSwipes {
-        let bounds = viewport()
+        guard let geometry = viewport() else { return false }
+        let bounds = geometry.bounds, screen = geometry.screen
         var scrollTowardTop = towardTop
         if element.exists {
             let frame = element.frame
@@ -68,12 +59,12 @@ func revealFixtureElement(_ element: XCUIElement, in app: XCUIApplication,
             if fullyVisible && (!requiresHittable || element.isHittable) { return true }
             if !frame.isEmpty { scrollTowardTop = frame.midY < bounds.midY }
         }
-        guard attempt < maximumSwipes, bounds.height > 80, app.frame.height > 0 else { break }
+        guard attempt < maximumSwipes, bounds.height > 80, screen.height > 0 else { break }
         // Short gestures avoid overshooting a partly visible row and oscillating around it.
         let startFraction: CGFloat = scrollTowardTop ? 0.3 : 0.75
         let endFraction: CGFloat = scrollTowardTop ? 0.75 : 0.3
-        let startY = (bounds.minY + bounds.height * startFraction - app.frame.minY) / app.frame.height
-        let endY = (bounds.minY + bounds.height * endFraction - app.frame.minY) / app.frame.height
+        let startY = (bounds.minY + bounds.height * startFraction - screen.minY) / screen.height
+        let endY = (bounds.minY + bounds.height * endFraction - screen.minY) / screen.height
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY))
             .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: endY)))
     }

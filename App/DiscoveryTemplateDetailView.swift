@@ -6,12 +6,21 @@ struct DiscoveryTemplateDetailView: View {
     let reader: any DiscoveryReading
     let authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)?
     let authoringRevision: UInt64
+    let authoringCompletion: TemplateAuthoringCompletionContext?
     let imageReader: any RetainedPublicImageReading
-    @StateObject private var detail = DiscoveryLoader<DiscoveryPlayTemplate>()
+    @StateObject private var detail = DiscoveryLoader<DiscoveryPlayTemplateRead>()
     @State private var galleryScope = UUID()
     @State private var loadedKey: RequestKey?
     @State private var readerChange: UInt64 = 0
-    private struct RequestKey: Equatable {
+    @State private var adoption: Adoption?
+    private struct Adoption: Identifiable, Hashable {
+        let id = UUID()
+        let source: DiscoveryPlayTemplate
+        let key: RequestKey
+        static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
+        func hash(into hasher: inout Hasher) { hasher.combine(id) }
+    }
+    private struct RequestKey: Hashable {
         let id: Int
         let reader: ObjectIdentifier
         let scope: String
@@ -23,9 +32,10 @@ struct DiscoveryTemplateDetailView: View {
                      authoringRevision: authoringRevision)
     }
 
-    init(id: Int, reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil) {
+    init(id: Int, reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil) {
         self.id = id; self.reader = reader; self.authoringFactory = authoringFactory; self.authoringRevision = authoringRevision
         self.imageReader = imageReader ?? RetainedPublicImageReader()
+        self.authoringCompletion = authoringCompletion
     }
 
     var body: some View {
@@ -36,29 +46,39 @@ struct DiscoveryTemplateDetailView: View {
                 ProgressView("discovery.loading")
             } else if let error = detail.error {
                 DiscoveryErrorView(error: error) { Task { await reload() } }
-            } else if let item = detail.value {
+            } else if let read = detail.value {
+                let item = read.template
+                let parity = read.extras != nil ? DiscoveryPlayTemplateDetailPresentation(read, ownScope: false) : nil
                 List {
+                    // Mini-program `xb-head` then `xb-cta`: title and publisher, then 应用 right under them.
                     Section {
                         DiscoveryTitle(text: item.title, fallback: "discovery.untitledPlay").font(.title2.bold())
                         DiscoveryPlayMetadata(item: item)
+                        if authoringFactory != nil {
+                            Button {
+                                guard loadedKey == requestKey, reader.isConfigured,
+                                      authoringCompletion?.isCurrent() != false else { return }
+                                adoption = Adoption(source: item, key: requestKey)
+                            } label: { Label("templateAuthor.adopt", systemImage: "doc.on.doc").frame(maxWidth: .infinity, minHeight: 44) }
+                                .buttonStyle(.questifyPrimary)
+                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                                .accessibilityIdentifier("templateAuthor.adopt")
+                        }
                     }
                     DiscoveryPlayTemplatePresentationView(presentation: .init(item), scope: galleryScope, imageReader: imageReader)
                     textSection("discovery.introduction", text: item.description)
                     textSection("discovery.rules", text: item.ruleInstructions)
-                    textSection("discovery.materials", text: item.requiredMaterials)
                     textSection("discovery.location", text: item.usageLocation)
-                    if let verification = item.verification {
-                        Section("discovery.verification") { Text(verification.label) }
-                    }
-                    if let authoringFactory {
-                        Section {
-                            NavigationLink {
-                                TemplateAuthoringView(coordinator: authoringFactory(item), sessionRevision: authoringRevision, metadataReader: reader)
-                            } label: { Label("templateAuthor.adopt", systemImage: "doc.on.doc") }
-                                .accessibilityIdentifier("templateAuthor.adopt")
+                    if let parity {
+                        // Carries 怎么验证, 分类与适用场景, 所需物料, 评价 and the 不能直接开团 notice.
+                        if parity.materialChips.isEmpty { textSection("discovery.materials", text: item.requiredMaterials) }
+                        DiscoveryTemplateDetailParitySections(presentation: parity)
+                    } else {
+                        textSection("discovery.materials", text: item.requiredMaterials)
+                        if let verification = item.verification {
+                            Section("discovery.verification") { Text(verification.label) }
                         }
                     }
-                    Section { Text("discovery.readOnlyHint").font(.footnote).foregroundStyle(.secondary) }
                 }
                 .refreshable { await reload() }
                 .accessibilityIdentifier("discovery.detail.content")
@@ -68,6 +88,16 @@ struct DiscoveryTemplateDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task(id: requestKey) { if reader.isConfigured { await reload() } }
         .onReceive(reader.discoveryPresentationChanges) { readerChange &+= 1 }
+        .onChange(of: requestKey) { _, _ in adoption = nil }
+        .navigationDestination(item: $adoption) { selected in
+            if let authoringFactory {
+                DiscoveryTemplateAdoptionDestination(factory: { authoringFactory(selected.source) },
+                    sessionRevision: selected.key.authoringRevision, metadataReader: reader, completion: authoringCompletion,
+                    isCurrent: { adoption?.id == selected.id && loadedKey == selected.key &&
+                        requestKey == selected.key && reader.isConfigured })
+                    .id(selected.id)
+            }
+        }
     }
     @ViewBuilder private func textSection(_ title: LocalizedStringKey, text: String?) -> some View {
         if let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -78,13 +108,50 @@ struct DiscoveryTemplateDetailView: View {
         let requested = requestKey
         galleryScope = UUID(); loadedKey = nil
         await detail.load {
-            let value = try await reader.discoveryPlayTemplate(id: requested.id)
+            let read = try await reader.discoveryPlayTemplateRead(id: requested.id)
             guard !Task.isCancelled, requested.scope == reader.discoveryPresentationIdentity else { throw CancellationError() }
+            let value = read.template
             guard value.id == requested.id else { throw APIError.malformedResponse }
-            return value
+            return read
         }
         guard !Task.isCancelled, requested == requestKey else { return }
         loadedKey = requested
+    }
+}
+
+/// StateObject's deferred factory creates exactly one coordinator for this pushed visit.
+/// Re-rendering a detail must not reopen the adopted draft or replace a pending request.
+@MainActor final class DiscoveryTemplateAdoptionOwner: ObservableObject {
+    let coordinator: TemplateAuthoringCoordinator
+    init(factory: () -> TemplateAuthoringCoordinator) { coordinator = factory() }
+}
+
+@MainActor struct DiscoveryTemplateAdoptionDestination: View {
+    let sessionRevision: UInt64
+    let metadataReader: any DiscoveryReading
+    let completion: TemplateAuthoringCompletionContext?
+    let isCurrent: () -> Bool
+    @StateObject private var owner: DiscoveryTemplateAdoptionOwner
+    init(factory: @escaping () -> TemplateAuthoringCoordinator, sessionRevision: UInt64,
+         metadataReader: any DiscoveryReading, completion: TemplateAuthoringCompletionContext?,
+         isCurrent: @escaping () -> Bool) {
+        self.sessionRevision = sessionRevision; self.metadataReader = metadataReader
+        self.completion = completion; self.isCurrent = isCurrent
+        _owner = StateObject(wrappedValue: DiscoveryTemplateAdoptionOwner(factory: factory))
+    }
+    var body: some View {
+        Group {
+            if isCurrent(), completion?.isCurrent() != false {
+                if let completion {
+                    TemplateAuthoringSaveFlow(coordinator: owner.coordinator, sessionRevision: sessionRevision,
+                        metadataReader: metadataReader, imageSelectionApproved: { false }, library: completion.library)
+                        .modifier(TemplateAuthoringPublishCompletion(coordinator: owner.coordinator, library: completion.library))
+                } else {
+                    // A standalone read/fixture caller has no authority to construct an owned shelf.
+                    TemplateAuthoringView(coordinator: owner.coordinator, sessionRevision: sessionRevision, metadataReader: metadataReader)
+                }
+            } else { Text("discovery.templateSessionChanged") }
+        }.accessibilityIdentifier("templateAuthor.adoptionFlow")
     }
 }
 
@@ -110,9 +177,8 @@ struct DiscoveryTopicTemplatePreview: View {
                         optionalText(item.subtitle)
                         TopicTotalStops(count: item.locationCount, identifier: "discovery.publicTotalStops")
                         if let count = item.templateCount { LabeledContent("discovery.publicGames", value: String(count)) }
-                        if let seconds = item.totalTime { LabeledContent("discovery.publicSeconds", value: String(seconds)) }
-                        optionalText(item.addressName)
-                        optionalText(item.version)
+                        if let seconds = item.totalTime { LabeledContent("discovery.publicSeconds") { TopicXcxDurationText(seconds: seconds) } }
+                        // Topic templates have no venue (mini-program topic-detail shows no address) and no version label.
                     }
                     if let text = item.description, !text.isEmpty { Section("discovery.introduction") { Text(text) } }
                     if let text = item.playerPromise, !text.isEmpty { Section("discovery.playerPromise") { Text(text) } }
@@ -161,7 +227,6 @@ struct DiscoveryTopicTemplatePreview: View {
                     if item.chapters.isEmpty && item.games.isEmpty {
                         Section { Text("discovery.publicEmpty") }
                     }
-                    Section { Text("discovery.publicProjectionHint").font(.footnote).foregroundStyle(.secondary) }
                 }
                 .refreshable { await detail.load() }
                 .accessibilityIdentifier("discovery.topicPreview.content")

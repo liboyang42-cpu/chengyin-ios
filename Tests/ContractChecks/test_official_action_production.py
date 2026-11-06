@@ -64,7 +64,8 @@ class OfficialActionProductionChecks(unittest.TestCase):
         self.assertIn('case .arrival, .inviteMerchants: return nil', source)
         self.assertIn('case .arrival, .inviteMerchants: throw OfficialActionFailure.disabled', source)
         app = self.read('App/OfficialEventDetailView.swift')
-        self.assertIn('OfficialParticipationActions(coordinator: actions, event: event)', app)
+        self.assertIn('OfficialParticipationActions(coordinator: actions, event: event, onReturn: {', app)
+        self.assertNotIn('arrival:', app)
 
     def test_required_runtime_cases_are_authored(self):
         tests = self.read('Tests/CoreTests/OfficialActionProductionTests.swift')

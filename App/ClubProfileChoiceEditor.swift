@@ -13,6 +13,15 @@ import SwiftUI
         session = .init(context: context, draft: .init(kind: kind, source: source))
     }
     func close() { session = nil }
+    func close(expectedID: UUID) {
+        guard session?.id == expectedID else { return }
+        session = nil
+    }
+    func presentationBinding(for expected: Session, isCurrent: @escaping () -> Bool) -> Binding<Bool> {
+        Binding(get: { self.session == expected && isCurrent() }, set: { presented in
+            if !presented { self.close(expectedID: expected.id) }
+        })
+    }
     func apply(_ edited: ClubProfileChoiceDraft, session expected: Session, current: ClubOperationsDraft,
                isCurrent: (ClubProfileChoiceContext) -> Bool) -> ClubOperationsDraft? {
         guard session == expected, edited.kind == expected.draft.kind, edited.source == expected.draft.source,
@@ -27,7 +36,7 @@ import SwiftUI
     @Binding var draft: ClubOperationsDraft
     let context: ClubProfileChoiceContext?
     let isCurrent: (ClubProfileChoiceContext) -> Bool
-    @StateObject private var controller = ClubProfileChoiceController()
+    @ObservedObject var controller: ClubProfileChoiceController
     @Environment(\.scenePhase) private var scenePhase
     private var available: Bool { scenePhase == .active && context.map(isCurrent) == true }
     var body: some View {
@@ -46,23 +55,40 @@ import SwiftUI
                 }
             }
         }.disabled(!available).accessibilityIdentifier("club.profileChoice.open." + kind.rawValue)
-        .sheet(item: Binding(get: { controller.session }, set: { if $0 == nil { controller.close() } })) { session in
-            NavigationStack {
-                ClubProfileChoiceEditor(session: session, isCurrent: { available && context == session.context && isCurrent(session.context) }, cancel: { controller.close() }) { edited in
-                    guard available, context == session.context,
-                          let next = controller.apply(edited, session: session, current: draft, isCurrent: isCurrent) else { return false }
-                    draft = next; return true
-                }
-            }.presentationDetents([.medium, .large])
-        }
-        .onChange(of: context) { _, _ in controller.close() }
-        .onChange(of: available) { _, ready in if !ready { controller.close() } }
-        .onChange(of: draft) { _, _ in controller.close() }
-        .onDisappear { controller.close() }
     }
     @ViewBuilder private func choiceLabel(_ value: String, catalog: [String]) -> some View {
-        if catalog.contains(value) { Text(LocalizedStringKey("club.ops.value." + value)).font(.subheadline) }
-        else { Text(verbatim: value).font(.subheadline) }
+        if catalog.contains(value) { Text(LocalizedStringKey("club.ops.value." + value)).font(.subheadline).fixedSize(horizontal: false, vertical: true) }
+        else { Text(verbatim: value).font(.subheadline).fixedSize(horizontal: false, vertical: true) }
+    }
+}
+
+/// A concrete session owns presentation at the stable workspace, outside lazy form rows.
+@MainActor struct ClubProfileChoicePresentationOwner: View {
+    @ObservedObject var controller: ClubProfileChoiceController
+    let session: ClubProfileChoiceController.Session
+    @Binding var draft: ClubOperationsDraft
+    let context: ClubProfileChoiceContext?
+    let isCurrent: (ClubProfileChoiceContext) -> Bool
+    private var current: Bool {
+        controller.session == session && context == session.context &&
+            draft == session.draft.source && isCurrent(session.context)
+    }
+    var body: some View {
+        Color.clear.frame(width: 0, height: 0)
+            .sheet(isPresented: controller.presentationBinding(for: session, isCurrent: { current }),
+                   onDismiss: { controller.close(expectedID: session.id) }) {
+                NavigationStack {
+                    ClubProfileChoiceEditor(session: session, isCurrent: { current },
+                        cancel: { controller.close(expectedID: session.id) }) { edited in
+                        guard current,
+                              let next = controller.apply(edited, session: session, current: draft, isCurrent: isCurrent) else { return false }
+                        draft = next; return true
+                    }
+                }.presentationDetents([.medium, .large])
+            }
+            .onChange(of: current, initial: true) { _, valid in
+                if !valid { controller.close(expectedID: session.id) }
+            }
     }
 }
 
@@ -87,16 +113,16 @@ import SwiftUI
                         HStack { Text(LocalizedStringKey("club.ops.value." + value)); Spacer(); if draft.type == value { Image(systemName: "checkmark") } }
                     }.accessibilityAddTraits(draft.type == value ? .isSelected : [])
                 }
-                if !draft.type.isEmpty, !ClubOperationsCatalog.types.contains(draft.type) { Text(verbatim: draft.type) }
+                if !draft.type.isEmpty, !ClubOperationsCatalog.types.contains(draft.type) { Text(verbatim: draft.type).fixedSize(horizontal: false, vertical: true) }
             } else {
-                Text("club.ops.directionsHint").font(.footnote)
+                Text("club.ops.directionsHint").font(.footnote).fixedSize(horizontal: false, vertical: true)
                 ForEach(ClubOperationsCatalog.directions, id: \.self) { value in
                     Toggle(LocalizedStringKey("club.ops.value." + value), isOn: Binding(get: { draft.directions.contains(value) }, set: { enabled in
                         guard isCurrent(), enabled != draft.directions.contains(value) else { return }
                         _ = draft.toggleDirection(value); failed = false
                     })).disabled(!draft.directions.contains(value) && draft.directions.count >= 3)
                 }
-                ForEach(draft.directions.filter { !ClubOperationsCatalog.directions.contains($0) }, id: \.self) { Text(verbatim: $0) }
+                ForEach(draft.directions.filter { !ClubOperationsCatalog.directions.contains($0) }, id: \.self) { Text(verbatim: $0).fixedSize(horizontal: false, vertical: true) }
             }
             if failed || !draft.isValid { Text("club.profileChoice.unavailable").accessibilityIdentifier("club.profileChoice.failure") }
         }

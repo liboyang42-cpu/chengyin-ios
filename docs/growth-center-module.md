@@ -89,7 +89,7 @@ Exact reads:
 - POST `api/growth/center`, `{}`
 - POST `api/play/growth`, `{}`
 - POST `api/play/my-completed`, `{}`
-- POST `api/growth/leaderboard`, `{metric: point|exp, period: total|week, limit: 1|50}`
+- POST `api/growth/leaderboard`, form fields `metric=point|exp`, `period=total|week`, `limit=1|50` (I07, 2026-10-19: the backend binds `LeaderboardQueryDTO` without `@RequestBody` and the mini-program sends a form; a JSON body silently fell back to point/total, so week/exp tabs were refused as mismatches). An unranked `me` (null/non-positive rank) drops the source's placeholder `score: 0` and `TOP100%`; see `GrowthLeaderboardStanding`.
 
 The overview loads all four independently and concurrently. Ordinary failures stay in their own sections. Any unauthorized sibling rejects the complete private result; cancelled or stale readers cannot forward a logout callback. The source score card uses `leaderboard.me.score`, not `center.points`; the fixture intentionally sets those to different values. Completed topics are counted from distinct positive topic IDs; `topicId=0` never adds a topic. A null personal rank is unranked, never rank zero. Missing numeric facts stay nil; real zero stays zero. The leaderboard refuses a metric/period response mismatching the requested filter, and UI result visibility is bound to both scope and query.
 

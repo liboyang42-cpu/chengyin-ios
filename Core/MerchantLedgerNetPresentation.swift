@@ -22,3 +22,37 @@ public struct MerchantLedgerNetPresentation: Equatable {
         }
     }
 }
+
+/// Independent first-page reads. This projection is never a complete ledger or a monetary aggregate.
+public struct MerchantLedgerRefundPreview: Equatable {
+    public struct Page: Equatable, Identifiable {
+        public let bucket: MerchantAftercareBucket
+        public let rows: [MerchantBusinessRecord]
+        public let hasMore: Bool
+        public let failed: Bool
+        public var id: String { bucket.rawValue }
+        public init(bucket: MerchantAftercareBucket, snapshot: MerchantBusinessSnapshot?, access: MerchantBusinessAccess) throws {
+            self.bucket = bucket
+            guard let snapshot else { rows = []; hasMore = false; failed = true; return }
+            guard snapshot.access == access, access.allows("merchant:aftercare:read"),
+                  snapshot.document.query == .aftercare(bucket, page: 1),
+                  snapshot.document.rows.allSatisfy({ $0.kind == .refund }) else { throw MerchantBusinessFailure.stale }
+            rows = snapshot.document.rows; hasMore = snapshot.document.hasMore; failed = false
+        }
+        public func rowIdentity(_ row: MerchantBusinessRecord) -> String { "aftercare:" + bucket.rawValue + ":" + row.id }
+    }
+    public let included: Bool
+    public let loading: Bool
+    public let pages: [Page]
+    public init(included: Bool, loading: Bool = false, pages: [Page] = []) {
+        self.included = included; self.loading = loading; self.pages = pages
+    }
+    public static func buckets(filter: String) -> [MerchantAftercareBucket] {
+        switch MerchantRedemptionFilter(rawValue: filter) {
+        case .all: return [.pending, .processing, .completed]
+        case .pending: return [.pending, .processing]
+        case .handled: return [.completed]
+        case .noCash, nil: return []
+        }
+    }
+}

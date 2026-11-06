@@ -4,7 +4,9 @@ import Observation
 import FoundationNetworking
 #endif
 
-public enum CouponCodeFailure: Error, Equatable { case disabled, invalid, expired, unavailable, unauthorized, failed, stale, mediaUnavailable }
+/// `serviceDisabled` is the server saying code issuance is switched off (source code 503);
+/// `disabled` stays the local build gate where no request was sent.
+public enum CouponCodeFailure: Error, Equatable { case disabled, invalid, expired, unavailable, unauthorized, failed, stale, mediaUnavailable, serviceDisabled }
 public struct CouponCodeSession: Equatable {
     public let accountID: Int
     public let epoch: UInt64
@@ -77,6 +79,7 @@ public struct CouponCodeReceipt: Decodable {
         try Task.checkCancellation()
         if status == 401 { throw CouponCodeFailure.unauthorized }
         if status == 410 { throw CouponCodeFailure.unavailable }
+        if status == 503 { throw CouponCodeFailure.serviceDisabled }
         guard (200..<300).contains(status) else { throw CouponCodeFailure.failed }
         return try JSONDecoder().decode(CouponCodeEnvelope.self, from: data).data
     }
@@ -88,6 +91,8 @@ public struct CouponCodeReceipt: Decodable {
         } catch APIError.unauthorized { throw CouponCodeFailure.unauthorized }
         catch OrderLifecycleFailure.unavailable { throw CouponCodeFailure.unavailable }
         catch APIError.httpStatus(410) { throw CouponCodeFailure.unavailable }
+        catch APIError.httpStatus(503) { throw CouponCodeFailure.serviceDisabled }
+        catch OrderLifecycleFailure.response(code: 503, message: _) { throw CouponCodeFailure.serviceDisabled }
     }
     public func image(_ receipt: CouponCodeReceipt) async throws -> Data {
         guard enabled, let url = receipt.imageURL, let host = url.host, approvedImageHosts.contains(host.lowercased()) else { throw CouponCodeFailure.mediaUnavailable }
@@ -104,6 +109,7 @@ public struct CouponCodeReceipt: Decodable {
             let code = try c.decode(Int.self, forKey: .code)
             if code == 401 { throw CouponCodeFailure.unauthorized }
             if code == 410 { throw CouponCodeFailure.unavailable }
+            if code == 503 { throw CouponCodeFailure.serviceDisabled }
             guard code == 200 else { throw CouponCodeFailure.failed }
             data = try c.decode(CouponCodeReceipt.self, forKey: .data)
         }
@@ -128,7 +134,7 @@ public struct CouponCodeReceipt: Decodable {
 
 @available(macOS 14.0, *)
 @MainActor @Observable public final class CouponCodeCoordinator {
-    public enum Phase: String { case review, loading, ready, waiting, failed, disabled, login, used, expired, invalid, unavailable, stale, paused }
+    public enum Phase: String { case review, loading, ready, waiting, failed, disabled, login, used, expired, invalid, unavailable, stale, paused, serviceDisabled }
     public let historyID: Int
     public private(set) var phase: Phase = .review
     public private(set) var receipt: CouponCodeReceipt?
@@ -326,6 +332,7 @@ public struct CouponCodeReceipt: Decodable {
                 guard current(stamp), now() < deadline else { return }; imageBytes = bytes
             }
             guard current(stamp) else { return }; phase = .ready; pollDelayed = false
+            if nextPoll == .distantFuture { nextPoll = now().addingTimeInterval(5) }
         } catch { fail(error, stamp: stamp, polling: false) }
     }
     private func poll(presentation expected: CouponCodePresentationPermit? = nil) async {
@@ -355,6 +362,10 @@ public struct CouponCodeReceipt: Decodable {
             terminal = true; generation &+= 1; receipt = nil; imageBytes = nil; expiry = nil; remainingSeconds = 0
             self.polling = false; issuing = false; phase = failure == .unavailable ? .unavailable : .login; issue = failure
             if failure == .unauthorized, let owner { onUnauthorized(owner) }
+        } else if failure == .serviceDisabled {
+            // Source parity: stop refresh and polling until the person explicitly retries.
+            receipt = nil; imageBytes = nil; expiry = nil; remainingSeconds = 0; pollDelayed = false
+            nextIssue = .distantFuture; nextPoll = .distantFuture; phase = .serviceDisabled; issue = failure
         } else if polling { pollDelayed = true }
         else { phase = .failed; issue = failure; nextIssue = now().addingTimeInterval(5) }
     }

@@ -1,0 +1,1782 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "cityRules.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published public rules"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发布公开规则"
+          }
+        }
+      }
+    },
+    "cityRules.entry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read published rules and participation requirements"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看已发布规则与参与要求"
+          }
+        }
+      }
+    },
+    "cityRules.boundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the complete published rule text and the public policies from this exact frozen version. Viewing them does not join a team, accept an offer or authorize any game action."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整查看当前冻结版本的已发布规则原文与公开政策。查看不会加入队伍、接受报价或授权任何游戏动作。"
+          }
+        }
+      }
+    },
+    "cityRules.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading current rules…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取当前规则…"
+          }
+        }
+      }
+    },
+    "cityRules.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh this version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新当前版本"
+          }
+        }
+      }
+    },
+    "cityRules.back": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to selected board"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回已选棋盘"
+          }
+        }
+      }
+    },
+    "cityRules.identity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exact published version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前发布版本"
+          }
+        }
+      }
+    },
+    "cityRules.eligibility.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your current participation facts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人的当前参与状态"
+          }
+        }
+      }
+    },
+    "cityRules.noActionGrant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team confirmation is not permission to act. Each action still requires its own current rules, evidence, budget and explicit confirmation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍确认不等于获准执行动作。每项动作仍须检查其当前规则、证据、预算及明确确认。"
+          }
+        }
+      }
+    },
+    "cityRules.excluded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private budgets, permission matrices, source references, hidden targets, answer keys and verification settings are not disclosed here. This is not a personal quote. Monetary amounts are shown in their published minor currency units."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此页不公开内部资金预算、权限矩阵、来源引用、隐藏目标、答案或校验设置。这里不是个人报价；货币金额按已发布的最小货币单位显示。"
+          }
+        }
+      }
+    },
+    "cityRules.phase.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published rules are unavailable. No cached rule text or eligibility is being used. Return to the board and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发布规则暂不可用，不会使用缓存规则或旧资格。请返回棋盘后重试。"
+          }
+        }
+      }
+    },
+    "cityRules.phase.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The board, release or your participation has changed. Return to refresh and explicitly select the current board if needed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "棋盘、规则版本或本人参与状态已变化。请返回刷新，必要时重新明确选择当前棋盘。"
+          }
+        }
+      }
+    },
+    "cityRules.phase.notPublished": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There is no current published board. Return to the board selector."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前没有已发布棋盘，请返回棋盘选择页。"
+          }
+        }
+      }
+    },
+    "cityRules.phase.accessWithdrawn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Access to these rules has been withdrawn. Previous content has been cleared."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前规则读取权限已失效，旧内容已清除。"
+          }
+        }
+      }
+    },
+    "cityRules.disclosure.NOT_CONFIGURED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This optional policy is not configured in this frozen version. No default is assumed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前冻结版本未配置此可选政策，不推断默认值。"
+          }
+        }
+      }
+    },
+    "cityRules.disclosure.NOT_PUBLISHED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This version does not publish an effective start/end interval. Being readable now does not establish permanent validity."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前版本未发布生效起止时段；当前可读不代表永久有效。"
+          }
+        }
+      }
+    },
+    "cityRules.disclosure.INTERNAL_BUDGET_ONLY": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current schema stores internal settlement budgets, not public player settlement terms. This does not establish an available settlement service."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前结构仅保存内部结算预算，未提供可公开的玩家结算条款；不代表已开放结算服务。"
+          }
+        }
+      }
+    },
+    "cityRules.disclosure.CONTEXTUAL_READ_ONLY": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use the existing task or map entry for currently permitted details. This rules page does not reveal hidden content or grant access to a location."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请从现有任务或地图入口查看当前获准的详情。规则页不会解锁隐藏内容或授予现实地点进入权。"
+          }
+        }
+      }
+    },
+    "cityRules.eligibility.NOT_CONFIGURED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No published participation policy is configured for this board."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前棋盘未配置已发布参与政策。"
+          }
+        }
+      }
+    },
+    "cityRules.eligibility.PREVIOUS_RELEASE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your retained participation belongs to a different release. It cannot authorize participation under these rules."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人保留的参与记录属于其他发布版本，不能用来取得当前规则下的参与资格。"
+          }
+        }
+      }
+    },
+    "cityRules.eligibility.NO_QUALIFICATION": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No participation record exists for you in this published round. Reading this page will not create one."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人在当前已发布回合中没有参与记录；查看本页不会自动创建记录。"
+          }
+        }
+      }
+    },
+    "cityRules.eligibility.ABSENT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are currently absent from the original participation unit. The published reentry policy still applies."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人当前已退出原参与单元；重进仍须遵守已发布的原会话恢复政策。"
+          }
+        }
+      }
+    },
+    "cityRules.eligibility.FORMING": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The team roster is still forming. The captain must lock it before members can confirm."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍仍在组建。须先由队长锁定名单，再由成员各自确认。"
+          }
+        }
+      }
+    },
+    "cityRules.eligibility.CONFIRMATION_REQUIRED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The roster is locked, but your personal confirmation is still required."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍名单已锁定，但本人尚未完成确认。"
+          }
+        }
+      }
+    },
+    "cityRules.eligibility.TEAM_WAITING": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your personal confirmation is recorded, but the team is not currently ready."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人已确认，但队伍当前尚未就绪。"
+          }
+        }
+      }
+    },
+    "cityRules.eligibility.MEMBERSHIP_CONFIRMED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your membership and the current team session are confirmed. This is not a gameplay authorization."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人参与记录与当前队伍会话已确认。这不构成游戏动作授权。"
+          }
+        }
+      }
+    },
+    "cityRules.section.rules": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published rule text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发布规则全文"
+          }
+        }
+      }
+    },
+    "cityRules.section.protection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protection and challenge"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保护与挑战"
+          }
+        }
+      }
+    },
+    "cityRules.section.safety": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Safety statement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安全声明"
+          }
+        }
+      }
+    },
+    "cityRules.section.dice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published dice configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发布骰子配置"
+          }
+        }
+      }
+    },
+    "cityRules.section.pointCost": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published acquisition cost"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发布取得成本"
+          }
+        }
+      }
+    },
+    "cityRules.section.serviceFee": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published service fee"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发布服务费"
+          }
+        }
+      }
+    },
+    "cityRules.section.participation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Participation and team policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与及队伍政策"
+          }
+        }
+      }
+    },
+    "cityRules.section.actionBudget": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Action budget policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "行动预算政策"
+          }
+        }
+      }
+    },
+    "cityRules.section.acquisition": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acquisition policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "经营权取得政策"
+          }
+        }
+      }
+    },
+    "cityRules.section.season": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published season"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发布赛季"
+          }
+        }
+      }
+    },
+    "cityRules.section.effectiveInterval": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effective period"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生效时段"
+          }
+        }
+      }
+    },
+    "cityRules.section.settlement": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement disclosure"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算披露"
+          }
+        }
+      }
+    },
+    "cityRules.section.taskDetails": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Task detail boundary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任务详情边界"
+          }
+        }
+      }
+    },
+    "cityRules.section.locationDetails": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location detail boundary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地点详情边界"
+          }
+        }
+      }
+    },
+    "cityRules.field.rulesId": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rule identifier"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "规则标识"
+          }
+        }
+      }
+    },
+    "cityRules.field.text": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发布原文"
+          }
+        }
+      }
+    },
+    "cityRules.field.challengeId": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Challenge identifier"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "挑战标识"
+          }
+        }
+      }
+    },
+    "cityRules.field.statement": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "声明"
+          }
+        }
+      }
+    },
+    "cityRules.field.diceId": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dice identifier"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "骰子标识"
+          }
+        }
+      }
+    },
+    "cityRules.field.faces": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faces, in published order"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "骰面（按发布顺序）"
+          }
+        }
+      }
+    },
+    "cityRules.field.weights": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Relative weights, matching face order"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "相对权重（与骰面顺序对应）"
+          }
+        }
+      }
+    },
+    "cityRules.field.unit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "单位"
+          }
+        }
+      }
+    },
+    "cityRules.field.amount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amount"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金额或积分数"
+          }
+        }
+      }
+    },
+    "cityRules.field.currency": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Currency"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "币种"
+          }
+        }
+      }
+    },
+    "cityRules.field.amountMinor": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amount in minor currency units"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最小货币单位金额"
+          }
+        }
+      }
+    },
+    "cityRules.field.mode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mode"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模式"
+          }
+        }
+      }
+    },
+    "cityRules.field.minMembers": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimum members"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最少人数"
+          }
+        }
+      }
+    },
+    "cityRules.field.maxMembers": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum members"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多人数"
+          }
+        }
+      }
+    },
+    "cityRules.field.joinPolicy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Joining policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入政策"
+          }
+        }
+      }
+    },
+    "cityRules.field.rosterPolicy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roster consent policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名单确认政策"
+          }
+        }
+      }
+    },
+    "cityRules.field.replacementPolicy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replacement policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成员替换政策"
+          }
+        }
+      }
+    },
+    "cityRules.field.reentryPolicy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reentry policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重进政策"
+          }
+        }
+      }
+    },
+    "cityRules.field.roundPolicy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Round policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回合政策"
+          }
+        }
+      }
+    },
+    "cityRules.field.roundId": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Round"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回合"
+          }
+        }
+      }
+    },
+    "cityRules.field.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scope"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作用域"
+          }
+        }
+      }
+    },
+    "cityRules.field.totalUnits": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published total action units"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发布行动总量"
+          }
+        }
+      }
+    },
+    "cityRules.field.rollCost": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Action units per roll"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每次掷骰行动消耗"
+          }
+        }
+      }
+    },
+    "cityRules.field.acquisitionCost": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Action units per acquisition"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每次取得行动消耗"
+          }
+        }
+      }
+    },
+    "cityRules.field.refillPolicy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refill policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "补充政策"
+          }
+        }
+      }
+    },
+    "cityRules.field.chargeTiming": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Charge timing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消耗时点"
+          }
+        }
+      }
+    },
+    "cityRules.field.actionKind": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supported action"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支持的动作"
+          }
+        }
+      }
+    },
+    "cityRules.field.resultPolicy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result effect policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果生效政策"
+          }
+        }
+      }
+    },
+    "cityRules.field.evidenceAcceptance": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accepted evidence type"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接受的证据类型"
+          }
+        }
+      }
+    },
+    "cityRules.field.evidencePolicy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evidence policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "证据政策"
+          }
+        }
+      }
+    },
+    "cityRules.field.evidenceAcceptanceReason": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published evidence explanation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发布证据说明"
+          }
+        }
+      }
+    },
+    "cityRules.field.releasePolicy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Release policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本政策"
+          }
+        }
+      }
+    },
+    "cityRules.field.maxHoldingsPerTeam": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum holdings per team"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每队持有上限"
+          }
+        }
+      }
+    },
+    "cityRules.field.termSeconds": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Term in seconds"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "期限（秒）"
+          }
+        }
+      }
+    },
+    "cityRules.field.quoteValidSeconds": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quote validity in seconds"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报价有效期（秒）"
+          }
+        }
+      }
+    },
+    "cityRules.field.termPolicy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Term expiry policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到期政策"
+          }
+        }
+      }
+    },
+    "cityRules.field.pausePolicy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停政策"
+          }
+        }
+      }
+    },
+    "cityRules.field.seasonId": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Season"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "赛季"
+          }
+        }
+      }
+    },
+    "cityRules.field.boardId": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Board"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "棋盘"
+          }
+        }
+      }
+    },
+    "cityRules.field.rulesReleaseId": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rules release"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "规则发布标识"
+          }
+        }
+      }
+    },
+    "cityRules.field.revision": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修订版本"
+          }
+        }
+      }
+    },
+    "cityRules.field.rulesHash": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen content hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结内容哈希"
+          }
+        }
+      }
+    },
+    "cityRules.field.teamId": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original team"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原队伍"
+          }
+        }
+      }
+    },
+    "cityRules.field.teamVersion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍版本"
+          }
+        }
+      }
+    },
+    "cityRules.field.sessionId": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原会话"
+          }
+        }
+      }
+    },
+    "cityRules.field.memberCount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roster count"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名单人数"
+          }
+        }
+      }
+    },
+    "cityRules.field.presentCount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Present members"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前在队人数"
+          }
+        }
+      }
+    },
+    "cityRules.field.confirmedCount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmed members"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已确认人数"
+          }
+        }
+      }
+    },
+    "cityRules.value.CITY_TEAM": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CITY participation unit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城市参与单元"
+          }
+        }
+      }
+    },
+    "cityRules.value.INVITE_CODE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Join with an invite code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过邀请码加入"
+          }
+        }
+      }
+    },
+    "cityRules.value.CAPTAIN_LOCK_THEN_EACH_MEMBER_CONFIRM": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captain locks the roster, then each member confirms"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队长锁定名单后，由每位成员各自确认"
+          }
+        }
+      }
+    },
+    "cityRules.value.FORBIDDEN_AFTER_LOCK": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No replacement after roster lock"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "锁定名单后不可替换成员"
+          }
+        }
+      }
+    },
+    "cityRules.value.RESUME_ORIGINAL_SESSION": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume the original session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复原会话"
+          }
+        }
+      }
+    },
+    "cityRules.value.FIXED_PUBLISHED_ROUND": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use the fixed published round"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用已发布的固定回合"
+          }
+        }
+      }
+    },
+    "cityRules.value.TEAM_ROUND": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team and round"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍与回合"
+          }
+        }
+      }
+    },
+    "cityRules.value.ACTION": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Action units"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "行动单位"
+          }
+        }
+      }
+    },
+    "cityRules.value.POINT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personal points"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个人积分"
+          }
+        }
+      }
+    },
+    "cityRules.value.MINOR": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minor currency units"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最小货币单位"
+          }
+        }
+      }
+    },
+    "cityRules.value.NONE_WITHIN_ROUND": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No refill within the round"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回合内不补充"
+          }
+        }
+      }
+    },
+    "cityRules.value.COMMITTED_DICE_RESULT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When the dice result is committed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "骰子结果正式提交时消耗"
+          }
+        }
+      }
+    },
+    "cityRules.value.COMMITTED_ACTION_EFFECT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When the action effect is committed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "动作效果正式提交时消耗"
+          }
+        }
+      }
+    },
+    "cityRules.value.DICE_ROLL": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dice roll"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "掷骰"
+          }
+        }
+      }
+    },
+    "cityRules.value.DICE_ROLL_AND_ACQUIRE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dice roll and acquisition"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "掷骰及取得经营权"
+          }
+        }
+      }
+    },
+    "cityRules.value.RECORD_ONLY_NO_EFFECTS": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record only; no automatic effects"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅记录，不自动产生效果"
+          }
+        }
+      }
+    },
+    "cityRules.value.DICE_RECORD_ONLY_ACQUISITION_EXPLICIT_CONFIRM": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dice records only; acquisition requires explicit confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "掷骰仅记录；取得经营权须明确确认"
+          }
+        }
+      }
+    },
+    "cityRules.value.TASK_ACTOR_SELF_PAY_FOR_ORIGINAL_TEAM_UNOWNED_ONLY": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The task actor pays personally for the original team, for unowned points only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任务执行者为原队伍本人自付，仅限无主点位"
+          }
+        }
+      }
+    },
+    "cityRules.value.CURRENT_FROZEN_RELEASE_ONLY": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current frozen release only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅限当前冻结版本"
+          }
+        }
+      }
+    },
+    "cityRules.value.MERCHANT_ATTESTED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant-attested evidence"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商户确认的到场证据"
+          }
+        }
+      }
+    },
+    "cityRules.value.ORIGINAL_TASK_EVIDENCE_VALID_AT_CONFIRM": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original task evidence must remain valid at confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认时原任务证据仍须有效"
+          }
+        }
+      }
+    },
+    "cityRules.value.RETAIN_TITLE_PENDING_REVIEW": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retain title pending review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留经营权并等待审核"
+          }
+        }
+      }
+    },
+    "cityRules.value.FREEZE_TERM_REVIEW_BEFORE_RESUME": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Freeze the term; review before resuming"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停期限，审核后再恢复"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

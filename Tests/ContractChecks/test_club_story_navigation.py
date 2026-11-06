@@ -35,7 +35,23 @@ class ClubStoryNavigationContractTests(unittest.TestCase):
                                    (answer, 'selectedAnswer?.id == target.id, !current(target)', 'selectedAnswer = nil')]:
             self.assertIn('.onChange(of: sourceRevision, initial: true)', body)
             self.assertLess(body.index(guard), body.index(clear))
-        self.assertIn('.task(id: context)', answer)
+        self.assertIn('.task(id: reloadContext)', answer)
+        self.assertIn('context.viewerRevision == templates.viewerRevision', view)
+        self.assertIn('sourceIsCurrent: sourceIsCurrent, viewerRevision: templates.viewerRevision', view)
+        trigger = view.split('private var reloadContext: ClubGovernanceReadContext', 1)[1].split('var body: some View', 1)[0]
+        for field in ['operation: context.operation', 'scope: context.scope', 'identity: context.identity',
+                      'viewerRevision: templates.viewerRevision', 'authorizationGeneration: context.authorizationGeneration',
+                      'readerIdentity: context.readerIdentity', 'accessIdentity: context.accessIdentity']:
+            self.assertIn(field, trigger)
+        self.assertNotIn('snapshotGeneration', trigger)
+        self.assertNotIn('loading', trigger)
+        selection = self.text('App/ClubStoryViews.swift').split('struct ClubStoryTemplateSelection:', 1)[1].split('struct ClubStoryEmptyState:', 1)[0]
+        self.assertIn('context.viewerRevision == templates.viewerRevision', selection)
+        self.assertIn('viewerRevision = templates.viewerRevision', selection)
+        self.assertIn('templates.viewerRevision == viewerRevision', selection)
+        unit = self.text('Tests/AppUnitTests/ClubStoryNavigationTests.swift')
+        self.assertIn('let refreshedTemplates = templates(reader, viewerRevision: 2)', unit)
+        self.assertIn('snapshotGeneration: 5, templates: refreshedTemplates', unit)
         self.assertIn('if !sourceIsCurrent { await reload() }', answer)
         self.assertIn('sourceIsCurrent && selection.isCurrent(snapshot: snapshot', view)
     def test_all_fixture_transitions_fit_without_horizontal_scroll(self):

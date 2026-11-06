@@ -55,13 +55,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This saved club-lead setting is not supported by this editor. It is preserved read-only and blocks a full submission."
+            "value": "This club setting can't be edited here. It stays as it is, and the full form can't be submitted."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此已存俱乐部承接设置暂不受本编辑器支持。原值只读保留，完整提交已阻止。"
+            "value": "此俱乐部承接设置暂不支持在此编辑，将保持原样，且无法提交完整表单。"
           }
         }
       }

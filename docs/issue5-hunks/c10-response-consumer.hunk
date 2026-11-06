@@ -1,0 +1,21 @@
+not applied
+00283573f530de134caf9461d2f707d85b0ef303 has no product type that holds a CreateSession response.
+AppSession.swift has no parentOrigin, shellURL, or launchTicket. It is not edited.
+H5LaunchProducer.EntryLaunch holds parentOrigin, nonce, and shellURL. It has no launchTicket.
+H5LaunchDescription holds parentOrigin and nonce. It has no shellURL and no launchTicket.
+H5ShellBinding does not store a response. APIConfiguration is not a shell host.
+A local UUID is not a server ticket. No URL, path, nonce, host, or domain is invented.
+This hunk is not applied. Swift and HTTP are NOT_RUN. The shell is not connected.
+
+The helpers are already defined in Core/H5ShellBinding.swift:
+    H5ShellBinding.keptOrigin(_:ticket:)
+    H5ShellBinding.openExistingShell(parentOrigin:shellURL:launchTicket:parent:)
+openExistingShell calls keptOrigin and then H5ShellParentFlow.open once.
+A missing parentOrigin, shellURL, or launchTicket stays nil and is not filled.
+
+single call, not applied, because no holder stores the three values:
+    _ = H5ShellBinding.openExistingShell(
+        parentOrigin: parentOrigin,
+        shellURL: shellURL,
+        launchTicket: launchTicket,
+        parent: &parent)

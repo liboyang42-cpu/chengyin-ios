@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Inject an observable session adapter; this view deliberately does not own root navigation.
 @MainActor
@@ -15,7 +16,14 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
     var cooperationFlowReader: (any CoopFlowReading)? = nil
     var engagementReader: (any MerchantEngagementReading)? = nil
     var exportRecovery: (any MerchantExportRecoveryStoring)? = nil
+    var showsRecordLinks = true
+    var predictionReader: MerchantPredictionReader? = nil
+    @Environment(\.merchantAccessObserver) private var merchantAccessObserver
     @StateObject private var access = MerchantLoadModel<MerchantAccess>()
+    @StateObject private var dashboard = MerchantLoadModel<MerchantDashboard>()
+    @StateObject private var todo = MerchantLoadModel<MerchantTodo>()
+    @StateObject private var events = MerchantLoadModel<[MerchantEvent]>()
+    @State private var childReturnRevision: UInt64 = 0
 
     var body: some View {
         ZStack {
@@ -25,7 +33,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                 ContentUnavailableView("merchant.title", systemImage: "person.crop.circle.badge.exclamationmark", description: Text("merchant.signIn"))
             } else if access.loadedRevision == reader.sessionRevision, let identity = access.value {
                 if identity.active {
-                    MerchantWorkbench(reader: reader, access: identity, marketingModel: marketingModel, marketingDestination: marketingDestination, operationsReader: operationsReader, operationsDestinationFactory: operationsDestinationFactory, businessReader: businessReader, businessJournal: businessJournal, contentService: contentService, cooperationFlowReader: cooperationFlowReader, engagementReader: engagementReader, exportRecovery: exportRecovery, refreshAccess: reload)
+                    MerchantWorkbench(reader: reader, access: identity, marketingModel: marketingModel, marketingDestination: marketingDestination, operationsReader: operationsReader, operationsDestinationFactory: operationsDestinationFactory, businessReader: businessReader, businessJournal: businessJournal, contentService: contentService, cooperationFlowReader: cooperationFlowReader, engagementReader: engagementReader, exportRecovery: exportRecovery, showsRecordLinks: showsRecordLinks, predictionReader: predictionReader, refreshAccess: reload, dashboard: dashboard, todo: todo, events: events, onChildReturn: { childReturnRevision &+= 1 })
                         .id("\(reader.sessionRevision):\(identity.merchantID ?? 0):\(identity.role?.rawValue ?? "")")
                 } else {
                     List {
@@ -33,7 +41,6 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                             if let name = identity.merchantName, !name.isEmpty { Text(name).font(.headline) }
                             Text(LocalizedStringKey(identity.application?.titleKey ?? "merchant.access.inactive"))
                                 .accessibilityIdentifier("merchant.access.inactive")
-                            Text("merchant.access.inactiveHint").foregroundStyle(.secondary)
                         }
                         if let openApplication {
                             Button("merchant.onboarding.openApplication", action: openApplication)
@@ -50,17 +57,73 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
             }
         }
         .appNavigationTitle("merchant.title")
-        .task(id: reader.sessionRevision) { await reload() }
+        .task(id: [reader.sessionRevision, childReturnRevision]) { await reload() }
     }
     private func reload() async {
+        await Self.refreshWorkbenchOnChildReturn(accessModel: access, dashboard: dashboard, todo: todo, events: events,
+            reader: reader, businessReader: businessReader, observer: merchantAccessObserver)
+    }
+
+    @discardableResult
+    static func reloadAccess(
+        into access: MerchantLoadModel<MerchantAccess>,
+        reader: Reader,
+        observer: MerchantAccessObservationHook
+    ) async -> MerchantLoadDisposition {
         // The old grant is not usable while access is being checked again.
-        await access.load(reader: reader, discardOldValue: true) { try await reader.merchantAccess() }
+        let observationToken = observer.begin()
+        let disposition = await access.load(reader: reader, discardOldValue: true) { try await reader.merchantAccess() }
+        if disposition == .completed, !access.isLoading, let observationToken {
+            observer.complete(observationToken, access.value, access.errorKey)
+        }
+        return disposition
+    }
+
+    @discardableResult
+    static func refreshWorkbenchOnChildReturn(
+        accessModel: MerchantLoadModel<MerchantAccess>,
+        dashboard: MerchantLoadModel<MerchantDashboard>,
+        todo: MerchantLoadModel<MerchantTodo>,
+        events: MerchantLoadModel<[MerchantEvent]>,
+        reader: Reader,
+        businessReader: (any MerchantBusinessReading)?,
+        observer: MerchantAccessObservationHook
+    ) async -> MerchantLoadDisposition {
+        dashboard.clear(); todo.clear(); events.clear()
+        let disposition = await reloadAccess(into: accessModel, reader: reader, observer: observer)
+        guard disposition == .completed,
+              reader.isConfigured,
+              reader.isSignedIn,
+              accessModel.loadedRevision == reader.sessionRevision,
+              let identity = accessModel.value,
+              identity.active else {
+            return disposition
+        }
+        let revision = reader.sessionRevision
+        func current() -> Bool {
+            !Task.isCancelled && reader.isConfigured && reader.isSignedIn && reader.sessionRevision == revision &&
+                !accessModel.isLoading && accessModel.loadedRevision == revision && accessModel.value == identity
+        }
+        guard current() else { return .cancelled }
+        if identity.canReadDashboard {
+            await dashboard.load(reader: reader) { try await reader.merchantDashboard(access: identity) }
+            guard current() else { return .cancelled }
+        }
+        if identity.isOwner || identity.canReadAftercare {
+            await MerchantWorkbenchTodoLoader.load(into: todo, reader: reader, access: identity, businessReader: businessReader)
+            guard current() else { return .cancelled }
+        }
+        if identity.isOwner {
+            await events.load(reader: reader) { try await reader.merchantEvents(access: identity) }
+        }
+        return current() ? disposition : .cancelled
     }
 }
 
 @MainActor
 private struct MerchantWorkbench<Reader: MerchantReading>: View {
     @Environment(\.locale) private var locale
+    @Environment(\.merchantCoopCenterDestination) private var coopCenterDestination
     @ObservedObject var reader: Reader
     let access: MerchantAccess
     let marketingModel: MerchantMarketingCoordinator?
@@ -73,92 +136,210 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     let cooperationFlowReader: (any CoopFlowReading)?
     let engagementReader: (any MerchantEngagementReading)?
     let exportRecovery: (any MerchantExportRecoveryStoring)?
+    let showsRecordLinks: Bool
+    let predictionReader: MerchantPredictionReader?
     let refreshAccess: () async -> Void
-    @StateObject private var dashboard = MerchantLoadModel<MerchantDashboard>()
-    @StateObject private var todo = MerchantLoadModel<MerchantTodo>()
-    @StateObject private var events = MerchantLoadModel<[MerchantEvent]>()
+    @ObservedObject var dashboard: MerchantLoadModel<MerchantDashboard>
+    @ObservedObject var todo: MerchantLoadModel<MerchantTodo>
+    @ObservedObject var events: MerchantLoadModel<[MerchantEvent]>
+    let onChildReturn: () -> Void
+
+    private var aftercareRoute: MerchantWorkbenchBusinessRoute? {
+        guard access.canReadAftercare, let businessReader, let businessJournal else { return nil }
+        return MerchantWorkbenchBusinessRoute(shortcut: .aftercare, reader: businessReader, journal: businessJournal)
+    }
+
+    /// Signed-in member id, not the merchant archive id. Coordinates stay nil:
+    /// a refused location still queries candidates with topicId alone.
+    private func chapterReplacementContext(access: MerchantAccess) -> MerchantChapterReplacementHostContext? {
+        guard let contentService, let actor = (reader as? AppSession)?.account?.id, actor > 0 else { return nil }
+        let scope: ChapterReplacementInvitationScope = (access.isOwner && access.allows(.projects)) ? .merchant : .currentMember
+        return MerchantChapterReplacementHostContext(
+            makeEffects: { contentService.chapterReplacementInvitationEffects(scope: scope, publisherProof: $0) },
+            actorAccountID: actor, scope: scope, merchantAccess: access,
+            loadPublisherProof: { topic in
+                await contentService.chapterReplacementPublisherProof(topicID: topic, actorAccountID: actor, access: access)
+            },
+            coordinates: nil)
+    }
+    private func customerQueryDestination(source: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore)
+        -> (@MainActor (MerchantCustomerAppliedQuery) -> AnyView)? {
+        guard let engagementReader, let exportRecovery else { return nil }
+        let revision = reader.sessionRevision, merchant = access.merchantID
+        return { selection in
+            AnyView(MerchantCustomerQueryDestinationView(root: reader, source: source, engagement: engagementReader,
+                journal: journal, exports: exportRecovery, selection: selection, revision: revision, merchantID: merchant))
+        }
+    }
+    @Environment(\.nativeVerificationDestination) private var nativeVerificationDestination
+    @State private var quickRoute: MerchantWorkbenchBusinessRoute?
+    @State private var showsScan = false
+
+    private var quickShortcuts: [MerchantWorkbenchBusinessShortcut] {
+        guard let businessReader, let businessJournal else { return [] }
+        return [.customers, .finance].filter {
+            $0.isVisible(for: access) && MerchantWorkbenchBusinessRoute(shortcut: $0, reader: businessReader, journal: businessJournal) != nil
+        }
+    }
+    private var showsScanAction: Bool { access.allows(.verify) && nativeVerificationDestination != nil }
 
     var body: some View {
+        // Source pages/merchant/index order: hero (name, revenue), quick actions (scan, customers,
+        // finance), due reminders, projects, then the remaining tools ("更多") and recent activity.
         List {
             Section {
                 Text(access.merchantName.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.store",locale:locale))
-                    .font(.headline).accessibilityIdentifier("merchant.store.name")
-                if let role = access.role { Text(LocalizedStringKey(role.titleKey)).foregroundStyle(.secondary) }
-                Text("merchant.readOnly").font(.footnote).foregroundStyle(.secondary)
-            }
-            if let marketingModel {
-                // Source merchant tools expose this entry. Visibility is separate from service/AI/settlement grants.
-                Section { MerchantMarketingEntry(model: marketingModel, isSourceVisible: true, suggestionDestination: marketingDestination,
-                    recommendationOrigin: .init(merchantID: access.merchantID, readerScope: operationsReader?.scope)) }
-            }
-            if let operationsReader {
-                Section {
-                    NavigationLink {
-                        MerchantOperationsHomeView(reader: operationsReader, destinationFactory: operationsDestinationFactory).id(operationsReader.scope)
-                    } label: { Label("merchant.operations.title", systemImage: "slider.horizontal.3") }
-                    .accessibilityIdentifier("merchant.operations.open")
+                    .font(.title3.weight(.semibold))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier("merchant.store.name")
+                if access.canReadDashboard {
+                    MerchantSectionState(model: dashboard, retry: { Task { await loadDashboard() } }) { value in
+                        QuestifyHeroValue(value: Text(MerchantMoney.display(value.revenue)).monospacedDigit(), caption: Text("merchant.revenue"))
+                            .accessibilityElement(children: .combine)
+                            .accessibilityIdentifier("merchant.dashboard.revenue")
+                    }
                 }
             }
-            if let businessReader, let businessJournal {
+            if showsScanAction || !quickShortcuts.isEmpty {
                 Section {
+                    HStack(alignment: .top, spacing: Theme.Space.s2) {
+                        if showsScanAction {
+                            QuestifyRoundAction(title: "merchant.workbench.scan", systemImage: "qrcode.viewfinder") { showsScan = true }
+                                .accessibilityIdentifier("merchant.workbench.scan")
+                        }
+                        ForEach(quickShortcuts) { shortcut in
+                            QuestifyRoundAction(title: LocalizedStringKey(shortcut.shortTitleKey), systemImage: shortcut.symbol) {
+                                if let businessReader, let businessJournal {
+                                    quickRoute = MerchantWorkbenchBusinessRoute(shortcut: shortcut, reader: businessReader, journal: businessJournal)
+                                }
+                            }
+                            .accessibilityIdentifier("merchant.workbench.direct." + shortcut.rawValue)
+                        }
+                    }
+                    .padding(.vertical, Theme.Space.s1)
+                }
+            }
+            MerchantWorkbenchReminders(todo: todo, access: access,
+                aftercareRoute: aftercareRoute,
+                predictionReader: predictionReader)
+            if access.isOwner || access.canReadAftercare {
+                Section("merchant.todo") {
+                    MerchantSectionState(model: todo, retry: { Task { await loadTodo() } }) { value in
+                        if !value.hasPendingWork { Text("merchant.todo.empty").foregroundStyle(.secondary) }
+                        if access.isOwner, value.pendingVerify > 0 { MerchantCountRow("merchant.todo.verify", value: value.pendingVerify) }
+                        if access.isOwner, value.pendingScanConfirm > 0 { MerchantCountRow("merchant.todo.scan", value: value.pendingScanConfirm) }
+                        if access.isOwner, value.pendingOrders > 0 { MerchantCountRow("merchant.todo.orders", value: value.pendingOrders) }
+                        if access.canReadAftercare, value.refundCount > 0 {
+                            if let aftercareRoute {
+                                NavigationLink(value: aftercareRoute) {
+                                    MerchantCountRow("merchant.todo.refunds", value: value.refundCount)
+                                }.accessibilityIdentifier("merchant.todo.aftercareEntry")
+                            } else {
+                                MerchantCountRow("merchant.todo.refunds", value: value.refundCount)
+                            }
+                        }
+                        if access.isOwner, access.allows(.projects), value.pendingPredict > 0 { MerchantPredictionWorkbenchAlert(pending: value.pendingPredict) }
+                        if access.isOwner, value.verifiedCount > 0 { MerchantCountRow("merchant.todo.verified", value: value.verifiedCount) }
+                    }
+                }
+            }
+            if showsRecordLinks && (access.allows(.orders) || access.allows(.projects)) {
+                Section("merchant.records") {
+                    if access.allows(.orders) {
+                        NavigationLink {
+                            MerchantOrdersView(reader: reader)
+                                .onDisappear(perform: onChildReturn)
+                        } label: { Label("merchant.orders", systemImage: "receipt") }
+                            .accessibilityIdentifier("merchant.orders.entry")
+                    }
+                    if access.allows(.projects) {
+                        NavigationLink {
+                            MerchantProjectsView(reader: reader, contentService: contentService)
+                                .onDisappear(perform: onChildReturn)
+                        } label: { Label("merchant.projects", systemImage: "calendar") }
+                            .accessibilityIdentifier("merchant.projects.entry")
+                    }
+                }
+            } else if !access.isOwner && !access.canReadAftercare {
+                Text("merchant.access.noReadSurfaces").foregroundStyle(.secondary)
+            }
+            // Source "更多" sheet plus the remaining tools, as one native group. A section with no visible rows renders nothing.
+            Section("merchant.workbench.more") {
+                if let aftercareRoute {
+                    NavigationLink(value: aftercareRoute) {
+                        Label(LocalizedStringKey(MerchantWorkbenchBusinessShortcut.aftercare.query.titleKey), systemImage: MerchantWorkbenchBusinessShortcut.aftercare.symbol)
+                    }.accessibilityIdentifier("merchant.workbench.direct.aftercare")
+                }
+                if let businessReader, let businessJournal {
                     NavigationLink {
                         MerchantBusinessHomeView(reader: businessReader, journal: businessJournal)
                             .environment(\.merchantAftercareEvidenceDependencies, aftercareEvidenceDependencies(journal: businessJournal))
+                            .environment(\.merchantCustomerQueryDestination, customerQueryDestination(source: businessReader, journal: businessJournal))
                             .id(businessReader.scope)
+                            .onDisappear(perform: onChildReturn)
                     } label: { Label("merchant.business.title", systemImage: "building.2.crop.circle") }
                         .accessibilityIdentifier("merchant.business.open")
                 }
-            }
-            if let engagementReader, let businessJournal, let exportRecovery {
-                Section {
+                if let marketingModel {
+                    // Source merchant tools expose this entry. Visibility is separate from service/AI/settlement grants.
+                    MerchantMarketingEntry(model: marketingModel, isSourceVisible: true, suggestionDestination: marketingDestination,
+                        recommendationOrigin: .init(merchantID: access.merchantID, readerScope: operationsReader?.scope))
+                }
+                if let operationsReader {
+                    NavigationLink {
+                        MerchantOperationsHomeView(reader: operationsReader, destinationFactory: operationsDestinationFactory)
+                            .id(operationsReader.scope)
+                            .onDisappear(perform: onChildReturn)
+                    } label: { Label("merchant.operations.title", systemImage: "slider.horizontal.3") }
+                    .accessibilityIdentifier("merchant.operations.open")
+                }
+                if let engagementReader, let businessJournal, let exportRecovery {
                     NavigationLink {
                         MerchantEngagementHomeView(reader: engagementReader, journal: businessJournal,
                             exportRecovery: exportRecovery, businessReader: businessReader)
                             .id(engagementReader.scope)
+                            .onDisappear(perform: onChildReturn)
                     } label: { Label("merchant.engagement.title", systemImage: "person.2.crop.square.stack") }
                     .accessibilityIdentifier("merchant.engagement.open")
                 }
-            }
-            if let contentService {
-                Section {
+                if let contentService {
                     NavigationLink { MerchantContentHomeView(service: contentService)
                         .environment(\.merchantContentSupplyDestination, cooperationFlowReader.map { flowReader in
                             { source in AnyView(MerchantCooperationSupplyView(source: source, reader: flowReader)) }
-                        }).id(contentService.scope) } label: { Label("merchant.content.title", systemImage: "map") }
+                        })
+                        .environment(\.merchantOfferWithdrawalDestination, cooperationFlowReader.map { flowReader in
+                            let executor = (reader as? AppSession)?.offerWithdrawalExecutor
+                            return { source in AnyView(MerchantOfferWithdrawalHostView(source: source, reader: flowReader, contentService: contentService, executor: executor)) }
+                        })
+                        .environment(\.merchantChapterReplacementContext, chapterReplacementContext(access: access))
+                        .id(contentService.scope)
+                        .onDisappear(perform: onChildReturn)
+                    } label: { Label("merchant.content.title", systemImage: "map") }
                         .accessibilityIdentifier("merchant.content.open")
                 }
-            }
-            if let cooperationFlowReader {
-                Section {
-                    NavigationLink { CooperationFlowWorkbench(reader: cooperationFlowReader, operationScope: "MERCHANT") } label: { Label("coopflow.title", systemImage: "person.2") }
+                if let coopCenterDestination {
+                    NavigationLink {
+                        coopCenterDestination(.plaza, nil)
+                            .onDisappear(perform: onChildReturn)
+                    } label: { Label(mcc("merchantCoopCenter.title", locale), systemImage: "person.2.wave.2") }
+                        .accessibilityIdentifier("merchant.coopCenter.open")
+                }
+                if let cooperationFlowReader {
+                    NavigationLink {
+                        CooperationFlowWorkbench(reader: cooperationFlowReader, operationScope: "MERCHANT")
+                            .onDisappear(perform: onChildReturn)
+                    } label: { Label("merchant.workbench.coopInvites", systemImage: "envelope.badge.person.crop") }
                         .accessibilityIdentifier("merchant.cooperationFlows.open")
                 }
             }
-            if access.canReadDashboard {
-                Section("merchant.revenue") {
-                    MerchantSectionState(model: dashboard, retry: { Task { await loadDashboard() } }) { value in
-                        Text(MerchantMoney.display(value.revenue)).font(.largeTitle).monospacedDigit()
-                            .accessibilityIdentifier("merchant.dashboard.revenue")
-                        if !value.revenue7d.isEmpty {
-                            Text("merchant.revenue7d").font(.headline)
-                            ForEach(Array(value.revenue7d.enumerated()), id: \.offset) { _, point in
-                                LabeledContent(point.date, value: MerchantMoney.display(point.amount))
-                            }
-                        }
+            if access.canReadDashboard, let value = dashboard.value, !value.revenue7d.isEmpty {
+                Section("merchant.revenue7d") {
+                    ForEach(Array(value.revenue7d.enumerated()), id: \.offset) { _, point in
+                        LabeledContent(point.date, value: MerchantMoney.display(point.amount))
                     }
                 }
             }
             if access.isOwner {
-                Section("merchant.todo") {
-                    MerchantSectionState(model: todo, retry: { Task { await loadTodo() } }) { value in
-                        if !value.hasPendingWork { Text("merchant.todo.empty").foregroundStyle(.secondary) }
-                        if value.pendingVerify > 0 { MerchantCountRow("merchant.todo.verify", value: value.pendingVerify) }
-                        if value.pendingScanConfirm > 0 { MerchantCountRow("merchant.todo.scan", value: value.pendingScanConfirm) }
-                        if value.pendingOrders > 0 { MerchantCountRow("merchant.todo.orders", value: value.pendingOrders) }
-                        if value.refundCount > 0 { MerchantCountRow("merchant.todo.refunds", value: value.refundCount) }
-                        if value.verifiedCount > 0 { MerchantCountRow("merchant.todo.verified", value: value.verifiedCount) }
-                    }
-                }
                 Section("merchant.events") {
                     MerchantSectionState(model: events, retry: { Task { await loadEvents() } }) { values in
                         if values.isEmpty { Text("merchant.events.empty").foregroundStyle(.secondary) }
@@ -171,29 +352,47 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     }
                 }
             }
-            if access.allows(.orders) || access.allows(.projects) {
-                Section("merchant.records") {
-                    if access.allows(.orders) {
-                        NavigationLink { MerchantOrdersView(reader: reader) } label: { Label("merchant.orders", systemImage: "receipt") }
-                            .accessibilityIdentifier("merchant.orders.entry")
-                    }
-                    if access.allows(.projects) {
-                        NavigationLink { MerchantProjectsView(reader: reader, contentService: contentService) } label: { Label("merchant.projects", systemImage: "calendar") }
-                            .accessibilityIdentifier("merchant.projects.entry")
-                    }
-                }
-            } else if !access.isOwner {
-                Text("merchant.access.noReadSurfaces").foregroundStyle(.secondary)
+            Section {
+                Button("merchant.refreshAccess") { Task { await refreshAccess() } }
             }
-            Button("merchant.refreshAccess") { Task { await refreshAccess() } }
+        }
+        .navigationDestination(item: $quickRoute) { route in
+            if let businessReader, let businessJournal,
+               route.isCurrent(reader: businessReader, journal: businessJournal) {
+                // Source 财务 opens the settlement ledger (pages/merchant/ledger), as the business workspace does.
+                if route.shortcut == .finance {
+                    MerchantLedgerSettlementOverview(reader: route.reader)
+                        .onDisappear(perform: onChildReturn)
+                } else {
+                    MerchantBusinessPage(reader: route.reader, journal: route.journal, query: route.shortcut.query)
+                    .environment(\.merchantAftercareEvidenceDependencies, aftercareEvidenceDependencies(journal: route.journal))
+                    .environment(\.merchantCustomerQueryDestination, customerQueryDestination(source: route.reader, journal: route.journal))
+                    .id(route)
+                    .onDisappear(perform: onChildReturn)
+                }
+            } else {
+                Text("merchant.business.stale")
+            }
+        }
+        .navigationDestination(isPresented: $showsScan) {
+            if let nativeVerificationDestination {
+                nativeVerificationDestination().onDisappear(perform: onChildReturn)
+            }
+        }
+        .navigationDestination(for: MerchantWorkbenchBusinessRoute.self) { route in
+            if let businessReader, let businessJournal,
+               route.isCurrent(reader: businessReader, journal: businessJournal) {
+                MerchantBusinessPage(reader: route.reader, journal: route.journal, query: route.shortcut.query)
+                    .environment(\.merchantAftercareEvidenceDependencies, aftercareEvidenceDependencies(journal: route.journal))
+                    .environment(\.merchantCustomerQueryDestination, customerQueryDestination(source: route.reader, journal: route.journal))
+                    .id(route)
+                    .onDisappear(perform: onChildReturn)
+            } else {
+                Text("merchant.business.stale")
+            }
         }
         .refreshable { await refreshAccess() }
-        .task {
-            async let d: Void = loadDashboard()
-            async let t: Void = loadTodo()
-            async let e: Void = loadEvents()
-            _ = await (d, t, e)
-        }
+
     }
     private func aftercareEvidenceDependencies(journal: any MerchantBusinessIntentStore) -> MerchantAftercareEvidenceDependencies? {
         guard let engagementReader, let exportRecovery else { return nil }
@@ -204,12 +403,47 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
         await dashboard.load(reader: reader) { try await reader.merchantDashboard(access: access) }
     }
     private func loadTodo() async {
-        guard access.isOwner else { return }
-        await todo.load(reader: reader) { try await reader.merchantTodo(access: access) }
+        await MerchantWorkbenchTodoLoader.load(into: todo, reader: reader, access: access, businessReader: businessReader)
     }
     private func loadEvents() async {
         guard access.isOwner else { return }
         await events.load(reader: reader) { try await reader.merchantEvents(access: access) }
+    }
+}
+
+@MainActor enum MerchantWorkbenchTodoLoader {
+    static func load<Reader: MerchantReading>(
+        into model: MerchantLoadModel<MerchantTodo>,
+        reader: Reader,
+        access: MerchantAccess,
+        businessReader: (any MerchantBusinessReading)?
+    ) async {
+        guard access.isOwner || access.canReadAftercare else { return }
+        if !access.isOwner {
+            guard access.canReadAftercare,
+                  let businessReader,
+                  businessReader.isConfigured,
+                  businessReader.scope != nil else {
+                await model.load(reader: reader, discardOldValue: true) {
+                    throw APIError.notConfigured
+                }
+                return
+            }
+            let revision = reader.sessionRevision
+            await model.load(reader: reader, discardOldValue: true) {
+                let snapshot = try await businessReader.snapshot(.aftercare(.pending, page: 1), isCurrent: {
+                    reader.isConfigured && reader.isSignedIn && reader.sessionRevision == revision
+                })
+                guard snapshot.access.merchantID == access.merchantID,
+                      snapshot.access.allows("merchant:aftercare:read") else {
+                    throw MerchantBusinessFailure.denied
+                }
+                guard let total = snapshot.document.total else { throw APIError.malformedResponse }
+                return MerchantTodo(aftercareRefundCount: total)
+            }
+            return
+        }
+        await model.load(reader: reader) { try await reader.merchantTodo(access: access) }
     }
 }
 
@@ -270,3 +504,93 @@ struct MerchantFailureView: View {
         }
     }
 }
+
+/// Entry choices carry no grant. The existing page performs its own fresh authorization read.
+enum MerchantWorkbenchBusinessShortcut: String, CaseIterable, Identifiable {
+    case customers, finance, aftercare
+    var id: String { rawValue }
+    var query: MerchantBusinessQuery {
+        switch self {
+        case .customers: return .customers(.init())
+        case .finance: return .overview
+        case .aftercare: return .aftercare(.pending, page: 1)
+        }
+    }
+    /// Source quick-action labels: 客户, 财务, 退款售后.
+    var shortTitleKey: String {
+        switch self {
+        case .customers: return "merchant.workbench.customers"
+        case .finance: return "merchant.workbench.finance"
+        case .aftercare: return query.titleKey
+        }
+    }
+    var symbol: String {
+        switch self {
+        case .customers: return "person.2"
+        case .finance: return "list.bullet.rectangle"
+        case .aftercare: return "arrow.uturn.backward.circle"
+        }
+    }
+}
+
+/// Freeze the original dependencies, including authorization generation, before navigation.
+/// Leaving Home for a child does not replace this route; a changed context invalidates it.
+struct MerchantWorkbenchBusinessRoute: Hashable {
+    let shortcut: MerchantWorkbenchBusinessShortcut
+    private let value: MerchantBusinessHomeRoute
+    var reader: any MerchantBusinessReading { value.reader }
+    var journal: any MerchantBusinessIntentStore { value.journal }
+    @MainActor init?(shortcut: MerchantWorkbenchBusinessShortcut, reader: any MerchantBusinessReading,
+                     journal: any MerchantBusinessIntentStore) {
+        guard reader.isConfigured, reader.scope != nil else { return nil }
+        self.shortcut = shortcut
+        value = .init(target: .query(shortcut.query), reader: reader, journal: journal)
+    }
+    @MainActor func isCurrent(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore) -> Bool {
+        value.isCurrent(reader: reader, journal: journal)
+    }
+}
+
+@MainActor private struct MerchantCustomerQueryDestinationView<Reader: MerchantReading>: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @ObservedObject var root: Reader
+    let selection: MerchantCustomerAppliedQuery
+    let journal: any MerchantBusinessIntentStore
+    let exports: any MerchantExportRecoveryStoring
+    @StateObject private var reader: MerchantCustomerQueryReader
+    init(root: Reader, source: any MerchantBusinessReading, engagement: any MerchantEngagementReading,
+         journal: any MerchantBusinessIntentStore, exports: any MerchantExportRecoveryStoring,
+         selection: MerchantCustomerAppliedQuery, revision: UInt64, merchantID: Int?) {
+        self.root = root; self.selection = selection; self.journal = journal; self.exports = exports
+        _reader = StateObject(wrappedValue: .init(selection: selection, base: engagement, source: source, originCurrent: {
+            root.isConfigured && root.isSignedIn && root.sessionRevision == revision && merchantID == selection.merchantID
+        }))
+    }
+    var body: some View {
+        Group {
+            if reader.isCurrent {
+                MerchantEngagementHomeView(reader: reader, journal: journal, exportRecovery: exports,
+                    filter: selection.filter).id(selection.id)
+            } else { Text("merchant.business.stale") }
+        }
+        .background(MerchantCustomerQueryOwnerAnchor(reader: reader).frame(width: 0, height: 0))
+        .onAppear { if scenePhase != .active { reader.retire() } }
+        .onChange(of: scenePhase) { _, phase in if phase != .active { reader.retire() } }
+    }
+}
+
+
+/// Navigation into an existing child does not end this captured query owner.
+/// Actual owner removal does, including when a modal covers the parent.
+@MainActor struct MerchantCustomerQueryOwnerAnchor: UIViewControllerRepresentable {
+    let reader: MerchantCustomerQueryReader
+    final class Coordinator {
+        weak var reader: MerchantCustomerQueryReader?
+        init(_ reader: MerchantCustomerQueryReader) { self.reader = reader }
+    }
+    func makeCoordinator() -> Coordinator { Coordinator(reader) }
+    func makeUIViewController(context: Context) -> UIViewController { UIViewController() }
+    func updateUIViewController(_ controller: UIViewController, context: Context) {}
+    static func dismantleUIViewController(_ controller: UIViewController, coordinator: Coordinator) { coordinator.reader?.retire() }
+}
+

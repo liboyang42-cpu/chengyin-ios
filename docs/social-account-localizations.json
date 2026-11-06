@@ -41,8 +41,8 @@
   },
   {
     "key": "social.offline",
-    "en": "Offline example. All people, records and outcomes here are synthetic.",
-    "zh-Hans": "离线示例。人物、记录和结果均为虚构测试数据。"
+    "en": "Example content. People, records and outcomes here aren't real.",
+    "zh-Hans": "示例内容，人物、记录和结果均非真实。"
   },
   {
     "key": "social.loading",
@@ -167,7 +167,7 @@
   {
     "key": "social.guide.title",
     "en": "Play guide",
-    "zh-Hans": "玩法指南"
+    "zh-Hans": "城瘾玩法"
   },
   {
     "key": "social.guide.modes",
@@ -206,23 +206,23 @@
   },
   {
     "key": "social.guide.explore",
-    "en": "Explore",
-    "zh-Hans": "去探索"
+    "en": "Take a look",
+    "zh-Hans": "去看看"
   },
   {
     "key": "social.guide.information",
-    "en": "More information",
-    "zh-Hans": "更多说明"
+    "en": "Play documents",
+    "zh-Hans": "玩法文档"
   },
   {
     "key": "social.guide.empty",
-    "en": "Published guides will appear here.",
-    "zh-Hans": "玩法说明上线后会显示在这里。"
+    "en": "No play guides yet",
+    "zh-Hans": "暂无玩法说明"
   },
   {
     "key": "social.guide.removed",
-    "en": "This guide is no longer available. Go back to the guide list.",
-    "zh-Hans": "这篇说明已不可用，请返回玩法列表。"
+    "en": "This play guide is no longer available",
+    "zh-Hans": "这篇玩法说明不在了"
   },
   {
     "key": "social.guide.noContent",
@@ -331,28 +331,28 @@
   },
   {
     "key": "social.explicitActionHint",
-    "en": "This is the requested state, not a claim about the current saved state.",
-    "zh-Hans": "此处是希望设置的状态，不代表服务端当前状态。"
+    "en": "This shows the change you're requesting, not the current saved setting.",
+    "zh-Hans": "此处是你希望设置的状态，不代表当前状态。"
   },
   {
     "key": "social.toggleHint",
-    "en": "The source action toggles the existing comment like. An uncertain result must not be retried automatically.",
-    "zh-Hans": "此操作会切换评论点赞状态。结果未确认时不能自动重试。"
+    "en": "Tap to like or unlike this comment. If the result is unclear, check before trying again.",
+    "zh-Hans": "点按可点赞或取消点赞。结果不确定时，请先确认再重试。"
   },
   {
     "key": "social.reportHint",
-    "en": "Send this item to the review queue. The source endpoint accepts the item ID only, with no reason or evidence fields.",
-    "zh-Hans": "将此内容提交审核队列。源接口只接受内容编号，不接受理由或证据字段。"
+    "en": "Report this content for review. You can't add a reason or evidence.",
+    "zh-Hans": "举报此内容并提交审核，无法填写理由或上传证据。"
   },
   {
     "key": "social.followToggleHint",
-    "en": "Toggle the current follow relationship once. The server must confirm the resulting relationship; an uncertain result stays locked.",
-    "zh-Hans": "切换一次当前关注关系。结果必须由服务端确认，未确认时保留锁定。"
+    "en": "Follow or unfollow once. If the result is unclear, this stays locked until it's confirmed.",
+    "zh-Hans": "切换一次关注状态。结果未确认时将保持锁定。"
   },
   {
     "key": "social.startChatHint",
-    "en": "Request a conversation with this member. Navigation requires a positive conversation ID from the server.",
-    "zh-Hans": "请求与该用户建立会话，只有服务端返回有效会话编号后才能打开聊天。"
+    "en": "Request a chat with this member. The chat opens once the request goes through.",
+    "zh-Hans": "请求与该用户聊天，请求成功后才会打开聊天。"
   },
   {
     "key": "social.review",
@@ -376,8 +376,8 @@
   },
   {
     "key": "social.moderationHint",
-    "en": "An acknowledgement does not prove that content is published or visible. The server remains authoritative.",
-    "zh-Hans": "请求已确认不等于内容已发布或可见，最终结果以服务端为准。"
+    "en": "A received request doesn't mean the content is published or visible.",
+    "zh-Hans": "请求已收到不代表内容已发布或可见。"
   },
   {
     "key": "social.simulate",
@@ -406,13 +406,13 @@
   },
   {
     "key": "social.simulated",
-    "en": "Synthetic acknowledgement only. Nothing was sent externally.",
-    "zh-Hans": "仅为模拟确认，未向外部发送任何内容。"
+    "en": "Example only. Nothing was sent.",
+    "zh-Hans": "仅为示例，未实际发送。"
   },
   {
     "key": "social.acknowledged",
-    "en": "The server acknowledged the request. Refresh the original page for the current state.",
-    "zh-Hans": "服务端已确认请求，请刷新原页面查看最新状态。"
+    "en": "Request received. Refresh the original page to see the latest status.",
+    "zh-Hans": "请求已收到，请刷新原页面查看最新状态。"
   },
   {
     "key": "social.actions",
@@ -486,8 +486,8 @@
   },
   {
     "key": "social.media.disabled",
-    "en": "Live image loading awaits approved media origins and size-limited downloads.",
-    "zh-Hans": "线上图片加载需先确认媒体来源并验证下载大小限制。"
+    "en": "Images can't be loaded right now.",
+    "zh-Hans": "图片暂时无法加载。"
   },
   {
     "key": "social.media.purpose",

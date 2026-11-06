@@ -8,7 +8,6 @@ extension PlayKitScreen {
                 .id("\(receipt.sessionID):\(receipt.nodeID):\(receipt.version):\(receipt.card.id)")
         } else if model.phase == "submitting" {
             ProgressView("playCard.processing").accessibilityIdentifier("playCard.processing")
-            Text("playCard.serverBoundary").font(.footnote)
         } else if raw["passed"].bool == true || raw["flagged"].bool == true {
             // Completion and minting are different server facts. A refresh or a
             // failed mint may have no card; do not manufacture a successful reveal.
@@ -60,7 +59,6 @@ extension PlayKitScreen {
                         Spacer()
                         Button("objects.next") { move(1) }.accessibilityIdentifier("playCard.next")
                     }.buttonStyle(.bordered)
-                    Text("objects.framesHint").font(.caption)
                 }
                 Text(verbatim: card.title).font(.headline).accessibilityIdentifier("playCard.title")
                 if !card.caption.isEmpty { Text(verbatim: card.caption) }

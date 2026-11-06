@@ -38,11 +38,14 @@ public struct ClubManagementService {
             throw error
         }
     }
-    func perform(_ action: ClubManagementAction, clubID: Int, memberID: Int, token: String) async throws -> ClubActionReceipt {
+    func perform(_ action: ClubManagementAction, clubID: Int, memberID: Int, token: String, reviewReason: String? = nil) async throws -> ClubActionReceipt {
         let request: URLRequest
         do {
-            guard clubID > 0, memberID > 0 else { throw APIError.invalidRequest }
-            request = try makeRequest(path: action.path, fields: ["clubId": clubID, "memberId": memberID], token: token)
+            guard clubID > 0, memberID > 0, reviewReason == nil || action == .reject,
+                  ClubOpsJoinReviewReason.isDispatchable(reviewReason) else { throw APIError.invalidRequest }
+            var fields: [String: Any] = ["clubId": clubID, "memberId": memberID]
+            if let reviewReason { fields["reviewReason"] = reviewReason }
+            request = try makeRequest(path: action.path, fields: fields, token: token)
         } catch { throw ClubActionWriteError.notSent(.invalidRequest) }
         guard !Task.isCancelled else { throw ClubActionWriteError.cancelledBeforeDispatch }
         let data: Data, status: Int
@@ -59,7 +62,7 @@ public struct ClubManagementService {
         guard code == 200 else { throw ClubActionWriteError.rejected(failure) }
         return ClubActionReceipt(state: nil, message: envelope?.msg)
     }
-    private func makeRequest(path: String, fields: [String: Int], token: String) throws -> URLRequest {
+    private func makeRequest(path: String, fields: [String: Any], token: String) throws -> URLRequest {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         var request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: [:], token: token)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -116,6 +119,9 @@ public final class ClubManagementSessionAccess: ClubManagementAccess {
         guard currentSession() == session else { throw CancellationError() }
     }
     public func perform(_ action: ClubManagementAction, clubID: Int, memberID: Int, expectedIdentity: ClubReadIdentity) async throws -> ClubActionReceipt {
+        try await perform(action, clubID: clubID, memberID: memberID, reviewReason: nil, expectedIdentity: expectedIdentity)
+    }
+    public func perform(_ action: ClubManagementAction, clubID: Int, memberID: Int, reviewReason: String?, expectedIdentity: ClubReadIdentity) async throws -> ClubActionReceipt {
         guard let service else { throw ClubActionWriteError.notSent(.notConfigured) }
         guard let session = currentSession(), session.identity == expectedIdentity else { throw ClubActionWriteError.notSent(.unauthorized) }
         let fresh: ClubManagementSnapshot
@@ -123,7 +129,7 @@ public final class ClubManagementSessionAccess: ClubManagementAccess {
         catch { throw ClubActionWriteError.preflightFailed }
         guard fresh.allows(action, memberID: memberID), action != .remove || memberID != session.identity.accountID else { throw ClubActionWriteError.eligibilityChanged }
         do {
-            let receipt = try await service.perform(action, clubID: clubID, memberID: memberID, token: session.token)
+            let receipt = try await service.perform(action, clubID: clubID, memberID: memberID, token: session.token, reviewReason: reviewReason)
             guard currentSession() == session else { throw ClubActionWriteError.outcomeUnknown(.accountChanged) }
             return receipt
         } catch {

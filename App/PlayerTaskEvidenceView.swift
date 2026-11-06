@@ -9,24 +9,29 @@ import UIKit
     var device: PlayDeviceCaptureCoordinator?
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
-    @State private var manualCode = ""
     @FocusState private var manualFocused: Bool
-    @State private var command: PlayPlayerCommand?
-    @State private var review = false
-    @State private var uploadReview = false
-    @State private var issue: PlayExperienceError?
-    @State private var submitted = false
-    private var valid: Bool { !submitted && player.acceptsEvidence(target) }
+    @StateObject private var reviewOwner: PlayerTaskEvidenceReviewController
+    private var sameTarget: Bool { reviewOwner.target.id == target.id }
+    private var valid: Bool { sameTarget && reviewOwner.canInteract }
+    init(target: PlayerTaskEvidenceTarget, player: PlayPlayerGameCoordinator, device: PlayDeviceCaptureCoordinator? = nil) {
+        self.target = target; self.player = player; self.device = device
+        _reviewOwner = StateObject(wrappedValue: .init(target: target, player: player, device: device))
+    }
     var body: some View {
+        let opening = sameTarget ? reviewOwner.captureInput() : nil, outputID = device?.outputID
         Group {
             Form {
                 Section {
                     Text(target.kind == .scan ? "playerEvidence.scan.detail" : "playerEvidence.photo.detail")
                     Text("playerEvidence.serverAuthority").font(.footnote)
-                    if !valid { Text("playerEvidence.stale") }
-                    if let issue = issue ?? device?.issue { PlayExperienceIssueView(issue: issue) }
+                    if !player.acceptsEvidence(target) { Text("playerEvidence.stale") }
+                    if let issue = reviewOwner.issue ?? device?.issue { PlayExperienceIssueView(issue: issue) }
                 }
-                if target.kind == .scan { scanFields } else { photoFields }
+                if target.kind == .scan { scanFields(opening, outputID: outputID) } else { photoFields(opening, outputID: outputID) }
+                if sameTarget, let offered = reviewOwner.review {
+                    PlayerTaskEvidenceReviewCard(owner: reviewOwner, offered: offered) { clear(); dismiss() }.id(offered.id)
+                }
+                if reviewOwner.working { ProgressView("playerEvidence.working") }
             }.navigationTitle(target.kind == .scan ? "playerEvidence.scan.title" : "playerEvidence.photo.title")
                 .scrollDismissesKeyboard(.interactively)
                 .toolbar {
@@ -36,65 +41,53 @@ import UIKit
                         Button("action.done") { manualFocused = false }.accessibilityIdentifier("playerEvidence.keyboard.done")
                     }
                 }
-                .confirmationDialog("playx.review", isPresented: $review, titleVisibility: .visible) {
-                    Button("playx.submit") {
-                        guard valid, let command, player.projection?.allows(command) == true else { issue = .staleSession; return }
-                        submitted = true
-                        Task { await player.submit(command); clear(); dismiss() }
-                    }
-                    Button("playx.cancel", role: .cancel) { command = nil }
-                } message: { Text("playerEvidence.review.detail") }
-                .confirmationDialog("playerEvidence.photo.upload", isPresented: $uploadReview, titleVisibility: .visible) {
-                    Button("playerEvidence.photo.upload") { guard valid else { return }; Task { await device?.uploadPhoto() } }
-                } message: { Text("playerEvidence.photo.uploadDetail") }
         }.privacySensitive().accessibilityIdentifier("playerEvidence.sheet")
-            .onDisappear { clear() }
-            .onChange(of: scenePhase) { _, phase in if phase == .background { clear(); dismiss() } }
+            .background { PlayerTaskEvidenceRoot(owner: reviewOwner).frame(width: 0, height: 0) }
+            .onAppear { reviewOwner.appear(active: scenePhase == .active) }
+            .onDisappear { reviewOwner.disappear() }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .background { clear(); dismiss() }
+                else { reviewOwner.sceneChanged(active: phase == .active) }
+            }
+            .onChange(of: target.id) { _, _ in clear(); dismiss() }
+            .onChange(of: player.hasCurrentProjection) { _, current in if !current { clear() } }
     }
-    private var scanFields: some View {
+    private func scanFields(_ opening: PlayerTaskEvidenceReviewController.InputTicket?, outputID: UUID?) -> some View {
         Section("playerEvidence.scan.title") {
-            Button("playerEvidence.scan.camera") { Task { await device?.capture(.scan) } }
+            Button("playerEvidence.scan.camera") { Task { await reviewOwner.captureDevice(.scan, offered: opening) } }
                 .disabled(!valid || device?.supports(.scan) != true || device?.busy == true)
             if device?.supports(.scan) != true { Text("playerEvidence.deviceOff").font(.footnote) }
             if case .scan = device?.output {
                 Label("playerEvidence.scan.captured", systemImage: "checkmark.viewfinder")
-                Button("playx.review") { prepareCapturedScan() }.disabled(!valid || device?.busy == true)
+                Button("playx.review") { reviewOwner.prepareCapturedScan(outputID: outputID, offered: opening) }.disabled(!valid || device?.busy == true)
             }
-            TextField("playerEvidence.scan.manual", text: $manualCode, axis: .vertical)
+            TextField("playerEvidence.scan.manual", text: Binding(get: { sameTarget ? reviewOwner.manualText : "" }, set: { reviewOwner.updateManual($0, offered: opening) }), axis: .vertical)
                 .textInputAutocapitalization(.never).autocorrectionDisabled().disabled(!valid).focused($manualFocused)
                 .accessibilityIdentifier("playerEvidence.manual")
             Text("playerEvidence.scan.manualDetail").font(.footnote)
-            Button("playerEvidence.scan.reviewManual") { prepare(scan: manualCode) }
-                .disabled(!valid || manualCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            Button("playerEvidence.scan.reviewManual") { manualFocused = false; reviewOwner.prepareManual(reviewOwner.manualText, offered: opening) }
+                .disabled(!valid || reviewOwner.manualText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .accessibilityIdentifier("playerEvidence.manual.review")
         }
     }
-    private var photoFields: some View {
+    private func photoFields(_ opening: PlayerTaskEvidenceReviewController.InputTicket?, outputID: UUID?) -> some View {
         Section("playerEvidence.photo.title") {
-            Button("playerEvidence.photo.capture") { Task { await device?.capture(.photo) } }
+            Button("playerEvidence.photo.capture") { Task { await reviewOwner.captureDevice(.photo, offered: opening) } }
                 .disabled(!valid || device?.supports(.photo) != true || device?.busy == true)
-            Button("playerEvidence.photo.library") { Task { await device?.capture(.photo, usePhotoLibrary: true) } }
+            Button("playerEvidence.photo.library") { Task { await reviewOwner.captureDevice(.photo, library: true, offered: opening) } }
                 .disabled(!valid || device?.supportsLibraryPhotos != true || device?.busy == true)
             if device?.supports(.photo) != true { Text("playerEvidence.deviceOff").font(.footnote) }
             if valid, case .photo(let bytes, _) = device?.output, let image = UIImage(data: bytes) {
                 Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240)
                     .accessibilityLabel("playerEvidence.photo.preview")
-                Button("playerEvidence.photo.upload") { uploadReview = true }.disabled(!valid || device?.canUpload != true)
+                Button("playerEvidence.photo.upload") { reviewOwner.prepareUpload(outputID: outputID, offered: opening) }.disabled(!valid || device?.canUpload != true)
             }
             if device?.busy == true { ProgressView("playerEvidence.working") }
-            if valid, let photo = device?.reviewedPhoto() {
+            if valid, device?.reviewedPhoto(expectedOutputID: outputID) != nil {
                 Label("playerEvidence.photo.uploaded", systemImage: "checkmark.circle")
-                Button("playx.review") { prepare(photo: photo) }.disabled(!valid)
+                Button("playx.review") { reviewOwner.prepareUploadedPhoto(outputID: outputID, offered: opening) }.disabled(!valid)
             }
         }
     }
-    private func prepareCapturedScan() {
-        guard case .scan(let code) = device?.output, device?.busy == false else { return }; prepare(scan: code)
-    }
-    private func prepare(scan: String? = nil, photo: PlayCompletionEvidence? = nil) {
-        manualFocused = false
-        do { command = try player.reviewEvidence(target, scan: scan, photo: photo); issue = nil; review = true }
-        catch { issue = error as? PlayExperienceError ?? .invalidAction }
-    }
-    private func clear() { manualFocused = false; device?.cancel(); manualCode = ""; command = nil; review = false; uploadReview = false }
+    private func clear() { manualFocused = false; reviewOwner.retire() }
 }

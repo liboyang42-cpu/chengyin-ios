@@ -21,7 +21,6 @@ import SwiftUI
             } label: { Text("projectAlbumImage.choose", tableName: "ProjectAlbumImageAuthor") }
                 .buttonStyle(.borderless).disabled(opening == nil)
                 .accessibilityIdentifier("projectAlbumImage.choose." + blockID)
-            Text("projectAlbumImage.scope", tableName: "ProjectAlbumImageAuthor").font(.caption).foregroundStyle(.secondary)
             if opening == nil && original == nil {
                 Text("projectAlbumImage.unavailable", tableName: "ProjectAlbumImageAuthor").font(.caption).foregroundStyle(.secondary)
                     .accessibilityIdentifier("projectAlbumImage.unavailable." + blockID)

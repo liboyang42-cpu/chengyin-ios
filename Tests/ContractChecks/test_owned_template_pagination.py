@@ -52,3 +52,50 @@ class OwnedTemplatePagination(unittest.TestCase):
         self.assertIn('XCTAssertEqual(status.label, "This change is unresolved. Further shelf changes are locked; refreshing alone cannot confirm an unknown request.")',text)
         self.assertIn('reveal(button, in: app, requiresHittable: false); XCTAssertTrue(button.waitForExistence(timeout: 3)); XCTAssertFalse(button.isEnabled)',text)
         self.assertIn('XCTAssertFalse(app.buttons["templateAuthor.shelf.library.901"].isEnabled)',text)
+
+    def test_keyboard_empty_keyword_rereads_once_without_trim_or_second_clear(self):
+        view=read('App/TemplateAuthoringMineView.swift')
+        button=view.split('if !keyword.isEmpty {',1)[1].split('accessibilityIdentifier("templateAuthor.shelf.clearSearch")',1)[0]
+        self.assertIn('let stamp = viewRequest', button)
+        self.assertIn('keyword = ""', button)
+        self.assertEqual(button.count('refreshClearedKeyword(stamp: stamp, refreshUnfiltered: true)'), 1)
+        self.assertNotIn('await refresh()', button)
+        change=view.split('.onChange(of: keyword)',1)[1].split('.onChange(of: sessionRevision)',1)[0]
+        self.assertIn('coordinator.cancelShelfReview()', change)
+        self.assertIn('newValue.isEmpty, appliedKeyword?.isEmpty == false', change)
+        self.assertEqual(change.count('refreshClearedKeyword'), 1)
+        self.assertNotIn('trimmingCharacters', change)
+        cleared=view.split('private func refreshClearedKeyword(stamp: UUID, refreshUnfiltered: Bool = false) async {',1)[1].split('private func refresh() async {',1)[0]
+        self.assertIn('guard stamp == viewRequest, keyword.isEmpty, !Task.isCancelled else { return }', cleared)
+        self.assertIn('guard refreshUnfiltered || appliedKeyword?.isEmpty == false else { return }', cleared)
+        self.assertEqual(cleared.count('await refresh()'), 1)
+        refresh=view.split('private func refresh() async {',1)[1]
+        self.assertLess(refresh.index('let stamp = UUID(); viewRequest = stamp'), refresh.index('await coordinator.shelfReader.refresh(keyword: keyword)'))
+        self.assertLess(refresh.index('rows = coordinator.shelfReader.refreshSnapshot(keyword: keyword)'), refresh.index('await coordinator.shelfReader.refresh(keyword: keyword)'))
+        self.assertLess(refresh.index('await coordinator.shelfReader.refresh(keyword: keyword)'), refresh.index('if coordinator.canSubmit { await coordinator.loadMine() }'))
+        self.assertNotIn('trimmingCharacters', view)
+        self.assertIn('ForEach(appliedKeyword == keyword ? rows : [])', view)
+        self.assertIn('if hasMore, appliedKeyword == keyword', view)
+        self.assertIn('guard !busy, appliedKeyword == keyword else { return }', view)
+        ui=read('Tests/AppUITests/TemplateOwnShelfFlowTests.swift')
+        name='func testKeyboardClearingUnsubmittedQueryRestoresShelfWithoutClearButton('
+        self.assertIn(name, ui)
+        body=ui.split(name,1)[1].split('\n    func ',1)[0]
+        self.assertIn('XCUIKeyboardKey.delete', body)
+        self.assertIn('XCTAssertFalse(detail.exists)', body)
+        self.assertNotIn('templateAuthor.shelf.clearSearch"].tap()', body)
+        self.assertIn('XCTAssertFalse(clear.exists)', body)
+
+    def test_explicit_clear_retains_unfiltered_refresh_and_stale_work_fences(self):
+        view=read('App/TemplateAuthoringMineView.swift')
+        button=view.split('if !keyword.isEmpty {',1)[1].split('accessibilityIdentifier("templateAuthor.shelf.clearSearch")',1)[0]
+        self.assertLess(button.index('let stamp = viewRequest'), button.index('keyword = ""'))
+        self.assertIn('refreshUnfiltered: true', button)
+        self.assertNotIn('appliedKeyword', button)
+        self.assertIn('.task(id: sessionRevision) { viewRequest = UUID(); busy = false;', view)
+        self.assertIn('.onDisappear { viewRequest = UUID(); coordinator.shelfReader.leave();', view)
+        ui=read('Tests/AppUITests/TemplateOwnShelfFlowTests.swift')
+        body=ui.split('func testExplicitClearOfUnsubmittedDraftRefreshesUnfilteredShelf()',1)[1].split('\n    func ',1)[0]
+        self.assertIn('field.typeText("draft")', body)
+        self.assertIn('clear.tap()', body)
+        self.assertIn('XCTAssertFalse(status.exists)', body)

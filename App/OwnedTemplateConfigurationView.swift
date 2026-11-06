@@ -20,7 +20,7 @@ import SwiftUI
             if host.loading { ProgressView("memberTemplate.loading") }
             if let snapshot = host.snapshot, snapshot.id == id {
                 Section {
-                    Text(verbatim: snapshot.title.value ?? "").font(.headline).accessibilityIdentifier("templateOwnerConfig.title")
+                    Text(verbatim: snapshot.title.value ?? "").font(.title3.weight(.semibold)).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("templateOwnerConfig.title")
                     if snapshot.title == .unsupported { Text("templateOwnerConfig.unsupported") }
                     else if snapshot.title.value == nil { Text("templateOwnerConfig.missing") }
                     LabeledContent("templateAuthor.shelf.identity", value: String(snapshot.id.rawValue))
@@ -95,7 +95,7 @@ import SwiftUI
     let expectedID: MemberPlayTemplateID
     var body: some View {
         Form {
-            Section { Text("templateOwnerConfig.readOnly") }
+            Section { Label("templateOwnerConfig.readOnly", systemImage: "lock.doc").font(.subheadline).foregroundStyle(.secondary) }
             if let snapshot = host.snapshot, snapshot.id == expectedID {
                 ForEach(snapshot.story) { beat in
                     Section {

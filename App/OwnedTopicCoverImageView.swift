@@ -84,7 +84,7 @@ import UIKit
                     Text(verbatim: original.flow.asset.sourceVersion).textSelection(.enabled).accessibilityIdentifier("ownedCover.image.version")
                 }.padding()
             }
-            .navigationTitle(String(localized: LocalizedStringResource("ownedCover.imageTitle", defaultValue: "Selected cover image", locale: locale)))
+            .navigationBarTitleDisplayMode(.inline).navigationTitle(String(localized: LocalizedStringResource("ownedCover.imageTitle", defaultValue: "Selected cover image", locale: locale)))
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button(String(localized: LocalizedStringResource("ownedCover.close", defaultValue: "Close", locale: locale))) { model.close(); close() }
                     .accessibilityIdentifier("ownedCover.image.close")

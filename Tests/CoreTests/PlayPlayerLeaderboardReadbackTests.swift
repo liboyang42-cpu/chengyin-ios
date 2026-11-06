@@ -45,6 +45,17 @@ import FoundationNetworking
         XCTAssertEqual(rows.map(\.id), [19, 4]); XCTAssertEqual(rows.map(\.rank), [2, 9])
         XCTAssertEqual(rows.map(\.score), [7, 0])
     }
+    func testCompanionBoardOutsideTopFiftyKeepsRealScoreWithoutInventedRank() throws {
+        // Source play/leaderboard: outside its Top 50 the viewer row carries the real completion count and no rank.
+        let rows = (1...50).map { #"{"rank":\#($0),"memberId":\#(9000 + $0),"score":\#(80 - $0)}"# }.joined(separator: ",")
+        let board = try PlayCompanionLeaderboard(PlayExperienceSyntheticFixtures.wire(#"{"list":[\#(rows)],"me":{"memberId":9999,"score":4}}"#))
+        XCTAssertEqual(board.entries.count, 50); XCTAssertNil(board.me.rank); XCTAssertEqual(board.me.score, 4)
+        // An outside viewer cannot claim a rank the list does not show, a listed one must match its row,
+        // and a missing viewer score is never read as 0.
+        XCTAssertThrowsError(try PlayCompanionLeaderboard(PlayExperienceSyntheticFixtures.wire(#"{"list":[\#(rows)],"me":{"memberId":9999,"rank":51,"score":4}}"#)))
+        XCTAssertThrowsError(try PlayCompanionLeaderboard(PlayExperienceSyntheticFixtures.wire(#"{"list":[\#(rows)],"me":{"memberId":9003,"rank":3,"score":0}}"#)))
+        XCTAssertThrowsError(try PlayCompanionLeaderboard(PlayExperienceSyntheticFixtures.wire(#"{"list":[\#(rows)],"me":{"memberId":9999,"rank":null}}"#)))
+    }
     func testDuplicateTeamDuplicateRankAndReversedRankInvalidateWholeBoard() {
         for rows in [[row(), row(rank: 2)], [row(), row(id: 9)], [row(rank: 2), row(id: 9, rank: 1)], [row(), .null]] {
             XCTAssertEqual(PlayPlayerLeaderboardState.read(board(rows)), .unconfirmed)

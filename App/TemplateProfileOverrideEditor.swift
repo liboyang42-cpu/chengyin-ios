@@ -93,11 +93,6 @@ import Combine
     }
     var body: some View {
         Form {
-            Section {
-                Text("templateProfileOverride.scope").font(.callout)
-                Text("templateProfileOverride.stageScope").font(.footnote)
-                Text("templateProfileOverride.saveScope").font(.footnote).foregroundStyle(.secondary)
-            }
             if let config = controller.visibleConfiguration {
                 Section("templateProfileOverride.question") {
                     Text(verbatim: config.questionLabel); Text(verbatim: config.questionKey).font(.caption)
@@ -112,14 +107,12 @@ import Combine
                             .accessibilityIdentifier("templateProfileOverride.variable")
                         TextField("templateProfileOverride.threshold", text: controller.textBinding(.threshold)).keyboardType(.numbersAndPunctuation)
                             .accessibilityIdentifier("templateProfileOverride.threshold")
-                        Text("templateProfileOverride.bounds").font(.footnote)
                         Picker("templateProfileOverride.option", selection: controller.textBinding(.option)) {
                             if let current = controller.form?.option, !config.options.contains(where: { $0.key == current }) { Text(verbatim: current).tag(current) }
                             ForEach(config.options) { option in Text(verbatim: option.label.isEmpty ? option.key : option.label).tag(option.key) }
                         }.accessibilityIdentifier("templateProfileOverride.option")
                         TextField("templateProfileOverride.voice", text: controller.textBinding(.voice), axis: .vertical)
                             .accessibilityIdentifier("templateProfileOverride.voice")
-                        Text("templateProfileOverride.voiceHint").font(.footnote)
                     }
                 }.disabled(!controller.canEditForm)
                 if !controller.issues.isEmpty { Section("templateProfileOverride.validation") { ForEach(controller.issues, id: \.self) { Text(LocalizedStringKey($0)) } } }

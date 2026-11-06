@@ -343,3 +343,76 @@ import XCTest
     }
     func cancel() { cancels += 1 }
 }
+
+final class WalkingSavedDestinationRecordTests: XCTestCase {
+    func testRoundtripHasOnlyReferenceScopeSchemaAndRevision() throws {
+        let scope = Data("synthetic-account-region".utf8)
+        let value = try WalkingSavedDestinationRecord(reference: .init(kind: .cityNode, id: 71), ownerScope: scope)
+        let bytes = try value.encoded()
+        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: bytes) as? [String: Any])
+        XCTAssertEqual(Set(object.keys), ["schema", "reference", "ownerScope", "revision"])
+        let reference = try XCTUnwrap(object["reference"] as? [String: Any])
+        XCTAssertEqual(Set(reference.keys), ["kind", "id"])
+        XCTAssertEqual(try WalkingSavedDestinationRecord.decode(bytes, ownerScope: scope), value)
+    }
+    func testUnknownRootAndReferenceFieldsRejectRatherThanPersistGeometryOrCredential() throws {
+        let scope = Data("scope".utf8)
+        let value = try WalkingSavedDestinationRecord(reference: .init(kind: .cityNode, id: 71), ownerScope: scope)
+        let original = try XCTUnwrap(JSONSerialization.jsonObject(with: value.encoded()) as? [String: Any])
+        for key in ["latitude", "longitude", "route", "polyline", "track", "token", "credential"] {
+            var object = original; object[key] = "unexpected"
+            XCTAssertThrowsError(try WalkingSavedDestinationRecord.decode(JSONSerialization.data(withJSONObject: object), ownerScope: scope))
+            object = original
+            var ref = try XCTUnwrap(object["reference"] as? [String: Any]); ref[key] = "unexpected"; object["reference"] = ref
+            XCTAssertThrowsError(try WalkingSavedDestinationRecord.decode(JSONSerialization.data(withJSONObject: object), ownerScope: scope))
+        }
+    }
+    func testWrongScopeMalformedSchemaAndInvalidTypedReferenceReject() throws {
+        let scope = Data("scope".utf8)
+        let value = try WalkingSavedDestinationRecord(reference: .init(kind: .cityNode, id: 71), ownerScope: scope)
+        let bytes = try value.encoded()
+        XCTAssertThrowsError(try WalkingSavedDestinationRecord.decode(bytes, ownerScope: Data("other".utf8)))
+        let original = try XCTUnwrap(JSONSerialization.jsonObject(with: bytes) as? [String: Any])
+        for schema: Any in [0, 2, true, "1"] {
+            var object = original; object["schema"] = schema
+            XCTAssertThrowsError(try WalkingSavedDestinationRecord.decode(JSONSerialization.data(withJSONObject: object), ownerScope: scope))
+        }
+        for ref: [String: Any] in [["kind": "cityNode", "id": 0], ["kind": "storyNode", "id": 71], ["kind": "unknown", "id": 71]] {
+            var object = original; object["reference"] = ref
+            XCTAssertThrowsError(try WalkingSavedDestinationRecord.decode(JSONSerialization.data(withJSONObject: object), ownerScope: scope))
+        }
+    }
+    func testEmptyOversizedAndNonJSONStorageRemainUnavailable() throws {
+        let ref = try WalkingTargetReference(kind: .cityNode, id: 71)
+        XCTAssertThrowsError(try WalkingSavedDestinationRecord(reference: ref, ownerScope: Data()))
+        XCTAssertThrowsError(try WalkingSavedDestinationRecord(reference: ref, ownerScope: Data(repeating: 65, count: 2_049)))
+        for bytes in [Data(), Data("[]".utf8), Data(repeating: 65, count: 4_097)] {
+            XCTAssertThrowsError(try WalkingSavedDestinationRecord.decode(bytes, ownerScope: Data("scope".utf8)))
+        }
+    }
+}
+
+final class WalkingNavigationRefreshPolicyTests: XCTestCase {
+    func testForegroundCadenceNeverChangesForPowerModeOrInjectedIdleBudget() {
+        for interval in [3.0, 15, 60] {
+            let policy = WalkingNavigationRefreshPolicy(inactiveLowPowerInterval: interval)
+            for lowPower in [false, true] {
+                XCTAssertEqual(policy.interval(foreground: true, lowPowerMode: lowPower), 3)
+            }
+        }
+    }
+    func testOnlyInactiveLowPowerPollingUsesTheInjectedInterval() {
+        let policy = WalkingNavigationRefreshPolicy(inactiveLowPowerInterval: 23)
+        XCTAssertEqual(policy.interval(foreground: false, lowPowerMode: true), 23)
+        XCTAssertEqual(policy.interval(foreground: false, lowPowerMode: false), 3)
+        XCTAssertEqual(WalkingNavigationRefreshPolicy().interval(foreground: false, lowPowerMode: true), 15)
+    }
+    func testInvalidAndUnboundedPolicyFallsBackToOriginalCadence() {
+        for value in [-1.0, 0, 2.99, 60.01, .infinity, -.infinity, .nan] {
+            let policy = WalkingNavigationRefreshPolicy(inactiveLowPowerInterval: value)
+            XCTAssertEqual(policy.inactiveLowPowerInterval, 3)
+            XCTAssertEqual(policy.interval(foreground: false, lowPowerMode: true), 3)
+            XCTAssertEqual(policy.interval(foreground: true, lowPowerMode: true), 3)
+        }
+    }
+}

@@ -9,6 +9,8 @@ public struct ProfileReadFailure: Error, Equatable {
     public let code: Int?
     public let message: String?
     public var isUnauthorized: Bool { httpStatus == 401 || code == 401 }
+    /// Signed in but refused (当前账号无法查看): neither sign-in nor an empty wall.
+    public var isDenied: Bool { !isUnauthorized && (httpStatus == 403 || code == 403) }
     public init(httpStatus: Int? = nil, code: Int? = nil, message: String? = nil) {
         self.httpStatus = httpStatus; self.code = code; self.message = message
     }
@@ -41,6 +43,21 @@ public struct ProfileService {
         if let expectedAccountID, result.memberID != expectedAccountID { throw APIError.malformedResponse }
         return result
     }
+
+    /// Same multipart `id` form as `order(id:token:)`. Returns the response bytes unchanged.
+    /// An empty body is nil. This does not decode those bytes and does not build an audit row.
+    public func postOwnedOrderForm(path: String, id: String, token: String) async throws -> Data? {
+        guard path == "api/registration/info" || path == "api/registration/original-event" else {
+            throw APIError.invalidRequest
+        }
+        guard let orderID = Int(id), orderID > 0, String(orderID) == id else { throw APIError.invalidRequest }
+        let request = try form(path, fields: ["id": id], token: token)
+        try Task.checkCancellation()
+        let (data, _) = try await transport.send(request)
+        try Task.checkCancellation()
+        return data.isEmpty ? nil : data
+    }
+
     public func participants(token: String) async throws -> [ProfileParticipant] {
         let result: ParticipantRows = try await execute(bodyless("api/user/address/list", token: token))
         return result.rows
@@ -63,7 +80,8 @@ public struct ProfileService {
         catch {
             try Task.checkCancellation()
             return ProfileBadgeWall(identities: identities.identity, medals: nil,
-                                    medalFailureMessage: (error as? ProfileReadFailure)?.message)
+                                    medalFailureMessage: (error as? ProfileReadFailure)?.message,
+                                    medalReadRestriction: ProfileMedalReadRestriction.classify(error))
         }
     }
 

@@ -86,13 +86,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Existing HTTPS addresses and site paths can be saved. Preview only loads a validated absolute HTTPS address."
+            "value": "You can save an HTTPS link or a site path. Previews only load full HTTPS links."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "可保存已有 HTTPS 地址或站内路径。预览仅加载经过校验的完整 HTTPS 地址。"
+            "value": "可保存 HTTPS 链接或站内路径。预览仅加载完整的 HTTPS 链接。"
           }
         }
       }

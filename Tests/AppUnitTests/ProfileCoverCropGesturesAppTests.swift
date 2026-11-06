@@ -114,3 +114,95 @@ import UIKit
     }
 
 }
+extension ProfileCoverCropGesturesAppTests {
+    private func cropRetryFixture(saved: Bool = false) throws -> (
+        model: ProfileLocalCoverModel, reader: ProfileAuthorPostsRefreshFixtureReader,
+        store: ProfileLocalCoverFixtureStore, owner: ProfileLocalCoverOwner,
+        source: RetainedSelectedImage, draft: MerchantImageCropDraft
+    ) {
+        let reader = ProfileAuthorPostsRefreshFixtureReader(), store = ProfileLocalCoverFixtureStore()
+        let owner = try ProfileLocalCoverOwner(accountID: 81, namespace: "synthetic-crop-retry")
+        let source = try ProfileLocalCoverSyntheticImage.make()
+        if saved { store.images[owner] = source }
+        let model = ProfileLocalCoverModel(context: .init(owner: owner, reader: reader), store: store,
+            current: { .init(owner: owner, reader: reader) })
+        model.controller.load(); model.open()
+        let draft = MerchantImageCropDraft(source: source, aspect: .gallery)
+        model.crop = draft
+        return (model, reader, store, owner, source, draft)
+    }
+    private func outOfSourceCrop() throws -> MerchantImageCropRect {
+        // Real renderer failure, using only synthetic pixels. Never an actual photo.
+        try .init(sourceWidth: 640, sourceHeight: 360, aspect: .gallery)
+    }
+    func testCropRenderFailureKeepsCurrentDraftAndSavedCoverWithoutWriting() throws {
+        let f = try cropRetryFixture(saved: true)
+        f.model.acceptCrop(id: f.draft.id, rect: try outOfSourceCrop())
+        XCTAssertTrue(f.model.selectionError); XCTAssertTrue(f.model.isPresented)
+        XCTAssertEqual(f.model.crop?.id, f.draft.id)
+        XCTAssertEqual(f.model.crop?.source, f.source)
+        XCTAssertNil(f.model.controller.review); XCTAssertEqual(f.store.writes, 0)
+        XCTAssertTrue(ProfileLocalCoverController.sameImage(f.model.controller.saved, f.source))
+        XCTAssertTrue(ProfileLocalCoverController.sameImage(try f.store.read(owner: f.owner), f.source))
+    }
+    func testUserCropRetryClearsFailureButStillRequiresExplicitReviewedSave() throws {
+        let f = try cropRetryFixture()
+        f.model.acceptCrop(id: f.draft.id, rect: try outOfSourceCrop())
+        XCTAssertTrue(f.model.selectionError); XCTAssertEqual(f.store.writes, 0)
+        let rect = try ProfileCoverCropPosition().rect(sourceWidth: f.source.width, sourceHeight: f.source.height)
+        f.model.acceptCrop(id: f.draft.id, rect: rect)
+        XCTAssertFalse(f.model.selectionError); XCTAssertNil(f.model.crop)
+        let review = try XCTUnwrap(f.model.controller.review)
+        XCTAssertEqual(f.store.writes, 0); XCTAssertNil(f.model.controller.saved)
+        f.model.confirm(review)
+        XCTAssertEqual(f.store.writes, 1); XCTAssertFalse(f.model.isPresented)
+        XCTAssertTrue(ProfileLocalCoverController.sameImage(f.model.controller.saved, review.image))
+    }
+    func testCurrentFailedCropCanBeCancelledWithoutChangingSavedCover() throws {
+        let f = try cropRetryFixture(saved: true)
+        f.model.acceptCrop(id: f.draft.id, rect: try outOfSourceCrop())
+        f.model.cancelCrop(id: f.draft.id)
+        XCTAssertFalse(f.model.selectionError); XCTAssertNil(f.model.crop)
+        XCTAssertTrue(f.model.isPresented); XCTAssertNil(f.model.controller.review)
+        XCTAssertEqual(f.store.writes, 0)
+        XCTAssertTrue(ProfileLocalCoverController.sameImage(try f.store.read(owner: f.owner), f.source))
+    }
+    func testOldCropCallbacksCannotClearNewCropFailureOrPrepareAnImage() throws {
+        let f = try cropRetryFixture()
+        f.model.acceptCrop(id: f.draft.id, rect: try outOfSourceCrop())
+        f.model.cancelCrop(id: f.draft.id)
+        let replacement = MerchantImageCropDraft(source: f.source, aspect: .gallery)
+        f.model.crop = replacement
+        f.model.acceptCrop(id: replacement.id, rect: try outOfSourceCrop())
+        XCTAssertTrue(f.model.selectionError)
+        f.model.cancelCrop(id: f.draft.id)
+        f.model.acceptCrop(id: f.draft.id,
+            rect: try ProfileCoverCropPosition().rect(sourceWidth: f.source.width, sourceHeight: f.source.height))
+        XCTAssertTrue(f.model.selectionError); XCTAssertEqual(f.model.crop?.id, replacement.id)
+        XCTAssertNil(f.model.controller.review); XCTAssertEqual(f.store.writes, 0)
+    }
+    func testOwnerChangeBlocksCropRetryAndRetirementClearsFailure() throws {
+        let f = try cropRetryFixture(saved: true)
+        f.model.acceptCrop(id: f.draft.id, rect: try outOfSourceCrop())
+        f.reader.switchAccount()
+        f.model.acceptCrop(id: f.draft.id,
+            rect: try ProfileCoverCropPosition().rect(sourceWidth: f.source.width, sourceHeight: f.source.height))
+        XCTAssertNil(f.model.controller.review); XCTAssertEqual(f.store.writes, 0)
+        f.model.retire()
+        XCTAssertFalse(f.model.selectionError); XCTAssertNil(f.model.crop)
+        XCTAssertFalse(f.model.isPresented); XCTAssertNil(f.model.controller.saved)
+        XCTAssertTrue(ProfileLocalCoverController.sameImage(try f.store.read(owner: f.owner), f.source))
+    }
+    func testClosingFailedCropAndReopeningStartsWithoutAnOldError() throws {
+        let f = try cropRetryFixture()
+        f.model.acceptCrop(id: f.draft.id, rect: try outOfSourceCrop())
+        f.model.close()
+        XCTAssertFalse(f.model.selectionError); XCTAssertNil(f.model.crop)
+        f.model.open()
+        let replacement = MerchantImageCropDraft(source: f.source, aspect: .gallery)
+        f.model.crop = replacement
+        f.model.acceptCrop(id: f.draft.id, rect: try outOfSourceCrop())
+        XCTAssertFalse(f.model.selectionError); XCTAssertEqual(f.model.crop?.id, replacement.id)
+        XCTAssertNil(f.model.controller.review); XCTAssertEqual(f.store.writes, 0)
+    }
+}

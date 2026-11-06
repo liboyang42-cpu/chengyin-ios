@@ -41,27 +41,46 @@ public struct ProfileFavoriteRemovalReview: Equatable, Identifiable {
     fileprivate init(_ intent: ProfileFavoriteRemovalIntent) { self.intent = intent; postID = intent.postID }
 }
 
+/// Shared only by controllers owned by the same app session. If local cleanup
+/// cannot be verified after a known remote result, retirement/replacement must
+/// not lose the target while its durable storage is temporarily unreadable.
+@MainActor @Observable public final class ProfileFavoriteRemovalPendingState {
+    private var retained: [String: OperationPendingRecord] = [:]
+    public init() {}
+    private func key(_ owner: String, _ target: String) -> String { "\(owner.utf8.count):\(owner)\(target)" }
+    func pending(owner: String, target: String) -> OperationPendingRecord? { retained[key(owner, target)] }
+    func hold(_ record: OperationPendingRecord) { retained[key(record.ownerKey, record.targetKey)] = record }
+    func clear(owner: String, target: String) { retained[key(owner, target)] = nil }
+}
+
 /// All transport is injected. Empty approvals keep every production action disabled.
 /// Unknown writes retain a durable lock across view dismissal and reauthentication.
 @MainActor @Observable public final class ProfileFavoriteRemovalController {
     public enum Phase: Equatable { case idle, loading, reviewed, working, removed, failed, unknown }
+    public enum RecoveryAvailability: Equatable { case unavailable, unreadable, pending([Int]) }
     public private(set) var phase: Phase = .idle
     public private(set) var review: ProfileFavoriteRemovalReview?
     public var presentationID: UUID? { intent?.id }
     public var postID: Int? { intent?.postID }
     public var isBusy: Bool { phase == .loading || phase == .working }
     private var intent: ProfileFavoriteRemovalIntent?
+    private var journalRevision: UInt64 = 0
     private let configuration: APIConfiguration
     private let approvals: [ProfileFavoriteRemovalApproval]
     private let transport: any HTTPTransport
     private let journal: any OperationPendingJournal
+    private let pendingState: ProfileFavoriteRemovalPendingState
     private let current: () -> ProfileFavoriteRemovalSession?
+    private let onUnauthorized: () -> Void
     private let now: () -> Date
     public init(configuration: APIConfiguration, approvals: [ProfileFavoriteRemovalApproval] = [],
                 transport: any HTTPTransport, journal: any OperationPendingJournal,
-                current: @escaping () -> ProfileFavoriteRemovalSession?, now: @escaping () -> Date = Date.init) {
+                current: @escaping () -> ProfileFavoriteRemovalSession?,
+                onUnauthorized: @escaping () -> Void = {}, pendingState: ProfileFavoriteRemovalPendingState? = nil,
+                now: @escaping () -> Date = Date.init) {
         self.configuration = configuration; self.approvals = approvals; self.transport = transport
-        self.journal = journal; self.current = current; self.now = now
+        self.journal = journal; self.current = current; self.onUnauthorized = onUnauthorized; self.now = now
+        self.pendingState = pendingState ?? ProfileFavoriteRemovalPendingState()
     }
     private func approved(_ postID: Int, session: ProfileFavoriteRemovalSession) -> Bool {
         session.market == .china && approvals.filter {
@@ -71,8 +90,35 @@ public struct ProfileFavoriteRemovalReview: Equatable, Identifiable {
         }.count == 1
     }
     public func isAvailable(post: SquarePost, collectionScope: UUID) -> Bool {
-        guard post.generation == .legacySquare, let session = current(), session.collectionScope == collectionScope else { return false }
-        return approved(post.id, session: session)
+        post.generation == .legacySquare && isAvailable(postID: post.id, collectionScope: collectionScope)
+    }
+    public func isAvailable(postID: Int, collectionScope: UUID) -> Bool {
+        guard let session = current(), session.collectionScope == collectionScope else { return false }
+        return approved(postID, session: session)
+    }
+    /// A removed post may already be absent from the saved list. Recover only exact
+    /// currently approved targets whose durable records exist; never infer from rows.
+    public func recoveryAvailability(collectionScope: UUID) -> RecoveryAvailability {
+        _ = journalRevision // Register observation even when there are currently no pending rows.
+        guard let session = current(), session.collectionScope == collectionScope else { return .unavailable }
+        do {
+            let ids = Set(approvals.map(\.postID)).sorted().filter { approved($0, session: session) }
+            let pendingIDs = try ids.filter { id in
+                try pending(.init(id: UUID(), postID: id, session: session)) != nil
+            }
+            guard current() == session else { return .unavailable }
+            return .pending(pendingIDs)
+        } catch { return .unreadable }
+    }
+    /// Opens the existing uncertain command for a read-only check, without creating
+    /// a review or command ID and without depending on a still-visible saved row.
+    public func beginRecovery(postID: Int, collectionScope: UUID) -> UUID? {
+        guard !isBusy, let session = current(), session.collectionScope == collectionScope,
+              approved(postID, session: session) else { return nil }
+        let next = ProfileFavoriteRemovalIntent(id: UUID(), postID: postID, session: session)
+        guard (try? pending(next)) != nil, current() == session else { return nil }
+        intent = next; review = nil; phase = .unknown
+        return next.id
     }
     public func begin(post: SquarePost, collectionScope: UUID) -> UUID? {
         guard !isBusy, isAvailable(post: post, collectionScope: collectionScope), let session = current(),
@@ -95,7 +141,8 @@ public struct ProfileFavoriteRemovalReview: Equatable, Identifiable {
     }
     private func target(_ value: ProfileFavoriteRemovalIntent) -> String { "legacy-saved-post|\(value.postID)" }
     private func pending(_ value: ProfileFavoriteRemovalIntent) throws -> OperationPendingRecord? {
-        try journal.pending(ownerKey: owner(value), targetKey: target(value))
+        let durable = try journal.pending(ownerKey: owner(value), targetKey: target(value))
+        return durable ?? pendingState.pending(owner: owner(value), target: target(value))
     }
     private func request(_ path: String, fields: [String: String], intent value: ProfileFavoriteRemovalIntent) throws -> URLRequest {
         try fence(value)
@@ -103,9 +150,16 @@ public struct ProfileFavoriteRemovalReview: Equatable, Identifiable {
         return try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: fields, token: value.session.token)
     }
     private func envelope(_ data: Data, status: Int) throws -> SocialValue {
-        guard (200..<300).contains(status), let value = try? JSONDecoder().decode(SocialValue.self, from: data),
-              value["code"].integer == 200 else { throw ProfileFavoriteRemovalFailure.response }
+        let value = try? JSONDecoder().decode(SocialValue.self, from: data)
+        if status == 401 || value?["code"].integer == 401 { throw APIError.unauthorized }
+        guard (200..<300).contains(status), let value, value["code"].integer == 200 else {
+            throw ProfileFavoriteRemovalFailure.response
+        }
         return value
+    }
+    private func expireIfCurrent(_ error: Error, intent value: ProfileFavoriteRemovalIntent) {
+        guard error as? APIError == .unauthorized, intent == value, current() == value.session else { return }
+        onUnauthorized()
     }
     /// Exact current target state, not absence from a truncated saved-items page.
     private func bookmarked(_ value: ProfileFavoriteRemovalIntent) async throws -> Bool {
@@ -118,6 +172,19 @@ public struct ProfileFavoriteRemovalReview: Equatable, Identifiable {
         }
         return marked == 1
     }
+    /// The remote target is already verified unbookmarked. A throwing clear can
+    /// still have deleted its local row; a successful nil reread proves cleanup.
+    /// Otherwise quarantine it locally and retain any durable row, without ever
+    /// rewriting a record that a newer presentation may have resolved.
+    private func clearResolved(_ record: OperationPendingRecord) throws {
+        defer { journalRevision &+= 1 }
+        pendingState.hold(record)
+        do { try journal.clear(record) } catch { /* Inspect the actual local result below. */ }
+        guard try journal.pending(ownerKey: record.ownerKey, targetKey: record.targetKey) == nil else {
+            throw ProfileFavoriteRemovalFailure.pending
+        }
+        pendingState.clear(owner: record.ownerKey, target: record.targetKey)
+    }
     public func prepare(_ id: UUID) async {
         guard let value = intent, value.id == id, phase == .loading else { return }
         do {
@@ -126,7 +193,10 @@ public struct ProfileFavoriteRemovalReview: Equatable, Identifiable {
             let marked = try await bookmarked(value); try fence(value)
             if marked { review = .init(value); phase = .reviewed }
             else { phase = .removed }
-        } catch { if intent == value { phase = .failed } }
+        } catch {
+            expireIfCurrent(error, intent: value)
+            if intent == value { phase = .failed }
+        }
     }
     public func retryPreparation(_ id: UUID) async {
         guard intent?.id == id, phase == .failed else { return }
@@ -146,7 +216,7 @@ public struct ProfileFavoriteRemovalReview: Equatable, Identifiable {
             guard try pending(value) == nil else { throw ProfileFavoriteRemovalFailure.pending }
             let prepared = OperationPendingRecord(ownerKey: owner(value), targetKey: target(value))
             let write = try request("api/creativesquare/bookmark", fields: ["id": String(value.postID), "bookmark": "0", "request_id": proposed.id.uuidString], intent: value)
-            try journal.write(prepared); record = prepared
+            try journal.write(prepared); record = prepared; journalRevision &+= 1
             try fence(value)
             dispatched = true
             let (data, status) = try await transport.send(write)
@@ -154,14 +224,15 @@ public struct ProfileFavoriteRemovalReview: Equatable, Identifiable {
             let stillMarked = try await bookmarked(value)
             guard !stillMarked else { throw ProfileFavoriteRemovalFailure.pending }
             try fence(value)
-            try journal.clear(prepared)
+            try clearResolved(prepared)
             phase = .removed
         } catch {
             if !dispatched, let record {
+                defer { journalRevision &+= 1 }
                 do { try journal.clear(record) }
                 catch { if intent == value { phase = .unknown }; return }
             }
-            if dispatched, let record { try? journal.write(record) } // Re-establish a lock if a failed clear partially completed.
+            expireIfCurrent(error, intent: value)
             if intent == value { phase = dispatched ? .unknown : .failed }
         }
     }
@@ -169,17 +240,14 @@ public struct ProfileFavoriteRemovalReview: Equatable, Identifiable {
     public func reconcile(_ id: UUID) async {
         guard let value = intent, value.id == id, phase == .unknown else { return }
         phase = .working
-        var retainedRecord: OperationPendingRecord?
         do {
             try fence(value)
             guard let record = try pending(value) else { throw ProfileFavoriteRemovalFailure.pending }
-            retainedRecord = record
             let stillMarked = try await bookmarked(value)
             guard !stillMarked else { throw ProfileFavoriteRemovalFailure.pending }
-            try fence(value); try journal.clear(record); phase = .removed
+            try fence(value); try clearResolved(record); phase = .removed
         } catch {
-            // Clearing local state can fail after partial completion; never silently lose the replay lock.
-            if let retainedRecord { try? journal.write(retainedRecord) }
+            expireIfCurrent(error, intent: value)
             if intent == value { phase = .unknown }
         }
     }

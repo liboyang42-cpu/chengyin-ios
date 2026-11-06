@@ -17,7 +17,10 @@ assert 'configuration: MerchantNPCVoiceConfiguration? = nil' in core
 assert 'enabled: Bool = false' in upload and 'enabled: @escaping () -> Bool = { false }' in device
 assert 'api/common/uploadOSS' in upload and 'json["url"] as? String' in upload
 assert 'sampleUrls' not in upload and 'shop-chat' not in upload
-assert 'requestRecordPermission' in device and 'AVAudioSession.interruptionNotification' in device
+lifecycle=(root/'App/NativeAudioLifecycleObservation.swift').read_text()
+assert 'requestRecordPermission' in device and 'AVAudioSession.interruptionNotification' in lifecycle
+assert 'lifecycle.observe' in device and 'lifecycle.invalidate()' in device and 'PlatformAudioLifecyclePolicy.action(' in device
+assert 'MerchantNPCVoiceTemporaryFiles.sweep(in: temporaryDirectory)' in device and 'try? FileManager.default.removeItem(at: file)' in device
 assert '.protectionKey: FileProtectionType.complete' in device
 assert 'voiceSamples?.invalidate()' in host and 'imageContext?.picker.cancel()' in host
 assert 'currentScope' in upload and 'grants() == policy' in upload

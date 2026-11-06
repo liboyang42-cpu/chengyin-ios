@@ -83,6 +83,8 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
             let observation = OrderPaymentObservation(payment: order.paymentStatus, registration: order.registrationStatus)
             if observation == .paid || observation == .registrationAccepted { showReadback(); return }
             guard observation == .pending, order.payableAmount == value.price else { phase = .unknown; messageKey = "contextSelfPlay.unknown"; onChange?(); return }
+            // Zero-priced pending orders retain the original receipt and use readback only.
+            if value.price == 0 { showReadback(); return }
             guard let provider, provider.isConfigured else { phase = .paymentUnavailable; messageKey = "contextSelfPlay.paymentUnavailable"; onChange?(); return }
             let params: [String: String]
             if let supplied = created.payParams, TopicSelfPlayHTTPClient.validPaymentParameters(supplied) { params = supplied }
@@ -109,7 +111,8 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
             guard stamp == generation, current else { return }
             let observation = OrderPaymentObservation(payment: order.paymentStatus, registration: order.registrationStatus)
             if observation == .paid || observation == .registrationAccepted { showReadback(); return }
-            guard order.registrationStatus == 1, observation == .pending, let price = order.payableAmount, price > 0 else { throw TopicSelfPlayFailure.unknown }
+            guard order.registrationStatus == 1, observation == .pending, let price = order.payableAmount, price >= 0 else { throw TopicSelfPlayFailure.unknown }
+            if price == 0 { showReadback(); return }
             paymentReview = .init(id: UUID(), session: session, registrationID: id, price: price, document: document)
             phase = .paymentUnavailable
         } catch { guard stamp == generation, current else { return }; phase = .unknown; messageKey = "contextSelfPlay.unknown" }

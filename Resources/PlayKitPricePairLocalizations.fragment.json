@@ -42,13 +42,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Answer revealed by the server"
+            "value": "Revealed answer"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端揭晓的正确图"
+            "value": "揭晓的正确图"
           }
         }
       }
@@ -76,13 +76,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This round has ended. The server has revealed the answer."
+            "value": "This round has ended. The answer has been revealed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本轮已结束，服务端已揭晓正确图。"
+            "value": "本轮已结束，正确图已揭晓。"
           }
         }
       }

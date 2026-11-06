@@ -16,18 +16,11 @@ struct MerchantOperatorRolePermissionSection: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(LocalizedStringKey(entry.titleKey)).font(.subheadline.bold())
                             Text(LocalizedStringKey(entry.detailKey)).font(.footnote).foregroundStyle(.secondary)
-                            if entry.description == nil {
-                                permissionCode(entry.code)
-                            }
                         }
                         .accessibilityElement(children: .combine)
                         .accessibilityIdentifier("merchant.operatorRole.permission." + entry.code)
                     }
-                    DisclosureGroup("merchant.operatorRole.codes") {
-                        ForEach(presentation.entries) { entry in permissionCode(entry.code) }
-                    }.accessibilityIdentifier("merchant.operatorRole.codes")
                 }
-                Text("merchant.operatorRole.scope").font(.footnote).foregroundStyle(.secondary)
             } else {
                 Text("merchant.operatorRole.unavailable").foregroundStyle(.secondary)
                     .accessibilityIdentifier("merchant.operatorRole.unavailable")

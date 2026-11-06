@@ -1,5 +1,16 @@
 import SwiftUI
 
+/// Observes only entry to the existing device adapter; never stores the phone.
+@MainActor private final class MerchantContactDeliveryStage: MerchantContactDelivering {
+    let delivery: any MerchantContactDelivering
+    private(set) var entered = false
+    init(_ delivery: any MerchantContactDelivering) { self.delivery = delivery }
+    func deliverSynthetic(phone: String, purpose: MerchantContactPurpose) async throws {
+        entered = true
+        try await delivery.deliverSynthetic(phone: phone, purpose: purpose)
+    }
+}
+
 @MainActor private final class MerchantContactLease { var active = true }
 @MainActor final class MerchantCustomerContactFlow: ObservableObject, Identifiable {
     let id = UUID()
@@ -9,6 +20,7 @@ import SwiftUI
     private let lease: MerchantContactLease
     @Published private(set) var revision = 0
     @Published private(set) var deviceIssue = false
+    @Published private(set) var accessIssue = false
     @Published private(set) var consumed = false
     @Published private(set) var consuming = false
     init(selection: MerchantCustomerContactSelection, reader: any MerchantEngagementReading,
@@ -27,7 +39,7 @@ import SwiftUI
     }
     func prepare() async {
         guard isCurrent, !coordinator.busy, !coordinator.locked, !consuming else { return }
-        deviceIssue = false; consumed = false; revision += 1
+        deviceIssue = false; accessIssue = false; consumed = false; revision += 1
         await coordinator.prepare(selection.command); revision += 1
         if !isCurrent { invalidate() }
     }
@@ -42,8 +54,13 @@ import SwiftUI
     func consume(using delivery: any MerchantContactDelivering) async {
         guard canConsume else { return }
         consuming = true; defer { consuming = false; revision += 1 }
-        do { try await coordinator.consumeContact(using: delivery); consumed = isCurrent }
-        catch { deviceIssue = isCurrent }
+        let stage = MerchantContactDeliveryStage(delivery)
+        deviceIssue = false; accessIssue = false
+        do { try await coordinator.consumeContact(using: stage); consumed = isCurrent }
+        catch {
+            deviceIssue = isCurrent && stage.entered
+            accessIssue = isCurrent && !stage.entered
+        }
         if !isCurrent { invalidate() }
     }
 }
@@ -57,9 +74,7 @@ import SwiftUI
             List {
                 Section {
                     Text(verbatim: flow.selection.record.title).font(.headline)
-                    LabeledContent("merchant.contactFlow.customer", value: String(flow.selection.customerID.rawValue))
                     Text(LocalizedStringKey("merchant.engagement.contact." + flow.selection.purpose.rawValue))
-                    Text("merchant.contactFlow.privacy").font(.footnote)
                 }
                 if !flow.isCurrent { Text("merchant.contactFlow.stale") }
                 else {
@@ -78,6 +93,7 @@ import SwiftUI
                             .accessibilityIdentifier("merchant.contactFlow.prepare")
                     }
                     if flow.consumed { Text("merchant.contactFlow.completed") }
+                    if flow.accessIssue { Text("merchant.contactFlow.accessFailedBeforeDevice") }
                     if flow.deviceIssue { Text("merchant.contactFlow.deviceFailed") }
                 }
             }

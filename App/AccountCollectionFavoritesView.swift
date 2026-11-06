@@ -1,28 +1,58 @@
 import SwiftUI
 
+private struct AccountCollectionFavoritesGateKey: Hashable {
+    let readerID: ObjectIdentifier
+    let readerScope: UUID
+    let gateID: ObjectIdentifier?
+    let gateScope: UUID?
+    let authenticated: Bool
+    let configured: Bool
+    @MainActor init(reader: any AccountCollectionReading, gate: (any SquareCommunityFeatureReading)?) {
+        readerID = ObjectIdentifier(reader)
+        readerScope = reader.scope
+        gateID = gate.map { ObjectIdentifier($0) }
+        gateScope = gate?.scope
+        authenticated = reader.isAuthenticated
+        configured = reader.isConfigured
+    }
+}
+
 @MainActor struct AccountCollectionFavoritesView: View {
     let reader: any AccountCollectionReading
     let onOpenTopic: (Int) -> Void
     var pageSize = 10
     var onOpenPost: ((SquareContentRoute) -> Void)? = nil
     var favoriteRemoval: ProfileFavoriteRemovalController? = nil
+    var communityGate: (any SquareCommunityFeatureReading)? = nil
     @State private var selectedTab: Tab = .posts
+    @State private var gateModel = AccountCollectionCommunityGateModel()
     private enum Tab: Hashable { case posts, topics }
+    private var gateKey: AccountCollectionFavoritesGateKey { AccountCollectionFavoritesGateKey(reader: reader, gate: communityGate) }
+    /// Nil, signed-out, unconfigured, pending, denied, and failed all stay closed.
+    private var postsAllowed: Bool { gateModel.postsAllowed(reader: reader, gate: communityGate) }
     var body: some View {
         VStack(spacing: 0) {
-            Picker("accountCollection.favorites.title", selection: $selectedTab) {
-                Text("social.posts").tag(Tab.posts)
-                Text("searchMap.kind.topic").tag(Tab.topics)
+            if postsAllowed {
+                Picker("accountCollection.favorites.title", selection: $selectedTab) {
+                    Text("social.posts").tag(Tab.posts)
+                    Text("searchMap.kind.topic").tag(Tab.topics)
+                }
+                .pickerStyle(.segmented).padding()
+                .accessibilityIdentifier("accountCollection.favorites.tabs")
             }
-            .pickerStyle(.segmented).padding()
-            .accessibilityIdentifier("accountCollection.favorites.tabs")
-            if selectedTab == .posts {
+            if postsAllowed && selectedTab == .posts {
                 AccountCollectionFavoritePostsView(reader: reader, pageSize: pageSize, onOpenPost: onOpenPost, favoriteRemoval: favoriteRemoval)
             } else {
-                AccountCollectionFavoriteTopicsView(reader: reader, onOpenTopic: onOpenTopic, pageSize: pageSize)
+                AccountCollectionFavoriteTopicsView(reader: reader, onOpenTopic: onOpenTopic, pageSize: pageSize, retryGate: {
+                    await gateModel.load(reader: { reader }, gate: { communityGate }, forceRetry: gateModel.failed)
+                })
             }
         }
         .appNavigationTitle("accountCollection.favorites.title")
+        .task(id: gateKey) { await gateModel.load(reader: { reader }, gate: { communityGate }) }
+        .onChange(of: gateKey) { _, _ in
+            gateModel.invalidateIfIdentityChanged(reader: { reader }, gate: { communityGate })
+        }
     }
 }
 
@@ -32,7 +62,10 @@ import SwiftUI
     let reader: any AccountCollectionReading
     let onOpenTopic: (Int) -> Void
     var pageSize = 10
+    var retryGate: (() async -> Void)? = nil
     @StateObject private var model = AccountCollectionFavoritesScreenModel()
+    @Environment(\.topicUnlikeController) private var unlike
+    @State private var unliked: Set<Int> = []
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader) }
     var body: some View {
         List {
@@ -44,15 +77,17 @@ import SwiftUI
             } else if let issue = model.state.issue {
                 AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
             } else {
-                if model.state.visibleRows(scope: key.scope).isEmpty {
-                    ContentUnavailableView("accountCollection.favorites.empty", systemImage: "heart",
-                                           description: Text("accountCollection.favorites.emptyHint"))
+                if model.state.visibleRows(scope: key.scope).filter({ !unliked.contains($0.id) }).isEmpty {
+                    ContentUnavailableView("accountCollection.favorites.empty", systemImage: "heart")
                         .accessibilityIdentifier("accountCollection.favorites.empty")
                 }
-                ForEach(model.state.visibleRows(scope: key.scope)) { topic in
+                ForEach(model.state.visibleRows(scope: key.scope).filter { !unliked.contains($0.id) }) { topic in
                     Button { onOpenTopic(topic.id) } label: { AccountCollectionFavoriteCard(topic: topic) }
                         .buttonStyle(QuestifyCardButtonStyle())
                         .accessibilityIdentifier("accountCollection.favorite.\(topic.id)")
+                        .overlay(alignment: .topTrailing) {
+                            if let unlike, unlike.isAvailable { TopicUnlikeButton(topicID: topic.id, controller: unlike).padding(8) }
+                        }
                         .questifyCardListRow()
                 }
                 if let issue = model.state.moreIssue {
@@ -62,6 +97,9 @@ import SwiftUI
                     Button("accountCollection.loadMore") { Task { await loadMore() } }
                         .frame(minHeight: 44)
                         .accessibilityIdentifier("accountCollection.favorites.loadMore")
+                } else if !model.state.visibleRows(scope: key.scope).isEmpty {
+                    Text("member.favorites.topicsEnd", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity).accessibilityIdentifier("accountCollection.favorites.end")
                 }
             }
         }
@@ -75,11 +113,16 @@ import SwiftUI
             }
         }
         .modifier(AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending))
+        .modifier(TopicUnlikeFlow(controller: unlike) { unliked.insert($0) })
     }
     private func refresh() async {
         guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }
+        unliked = []
+        async let gateReload: Void = reloadGate()
         await model.refresh(reader: reader, pageSize: pageSize)
+        await gateReload
     }
+    private func reloadGate() async { await retryGate?() }
     private func loadMore() async {
         guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }
         await model.loadMore(reader: reader, pageSize: pageSize)
@@ -112,20 +155,34 @@ private struct AccountCollectionFavoriteCard: View {
     let reader: any AccountCollectionReading
     let onOpenTopic: (Int) -> Void
     var rewards: (any NonCashRewardReading)? = nil
+    var pledge: RewardPledgeEntry? = nil
     var onOpenPost: ((SquareContentRoute) -> Void)? = nil
     var favoriteRemoval: ProfileFavoriteRemovalController? = nil
+    var couponReader: (any AccountCollectionReading)? = nil
+    private var ownedCouponReader: any AccountCollectionReading { couponReader ?? reader }
+    var favoritesReader: (any AccountCollectionReading)? = nil
+    private var savedReader: any AccountCollectionReading { favoritesReader ?? reader }
+    var rewardMerchant: PublicMerchantHomeContext? = nil
+    var communityGate: (any SquareCommunityFeatureReading)? = nil
     var body: some View {
+        let saved = savedReader, renderedScope = saved.scope
         Section {
             NavigationLink {
-                NonCashRewardsView(reader: reader, rewards: rewards).id(reader.scope)
+                NonCashRewardsView(reader: reader, rewards: rewards, merchantHome: rewardMerchant, pledge: pledge).id(reader.scope)
             } label: { Label("rewards.title", systemImage: "gift") }
             .accessibilityIdentifier("rewards.open")
             NavigationLink {
-                AccountCollectionFavoritesView(reader: reader, onOpenTopic: onOpenTopic, onOpenPost: onOpenPost, favoriteRemoval: favoriteRemoval).id(reader.scope)
+                AccountCollectionFavoritesView(reader: saved, onOpenTopic: { id in
+                    guard saved.isAuthenticated, saved.isConfigured, saved.scope == renderedScope else { return }
+                    onOpenTopic(id)
+                }, onOpenPost: onOpenPost.map { open in { route in
+                    guard saved.isAuthenticated, saved.isConfigured, saved.scope == renderedScope else { return }
+                    open(route)
+                } }, favoriteRemoval: favoriteRemoval, communityGate: communityGate).id(renderedScope)
             } label: { Label("accountCollection.favorites.title", systemImage: "heart") }
             .accessibilityIdentifier("accountCollection.openFavorites")
             NavigationLink {
-                AccountCollectionCouponsView(reader: reader).id(reader.scope)
+                AccountCollectionCouponsView(reader: ownedCouponReader).id(ownedCouponReader.scope)
             } label: { Label("accountCollection.coupons.title", systemImage: "ticket") }
             .accessibilityIdentifier("accountCollection.openCoupons")
         }
@@ -140,7 +197,13 @@ private struct AccountCollectionFavoriteCard: View {
     @StateObject private var model = AccountCollectionPostsScreenModel()
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader) }
     var body: some View {
+        let renderedScope = key.scope
         List {
+            if let favoriteRemoval, reader.isAuthenticated, reader.isConfigured {
+                ProfileFavoriteRecoverySection(scope: renderedScope, controller: favoriteRemoval,
+                    isCurrent: { reader.isAuthenticated && reader.isConfigured && reader.scope == renderedScope },
+                    onRemoved: { await refresh() })
+            }
             if reader.isOfflineExample { Text("accountCollection.offlineExample").font(.caption) }
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
@@ -150,7 +213,9 @@ private struct AccountCollectionFavoriteCard: View {
                 AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
             } else {
                 if model.state.visibleRows(scope: key.scope).isEmpty {
-                    ContentUnavailableView("square.empty", systemImage: "bookmark")
+                    ContentUnavailableView {
+                        Label { Text("member.favorites.postsEmpty", tableName: "MemberProfile") } icon: { Image(systemName: "bookmark") }
+                    }
                         .accessibilityIdentifier("accountCollection.posts.empty")
                 }
                 ForEach(model.state.visibleRows(scope: key.scope)) { post in
@@ -167,7 +232,7 @@ private struct AccountCollectionFavoriteCard: View {
                     .questifyCardListRow()
                     if let favoriteRemoval {
                         ProfileFavoriteRemovalEntry(post: post, scope: key.scope, controller: favoriteRemoval,
-                            isCurrent: { reader.isAuthenticated && reader.isConfigured && model.state.loadedScope == reader.scope },
+                            isCurrent: { reader.isAuthenticated && reader.isConfigured && reader.scope == renderedScope && model.state.loadedScope == renderedScope },
                             onRemoved: { await refresh() })
                     }
                     NativeMediaGalleryEntry(sources: post.images, scope: reader.scope, titleKey: "media.destination.squareImages")
@@ -179,6 +244,9 @@ private struct AccountCollectionFavoriteCard: View {
                     Button("accountCollection.loadMore") { Task { await loadMore() } }
                         .frame(minHeight: 44)
                         .accessibilityIdentifier("accountCollection.posts.loadMore")
+                } else if !model.state.visibleRows(scope: key.scope).isEmpty {
+                    Text("member.favorites.postsEnd", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity).accessibilityIdentifier("accountCollection.posts.end")
                 }
             }
         }

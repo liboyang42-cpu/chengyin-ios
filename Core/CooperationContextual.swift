@@ -4,6 +4,10 @@ public struct CoopFlowTargetCandidate: Equatable, Identifiable {
     public let kind: CoopFlowTargetKind
     public let recipient: CoopFlowIdentity
     public let name: String
+    /// Source `pages/coop/invite` row meta: clubs show member count and city, merchants their activity types or address.
+    public let memberCount: Int?
+    public let city: String?
+    public let merchantMeta: String?
     public var id: String { "\(kind.rawValue):\(recipient.id)" }
     public init?(kind: CoopFlowTargetKind, row: CoopFlowJSON) {
         // Current merchant directory exposes BOTH row id and memberId. Invitations address
@@ -12,6 +16,10 @@ public struct CoopFlowTargetCandidate: Equatable, Identifiable {
               let recipient = try? CoopFlowIdentity(kind == .merchant ? .member : .club, id),
               let name = row["name"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return nil }
         self.kind = kind; self.recipient = recipient; self.name = name
+        func text(_ key: String) -> String? { row[key].text.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.flatMap { $0.isEmpty ? nil : $0 } }
+        memberCount = kind == .club ? row["memberCount"].integer.flatMap { $0 >= 0 ? $0 : nil } : nil
+        city = kind == .club ? text("city") : nil
+        merchantMeta = kind == .merchant ? text("suitActivityTypes") ?? text("address") : nil
     }
 }
 public struct CoopFlowOwnedTopic: Equatable, Identifiable {

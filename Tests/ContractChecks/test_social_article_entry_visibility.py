@@ -25,8 +25,8 @@ class SocialArticleEntryVisibilityChecks(unittest.TestCase):
     def test_existing_viewport_helper_keeps_its_full_visibility_and_overlay_guards(self):
         helper = (ROOT / 'Tests/AppUITests/FailureScreenshot.swift').read_text().split('func revealFixtureElement(')[1].split('func tapFixtureNativeSwitch(')[0]
         for exact in ['frame.minY >= bounds.minY', 'frame.maxY <= bounds.maxY',
-                      'navigationBar.frame.maxY + 4', 'app.frame.maxY - 40',
-                      'toolbar.frame.minY - 4', 'keyboard.frame.minY - 4',
+                      'foregroundBarFrame(.navigationBar)', 'frame.maxY + 4', 'screen.maxY - 40',
+                      'foregroundBarFrame(.toolbar)', 'foregroundBarFrame(.keyboard)', 'frame.minY - 4',
                       'element.isHittable', 'attempt < maximumSwipes']:
             self.assertIn(exact, helper)
 

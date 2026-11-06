@@ -52,10 +52,67 @@ import XCTest
         await model.load(reader: second, reset: false, keyword: "")
         XCTAssertEqual(second.queries.count, 1); XCTAssertTrue(model.items.isEmpty); XCTAssertFalse(model.failed)
     }
+    func testReturnKeepsTwoPagesAndDoesNotSubmitEditedSearchText() async throws {
+        let reader = Reader(), model = ActivityListModel(); reader.rows = try rows(Array(1...10))
+        await model.load(reader: reader, reset: true, keyword: "applied")
+        reader.rows = try rows([11]); await model.load(reader: reader, reset: false, keyword: "draft")
+        model.cancelPending(); await model.resume(reader: reader, keyword: "draft")
+        XCTAssertEqual(reader.queries.count, 2); XCTAssertEqual(model.page, 2)
+        XCTAssertEqual(model.items.map(\.id), Array(1...11))
+        XCTAssertEqual(reader.queries.map { $0.keyword }, ["applied", "applied"])
+    }
+    func testSuccessfulEmptyReturnDoesNotRereadButExplicitSearchDoes() async {
+        let reader = Reader(), model = ActivityListModel()
+        await model.load(reader: reader, reset: true, keyword: "empty")
+        await model.resume(reader: reader, keyword: "draft")
+        XCTAssertEqual(reader.queries.count, 1); XCTAssertTrue(model.items.isEmpty)
+        await model.load(reader: reader, reset: true, keyword: "submitted")
+        XCTAssertEqual(reader.queries.count, 2); XCTAssertEqual(reader.queries.last?.keyword, "submitted")
+    }
+    func testLaterPageFailureRemainsRetryableAtSamePageAfterReturn() async throws {
+        let reader = Reader(), model = ActivityListModel(); reader.rows = try rows(Array(1...10))
+        await model.load(reader: reader, reset: true, keyword: "applied")
+        reader.fails = true; await model.load(reader: reader, reset: false, keyword: "draft")
+        await model.resume(reader: reader, keyword: "draft")
+        XCTAssertTrue(model.failed); XCTAssertEqual(model.page, 1); XCTAssertEqual(reader.queries.count, 2)
+        reader.fails = false; reader.rows = try rows([11])
+        await model.load(reader: reader, reset: false, keyword: "draft")
+        XCTAssertEqual(reader.queries.map { $0.page }, [1, 2, 2])
+        XCTAssertEqual(reader.queries.map { $0.keyword }, ["applied", "applied", "applied"])
+        XCTAssertEqual(model.items.count, 11)
+    }
+    func testInitialFailureReturnRetriesAppliedQueryNotDraft() async {
+        let reader = Reader(), model = ActivityListModel(); reader.fails = true
+        await model.load(reader: reader, reset: true, keyword: "applied")
+        reader.fails = false; await model.resume(reader: reader, keyword: "draft")
+        XCTAssertEqual(reader.queries.map { $0.keyword }, ["applied", "applied"])
+        XCTAssertEqual(model.page, 1); XCTAssertFalse(model.failed)
+    }
+    func testReturnWithReplacementReaderOrRevokedConfigurationDoesNotReusePages() async throws {
+        let first = Reader(), second = Reader(), model = ActivityListModel()
+        first.rows = try rows([71]); second.rows = try rows([72])
+        await model.load(reader: first, reset: true, keyword: "old")
+        await model.resume(reader: second, keyword: "")
+        XCTAssertEqual(model.items.map(\.id), [72]); XCTAssertEqual(second.queries.count, 1)
+        second.activityListIsConfigured = false; await model.resume(reader: second, keyword: "")
+        XCTAssertTrue(model.items.isEmpty); XCTAssertEqual(second.queries.count, 1)
+    }
+    func testClearingSubmittedSearchLoadsUnfilteredFirstPageOnlyOnce() async throws {
+        let reader = Reader(), model = ActivityListModel(); reader.rows = try rows(Array(1...10))
+        await model.load(reader: reader, reset: true, keyword: "applied")
+        reader.rows = try rows([11]); await model.load(reader: reader, reset: false, keyword: "draft")
+        reader.rows = try rows([71]); await model.clearSearchIfNeeded(reader: reader)
+        XCTAssertEqual(model.items.map(\.id), [71]); XCTAssertEqual(model.page, 1)
+        XCTAssertEqual(reader.queries.last?.keyword, ""); XCTAssertEqual(reader.queries.count, 3)
+        await model.clearSearchIfNeeded(reader: reader); XCTAssertEqual(reader.queries.count, 3)
+        let replacement = Reader(); await model.clearSearchIfNeeded(reader: replacement)
+        XCTAssertTrue(replacement.queries.isEmpty)
+    }
     @MainActor private final class Reader: ActivityReading {
         let isConfigured = true
         var activityListIsConfigured = true, suspend = false
         var revision = 1
+        var fails = false
         var activityPresentationIdentity: String { "viewer-\(revision)" }
         var rows: [ActivitySummary] = []
         var queries: [(page: Int, keyword: String)] = []
@@ -65,6 +122,7 @@ import XCTest
         func finish(_ value: Result<[ActivitySummary], Error>) { let c = pending; pending = nil; c?.resume(with: value) }
         func activities(page: Int, keyword: String) async throws -> [ActivitySummary] {
             queries.append((page, keyword))
+            if fails { throw APIError.malformedResponse }
             if suspend { return try await withCheckedThrowingContinuation { pending = $0; onPaused?() } }
             return rows
         }

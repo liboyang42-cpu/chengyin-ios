@@ -15,6 +15,16 @@ EXPECTED_IDS = ['p01','p04','p07','p10','p13','p17','p18','p23','p25','p27','p31
 # Canonical source data extracted from Git blob 87ee78031820e4e370635e004fc10501a4e7c9a8.
 EXPECTED_DATA_SHA256 = '0f121d1296400c18b6f73c2a3a470182b589e64b53ee6b1376f9f2d8c49215d2'
 
+def confirmation_scope(source):
+    start='struct MerchantOperationsConfirmationView: View {'
+    end='\nprivate struct MerchantOperationsMediaPreview: View {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise AssertionError('Expected unique complete confirmation boundaries')
+    body=source.split(start,1)[1].split(end,1)[0]
+    if not body.rstrip().endswith('}'):
+        raise AssertionError('Confirmation declaration must end before next type')
+    return body
+
 def artwork():
     pattern = r'\.init\(id: "(p\d+)", gridSize: (\d+), backgroundRGB: (0x[0-9A-Fa-f]+), paletteRGB: \[([^]]+)\], encodedRuns: "([A-Za-z0-9]+)"\)'
     return [dict(id=i, gridSize=int(n), backgroundRGB=int(bg,16), paletteRGB=[int(c.strip(),16) for c in pal.split(',')], encodedRuns=d)
@@ -52,13 +62,18 @@ class MerchantNPCPresetContracts(unittest.TestCase):
         for fence in ['!consumed','owner.isCurrent','!owner.isBusy','!owner.isLocked','owner.confirmation == nil','owner.reader.scope == scope','owner.draftIdentity == draftIdentity','owner.draft == .character(original)']:
             self.assertIn(fence,APP)
     def test_background_reload_and_dismiss_cancel(self):
-        for value in ['phase != .active','cancelPicker()','document.coordinator.draftIdentity','document.coordinator.reader.scope','.onDisappear { model.cancel() }','func cancel() { consumed = true; selectedID = nil }']:
+        for value in ['presentation.sceneChanged(active: phase == .active)','self.active = visible && active','presentation.disappear()','document.coordinator.draftIdentity','document.coordinator.reader.scope','.onDisappear { model.cancel() }','func cancel() { consumed = true; selectedID = nil }','self.picker?.id == original.id && original.isCurrent','self.close(original.id)','presentation.close(original.id)','guard picker?.id == id else { return }']:
             self.assertIn(value,APP)
     def test_no_new_transport_authority_upload_or_provider(self):
         for token in ['URLSession','HTTPTransport','OperationEndpointApproval','PhotosPicker','AVAudioRecorder','MerchantNPCGrants','saveReviewed(','Task {','api/','UserDefaults']:
             self.assertNotIn(token,APP+CORE)
     def test_character_is_only_host_branch(self):
-        self.assertIn('MerchantNPCPresetSection(document: model)',EDITOR)
+        self.assertIn('MerchantNPCPresetSection(document: model, presentation: presetPresentation)',EDITOR)
+        full=(ROOT/'App/MerchantOperationsEditor.swift').read_text()
+        self.assertIn('@StateObject private var presetPresentation = MerchantNPCPresetPresentation()',full)
+        self.assertIn('.modifier(MerchantNPCPresetStablePresentation(document: model, presentation: presetPresentation))',full)
+        row=APP.split('@MainActor struct MerchantNPCPresetSection:')[1].split('/// The full editor retains')[0]
+        for token in ['.sheet(', '.onDisappear', '@State ']: self.assertNotIn(token,row)
         self.assertIn('if !value.avatar.hasPrefix("px1:")',EDITOR)
         self.assertIn('mediaSection("merchant.operations.avatar", field: .avatar)',EDITOR)
     def test_character_bounds_and_explicit_empty_wire_values(self):
@@ -86,12 +101,21 @@ class MerchantNPCPresetContracts(unittest.TestCase):
             for language in ['en','zh-Hans']:
                 self.assertTrue(CATALOG[key]['localizations'][language]['stringUnit']['value'].strip())
     def test_confirmation_artwork_only_uses_frozen_snapshot(self):
-        confirmation=(ROOT/'App/MerchantOperationsEditor.swift').read_text().split('struct MerchantOperationsConfirmationView:')[1]
+        confirmation=confirmation_scope((ROOT/'App/MerchantOperationsEditor.swift').read_text())
         self.assertIn('MerchantNPCCharacterAvatarSnapshot(draft: confirmation.draft)',confirmation)
         self.assertNotIn('model.coordinator.draft',confirmation)
         self.assertIn('source: avatar.rawValue',confirmation)
         self.assertIn('Text(verbatim: avatar.rawValue)',confirmation)
         self.assertIn('ForEach(confirmation.draft.reviewLines)',confirmation)
+    def test_confirmation_scope_still_rejects_live_draft_and_ignores_later_editor(self):
+        source=(ROOT/'App/MerchantOperationsEditor.swift').read_text()
+        injected=source.replace('struct MerchantOperationsConfirmationView: View {',
+            'struct MerchantOperationsConfirmationView: View {\n    var invalidProbe: Any { model.coordinator.draft }',1)
+        with self.assertRaises(AssertionError):
+            self.assertNotIn('model.coordinator.draft',confirmation_scope(injected))
+        later=source + '\nprivate struct ScopeProbe { var value: Any { model.coordinator.draft } }\n'
+        self.assertEqual(confirmation_scope(source),confirmation_scope(later))
+        self.assertNotIn('model.coordinator.draft',confirmation_scope(later))
     def test_native_rendering_has_integer_scale_accessible_selection(self):
         for token in ['Canvas {','floor(min(size.width, size.height)','paletteRGB[run.paletteIndex]','LazyVGrid','minHeight: 44','.isSelected','accessibilityLabel','privacySensitive()']:
             self.assertIn(token,APP)
@@ -99,7 +123,7 @@ class MerchantNPCPresetContracts(unittest.TestCase):
         core=(ROOT/'Tests/CoreTests/MerchantNPCPresetAvatarTests.swift').read_text()
         app=(ROOT/'Tests/AppUnitTests/MerchantNPCPresetPickerTests.swift').read_text()
         self.assertEqual(len(re.findall(r'func test\w+\(',core)),11)
-        self.assertEqual(len(re.findall(r'func test\w+\(',app)),15)
+        self.assertEqual(len(re.findall(r'func test\w+\(',app)),22)
         for token in ['testUnknownWriteLock','testAccountSwitch','testConcurrentFieldEdit','testNullProfile','testOpenAndCancel']:
             self.assertIn(token,app)
 

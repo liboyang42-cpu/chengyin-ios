@@ -127,9 +127,14 @@ import FoundationNetworking
         XCTAssertEqual(result.rowStates[9]?.market, .notSubmitted)
     }
     func testExistingBaseDTOValidationIsNotRelaxedByTolerantDisplayColumns() throws {
-        for bad in [["id": 7, "status": "1"], ["id": 7, "publishStatus": false], ["id": 0], ["id": 7, "useNum": -1]] as [[String: Any]] {
+        for bad in [["id": 7, "status": "1"], ["id": 7, "publishStatus": false], ["id": 0]] as [[String: Any]] {
             XCTAssertThrowsError(try page([bad]))
         }
+        let malformedDisplay = try page([["id": 7, "status": 1, "publishStatus": 1, "useNum": -1]])
+        XCTAssertEqual(malformedDisplay.rows.map(\.id), [7])
+        XCTAssertEqual(malformedDisplay.rows.first?.status, 1)
+        XCTAssertEqual(malformedDisplay.rows.first?.publishStatus, 1)
+        XCTAssertNil(malformedDisplay.rows.first?.useNum); XCTAssertNil(malformedDisplay.cardFacts[7]?.useCount)
         XCTAssertThrowsError(try page([row(7), row(7)]))
         XCTAssertThrowsError(try page((1...11).map { row($0) }))
     }

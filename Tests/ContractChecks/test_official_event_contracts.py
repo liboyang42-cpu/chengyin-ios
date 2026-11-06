@@ -36,12 +36,19 @@ class OfficialSourceChecks(unittest.TestCase):
         self.assertIn("|| !value.hasKnownListStatus", models)
         self.assertNotIn("(value.status ?? -1) >= 5", models)
     def test_mine_keyword_uses_same_local_query_and_no_private_search_suppression(self):
+        # Source pages/activity/list hides cy-search on tab 3 ("我的"); the hidden keyword
+        # must not filter the private list, while the shared query keeps mine search for roam.
         browser = read("App/OfficialEventsBrowserView.swift")
         self.assertIn('TextField("official.search", text: $keyword)', browser)
+        self.assertIn('if bucket.isSearchable {', browser)
         self.assertNotIn('if !privateList {', browser)
-        self.assertNotIn('keyword: privateList ? "" : keyword', browser)
+        self.assertIn('private var query: OfficialEventBrowseQuery { .sourceList(bucket: bucket, keyword: keyword) }', browser)
         self.assertIn('let visible = query.visible(rows)', browser)
-        self.assertIn('Text(LocalizedStringKey(query.emptyKey))', browser)
+        self.assertIn('Text(LocalizedStringKey(query.emptyTitleKey))', browser)
+        self.assertIn('Text(LocalizedStringKey(query.emptyDetailKey))', browser)
+        model = read("Core/OfficialEventContracts.swift")
+        self.assertIn('.init(bucket: bucket, keyword: bucket.isSearchable ? keyword : "")', model)
+        self.assertIn('var isSearchable: Bool { self != .mine }', model)
         self.assertIn('.onChange(of: reader.scope) { _, _ in keyword = "" }', browser)
         self.assertIn('isPrivate: privateList, requestID: privateList ? "mine" : "public"', browser)
         self.assertIn('if privateList { return try await reader.myEvents() }; return try await reader.events(city: nil)', browser)

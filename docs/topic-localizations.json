@@ -36,8 +36,8 @@
   },
   {
     "key": "topic.readOnly",
-    "en": "Read-only preview. Booking, payment, favorites and play are not available here.",
-    "zh-Hans": "只读预览。此处不提供报名、支付、收藏或开玩操作。"
+    "en": "Booking, payment, favorites and play aren't available here.",
+    "zh-Hans": "此处暂不支持报名、支付、收藏或开始游玩。"
   },
   {
     "key": "topic.search",
@@ -51,13 +51,13 @@
   },
   {
     "key": "topic.notConfigured",
-    "en": "Route service is not configured",
-    "zh-Hans": "路线服务尚未配置"
+    "en": "Routes aren't available right now.",
+    "zh-Hans": "路线暂不可用"
   },
   {
     "key": "topic.unauthorized",
-    "en": "Please sign in again to refresh your route access",
-    "zh-Hans": "请重新登录以刷新路线访问权限"
+    "en": "Sign in to view this topic, its sessions and sign-up.",
+    "zh-Hans": "登录后查看主题：可查看主题详情、场次和报名"
   },
   {
     "key": "topic.unavailable",
@@ -221,8 +221,8 @@
   },
   {
     "key": "topic.offlineExample",
-    "en": "Synthetic offline example",
-    "zh-Hans": "离线合成示例"
+    "en": "Example content",
+    "zh-Hans": "示例内容"
   },
   {
     "key": "topic.initiator",

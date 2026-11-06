@@ -36,13 +36,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This is the role returned for your current store access. Changes still require the existing review and current server authorization."
+          "value": "This is your role for the current store. Changing roles still requires confirmation and a fresh permission check."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "这里显示服务端返回的当前门店岗位。调整岗位仍须经过既有确认，并由服务端重新校验权限。"
+          "value": "这是你在当前门店的岗位。调整岗位仍须确认，并重新核对权限。"
         }
       }
     }

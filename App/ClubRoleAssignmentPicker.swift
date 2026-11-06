@@ -106,7 +106,9 @@ import SwiftUI
             } else { Text("club.rolePicker.clubScope").font(.footnote) }
             if model.loading || permit == nil { ProgressView("club.loading").accessibilityIdentifier("club.rolePicker.loading") }
             if permit != nil, let failure = model.failure {
-                Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.rolePicker.error")
+                Label { Text(LocalizedStringKey(failure.localizationKey)).fixedSize(horizontal: false, vertical: true) } icon: {
+                    Image(systemName: failure == .forbidden ? "lock.shield" : "exclamationmark.triangle").accessibilityHidden(true)
+                }.accessibilityIdentifier("club.rolePicker.error")
             }
             if let options = model.accepted(expected, access: access), let permit {
                 let readID = model.snapshotID
@@ -126,7 +128,9 @@ import SwiftUI
                                 }.contentShape(Rectangle())
                             }.accessibilityIdentifier("club.rolePicker.member.\(member.id)")
                         }
-                        Button("action.cancel") { expanded = nil }.accessibilityIdentifier("club.rolePicker.cancelMember")
+                        Button { expanded = nil } label: {
+                            Text("action.cancel").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
+                        }.accessibilityIdentifier("club.rolePicker.cancelMember")
                     } label: {
                         LabeledContent("club.rolePicker.member") {
                             if let selected = options.members.first(where: { String($0.id) == memberID }) { memberName(selected) }
@@ -149,20 +153,25 @@ import SwiftUI
                                 }.contentShape(Rectangle())
                             }.accessibilityIdentifier("club.rolePicker.role.\(role.code)")
                         }
-                        Button("action.cancel") { expanded = nil }.accessibilityIdentifier("club.rolePicker.cancelRole")
+                        Button { expanded = nil } label: {
+                            Text("action.cancel").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
+                        }.accessibilityIdentifier("club.rolePicker.cancelRole")
                     } label: {
                         LabeledContent("club.rolePicker.role") {
-                            if let selected = options.roles.first(where: { $0.code == roleCode }) { Text(verbatim: selected.name) }
+                            if let selected = options.roles.first(where: { $0.code == roleCode }) { Text(verbatim: selected.name).font(.headline) }
                             else { Text("club.rolePicker.unselected") }
                         }
                     }.accessibilityIdentifier("club.rolePicker.openRoles")
                 }
             }
             if model.failure != .forbidden {
-                Button(LocalizedStringKey(model.failure == nil ? "club.gov.refresh" : "action.retry")) {
+                Button {
                     guard canEdit(), let permit else { return }
                     expanded = nil
                     Task { await model.load(permit, access: access) }
+                } label: {
+                    Text(LocalizedStringKey(model.failure == nil ? "club.gov.refresh" : "action.retry"))
+                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
                 }.disabled(model.loading || permit == nil).accessibilityIdentifier("club.rolePicker.reload")
             }
         }

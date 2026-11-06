@@ -279,13 +279,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preview only. Live writes, agreements, money, messages and complaints are disabled."
+            "value": "Submitting, agreements, payments, messages and complaints aren't available here right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅预览。实际提交、协议、资金、消息和投诉均未启用。"
+            "value": "此处暂不支持提交、签署协议、资金、消息和投诉。"
           }
         }
       }
@@ -296,13 +296,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn’t load this source. Refresh to try again."
+            "value": "Couldn't load this. Refresh to try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未能读取此数据，请刷新重试。"
+            "value": "加载失败，请刷新重试。"
           }
         }
       }
@@ -381,13 +381,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Discover partners"
+            "value": "Cooperation"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发现伙伴"
+            "value": "合作"
           }
         }
       }
@@ -806,13 +806,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source amounts are CNY; no currency conversion is applied."
+            "value": "Amounts are in CNY. No currency conversion is applied."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "源金额币种为人民币，不进行汇率换算。"
+            "value": "金额以人民币计，不进行汇率换算。"
           }
         }
       }
@@ -925,7 +925,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Frozen terms and historical invitations are read-only. This screen does not sign an agreement or confirm a refund."
+            "value": "Locked terms and past invitations can be viewed only. This page doesn't sign an agreement or confirm a refund."
           }
         },
         "zh-Hans": {
@@ -1084,7 +1084,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已到账"
+            "value": "已入账"
           }
         }
       }
@@ -1095,13 +1095,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting transfer"
+            "value": "Awaiting credit"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "等待打款"
+            "value": "待入账"
           }
         }
       }

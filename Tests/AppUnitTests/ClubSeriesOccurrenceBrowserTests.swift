@@ -121,3 +121,178 @@ import XCTest
         await model.load(permit, access: access, current: { true }); XCTAssertEqual(model.failure, .notConfigured); XCTAssertTrue(access.resources.isEmpty)
     }
 }
+
+extension ClubSeriesOccurrenceBrowserTests {
+    private func parentSource(_ access: Access, generation: UInt64 = 1, seriesID: Int = 111) throws -> ClubSeriesOccurrenceHost.Source {
+        let scope = ClubGovernanceScope(clubID: 81)
+        let context = ClubGovernanceReadContext(operation: .series, scope: scope, identity: access.identity, viewerRevision: 0,
+            authorizationGeneration: access.authorizationGeneration, accessIdentity: ObjectIdentifier(access))
+        var row = ClubGovernanceFixtures.value(.seriesDetail).object!
+        row["id"] = .integer(seriesID)
+        let permission = try ClubGovernancePermissions(value: ClubGovernanceFixtures.permissions, scope: scope)
+        let snapshot = ClubGovernanceSnapshot(operation: .series, scope: scope, permissions: permission, value: .array([.object(row)]))
+        return try XCTUnwrap(.init(snapshot: snapshot, context: context, generation: generation, seriesID: seriesID, access: access))
+    }
+    private func expand(_ host: ClubSeriesOccurrenceHost, _ access: Access, _ source: ClubSeriesOccurrenceHost.Source) async {
+        host.appear(); host.toggle(source, current: source, active: true)
+        await host.loadIfNeeded(access: access, current: { source }, active: { true })
+    }
+    private func select(_ host: ClubSeriesOccurrenceHost, _ access: Access, _ source: ClubSeriesOccurrenceHost.Source) throws -> ClubSeriesOccurrenceHost.Selection {
+        let value = try XCTUnwrap(host.model.accepted(source.occurrences, access: access))
+        let route = try XCTUnwrap(value.route(rowID: 0, context: source.occurrences.read, snapshotID: host.model.snapshotID))
+        host.open(route, source: source, current: source, access: access, active: true)
+        return try XCTUnwrap(host.selected)
+    }
+    func testStableHostPreservesRealEventWhileParentIsCovered() async throws {
+        let access = Access(), host = ClubSeriesOccurrenceHost(), source = try parentSource(access)
+        await expand(host, access, source); let item = try select(host, access, source)
+        host.hide()
+        XCTAssertTrue(host.retainsDestination); XCTAssertTrue(host.isCurrent(item, current: source, access: access))
+        XCTAssertTrue(host.binding(item, current: { source }, access: access).wrappedValue)
+        XCTAssertEqual(item.route.scope, .init(clubID: 81, topicID: 91, activityID: 101))
+        XCTAssertEqual(access.resources, [.occurrences]); XCTAssertEqual(access.sends, 0)
+    }
+    func testConcreteCloseRefreshesSameSeriesExactlyOnceWhenVisible() async throws {
+        let access = Access(), host = ClubSeriesOccurrenceHost(), source = try parentSource(access)
+        await expand(host, access, source); let item = try select(host, access, source)
+        host.hide(); host.binding(item, current: { source }, access: access).wrappedValue = false
+        XCTAssertTrue(host.closed(item, current: source, access: access)); XCTAssertFalse(host.closed(item, current: source, access: access))
+        await host.loadIfNeeded(access: access, current: { source }, active: { true }); XCTAssertEqual(access.resources.count, 1)
+        host.appear(); await host.loadIfNeeded(access: access, current: { source }, active: { true })
+        await host.loadIfNeeded(access: access, current: { source }, active: { true })
+        XCTAssertEqual(access.resources, [.occurrences, .occurrences]); XCTAssertEqual(access.scopes, [source.scope, source.scope])
+        XCTAssertFalse(host.retainsDestination); XCTAssertFalse(host.needsRefresh); XCTAssertEqual(access.sends, 0)
+    }
+    func testOldDismissAndBindingCannotCloseReopenedEvent() async throws {
+        let access = Access(), host = ClubSeriesOccurrenceHost(), source = try parentSource(access)
+        await expand(host, access, source); let old = try select(host, access, source)
+        let binding = host.binding(old, current: { source }, access: access)
+        binding.wrappedValue = false; XCTAssertTrue(host.closed(old, current: source, access: access))
+        await host.loadIfNeeded(access: access, current: { source }, active: { true })
+        let fresh = try select(host, access, source)
+        XCTAssertNotEqual(old.id, fresh.id); binding.wrappedValue = false; host.retire(old)
+        XCTAssertFalse(host.closed(old, current: source, access: access)); XCTAssertEqual(host.selected?.id, fresh.id)
+        XCTAssertTrue(host.isPresented); XCTAssertFalse(binding.wrappedValue)
+    }
+    func testActualDepartureAndOldAttachmentCannotTouchNewSession() async throws {
+        let access = Access(), host = ClubSeriesOccurrenceHost(), source = try parentSource(access)
+        await expand(host, access, source); let old = try select(host, access, source)
+        XCTAssertTrue(host.depart(old.attachment)); XCTAssertNil(host.source); XCTAssertNil(host.selected); XCTAssertNil(host.model.options)
+        await expand(host, access, source); let fresh = try select(host, access, source)
+        XCTAssertFalse(host.depart(old.attachment)); XCTAssertEqual(host.selected?.id, fresh.id)
+        XCTAssertFalse(host.closed(old, current: source, access: access))
+    }
+    func testRetiredOrHiddenOldSeriesButtonsCannotOpenOrRead() async throws {
+        let access = Access(), host = ClubSeriesOccurrenceHost(), source = try parentSource(access)
+        host.toggle(source, current: source, active: true); XCTAssertNil(host.source)
+        host.appear(); host.toggle(source, current: source, active: false); XCTAssertNil(host.source)
+        let newer = try parentSource(access, generation: 2)
+        host.toggle(source, current: newer, active: true); XCTAssertNil(host.source)
+        await expand(host, access, source); host.hide()
+        XCTAssertFalse(host.requestReload(source, current: source, active: true))
+        await host.loadIfNeeded(access: access, current: { source }, active: { true })
+        XCTAssertEqual(access.resources.count, 1)
+    }
+    func testParentSnapshotRevisionRefreshRetiresOpenChildAndOldActions() async throws {
+        let access = Access(), host = ClubSeriesOccurrenceHost(), source = try parentSource(access)
+        await expand(host, access, source); let item = try select(host, access, source)
+        let newer = try parentSource(access, generation: 2)
+        XCTAssertFalse(host.isCurrent(item, current: newer, access: access)); host.invalidateUnlessCurrent(newer)
+        XCTAssertNil(host.selected); XCTAssertNil(host.source); XCTAssertNil(host.model.options)
+        XCTAssertFalse(host.closed(item, current: newer, access: access)); XCTAssertEqual(access.sends, 0)
+    }
+    func testBackgroundClosesChildAndForegroundExplicitReadCannotResend() async throws {
+        let access = Access(), host = ClubSeriesOccurrenceHost(), source = try parentSource(access)
+        await expand(host, access, source); let item = try select(host, access, source)
+        host.background()
+        XCTAssertNil(host.selected); XCTAssertTrue(host.needsRefresh); XCTAssertNil(host.model.options)
+        XCTAssertFalse(host.closed(item, current: source, access: access))
+        await host.loadIfNeeded(access: access, current: { source }, active: { false }); XCTAssertEqual(access.resources.count, 1)
+        await host.loadIfNeeded(access: access, current: { source }, active: { true })
+        XCTAssertEqual(access.resources.count, 2); XCTAssertFalse(host.needsRefresh); XCTAssertEqual(access.sends, 0)
+    }
+    func testReturnReadFailureIsRetryableWithoutOptimisticNewRows() async throws {
+        let access = Access(), host = ClubSeriesOccurrenceHost(), source = try parentSource(access)
+        await expand(host, access, source); let item = try select(host, access, source)
+        host.binding(item, current: { source }, access: access).wrappedValue = false
+        XCTAssertTrue(host.closed(item, current: source, access: access))
+        access.failure = .malformed; await host.loadIfNeeded(access: access, current: { source }, active: { true })
+        XCTAssertTrue(host.needsRefresh); XCTAssertNil(host.model.options); XCTAssertEqual(host.model.failure, .malformed)
+        access.failure = nil; XCTAssertTrue(host.requestReload(source, current: source, active: true))
+        await host.loadIfNeeded(access: access, current: { source }, active: { true })
+        XCTAssertFalse(host.needsRefresh); XCTAssertNotNil(host.model.options); XCTAssertEqual(access.sends, 0)
+    }
+    func testHeldReturnBackgroundRestartRejectsLateOldRead() async throws {
+        let access = Access(), host = ClubSeriesOccurrenceHost(), source = try parentSource(access)
+        await expand(host, access, source); let item = try select(host, access, source)
+        host.binding(item, current: { source }, access: access).wrappedValue = false
+        _ = host.closed(item, current: source, access: access)
+        access.held = true; let entered = expectation(description: "old return read"); access.entered = { entered.fulfill() }
+        let old = Task { await host.loadIfNeeded(access: access, current: { source }, active: { true }) }
+        await fulfillment(of: [entered], timeout: 1)
+        host.background(); access.held = false; access.activityID = 102
+        await host.loadIfNeeded(access: access, current: { source }, active: { true })
+        XCTAssertEqual(host.model.options?.rows.first?.activityID, 102)
+        access.activityID = 101; access.pending[0].resume(returning: try access.response()); await old.value
+        XCTAssertEqual(host.model.options?.rows.first?.activityID, 102); XCTAssertFalse(host.needsRefresh); XCTAssertFalse(host.model.loading)
+    }
+    func testHeldReadLeavingParentCannotRepopulateOnLateReturn() async throws {
+        let access = Access(), host = ClubSeriesOccurrenceHost(), source = try parentSource(access)
+        host.appear(); host.toggle(source, current: source, active: true)
+        access.held = true; let entered = expectation(description: "depart read"); access.entered = { entered.fulfill() }
+        let old = Task { await host.loadIfNeeded(access: access, current: { source }, active: { true }) }
+        await fulfillment(of: [entered], timeout: 1)
+        let attachment = try XCTUnwrap(host.attachment); XCTAssertTrue(host.depart(attachment))
+        access.pending[0].resume(returning: try access.response()); await old.value
+        XCTAssertNil(host.source); XCTAssertNil(host.model.options); XCTAssertFalse(host.model.loading)
+    }
+    func testCurrentAuthorizationAndSameSeriesAreRequiredAtReturn() async throws {
+        let access = Access(), host = ClubSeriesOccurrenceHost(), source = try parentSource(access)
+        await expand(host, access, source); let item = try select(host, access, source)
+        access.authorizationGeneration = UUID()
+        XCTAssertFalse(host.isCurrent(item, current: source, access: access))
+        XCTAssertFalse(host.closed(item, current: source, access: access))
+        let replacement = try parentSource(access)
+        host.invalidateUnlessCurrent(replacement); XCTAssertNil(host.source)
+        await expand(host, access, replacement)
+        let wrongSeries = try parentSource(access, seriesID: 113)
+        XCTAssertFalse(host.requestReload(replacement, current: wrongSeries, active: true))
+    }
+    func testReadOwnerSurvivesRecycledRowWithoutAnyRowLifecycleCallback() async throws {
+        let access = Access(), host = ClubSeriesOccurrenceHost(), source = try parentSource(access)
+        await expand(host, access, source)
+        let permit = try XCTUnwrap(host.model.permit(in: source.occurrences)), snapshotID = host.model.snapshotID
+        // Row views only observe this owner; constructing a replacement row does not activate or retire it.
+        _ = ClubSeriesOccurrenceBrowser(source: source, access: access, host: host, model: host.model,
+            currentSource: { source }, active: { true }, reload: {})
+        XCTAssertEqual(host.model.permit(in: source.occurrences), permit); XCTAssertEqual(host.model.snapshotID, snapshotID)
+        XCTAssertNotNil(host.model.accepted(source.occurrences, access: access)); XCTAssertEqual(access.resources.count, 1)
+    }
+}
+
+extension ClubSeriesOccurrenceBrowserTests {
+    func testCapturedParentSourceRejectsChangedAccountAndAccessObject() async throws {
+        let access = Access(), host = ClubSeriesOccurrenceHost(), source = try parentSource(access)
+        await expand(host, access, source); let item = try select(host, access, source)
+        access.identity = .init(accountID: 701, epoch: 2)
+        XCTAssertFalse(host.isCurrent(item, current: source, access: access))
+        XCTAssertNil(ClubSeriesOccurrenceHost.Source(snapshot: source.parent, context: source.context, generation: 1, seriesID: 111, access: access))
+        let replacement = Access(); replacement.authorizationGeneration = source.context.authorizationGeneration
+        XCTAssertNil(ClubSeriesOccurrenceHost.Source(snapshot: source.parent, context: source.context, generation: 1, seriesID: 111, access: replacement))
+        XCTAssertFalse(host.closed(item, current: source, access: access))
+    }
+    func testHiddenReturnReadCanRestartBeforeSuspendedOldTransportReturns() async throws {
+        let access = Access(), host = ClubSeriesOccurrenceHost(), source = try parentSource(access)
+        await expand(host, access, source); let item = try select(host, access, source)
+        host.binding(item, current: { source }, access: access).wrappedValue = false
+        _ = host.closed(item, current: source, access: access)
+        access.held = true; let entered = expectation(description: "hidden return"); access.entered = { entered.fulfill() }
+        let old = Task { await host.loadIfNeeded(access: access, current: { source }, active: { true }) }
+        await fulfillment(of: [entered], timeout: 1); host.hide()
+        XCTAssertFalse(host.model.loading); XCTAssertTrue(host.needsRefresh)
+        access.held = false; host.appear(); access.activityID = 102
+        await host.loadIfNeeded(access: access, current: { source }, active: { true })
+        access.activityID = 101; access.pending[0].resume(returning: try access.response()); await old.value
+        XCTAssertEqual(host.model.options?.rows.first?.activityID, 102); XCTAssertFalse(host.needsRefresh)
+    }
+}

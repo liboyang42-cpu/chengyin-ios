@@ -12,7 +12,8 @@ public struct RoamSettlement: Decodable, Equatable {
     public let medal: String?
     public let sessionShops: Int?
     public let shopMedal: RoamShopBadge?
-    enum CodingKeys: String, CodingKey { case tileXp, poiXp, totalXp, newTiles, newPois, tilesEver, medal, sessionShops, shopMedal }
+    public let routeStory: String?
+    enum CodingKeys: String, CodingKey { case tileXp, poiXp, totalXp, newTiles, newPois, tilesEver, medal, sessionShops, shopMedal, routeStory }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         tileXp = try c.decodeIfPresent(Int.self, forKey: .tileXp)
@@ -24,6 +25,12 @@ public struct RoamSettlement: Decodable, Equatable {
         sessionShops = try c.decodeIfPresent(Int.self, forKey: .sessionShops)
         medal = try c.roamText(.medal)
         shopMedal = try c.decodeIfPresent(RoamShopBadge.self, forKey: .shopMedal)
+        routeStory = Self.displayableStory(try? c.decode(String.self, forKey: .routeStory))
+    }
+    // Optional display content cannot change whether settlement facts are complete.
+    private static func displayableStory(_ value: String?) -> String? {
+        guard let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        return value
     }
     public var hasRequiredFacts: Bool {
         [tileXp, poiXp, totalXp, newTiles, newPois, tilesEver, sessionShops].allSatisfy { $0 != nil }
@@ -89,17 +96,20 @@ public struct RoamAlbumStamp: Decodable, Equatable, Identifiable {
     public let id: Int
     public let picUrl: String
     public let caption: String?
+    /// Original anonymous VO: 0 free photo, 1 cancelled stamp; unknown values stay unlabeled.
+    public let kind: Int?
     public let checkState: Int
     public let createTime: String?
     /// 0 means not submitted to automated review, not rejected. Unknown moderation states are retained
     /// in the contract but withheld from display until their meaning is reviewed.
     public var isVisible: Bool { id > 0 && (checkState == 0 || checkState == 1) }
-    enum CodingKeys: String, CodingKey { case id, picUrl, caption, checkState, createTime }
+    enum CodingKeys: String, CodingKey { case id, picUrl, caption, kind, checkState, createTime }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(Int.self, forKey: .id)
         picUrl = try c.decodeIfPresent(String.self, forKey: .picUrl) ?? ""
         caption = try c.decodeIfPresent(String.self, forKey: .caption)
+        kind = try c.decodeIfPresent(Int.self, forKey: .kind)
         checkState = try c.decodeIfPresent(Int.self, forKey: .checkState) ?? 0
         createTime = try c.decodeIfPresent(String.self, forKey: .createTime)
     }

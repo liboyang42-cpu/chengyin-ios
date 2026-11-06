@@ -85,8 +85,10 @@ import SwiftUI
         self.source = source; _buffer = StateObject(wrappedValue: .init(source: source))
     }
     var body: some View {
-        TextField("projectEdit.description", text: buffer.binding, axis: .vertical).lineLimit(3...8)
-            .accessibilityIdentifier("projectEdit.nodeDescription")
+        ProjectEditorField(title: "projectEdit.description") {
+            TextField("projectEdit.description", text: buffer.binding, axis: .vertical).lineLimit(3...8)
+                .accessibilityIdentifier("projectEdit.nodeDescription")
+        }
             .disabled(source.target == nil)
             .onAppear { buffer.activate() }
             .onChange(of: source.snapshot) { _, _ in buffer.synchronize() }

@@ -9,7 +9,8 @@ import SwiftUI
     private var visibility: UUID?
     private var generation = UUID()
     func activate(_ context: ClubProjectLaunchContext) -> Permit? {
-        guard context.canRead, !Task.isCancelled else { leave(); return nil }
+        guard !Task.isCancelled else { return nil }
+        guard context.canRead else { leave(); return nil }
         if bound != context || visibility == nil { bound = context; visibility = UUID(); generation = UUID(); target = nil; phase = .idle }
         return permit(in: context)
     }
@@ -89,6 +90,7 @@ import SwiftUI
         .navigationTitle("club.projectLaunch.title")
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { model.leave(); dismiss() }.accessibilityIdentifier("club.projectLaunch.cancel") } }
         .task(id: scope) {
+            guard !Task.isCancelled else { return }
             presented = nil
             guard let permit = model.activate(scope) else { return }
             await model.read(permit, reader: session, editorContextID: { session.projectEditorContextID })

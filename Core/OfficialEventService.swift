@@ -72,10 +72,13 @@ public struct OfficialEventService {
         // This exact source phrase is a normal permission state, not a retryable load error.
         if envelope?.code != 200, envelope?.msg?.contains("无官方发布权限") == true { throw OfficialReadFailure.noPublisherPermission }
         if status == 403 || envelope?.code == 403 { throw OfficialReadFailure.forbidden }
+        // Source official-detail: only an explicit "content is gone" is unrecoverable.
+        if missingEvent && (status == 404 || status == 410) { throw OfficialReadFailure.unavailable }
         guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
         guard let code = envelope?.code else { throw APIError.malformedResponse }
         guard code == 200 else {
-            if missingEvent && envelope?.msg == "活动不存在" { throw OfficialReadFailure.unavailable }
+            if missingEvent && (code == 404 || code == 410
+                || envelope?.msg?.trimmingCharacters(in: .whitespacesAndNewlines) == "活动不存在") { throw OfficialReadFailure.unavailable }
             // The stats source intentionally hides ownership behind “not found”. Do not infer deletion.
             if missingBroadcast && envelope?.msg == "通知不存在" { throw OfficialReadFailure.unavailable }
             throw OfficialReadFailure.rejected(code)

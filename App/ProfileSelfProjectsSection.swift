@@ -91,7 +91,6 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
                         ProfileSelfProjectsBrowser(reader: reader, detail: detail)
                     } label: { Label("profile.selfProjects.all", systemImage: "square.stack") }
                         .accessibilityIdentifier("profile.selfProjects.all")
-                    Text("profile.selfProjects.previewNote").font(.caption).foregroundStyle(.secondary)
                 }
             }
         }
@@ -123,7 +122,7 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
     var body: some View {
         Group {
             if reader.isCurrentContext {
-                CreatorContentProjectsView(reader: reader, onOpenProject: { project, scope in
+                CreatorContentProjectsView(reader: reader, onOpenProject: { project, scope, _ in
                     guard selection == nil, reader.isCurrentContext, reader.scope == scope, project.destination != nil else { return }
                     selection = .init(project: project)
                 }, onOpen: { _ in })

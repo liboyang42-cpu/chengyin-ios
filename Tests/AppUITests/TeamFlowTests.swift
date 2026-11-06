@@ -62,6 +62,29 @@ final class TeamFlowTests: XCTestCase {
         app.buttons["team.invite.close"].tap()
         XCTAssertTrue(app.navigationBars["Team details"].waitForExistence(timeout: 5))
     }
+    func testInvitationCopyFeedbackCloseAndReopen() {
+        for chinese in [false, true] {
+            launch(destination: "detail", chinese: chinese, accessible: chinese)
+            let open = app.buttons["team.invitePreview"]
+            reveal(open); open.tap()
+            let copy = app.buttons["team.invite.copy"]
+            reveal(copy)
+            XCTAssertFalse(app.staticTexts["team.invite.copyFeedback"].exists)
+            for _ in 0..<2 {
+                copy.tap()
+                let feedback = app.staticTexts["team.invite.copyFeedback"]
+                XCTAssertTrue(feedback.waitForExistence(timeout: 5))
+                XCTAssertEqual(feedback.label, chinese ? "邀请码已复制，尚未发送邀请。" : "Invitation code copied. No invitation was sent.")
+            }
+            app.buttons["team.invite.close"].tap()
+            reveal(open); open.tap()
+            XCTAssertTrue(app.buttons["team.invite.copy"].waitForExistence(timeout: 5))
+            XCTAssertFalse(app.staticTexts["team.invite.copyFeedback"].exists)
+            app.buttons["team.invite.close"].tap()
+            XCTAssertTrue(app.navigationBars[chinese ? "队伍详情" : "Team details"].waitForExistence(timeout: 5))
+            app.terminate()
+        }
+    }
     func testCancelLeaveThenReopenReview() {
         launch(destination: "detail"); reviewLeave()
         reveal(app.buttons["team.review.cancel"]); app.buttons["team.review.cancel"].tap()

@@ -83,7 +83,7 @@ import Combine
                                 else { Text(verbatim: option.label) }
                             }
                             Spacer()
-                        }.contentShape(Rectangle())
+                        }.frame(minHeight: 44).contentShape(Rectangle())
                     }.buttonStyle(.borderless)
                         .accessibilityIdentifier("creator.qa.answers.option.\(option.id)")
                         .accessibilityValue(Text(LocalizedStringKey(option.correct ? "templateQAAnswers.selected" : "templateQAAnswers.notSelected")))

@@ -1,0 +1,30 @@
+# NOT APPLIED.
+# The selected channel is not a stored field on this tree. compositionTransport and the
+# session token are private to App/AppSession.swift, so this diff is not applied here.
+# Do not use MessagingConversation.id, club chat, a history-read grant, or
+# api/native/spaces/admission. MessagingHistoryView already forwards directory to the
+# controls, and those controls already call ChannelAdmissionParent.page.
+# Passing compositionTransport does not issue a directory or admission route;
+# CompositionHTTPTransport still refuses an unapproved GET api/channels.
+diff --git a/App/AppSession.swift b/App/AppSession.swift
+--- a/App/AppSession.swift
++++ b/App/AppSession.swift
+@@ -2954,6 +2954,18 @@
+         let owner = IMExpandedCoordinator(scope: scope, writer: imExpandedWriter)
+         imExpandedCoordinators[scope] = owner; return owner
+     }
++
++    /// Caller supplies the channel and space already selected in this session.
++    /// `compositionTransport` is the original transport from `composition.transport()`.
++    /// Not a history-read grant, not `api/native/spaces/admission`, and not a new URLSession.
++    func channelDirectoryAdmissionRequest(channelID: Int, spaceID: Int64, kind: Int) -> ChannelDirectoryAdmissionRequest? {
++        guard let context = currentRuntimeDependencyContext,
++              let configuration = regionalConfiguration?.apiConfiguration else { return nil }
++        return ChannelDirectoryTransportInjection.request(
++            configuration: configuration, transport: compositionTransport, token: context.session.token,
++            accountID: context.session.accountID, epoch: context.session.epoch,
++            channelID: channelID, spaceID: spaceID, kind: kind)
++    }
+     func imImageUploadCoordinator(for conversationID: Int) -> IMImageUploadCoordinator? {
+         guard let identity = imExpandedWriter.identity, let scope = try? IMScope(identity: identity, conversationID: conversationID) else { return nil }
+         if let existing = imImageCoordinators[scope] { return existing }

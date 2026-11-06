@@ -1,0 +1,118 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "settingsNative.favorites.openHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View your saved posts and topics"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看收藏的帖子与主题"
+          }
+        }
+      }
+    },
+    "settingsNative.favorites.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account context changed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号状态已变化"
+          }
+        }
+      }
+    },
+    "profile.favoriteRecovery.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unresolved removals"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待确认的取消收藏"
+          }
+        }
+      }
+    },
+    "profile.favoriteRecovery.explanation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A previous removal may have succeeded. Check its current status even if the post is no longer in this list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "之前的取消收藏可能已成功。即使帖子已不在列表中，也可查询当前状态。"
+          }
+        }
+      }
+    },
+    "profile.favoriteRecovery.check": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check post"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询帖子"
+          }
+        }
+      }
+    },
+    "profile.favoriteRecovery.unreadable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved removal status could not be read. Retry this local check before attempting another removal."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法读取待确认记录。请重试本地读取，再尝试取消收藏。"
+          }
+        }
+      }
+    },
+    "profile.favoriteRecovery.removed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Removal is confirmed. Closing this sheet refreshes your saved list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已确认取消收藏。关闭此页面后将刷新收藏列表。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

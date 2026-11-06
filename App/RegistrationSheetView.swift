@@ -15,14 +15,18 @@ private final class RegistrationSheetModel: ObservableObject {
 @MainActor
 struct RegistrationSheetView: View {
     @Environment(\.complianceSignupDestination) private var complianceSignupDestination
+    @Environment(\.registrationMySignupsDestination) private var mySignupsDestination
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model: RegistrationSheetModel
     @FocusState private var focusedField: Field?
     @State private var showingConfirmation = false
     @State private var showingWaitlistCancellation = false
     @State private var showingAddParticipant = false
-    @State private var orderDestination: RegistrationWaitlistOrderPresentation?
+    @State private var orderDestination: RegistrationWaitlistOrderVisit?
+    @State private var resultOrderDestination: RegistrationResultOrderPresentation?
+    @State private var recoveredOrderDestination: RegistrationRecoveredOrderPresentation?
     private let participantReader: (any ProfileReading)?
     private let orderReader: (any ProfileReading)?
     private let participantCoordinator: ParticipantMutationCoordinator?
@@ -62,26 +66,38 @@ struct RegistrationSheetView: View {
                 if !flow.hasCurrentSession {
                     Section { Label("registration.form.sessionChanged", systemImage: "person.crop.circle.badge.exclamationmark") }
                 } else {
-                    activitySection
+                    // Source checkout banner: shown, never blocking (the viewer may register someone else).
+                    alreadyRegisteredSection
                     if flow.hasRetainedIntent {
-                        RegistrationOperationSections(flow: flow,revision:model.revision)
+                        activitySection
+                        RegistrationOperationSections(flow: flow,revision:model.revision,orderReader:orderReader)
+                        resultOrderSection
                     } else if case .pending(let registrationID) = flow.durableCreation {
+                        activitySection
                         Section("registration.form.outcomeUnknown") {
                             Text("registration.waitlist.retainedOrder")
                             if registrationID != nil {
                                 Button("registration.waitlist.readRetainedOrder") { Task { await flow.readDurableStatus() } }
                                     .disabled(flow.isReadingStatus)
                             }
+                            if flow.isReadingStatus { ProgressView("registration.form.readingStatus") }
+                            if flow.durableStatusFailed {
+                                Text("registration.form.statusUnavailable")
+                                    .accessibilityIdentifier("registration.recovered.statusUnavailable")
+                            }
                             if let snapshot = flow.durableStatus {
                                 Text(LocalizedStringKey(RegistrationUIStatus.registrationKey(snapshot.registrationStatus)))
-                                Text("registration.waitlist.orderReadback").font(.caption).foregroundStyle(.secondary)
                             }
                         }
+                        recoveredOrderSection
                     } else {
+                        // Source order (RegistrationCheckoutSection): 参与人信息 → 活动信息 →
+                        // 费用明细 (票种 → 订单金额 → 权益 → 积分 → 总计) → 候补 → 提交.
                         participantSection
+                        activitySection
                         ticketSection
-                        waitlistSection
                         quoteSection
+                        waitlistSection
                         confirmationSection
                     }
                 }
@@ -96,12 +112,11 @@ struct RegistrationSheetView: View {
                 }
             }
             .alert(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmTitle" : "registration.waitlist.confirmTitle"), isPresented: $showingConfirmation) {
-                Button(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmCreate" : "registration.waitlist.confirmCreate")) { Task { await flow.confirm() } }
+                Button(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmCreate" : "registration.waitlist.confirmCreate")) { Task { await flow.confirmAndReadBack() } }
                 Button("action.cancel", role: .cancel) { flow.cancelConfirmation() }
             } message: {
                 if let review = flow.confirmation {
-                    Text(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmHint" : "registration.waitlist.confirmHint"))
-                    + Text(verbatim: "\n\(flow.activity.summary.name)\n\(flow.selectedTicket?.name ?? "")\n\(review.draft.trimmedName)\n\(review.draft.trimmedPhone)\n")
+                    Text(verbatim: "\(flow.activity.summary.name)\n\(flow.selectedTicket?.name ?? "")\n\(review.draft.trimmedName)\n\(review.draft.trimmedPhone)\n")
                     + Text(verbatim: RegistrationUIMoney.display(review.quote.payAmount, locale: locale) ?? "—")
                 }
             }
@@ -131,13 +146,34 @@ struct RegistrationSheetView: View {
                 }
                 flow.checkWaitlistDeadline()
             }
-            .sheet(item: $orderDestination) { presentation in
+            .sheet(item: $orderDestination) { visit in
                 if let orderReader {
-                    RegistrationWaitlistOrderSheet(presentation: presentation, reader: orderReader,
-                        isCurrent: { flow.waitlistOrderDestination == presentation.destination })
+                    RegistrationWaitlistOrderSheet(presentation: visit.presentation, reader: orderReader,
+                        isCurrent: { RegistrationWaitlistOrderVisit.permits(visit, current: orderDestination,
+                            destination: flow.waitlistOrderDestination, isActive: scenePhase == .active) })
                 }
             }
             .onChange(of: flow.waitlistReadKey) { _, _ in orderDestination = nil }
+            .onChange(of: flow.waitlistOrderDestination) { _, _ in orderDestination = nil }
+            .sheet(item: $resultOrderDestination) { presentation in
+                if let orderReader {
+                    RegistrationResultOrderSheet(presentation: presentation, reader: orderReader,
+                        isCurrent: { resultOrderDestination == presentation &&
+                            flow.resultOrderDestination == presentation.destination && scenePhase == .active })
+                }
+            }
+            .sheet(item: $recoveredOrderDestination) { presentation in
+                if let orderReader {
+                    RegistrationRecoveredOrderSheet(presentation: presentation, reader: orderReader,
+                        isCurrent: { recoveredOrderDestination == presentation &&
+                            flow.recoveredOrderDestination == presentation.destination && scenePhase == .active })
+                }
+            }
+            .onChange(of: flow.recoveredOrderDestination) { _, _ in recoveredOrderDestination = nil }
+            .onChange(of: flow.resultOrderDestination) { _, _ in resultOrderDestination = nil }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .background { orderDestination = nil; resultOrderDestination = nil; recoveredOrderDestination = nil; flow.retireResultOrderNavigation() }
+            }
             .sheet(isPresented: $showingAddParticipant) {
                 if let participantReader, let participantCoordinator {
                     NavigationStack {
@@ -148,6 +184,12 @@ struct RegistrationSheetView: View {
                 }
             }
             .onChange(of: flow.identity) { _, _ in showingAddParticipant = false }
+            .onChange(of: flow.participantsIdentity) { _, _ in
+                showingAddParticipant = false
+                flow.synchronizeParticipantIdentity()
+                guard scenePhase == .active, flow.hasCurrentSession else { return }
+                Task { await flow.loadParticipants() }
+            }
             .onChange(of: flow.confirmation) { _, value in
                 if value == nil { showingConfirmation = false }
             }
@@ -155,29 +197,91 @@ struct RegistrationSheetView: View {
         }
         .accessibilityIdentifier("registration.form.sheet")
     }
+    @ViewBuilder private var recoveredOrderSection: some View {
+        if let destination = flow.recoveredOrderDestination, let orderReader {
+            let readIdentity = orderReader.identity
+            Section {
+                Button("profile.orders.detail") {
+                    guard recoveredOrderDestination == nil, resultOrderDestination == nil, orderDestination == nil,
+                          scenePhase == .active, flow.recoveredOrderDestination == destination,
+                          orderReader.identity == readIdentity, orderReader.isConfigured else { return }
+                    recoveredOrderDestination = .init(destination: destination, readIdentity: readIdentity)
+                }
+                .disabled(scenePhase != .active || !orderReader.isConfigured ||
+                    orderReader.identity?.accountID != destination.identity.accountID ||
+                    orderReader.identity?.epoch != destination.identity.epoch)
+                .accessibilityIdentifier("registration.recovered.openOrder")
+            }
+        }
+    }
+    @ViewBuilder private var resultOrderSection: some View {
+        if let destination = flow.resultOrderDestination, let orderReader {
+            let readIdentity = orderReader.identity
+            Section {
+                Button("profile.orders.detail") {
+                    guard resultOrderDestination == nil, orderDestination == nil,
+                          scenePhase == .active, flow.resultOrderDestination == destination,
+                          orderReader.identity == readIdentity, orderReader.isConfigured else { return }
+                    resultOrderDestination = .init(destination: destination, readIdentity: readIdentity)
+                }
+                .disabled(scenePhase != .active || !orderReader.isConfigured ||
+                    orderReader.identity?.accountID != destination.identity.accountID ||
+                    orderReader.identity?.epoch != destination.identity.epoch)
+                .accessibilityIdentifier("registration.result.openOrder")
+            }
+        }
+    }
+    @ViewBuilder private var alreadyRegisteredSection: some View {
+        if RegistrationCheckoutFacts(activity: flow.activity, ticket: flow.selectedTicket).viewerAlreadyRegistered {
+            Section {
+                Label("registrationParity.alreadyRegistered", systemImage: "checkmark.seal")
+                    .font(.headline)
+                    .accessibilityIdentifier("registration.alreadyRegistered")
+                // Source goMySignups: an entry only, never an automatic redirect.
+                if let mySignupsDestination {
+                    NavigationLink { mySignupsDestination() } label: { Text("registration.w206.viewMySignups") }
+                        .accessibilityIdentifier("registration.viewMySignups")
+                }
+            }
+        }
+    }
     private var activitySection: some View {
-        Section("registration.form.activity") {
-            Text(verbatim: flow.activity.summary.name).font(.headline)
+        let checkout = RegistrationCheckoutFacts(activity: flow.activity, ticket: flow.selectedTicket)
+        return Section("registrationParity.section.activity") {
+            if flow.activity.summary.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text("registrationParity.activityNamePending").font(.headline)
+            } else {
+                Text(verbatim: flow.activity.summary.name).font(.headline)
+            }
             if let date = flow.activity.summary.startDate, !date.isEmpty {
                 LabeledContent("registration.form.startDate", value: date)
             }
             if let date = flow.activity.summary.endDate, !date.isEmpty {
                 LabeledContent("registration.form.endDate", value: date)
             }
-            if let address = flow.activity.summary.addressName ?? flow.activity.summary.address, !address.isEmpty {
-                Label { Text(verbatim: address) } icon: { Image(systemName: "mappin.and.ellipse") }
+            // Source: the session's 集合点 row appears only when the selected ticket supplies it.
+            if let meetingPoint = checkout.meetingPoint {
+                Label { Text("registrationParity.meetingPointValue \(meetingPoint)") } icon: { Image(systemName: "flag") }
+                    .accessibilityIdentifier("registration.activity.meetingPoint")
             }
+            Label {
+                if let venue = checkout.venue { Text(verbatim: venue) }
+                else { Text(verbatim: "—") }
+            } icon: { Image(systemName: "mappin.and.ellipse") }
+                .accessibilityIdentifier("registration.activity.venue")
         }
     }
     private var participantSection: some View {
         Section {
-            if flow.participantsState == .loading {
+            if participantReader?.isConfigured == false {
+                Text("auth.notConfigured")
+            } else if flow.participantsState == .loading {
                 ProgressView("registration.form.loadingParticipants")
             } else if flow.participantsState == .unavailable {
                 Text("registration.form.participantReadFailed").foregroundStyle(.secondary)
                 Button("registration.form.reloadParticipants") { Task { await flow.loadParticipants() } }
                     .accessibilityIdentifier("registration.form.reloadParticipants")
-            } else if !flow.participants.isEmpty {
+            } else if flow.participantProjectionIsCurrent, !flow.participants.isEmpty {
                 Picker("registration.form.savedParticipant", selection: Binding<Int?>(
                     get: { flow.selectedParticipantID },
                     set: { if let id = $0 { flow.selectParticipant(id: id) } else { flow.useManualEntry() } }
@@ -188,9 +292,16 @@ struct RegistrationSheetView: View {
                     }
                 }.accessibilityIdentifier("registration.form.participantPicker")
             }
-            if participantReader != nil, participantCoordinator != nil {
-                Button("participant.form.add") { focusedField = nil; showingAddParticipant = true }
-                    .disabled(!flow.canEdit).accessibilityIdentifier("registration.form.addParticipant")
+            if let participantReader, let participantCoordinator,
+               participantReader.identity != nil, participantReader.identity == participantCoordinator.identity {
+                if case .outcomeUnknown = participantCoordinator.state {
+                    Button { focusedField = nil; showingAddParticipant = true } label: {
+                        Text("participant.recovery.inspect", tableName: "ProfileParticipantRecovery")
+                    }.disabled(!flow.canEdit).accessibilityIdentifier("registration.form.inspectParticipant")
+                } else if participantReader.isConfigured, participantCoordinator.canPrepare {
+                    Button("participant.form.add") { focusedField = nil; showingAddParticipant = true }
+                        .disabled(!flow.canEdit).accessibilityIdentifier("registration.form.addParticipant")
+                }
             }
             TextField("registration.form.name", text: Binding(get: { flow.draft.realName }, set: flow.setName))
                 .textContentType(.name).textInputAutocapitalization(.words)
@@ -202,9 +313,9 @@ struct RegistrationSheetView: View {
                 .focused($focusedField, equals: .phone)
                 .accessibilityIdentifier("registration.form.phone")
             if !flow.draft.phone.isEmpty, flow.draft.validation == .invalidPhone {
-                Text("registration.form.phoneHint").font(.caption).foregroundStyle(.secondary)
+                Text("registration.form.phoneHint").font(.caption).foregroundStyle(.red)
             }
-        } header: { Text("registration.form.contact") } footer: { Text("registration.form.contactHint") }
+        } header: { Text("registrationParity.section.participants") }
         .disabled(!flow.canEdit)
     }
     private var ticketSection: some View {
@@ -264,21 +375,22 @@ struct RegistrationSheetView: View {
                                     }
                                 } else { Text("registration.waitlist.state.EXPIRED") }
                             }
-                            Text("registration.waitlist.singleTicket").font(.caption).foregroundStyle(.secondary)
                             Button("registration.waitlist.reviewOffer") { Task { await flow.reviewWaitlistOffer() } }
                                 .disabled(!flow.canEdit || flow.isReadingWaitlist)
                                 .accessibilityIdentifier("registration.waitlist.reviewOffer")
                         }
                         if status.registrationID != nil {
-                            Text("registration.waitlist.orderReadback").font(.caption).foregroundStyle(.secondary)
                             if let destination = flow.waitlistOrderDestination, let orderReader {
                                 Button("profile.orders.detail") {
-                                    guard orderDestination == nil, flow.waitlistOrderDestination == destination,
+                                    guard scenePhase == .active, orderDestination == nil, resultOrderDestination == nil, recoveredOrderDestination == nil,
+                                          flow.waitlistOrderDestination == destination, orderReader.isConfigured,
                                           orderReader.identity?.accountID == destination.identity.accountID,
                                           orderReader.identity?.epoch == destination.identity.epoch else { return }
-                                    orderDestination = RegistrationWaitlistOrderPresentation(destination: destination, readIdentity: orderReader.identity)
+                                    if let presentation = RegistrationWaitlistOrderPresentation(destination: destination, readIdentity: orderReader.identity) {
+                                        orderDestination = .init(presentation: presentation)
+                                    }
                                 }
-                                .disabled(!orderReader.isConfigured || orderReader.identity?.accountID != destination.identity.accountID || orderReader.identity?.epoch != destination.identity.epoch)
+                                .disabled(scenePhase != .active || !orderReader.isConfigured || orderReader.identity?.accountID != destination.identity.accountID || orderReader.identity?.epoch != destination.identity.epoch)
                                 .accessibilityIdentifier("registration.waitlist.openOrder")
                             }
                         }
@@ -297,11 +409,16 @@ struct RegistrationSheetView: View {
                             .accessibilityIdentifier("registration.waitlist.cancel")
                     }
                 }
-            } header: { Text("registration.waitlist.title") } footer: { Text("registration.waitlist.noAutoPayment") }
+            } header: { Text("registration.waitlist.title") }
         }
     }
     private var quoteSection: some View {
         Section {
+            // Source 订单金额 is the selected ticket's listed price; unknown stays unknown.
+            if flow.selectedTicket != nil {
+                RegistrationAmountRow(key: "registrationParity.orderAmount",
+                    amount: RegistrationCheckoutFacts(activity: flow.activity, ticket: flow.selectedTicket).orderAmount)
+            }
             if !flow.quoteEnabled {
                 Text("registration.form.quoteDisabled").foregroundStyle(.secondary)
             } else if flow.isQuoting {
@@ -310,6 +427,10 @@ struct RegistrationSheetView: View {
                 switch flow.quoteState {
                 case .received(let quote):
                     RegistrationAmountRow(key: "registration.form.memberDiscount", amount: quote.memberDiscountYuan, deduction: true, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
+                    if let note = RegistrationCheckoutClubBenefit.from(quote)?.noteKey {
+                        LabeledContent("registrationParity.clubBenefit") { Text(LocalizedStringKey(note)) }
+                            .accessibilityIdentifier("registration.fees.clubBenefit")
+                    }
                     RegistrationAmountRow(key: "registration.form.couponDiscount", amount: quote.couponDeductYuan, deduction: true, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
                     RegistrationAmountRow(key: "registration.form.pointsDiscount", amount: quote.pointsDeductYuan, deduction: true, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
                     LabeledContent("registration.form.pointsUsed") {
@@ -337,7 +458,7 @@ struct RegistrationSheetView: View {
             Button("registration.form.refreshQuote") { Task { await flow.requestQuote() } }
                 .disabled(!flow.quoteEnabled || !flow.canEdit || flow.isQuoting)
                 .accessibilityIdentifier("registration.form.refreshQuote")
-        } header: { Text("registration.form.fees") } footer: { Text("registration.form.currencyHint") }
+        } header: { Text("registration.form.fees") }
     }
     private var confirmationSection: some View {
         Section {
@@ -372,7 +493,7 @@ struct RegistrationSheetView: View {
                     focusedField = nil
                     if flow.prepareConfirmation() { showingConfirmation = true }
                 } label: { Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44) }
-                .buttonStyle(.borderedProminent).disabled(flow.confirmationBlock != nil)
+                .buttonStyle(.questifyPrimary).disabled(flow.confirmationBlock != nil)
                 .accessibilityIdentifier("registration.form.review")
             }
         } footer: { Text("registration.form.sharingPurpose") }
@@ -420,6 +541,7 @@ private struct RegistrationIssueText: View {
 private struct RegistrationOperationSections: View {
     let flow: RegistrationUIFlow
     let revision:UInt64
+    var orderReader: (any ProfileReading)? = nil
     var body: some View {
         if flow.retainedForAnotherActivity {
             Section { Text("registration.form.otherActivityIntent").foregroundStyle(.secondary) }
@@ -433,6 +555,7 @@ private struct RegistrationOperationSections: View {
                 Text("registration.form.outcomeUnknownHint")
                     .accessibilityIdentifier("registration.form.outcomeUnknown")
                 Text("registration.form.retainedIntentHint").font(.caption).foregroundStyle(.secondary)
+                if let orderReader { RegistrationUncertainOrdersCheck(flow: flow, reader: orderReader) }
             }
         case .responseReceived(_, let result):
             Section("registration.form.createdResponse") {
@@ -464,7 +587,6 @@ private struct RegistrationOperationSections: View {
                 statusRow("registration.form.registrationCode", snapshot.registrationStatus)
                 statusRow("registration.form.paymentCode", snapshot.paymentStatus)
                 statusRow("registration.form.verificationCode", snapshot.verificationStatus)
-                Text("registration.form.separateStatusHint").font(.caption).foregroundStyle(.secondary)
             }.accessibilityIdentifier("registration.form.statusSnapshot")
         }
     }
@@ -473,5 +595,54 @@ private struct RegistrationOperationSections: View {
             if let code { Text(verbatim: String(code)) }
             else { Text("registration.form.unknownStatus") }
         } label: { Text(LocalizedStringKey(key)) }
+    }
+}
+
+
+/// One read-only look at the viewer's own orders after an unknown create outcome. A match is
+/// not proof of this submission, so the retained request stays locked and nothing is retried.
+@MainActor
+private struct RegistrationUncertainOrdersCheck: View {
+    let flow: RegistrationUIFlow
+    let reader: any ProfileReading
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var cache = RegistrationUncertainEvidenceCache()
+    private var scope: RegistrationUncertainEvidenceScope? {
+        .capture(flow: flow, reader: reader, isActive: scenePhase == .active)
+    }
+    var body: some View {
+        let currentScope = scope
+        let current = cache.isCurrent(currentScope)
+        let evidence = current ? cache.evidence : nil
+        let reading = current && cache.reading
+        let failed = current && cache.failed
+        Button("registration.w206.checkOrders") {
+            guard let capturedScope = scope else { return }
+            let token = cache.begin(capturedScope)
+            Task {
+                do {
+                    let result = try await flow.uncertainOutcomeEvidence(orders: reader)
+                    try Task.checkCancellation()
+                    cache.finish(result, for: token, current: scope)
+                } catch {
+                    cache.fail(for: token, current: scope, cancelled: error is CancellationError)
+                }
+            }
+        }.disabled(currentScope == nil || reading || evidence != nil).accessibilityIdentifier("registration.checkOrders")
+        .onChange(of: currentScope) { _, _ in cache.clear() }
+        .onDisappear { cache.clear() }
+        if reading { ProgressView("registration.form.readingStatus") }
+        if failed { Text("registration.w206.checkOrdersFailed").accessibilityIdentifier("registration.checkOrders.failed") }
+        switch evidence {
+        case .noMatchingOrder?:
+            Text("registration.w206.noMatchingOrder").accessibilityIdentifier("registration.checkOrders.none")
+        case .matchingOrders(let ids)?:
+            Text("registration.w206.matchingOrders \(ids.count)").accessibilityIdentifier("registration.checkOrders.matches")
+            ForEach(ids, id: \.self) { id in
+                LabeledContent("registration.form.registrationID", value: String(id))
+            }
+            Text("registration.w206.matchNotProof").font(.caption).foregroundStyle(.secondary)
+        case .notApplicable?, nil: EmptyView()
+        }
     }
 }

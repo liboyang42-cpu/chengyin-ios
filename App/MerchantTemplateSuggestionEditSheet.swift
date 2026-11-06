@@ -28,29 +28,36 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
-                Section { Text("merchantSuggestionEdit.boundary").font(.footnote) }
+                Section { merchantCreationNotice(Text("merchantSuggestionEdit.boundary"), systemImage: "pencil.and.outline") }
                 if let edit = model.edit, model.isCurrent {
-                    Section(LocalizedStringKey(edit.action.field.titleKey)) {
-                        Text("merchantSuggestionEdit.originalDraft").font(.caption)
-                        if edit.originalDraft.isEmpty { Text("merchant.assist.diff.empty").foregroundStyle(.secondary) }
-                        else { Text(verbatim: edit.originalDraft).textSelection(.enabled) }
-                        Text("merchantSuggestionEdit.generated").font(.caption)
-                        Text(verbatim: edit.generatedText).textSelection(.enabled)
-                    }
                     Section("merchantSuggestionEdit.yourVersion") {
+                        Text(LocalizedStringKey(edit.action.field.titleKey)).font(Theme.Font.cardTitle)
+                            .accessibilityAddTraits(.isHeader).fixedSize(horizontal: false, vertical: true)
                         TextField("merchantSuggestionEdit.text", text: Binding(get: { model.edit?.text ?? "" }, set: model.update), axis: .vertical)
                             .lineLimit(3...12).accessibilityIdentifier("merchantSuggestionEdit.text")
+                            .merchantCreationFieldLabel(Text("merchantSuggestionEdit.text"))
                         if let issue = edit.issue {
-                            Text(LocalizedStringKey("merchantSuggestionEdit.issue." + issue.rawValue)).foregroundStyle(.secondary)
+                            merchantCreationNotice(Text(LocalizedStringKey("merchantSuggestionEdit.issue." + issue.rawValue)), systemImage: "exclamationmark.triangle", attention: true)
                         }
-                        Text("merchantSuggestionEdit.capacity").font(.footnote).foregroundStyle(.secondary)
+                        Text("merchantSuggestionEdit.capacity").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     }
                     Section {
                         Button("merchantSuggestionEdit.save") { if model.save() { dismiss() } }
+                            .buttonStyle(.questifyPrimary).controlSize(.large)
                             .disabled(!model.canSave).accessibilityIdentifier("merchantSuggestionEdit.save")
                     }
-                } else { Text("merchantSuggestionEdit.stale").accessibilityIdentifier("merchantSuggestionEdit.stale") }
+                    Section(LocalizedStringKey(edit.action.field.titleKey)) {
+                        Text("merchantSuggestionEdit.originalDraft").font(Theme.Font.label).foregroundStyle(.secondary)
+                        if edit.originalDraft.isEmpty { Text("merchant.assist.diff.empty").foregroundStyle(.secondary) }
+                        else { Text(verbatim: edit.originalDraft).textSelection(.enabled).fixedSize(horizontal: false, vertical: true) }
+                        Divider()
+                        Text("merchantSuggestionEdit.generated").font(Theme.Font.label).foregroundStyle(.secondary)
+                        Text(verbatim: edit.generatedText).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                    }
+                } else { merchantCreationNotice(Text("merchantSuggestionEdit.stale"), systemImage: "lock").accessibilityIdentifier("merchantSuggestionEdit.stale") }
             }
+            .merchantCreationSurface()
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("merchantSuggestionEdit.title").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { close() } } }
         }

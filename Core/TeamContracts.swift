@@ -12,7 +12,9 @@ public struct OwnedTeam: Decodable, Equatable, Identifiable {
     public let expireTime: String?
     public let joinMode: TeamJoinMode
     public let inviteCode: String?
-    enum CodingKeys: String, CodingKey { case id, teamId, title, status, joinedCount, maxMembers, ownerType, ownerId, expireTime, joinMode, inviteCode }
+    /// From the viewer's own /api/team/my rows only; used to group 我带的队 exactly as the mini-program does.
+    public let leaderMemberID: Int?
+    enum CodingKeys: String, CodingKey { case id, teamId, title, status, joinedCount, maxMembers, ownerType, ownerId, expireTime, joinMode, inviteCode, leaderMemberId }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let id = try c.teamInt(.id), alias = try c.teamInt(.teamId)
@@ -25,6 +27,8 @@ public struct OwnedTeam: Decodable, Equatable, Identifiable {
         expireTime = try c.decodeIfPresent(String.self, forKey: .expireTime)
         joinMode = TeamJoinMode(rawValue: try c.teamInt(.joinMode) ?? -1) ?? .unknown
         inviteCode = try c.decodeIfPresent(String.self, forKey: .inviteCode)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let leader = try c.teamInt(.leaderMemberId)
+        leaderMemberID = leader.flatMap { $0 > 0 ? $0 : nil }
     }
     public var ownerKey: TeamOwnerKey? {
         guard let ownerType, let ownerID, ownerType > 0, ownerID > 0 else { return nil }
@@ -106,17 +110,21 @@ public enum TeamAction: Equatable {
     case leave(teamID: Int)
     case remove(teamID: Int, memberID: Int)
     case disband(teamID: Int)
+    case changeJoinMode(teamID: Int, mode: TeamJoinMode)
+    public var requestedJoinMode: TeamJoinMode? {
+        if case .changeJoinMode(_, let mode) = self { return mode }; return nil
+    }
     public var key: String {
-        switch self { case .create: return "team.create"; case .join: return "team.join"; case .leave: return "team.leave"; case .remove: return "team.remove"; case .disband: return "team.disband" }
+        switch self { case .create: return "team.create"; case .join: return "team.join"; case .leave: return "team.leave"; case .remove: return "team.remove"; case .disband: return "team.disband"; case .changeJoinMode: return "team.mode.title" }
     }
     public var consequenceKey: String {
-        switch self { case .create: return "team.create.consequence"; case .join: return "team.join.consequence"; case .leave: return "team.leave.consequence"; case .remove: return "team.remove.consequence"; case .disband: return "team.disband.consequence" }
+        switch self { case .create: return "team.create.consequence"; case .join: return "team.join.consequence"; case .leave: return "team.leave.consequence"; case .remove: return "team.remove.consequence"; case .disband: return "team.disband.consequence"; case .changeJoinMode: return "team.mode.title" }
     }
     public var targetKey: String {
-        switch self { case .create(let c, _, _): return "activity-\(c.ownerID)"; case .join(let id, _), .leave(let id), .remove(let id, _), .disband(let id): return "team-\(id)" }
+        switch self { case .create(let c, _, _): return "activity-\(c.ownerID)"; case .join(let id, _), .leave(let id), .remove(let id, _), .disband(let id), .changeJoinMode(let id, _): return "team-\(id)" }
     }
     public var teamID: Int? {
-        switch self { case .create: return nil; case .join(let id, _), .leave(let id), .remove(let id, _), .disband(let id): return id }
+        switch self { case .create: return nil; case .join(let id, _), .leave(let id), .remove(let id, _), .disband(let id), .changeJoinMode(let id, _): return id }
     }
     public var lookup: TeamLookup? {
         switch self { case .create: return nil; case .join(_, let code): return .invitation(code); default: return teamID.map(TeamLookup.id) }
@@ -129,6 +137,9 @@ public enum TeamAction: Equatable {
         case .leave: return detail.joined == true && [.recruiting, .full].contains(detail.team.status)
         case .disband: return detail.leader == true && detail.joined == true && [.recruiting, .full].contains(detail.team.status)
         case .remove(_, let memberID): return detail.leader == true && [.recruiting, .full].contains(detail.team.status) && detail.members.contains { $0.id == memberID && $0.role == 0 }
+        case .changeJoinMode(_, let mode):
+            return detail.joined == true && detail.leader == true && detail.team.status == .recruiting
+                && detail.team.joinMode != .unknown && mode != .unknown && mode != detail.team.joinMode
         case .create: return false
         }
     }
@@ -150,6 +161,9 @@ public struct TeamWriteContract: Equatable {
         case .leave(let id): guard id > 0 else { throw TeamFailure.invalidRequest }; path = "/api/team/quit"; fields = ["teamId": .integer(id)]
         case .remove(let id, let member): guard id > 0, member > 0 else { throw TeamFailure.invalidRequest }; path = "/api/team/kick"; fields = ["teamId": .integer(id), "memberId": .integer(member)]
         case .disband(let id): guard id > 0 else { throw TeamFailure.invalidRequest }; path = "/api/team/disband"; fields = ["teamId": .integer(id)]
+        case .changeJoinMode(let id, let mode):
+            guard id > 0, mode == .invitation || mode == .publicApplication else { throw TeamFailure.invalidRequest }
+            path = "/api/team/join-mode"; fields = ["teamId": .integer(id), "joinMode": .integer(mode.rawValue)]
         }
     }
 }

@@ -35,7 +35,6 @@ import SwiftUI
         switch family {
         case .compare:
             Text(verbatim: compareQuestion["prompt"]?.string ?? "")
-            Text("creator.compare.instructions").font(.footnote)
             ForEach(["left", "right"], id: \.self) { side in
                 let part = compareQuestion[side]?.object ?? [:]
                 Text(verbatim: part["label"]?.string ?? "").font(.headline)
@@ -102,26 +101,22 @@ import SwiftUI
             Text(verbatim: text("skill"))
             Picker("creator.selectSample", selection: $sampleIndex) { Text("creator.success").tag(0); Text("creator.failure").tag(1) }.pickerStyle(.segmented)
             Text(verbatim: text(sampleIndex == 0 ? "successText" : "failText"))
-            Text("creator.effectsNotApplied").font(.footnote)
         case .slowTask:
             Picker("creator.selectSample", selection: $sampleIndex) { Text("creator.start").tag(0); Text("creator.wait").tag(1); Text("creator.unlock").tag(2) }
             Text(verbatim: text(sampleIndex == 0 ? "startLabel" : sampleIndex == 1 ? "waitHint" : "unlockText"))
         case .photoCheck:
             Label("creator.photoFrame", systemImage: "viewfinder").frame(maxWidth: .infinity, minHeight: 160).background(.quaternary)
             Text(verbatim: text("requirement")); Text(verbatim: text("shotNote"))
-            Text("creator.provider.vision").font(.footnote)
         case .hiddenObject:
             hiddenObjectCanvas
             Text(verbatim: text("hint")); Text("creator.hotspotReview").font(.footnote)
             Text(verbatim: "\(rehearsal.foundTargets.count) / \(rows("hotspots").count)")
         case .predict:
             Text(verbatim: text("question")); Text(verbatim: text("hint")); options(rows("options"), identity: "key", label: "label", multiple: false)
-            Text("creator.predictionNoOutcome").font(.footnote)
         case .scan:
             Text(verbatim: text("reply"))
             if text("kind") == "IMAGE" { mediaPreview(text("imageUrl")) }
             if text("kind") == "OVERLAY" { mediaPreview(text("overlayUrl")) }
-            Text("creator.provider.scan").font(.footnote)
         case .silentOrder: Text(verbatim: text("rule"))
         case .musicCorner: Text(verbatim: text("trackName")); Text("creator.provider.music").font(.footnote)
         case .timeWindow: LabeledContent("creator.field.openFrom", value: text("openFrom")); LabeledContent("creator.field.openTo", value: text("openTo"))
@@ -164,8 +159,10 @@ import SwiftUI
         ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
             let id = row[identity]?.string ?? ""
             Button { if multiple { if selected.contains(id) { selected.remove(id) } else { selected.insert(id) } } else { selected = [id] } } label: {
-                HStack { Text(verbatim: row[label]?.string ?? ""); Spacer(); if selected.contains(id) { Image(systemName: "checkmark") } }
+                HStack { Text(verbatim: row[label]?.string ?? "").fixedSize(horizontal: false, vertical: true); Spacer(); if selected.contains(id) { Image(systemName: "checkmark").accessibilityHidden(true) } }
+                    .frame(minHeight: 44).contentShape(Rectangle())
             }
+            .accessibilityAddTraits(selected.contains(id) ? .isSelected : [])
         }
     }
     private func samplePicker(_ count: Int) -> some View {

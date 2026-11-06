@@ -13,7 +13,10 @@ class ProfileAuthorPostsRefreshSourceChecks(unittest.TestCase):
         self.view = read('App/ProfileAuthorPostsSection.swift')
         self.host = read('App/SocialPublicProfileView.swift')
     def test_live_posts_tab_uses_new_section_and_parent_lifetime(self):
-        self.assertIn('ProfileAuthorPostsSection(memberID: memberID, accountReader: reader, squareReader: squareReader, actions: actions, isCurrent: isCurrent)', self.host)
+        self.assertIn('ProfileAuthorPostsSection(memberID: memberID, accountReader: reader, squareReader: squareReader,', self.host)
+        self.assertIn('retainedModel: authorPosts, onOpenPost: openAuthorPost', self.host)
+        self.assertLess(self.host.index('@State private var authorPosts'), self.host.index('SocialReadScreen('))
+        self.assertIn('.navigationDestination(isPresented: authorPostBinding)', self.host)
         self.assertNotIn('private struct SocialAuthorPostsSection', self.host)
     def test_only_existing_author_read_is_used(self):
         self.assertEqual(self.core.count('try await squareReader.squareFeed('), 1)
@@ -64,7 +67,11 @@ class ProfileAuthorPostsRefreshSourceChecks(unittest.TestCase):
         self.assertIn('model.canOpen(post, context: context, isCurrent: isCurrent())', self.view)
         self.assertIn('contentGeneration: post.generation', self.view)
     def test_task_tracks_full_context_not_just_account_id(self):
-        self.assertIn('.task(id: context) { await refresh() }', self.view)
+        self.assertIn('.task(id: context) { await model.activate(', self.view)
+        self.assertIn('if context == expected, pagination.hasLoadedPage || error != nil || isBusy { return }', self.core)
+        self.assertIn('publicRetention = publicReader?.authorPostsRetentionIdentity', self.core)
+        self.assertIn('publicReader == nil ? accountReader.presentationRevision : 0', self.core)
+        self.assertIn('publicReader == nil || publicRetention?.memberID == memberID', self.core)
     def test_refresh_busy_retained_and_retry_ui(self):
         for key in ['refresh', 'refreshing', 'retained', 'retry', 'more', 'empty', 'invalidCursor']:
             self.assertIn('"profile.postsRefresh.' + key + '"', self.view)
@@ -91,7 +98,10 @@ class ProfileAuthorPostsRefreshSourceChecks(unittest.TestCase):
         core=read('Tests/CoreTests/ProfileAuthorPostsRefreshTests.swift')
         app=read('Tests/AppUnitTests/ProfileAuthorPostsRefreshAppTests.swift')
         ui=read('Tests/AppUITests/ProfileAuthorPostsRefreshFlowTests.swift')
-        self.assertEqual(core.count('func test'), 18); self.assertEqual(app.count('func test'), 8); self.assertEqual(ui.count('func test'), 5)
+        self.assertGreaterEqual(core.count('func test'), 25); self.assertGreaterEqual(app.count('func test'), 10); self.assertGreaterEqual(ui.count('func test'), 5)
+        for term in ['ActivatePreservesAllPages', 'ActivateKeepsFailedRetry', 'InvalidActivationClearsPages', 'HeaderDenialOnlyRetires']:
+            self.assertIn(term, core)
+        self.assertIn('ReconstructedSectionsSharePageOwnedFeed', app)
         for term in ['NewScopeCanStart', 'ViewerRevisionABA', 'CancelledCompletion', 'ParentRetirement', 'DuplicateRefresh', 'MalformedContinuation']:
             self.assertIn(term, core)
     def test_no_editor_or_session_coupling(self):

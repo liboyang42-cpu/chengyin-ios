@@ -34,6 +34,15 @@ public enum ClubOperationsReadback: Equatable { case idle, loading, received(Clu
         var readOwnerID: UUID?
     }
     private var records: [Key: Record] = [:]
+    /// A restored generic create lock cannot recover its original receipt. Keep
+    /// current-state observation separate: this ID identifies a READ, never a write.
+    private struct RestoredCreateRead {
+        let readID: UUID
+        let identity: ClubReadIdentity
+        let ownerID: UUID
+        var outcome: ClubOperationsReadback
+    }
+    private var restoredCreateReads: [Key: RestoredCreateRead] = [:]
     public init(access: any ClubOperationsAccess) { self.access = access }
     public var identity: ClubReadIdentity? { access.identity }
     public var writeAvailability: ClubOperationsWriteAvailability { access.writeAvailability }
@@ -41,6 +50,11 @@ public enum ClubOperationsReadback: Equatable { case idle, loading, received(Clu
         guard let id = identity.accountID, id > 0 else { return nil }; return .init(accountID: id, target: target)
     }
     public func synchronizeSession() {
+        for key in Array(restoredCreateReads.keys) {
+            if restoredCreateReads[key]?.identity != identity || !access.isConfigured || !access.hasPending(target: key.target) {
+                restoredCreateReads[key] = nil
+            }
+        }
         for key in Array(records.keys) {
             guard let record = records[key] else { continue }
             if record.identity != identity {
@@ -63,8 +77,10 @@ public enum ClubOperationsReadback: Equatable { case idle, loading, received(Clu
         return current
     }
     public func readback(target: ClubOperationsTarget) -> ClubOperationsReadback {
-        guard let identity, let key = key(target, identity), let record = records[key], record.readIdentity == identity else { return .idle }
-        return record.readback
+        synchronizeSession()
+        guard let identity, let key = key(target, identity) else { return .idle }
+        if let record = records[key], record.readIdentity == identity { return record.readback }
+        return restoredCreateReads[key]?.outcome ?? .idle
     }
     public func prepare(_ command: ClubOperationsCommand, target: ClubOperationsTarget, expectedIdentity: ClubReadIdentity, ownerID: UUID) async throws -> ClubOperationsReview {
         synchronizeSession()
@@ -90,11 +106,11 @@ public enum ClubOperationsReadback: Equatable { case idle, loading, received(Clu
         guard let key = key(review.target, review.identity), records[key]?.id == review.id, records[key]?.state == .reviewing else { return }
         records[key] = nil
     }
-    public func confirm(_ review: ClubOperationsReview) async {
+    public func confirm(_ review: ClubOperationsReview, onOriginalResult: ((ClubOperationsState) -> Void)? = nil) async {
         guard let key = key(review.target, review.identity), records[key]?.id == review.id, records[key]?.state == .reviewing else { return }
         guard identity == review.identity, !Task.isCancelled else { records[key] = nil; return }
         // The UI cannot turn an unverified live adapter into a writer.
-        guard access.writeAvailability == .syntheticOnly || access.writeAvailability == .approved else { records[key]?.state = .notSent; return }
+        guard access.writeAvailability == .syntheticOnly || access.writeAvailability == .approved else { records[key]?.state = .notSent; onOriginalResult?(.notSent); return }
         records[key]?.state = .preflighting
         do {
             let fresh = try await access.snapshot(target: review.target)
@@ -105,7 +121,7 @@ public enum ClubOperationsReadback: Equatable { case idle, loading, received(Clu
             guard fresh.target == review.target else { throw ClubOperationsBlock.changed }
             try review.command.validate(snapshot: fresh, identity: review.identity)
         } catch {
-            if records[key]?.id == review.id, records[key]?.state == .preflighting { records[key]?.state = .notSent }
+            if records[key]?.id == review.id, records[key]?.state == .preflighting { records[key]?.state = .notSent; onOriginalResult?(.notSent) }
             return
         }
         guard identity == review.identity, records[key]?.id == review.id, records[key]?.state == .preflighting, !Task.isCancelled else {
@@ -133,10 +149,16 @@ public enum ClubOperationsReadback: Equatable { case idle, loading, received(Clu
             return
         }
         records[key]?.state = next
+        // Observe the original result without changing its classification or pending journal.
+        onOriginalResult?(next)
         if case .acknowledged = next { await readBack(target: review.target, ownerID: review.ownerID) }
     }
     public func leaveScreen(target: ClubOperationsTarget, expectedIdentity: ClubReadIdentity, ownerID: UUID) {
-        guard let key = key(target, expectedIdentity), let record = records[key] else { return }
+        guard let key = key(target, expectedIdentity) else { return }
+        if let read = restoredCreateReads[key], read.identity == expectedIdentity, read.ownerID == ownerID {
+            restoredCreateReads[key] = nil
+        }
+        guard let record = records[key] else { return }
         if record.identity == expectedIdentity, record.ownerID == ownerID {
             switch record.state {
             case .preparing, .reviewing, .preflighting: records[key] = nil; return
@@ -151,7 +173,12 @@ public enum ClubOperationsReadback: Equatable { case idle, loading, received(Clu
     }
     public func readBack(target: ClubOperationsTarget, ownerID: UUID) async {
         synchronizeSession()
-        guard let identity, let key = key(target, identity), var record = records[key], record.readback != .loading else { return }
+        guard let identity, let key = key(target, identity) else { return }
+        if target == .create, records[key] == nil {
+            await readRestoredCreateCurrent(key: key, identity: identity, ownerID: ownerID)
+            return
+        }
+        guard var record = records[key], record.readback != .loading else { return }
         switch record.state { case .acknowledged, .outcomeUnknown: break; default: return }
         guard !Task.isCancelled else { return }
         record.readGeneration &+= 1; let run = record.readGeneration
@@ -168,4 +195,26 @@ public enum ClubOperationsReadback: Equatable { case idle, loading, received(Clu
         }
         records[key]?.readback = next
     }
+    private func readRestoredCreateCurrent(key: Key, identity: ClubReadIdentity, ownerID: UUID) async {
+        guard access.isConfigured, access.hasPending(target: .create), !Task.isCancelled,
+              restoredCreateReads[key]?.outcome != .loading else { return }
+        let readID = UUID()
+        restoredCreateReads[key] = .init(readID: readID, identity: identity, ownerID: ownerID, outcome: .loading)
+        let next: ClubOperationsReadback
+        do {
+            let snapshot = try await access.snapshot(target: .create)
+            guard snapshot.target == .create else { throw APIError.malformedResponse }
+            next = .received(snapshot)
+        } catch { next = .unavailable }
+        // The original lock remains entirely owned by the journal. Neither success
+        // nor failure creates a receipt, unlocks creation, or adopts an owned row ID.
+        guard restoredCreateReads[key]?.readID == readID else { return }
+        guard self.identity == identity, access.isConfigured, access.hasPending(target: .create),
+              records[key] == nil, !Task.isCancelled else {
+            restoredCreateReads[key] = nil
+            return
+        }
+        restoredCreateReads[key]?.outcome = next
+    }
+
 }

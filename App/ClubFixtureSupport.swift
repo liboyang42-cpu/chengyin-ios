@@ -57,7 +57,10 @@ struct ClubFixtureRootView: View {
                                         AnyView(Text(verbatim: "Synthetic history topic \(id)").accessibilityIdentifier("club.fixture.historyTopic.\(id)"))
                                     }))
                 } else {
-                ClubHomeView(reader: reader, onSignIn: { reader.signIn() }, topicDestination: { id in
+                ClubHomeView(reader: reader, onSignIn: { reader.signIn() },
+                             // Offline-only: show the source 帖文 / 俱乐部 top tabs over the synthetic community feed.
+                             community: ProcessInfo.processInfo.arguments.contains("--uitesting-club-top-tabs") ? try? ClubCommunityFixture.context() : nil,
+                             topicDestination: { id in
                     AnyView(Text(verbatim: "Synthetic topic \(id)")
                         .accessibilityIdentifier("club.fixture.topic.\(id)")
                         .navigationTitle(Text(verbatim: "Synthetic topic")))

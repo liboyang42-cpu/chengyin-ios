@@ -91,6 +91,17 @@ public struct GlobalSearchResults: Equatable {
     }
     public var allFailed: Bool { failedKinds.count == GlobalSearchKind.allCases.count }
     public func count(_ kind: GlobalSearchKind) -> Int { rows.filter { $0.kind == kind }.count }
+    /// Presentation of an accepted search snapshot only; an absent snapshot is still unread.
+    /// A different lane's denial/failure must not hide this lane's successful empty result.
+    /// Failed, gated and refreshing lanes never become an authoritative empty state.
+    public func showsEmptyState(for kind: GlobalSearchKind?, isLoading: Bool) -> Bool {
+        guard !isLoading else { return false }
+        if let kind {
+            guard !failedKinds.contains(kind), !gatedKinds.contains(kind) else { return false }
+            return !rows.contains { $0.kind == kind }
+        }
+        return rows.isEmpty && failedKinds.isEmpty && gatedKinds.isEmpty
+    }
 }
 public struct SearchMapMerchant: Decodable, Equatable {
     public let id: Int

@@ -60,6 +60,15 @@ class RuntimeDependencyWiringTests(unittest.TestCase):
         provider = self.read('App/RuntimeNativeLocationProvider.swift')
         for value in ['enabled: Bool = false', 'NSLocationWhenInUseUsageDescription', 'withTaskCancellationHandler', 'pendingID == id', 'self.manager === manager', 'manager?.stopUpdatingLocation()', 'datum: .wgs84']:
             self.assertIn(value, provider)
+        request = provider.split('private func request(_ manager: CLLocationManager)', 1)[1].split('func locationManager(_ manager:', 1)[0]
+        self.assertIn('guard self.manager === manager, pending != nil else { return }', request)
+        self.assertLess(request.index('guard !locationRequestStarted else { return }'), request.index('locationRequestStarted = true'))
+        self.assertLess(request.index('locationRequestStarted = true'), request.index('manager.requestLocation()'))
+        self.assertEqual(request.count('manager.requestLocation()'), 1)
+        self.assertIn('case .denied, .restricted: finish(.failure(PlayExperienceError.disabled))', request)
+        finish = provider.split('private func finish(', 1)[1].split('func stop()', 1)[0]
+        self.assertIn('pendingID = nil; locationRequestStarted = false', finish)
+        self.assertLess(finish.index('locationRequestStarted = false'), finish.index('reply?.resume(with: result)'))
         runtime = self.read('App/RuntimePlayDeviceProvider.swift')
         for value in ['isCurrent()', 'native.supported.intersection(grants)', 'RuntimeLocationProjection.gcj02', 'authorizing.prepare(.acceleration)', 'self.provider.samples(.acceleration)', 'self.generation == generation']:
             self.assertIn(value, runtime)

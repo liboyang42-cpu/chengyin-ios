@@ -43,6 +43,24 @@ import Observation
     func squareDetail(id: Int) async throws -> SquarePost { throw APIError.notConfigured }
     func squareComments(postID: Int,pageNumber: Int) async throws -> SquareCommentPage { .init(items:[],pageNumber:pageNumber) }
 }
+/// Synthetic UI diagnostics only. Never emit identifiers, credentials or profile values.
+@MainActor private func profileSelfEditFixtureDiagnostic(current: ProfileSelfEditTicket?, offered: ProfileSelfEditTicket,
+    context: ProfileSelfEditContext?, readerConfigured: Bool, editorConfigured: Bool) -> String {
+    let expected = offered.context
+    let flags: [(String, Bool)] = [
+        ("ticketPresent", current != nil), ("ticketSame", current == offered),
+        ("contextPresent", context != nil), ("contextSame", context == expected),
+        ("readerSame", context?.reader == expected.reader),
+        ("coordinatorSame", context?.coordinator == expected.coordinator),
+        ("memberSame", context?.memberID == expected.memberID),
+        ("viewerSame", context?.viewer == expected.viewer),
+        ("readerRevisionSame", context?.readerRevision == expected.readerRevision),
+        ("editorIdentitySame", context?.editorIdentity == expected.editorIdentity),
+        ("editorRevisionSame", context?.editorRevision == expected.editorRevision),
+        ("readerConfigured", readerConfigured), ("editorConfigured", editorConfigured)
+    ]
+    return "Synthetic profile context: " + flags.map { "\($0.0)=\($0.1)" }.joined(separator: ";")
+}
 @MainActor struct ProfileSelfEditFixtureHost: View {
     private let data: ProfileSelfEditFixtureData
     private let coordinator: ProfileEditCoordinator
@@ -55,7 +73,11 @@ import Observation
     var body: some View {
         NavigationStack {
             SocialPublicProfileView(memberID: memberID, reader: data, squareReader: data,
-                selfEditAccess: .init(coordinator: coordinator, sessionRevision: data.presentationRevision))
+                selfEditAccess: .init(coordinator: coordinator, sessionRevision: data.presentationRevision),
+                selfEditDiagnostics: { current, offered, context in
+                    profileSelfEditFixtureDiagnostic(current: current, offered: offered, context: context,
+                        readerConfigured: data.isConfigured, editorConfigured: coordinator.isConfigured)
+                })
                 .safeAreaInset(edge: .bottom) {
                     VStack {
                         Text(verbatim: "Reads: \(data.publicReads) Writes: \(data.writes)").accessibilityIdentifier("profile.selfEditFixture.counts")

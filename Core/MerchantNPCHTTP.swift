@@ -20,17 +20,39 @@ public struct MerchantNPCHTTPResponse {
     public func perform(_ request: MerchantNPCHTTPRequest) async throws -> MerchantNPCHTTPResponse { throw MerchantNPCFailure.disabled }
 }
 @MainActor public struct MerchantNPCHTTPClient {
+    /// Exact currently served merchant-NPC routes. Knowledge draft publish/review is not among them.
+    public static let servedPaths: Set<String> = [
+        "/api/ai/npc/merchant-chat",
+        "/api/merchant/npc/voice/script",
+        "/api/merchant/npc/voice/enroll",
+        "/api/merchant/npc/voice/revoke",
+        "/api/merchant/npc/avatar/generate",
+    ]
     private let transport: any MerchantNPCHTTPTransport
     public init(transport: (any MerchantNPCHTTPTransport)? = nil) { self.transport = transport ?? MerchantNPCDormantTransport() }
+    public func refuseUnservedKnowledgePath(_ path: String) throws {
+        guard Self.servedPaths.contains(path) else {
+            throw MerchantNPCDraftGateFailure.waitingSource(capability: path)
+        }
+    }
+    public func refuseAICommerce(_ mutation: MerchantNPCForbiddenAICommerce) throws -> Never {
+        throw MerchantNPCDraftGateFailure.commerce(mutation)
+    }
+    public func refuseAiGatewayPublicAuth() throws -> Never {
+        throw MerchantNPCDraftGateFailure.waitingSource(capability: "AiGateway.publicAuth")
+    }
     private struct Envelope<T: Decodable>: Decodable { let code: Int; let msg: String?; let data: T? }
     private struct Empty: Decodable { init(from decoder: Decoder) throws {} }
     private func post<T: Decodable>(_ path: String, fields: [String: Any], scope: MerchantNPCScope, as type: T.Type) async throws -> (T?, String?) {
+        try refuseUnservedKnowledgePath(path)
         guard scope.accountID > 0, !scope.namespace.isEmpty else { throw MerchantNPCFailure.invalid }
         let request = MerchantNPCHTTPRequest(path: path, method: "POST", body: try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys]), scope: scope)
         let response: MerchantNPCHTTPResponse
         do { response = try await transport.perform(request) }
         catch let error as MerchantNPCFailure where error == .disabled { throw error }
+        catch let denial as MerchantNPCGameDispatchDenial where path == "/api/ai/npc/merchant-chat" { throw denial }
         catch { throw MerchantNPCFailure.unknownOutcome }
+        if path == "/api/ai/npc/merchant-chat", let denial = MerchantNPCGameDispatchDenial(rawValue: response.status) { throw denial }
         if response.status >= 500 { throw MerchantNPCFailure.unknownOutcome }
         guard (200..<300).contains(response.status) else {
             if let envelope = try? JSONDecoder().decode(Envelope<Empty>.self, from: response.body) { throw MerchantNPCFailure.rejected(code: response.status, message: envelope.msg) }
@@ -38,6 +60,7 @@ public struct MerchantNPCHTTPResponse {
         }
         // Decode the business status before data, so malformed data cannot hide server rejection text.
         guard let object = try? JSONSerialization.jsonObject(with: response.body) as? [String: Any], let code = object["code"] as? Int else { throw MerchantNPCFailure.malformed }
+        if path == "/api/ai/npc/merchant-chat", let denial = MerchantNPCGameDispatchDenial(rawValue: code) { throw denial }
         guard code == 200 else { throw MerchantNPCFailure.rejected(code: code, message: object["msg"] as? String) }
         guard let envelope = try? JSONDecoder().decode(Envelope<T>.self, from: response.body) else { throw MerchantNPCFailure.malformed }
         return (envelope.data, envelope.msg)

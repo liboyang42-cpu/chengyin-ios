@@ -188,7 +188,8 @@ import Foundation
         observation = .notRequested
         guard !mutation || record.capture.coverBindingAllowsReview else { return }
         let request = UUID(); requestID = request; state = .sending
-        let task = Task { [source, session] in
+        let task = Task { [source, session, weak self] in
+            guard self?.isCurrent == true else { throw ApprovedTopicReleaseError.changedContext }
             if mutation { return try await source.submit(record, session: session) }
             return try await source.status(record, session: session)
         }; writeTask = task

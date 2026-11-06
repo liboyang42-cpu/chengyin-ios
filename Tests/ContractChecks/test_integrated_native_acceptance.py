@@ -43,7 +43,7 @@ class IntegratedNativeAcceptanceContracts(unittest.TestCase):
         source = (self.read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift') + '\n' +
                   self.read('Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift') + '\n' +
                   self.read('Tests/AppUITests/IntegratedDeniedAcceptanceFlowTests.swift'))
-        self.assertEqual(len(re.findall(r'func\s+test\w+\(', source)), 8)
+        self.assertEqual(len(re.findall(r'func\s+test\w+\(', source)), 10)
         for required in ['auth.channels.sendCode', 'auth.channels.phoneSignIn', 'homeFeed.nearby.activity.21', 'roam.area.select',
                          'activity.openPlay', 'profile.open.orders', 'profile.order.41',
                          'final.ledger.dropFirst(9)', 'assertIdentity(', 'try closeFrontSheet(app)',

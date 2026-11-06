@@ -33,11 +33,15 @@ import XCTest
     private func launch(_ media: String) -> XCUIApplication {
         let app = XCUIApplication(); self.app = app
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--uitesting-module", "projectEdit", "--project-edit-starter-probe", "--project-story-" + media]
-        app.launch(); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "large")
+        app.launch(); XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "large")
         tap("projectEdit.saveLocal", app, fixed: true); return app
     }
     private func back(_ app: XCUIApplication) {
-        let button = app.navigationBars.buttons.firstMatch; XCTAssertTrue(button.isEnabled && button.isHittable, app.debugDescription); button.tap()
+        let button = app.navigationBars["Chapter"].buttons["BackButton"]
+        // A sheet's close control can disappear before its dismissal releases the chapter.
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true AND enabled == true AND hittable == true"), object: button)], timeout: 5), .completed, app.debugDescription)
+        XCTAssertTrue(button.isEnabled && button.isHittable, app.debugDescription); button.tap()
     }
     private func insert(_ kind: String, before anchor: String?, _ app: XCUIApplication) {
         if let anchor {

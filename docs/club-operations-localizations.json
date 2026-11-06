@@ -16,8 +16,8 @@
     "zh-Hans": "登录后管理俱乐部。"
   },
   "club.ops.unavailable": {
-    "en": "Club operations are not configured.",
-    "zh-Hans": "俱乐部运营服务尚未配置。"
+    "en": "Club operations aren't available right now.",
+    "zh-Hans": "俱乐部运营暂不可用"
   },
   "club.ops.discardTitle": {
     "en": "Leave this form?",
@@ -44,8 +44,8 @@
     "zh-Hans": "管理员"
   },
   "club.ops.leaderRequired": {
-    "en": "Creating a club requires a server-confirmed club leader role. The leader application is not connected here.",
-    "zh-Hans": "创建俱乐部需要服务端确认的主理人身份，此处尚未接入主理人申请。"
+    "en": "Creating a club requires a club leader role. Leader applications aren't available here right now.",
+    "zh-Hans": "创建俱乐部需要主理人身份，此处暂不支持申请主理人。"
   },
   "club.ops.clubLimit": {
     "en": "You already own two clubs. Manage an existing club instead.",
@@ -56,8 +56,8 @@
     "zh-Hans": "核对资料修改"
   },
   "club.ops.mediaUnavailable": {
-    "en": "Media uploads are not connected. Existing logo and cover references are preserved.",
-    "zh-Hans": "图片上传尚未接入，将保留现有标志和封面。"
+    "en": "Image upload isn't available right now. Your current logo and cover are kept.",
+    "zh-Hans": "图片上传暂不可用，将保留现有标志和封面。"
   },
   "club.ops.openSettings": {
     "en": "Openness settings",
@@ -88,8 +88,8 @@
     "zh-Hans": "未返回设置值"
   },
   "club.ops.settingsHint": {
-    "en": "Each change is reviewed separately. Only a fresh server read can establish the current setting.",
-    "zh-Hans": "每项设置单独核对，以服务端最新读取值为准。"
+    "en": "Each change is checked separately. Refresh to see the current setting.",
+    "zh-Hans": "每项设置单独确认，请刷新查看当前设置。"
   },
   "club.ops.memberRoles": {
     "en": "Member administration",
@@ -116,8 +116,8 @@
     "zh-Hans": "仅创建者可调整旧版管理员角色，最多支持两名非创建者管理员。"
   },
   "club.ops.writeGated": {
-    "en": "Backend submissions are not enabled. You can inspect this form and its review, but it will not change a real club.",
-    "zh-Hans": "服务端提交尚未开放。可以填写和核对表单，但不会修改真实俱乐部。"
+    "en": "Submitting isn't available right now. You can fill in and review the form, but no real club will change.",
+    "zh-Hans": "提交暂不可用。可以填写和核对表单，但不会修改真实俱乐部。"
   },
   "club.ops.checking": {
     "en": "Checking current access…",
@@ -136,8 +136,8 @@
     "zh-Hans": "俱乐部编号"
   },
   "club.ops.rejected": {
-    "en": "The server rejected this request.",
-    "zh-Hans": "服务端拒绝了此请求。"
+    "en": "This request couldn't be completed.",
+    "zh-Hans": "请求未能完成。"
   },
   "club.ops.outcomeUnknown": {
     "en": "The request outcome is unknown. Do not submit it again. Reading current values does not prove whether this request succeeded.",
@@ -244,12 +244,12 @@
     "zh-Hans": "当前账号"
   },
   "club.ops.fixtureOnly": {
-    "en": "Offline synthetic club operations. No real data or backend requests.",
-    "zh-Hans": "离线合成俱乐部流程，不使用真实数据或服务端请求。"
+    "en": "Example content. No real club is changed.",
+    "zh-Hans": "示例内容，不会修改真实俱乐部。"
   },
   "club.ops.confirmFixture": {
-    "en": "Apply to fixture",
-    "zh-Hans": "应用到演示数据"
+    "en": "Apply to example",
+    "zh-Hans": "应用到示例"
   },
   "club.ops.review": {
     "en": "Review changes",
@@ -272,8 +272,8 @@
     "zh-Hans": "成员"
   },
   "club.ops.roleConsequences": {
-    "en": "This would change this member’s club administration privileges. The fixture only simulates that change.",
-    "zh-Hans": "此操作会变更该成员的俱乐部管理权限，演示仅在本地模拟。"
+    "en": "This would change this member's club admin permissions. In this example, nothing is actually changed.",
+    "zh-Hans": "此操作会变更该成员的俱乐部管理权限。示例中不会实际变更。"
   },
   "club.ops.mediaPreserved": {
     "en": "Existing logo and cover are preserved. This review does not upload media.",
@@ -426,5 +426,49 @@
   "club.ops.confirmLiveHint": {
     "en": "Apply the reviewed club changes to the server.",
     "zh-Hans": "将已核对的俱乐部更改提交至服务器。"
+  },
+  "club.ops.leaderRequired.apply": {
+    "en": "Become a club leader first. Once approved you can create and manage clubs.",
+    "zh-Hans": "请先成为俱乐部主理人，申请通过后即可创建与管理俱乐部"
+  },
+  "club.ops.applyHost": {
+    "en": "Go to application",
+    "zh-Hans": "前往申请"
+  },
+  "club.ops.adminNote": {
+    "en": "You are an administrator · you can only edit display information",
+    "zh-Hans": "你是管理员 · 只能改展示信息"
+  },
+  "club.ops.locked.title": {
+    "en": "Only the host can change membership settings",
+    "zh-Hans": "只有主理人能改经营配置"
+  },
+  "club.ops.locked.body": {
+    "en": "Member priority signup · join approval · member reserved places — these decide how tickets are split and paid once sales open, so they stay with the club leader.",
+    "zh-Hans": "成员优先报名 · 入会需要审批 · 成员保留名额 —— 这三项直接决定开卖时票怎么分、钱怎么收，所以留给主理人。"
+  },
+  "club.ops.locked.current": {
+    "en": "Current:",
+    "zh-Hans": "当前:"
+  },
+  "club.ops.locked.priority.on": {
+    "en": "Priority signup on",
+    "zh-Hans": "优先报名 已开"
+  },
+  "club.ops.locked.priority.off": {
+    "en": "Priority signup off",
+    "zh-Hans": "优先报名 已关"
+  },
+  "club.ops.locked.join.on": {
+    "en": "Join approval on",
+    "zh-Hans": "入会审批 已开"
+  },
+  "club.ops.locked.join.off": {
+    "en": "Join approval off",
+    "zh-Hans": "入会审批 已关"
+  },
+  "club.ops.locked.quota %lld": {
+    "en": "%lld reserved",
+    "zh-Hans": "保留 %lld 个"
   }
 }

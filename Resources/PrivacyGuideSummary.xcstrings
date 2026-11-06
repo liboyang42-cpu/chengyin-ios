@@ -1,0 +1,102 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "collection_scope.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Information collected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "信息收集范围"
+          }
+        }
+      }
+    },
+    "collection_scope.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Basic account information is collected only as necessary to provide scripted game sessions, roaming check-ins, and account security services."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅在提供剧本组局、漫游打卡与账号安全服务所必需的范围内收集基础账号信息。"
+          }
+        }
+      }
+    },
+    "permission_usage.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How permissions are used"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "权限使用说明"
+          }
+        }
+      }
+    },
+    "permission_usage.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System permissions, such as location, photo library, and notifications, are requested only when you use the corresponding feature. Declining permission does not affect basic browsing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置、相册与通知等系统权限仅在对应功能触发时申请，拒绝授权不影响基础浏览。"
+          }
+        }
+      }
+    },
+    "revoke_and_deregister.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdraw consent or request account deletion"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回同意与注销入口"
+          }
+        }
+      }
+    },
+    "revoke_and_deregister.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can withdraw location or marketing consent, or request account deletion, at any time in Settings and Privacy Protection."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可随时在设置与隐私保护页面撤回位置、营销授权或发起账号注销申请。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

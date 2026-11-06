@@ -61,6 +61,9 @@ public enum ProfileAvatarExact {
         if let text = value.caseIntroduction { parts += ["caseIntroducton", text] }
         if value.removesContactQR { parts.append("remove-contact-qr") }
         if value.removesCasePictures { parts.append("remove-case-pictures") }
+        if let subset = value.casePictureSubset {
+            parts += ["case-picture-subset", subset.source, subset.retainedIndices.map(String.init).joined(separator: ",")]
+        }
         return hash(strings(parts))
     }
 }

@@ -40,7 +40,7 @@ import XCTest
         XCTAssertEqual(phone.value as? String, "10000000000")
         XCTAssertEqual(code.value as? String, "123456")
         tap("auth.channels.phoneSignIn")
-        XCTAssertTrue(app.tabBars.buttons[chinese ? "账号" : "Account"].waitForExistence(timeout: 8), app.debugDescription); app.tabBars.buttons[chinese ? "账号" : "Account"].tap()
+        XCTAssertTrue(app.tabBars.buttons[chinese ? "我的" : "Me"].waitForExistence(timeout: 8), app.debugDescription); app.tabBars.buttons[chinese ? "我的" : "Me"].tap()
         tap("account.merchant"); tap("merchant.content.open"); tap("merchant.content.entry.recruiting"); tap("couponManagement.marketing.entry")
         XCTAssertTrue(app.buttons["couponManagement.definition.710"].waitForExistence(timeout: 5))
     }

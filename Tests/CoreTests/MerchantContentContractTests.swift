@@ -35,13 +35,15 @@ final class MerchantContentContractTests: XCTestCase {
         XCTAssertEqual(try fields(.apply(chapterID: 7, message: " hi "))["message"], .string("hi"))
     }
     func testInviteKeepsMemberAndMerchantIDsDistinct() throws {
-        let f = try fields(.invite(chapterID: 7, merchantMemberID: 42))
-        XCTAssertEqual(Set(f.keys), ["chapterId", "merchantMemberId"]); XCTAssertEqual(f["merchantMemberId"], .integer(42))
+        // C9 five-field invite: replacement tuple is mandatory; memberId stays distinct.
+        let f = try fields(.invite(chapterID: 7, merchantMemberID: 42, replacementOfOfferID: 99, scope: nil, message: nil))
+        XCTAssertEqual(Set(f.keys), ["chapterId", "merchantMemberId", "replacementOfOfferId"]); XCTAssertEqual(f["merchantMemberId"], .integer(42))
     }
     func testInvitableRequiresExactChapterMemberPair() throws {
-        let s = try snapshot(.invitable(topicID: 70), #"[{"chapterId":7,"memberId":42},{"chapterId":8,"memberId":43}]"#)
-        XCTAssertNoThrow(try MerchantContentCommand.invite(chapterID: 7, merchantMemberID: 42).validate(against: s))
-        XCTAssertThrowsError(try MerchantContentCommand.invite(chapterID: 7, merchantMemberID: 43).validate(against: s))
+        let s = try snapshot(.invitable(topicID: 70), #"[{"chapterId":7,"memberId":42,"replacementOfOfferId":99},{"chapterId":8,"memberId":43,"replacementOfOfferId":99}]"#)
+        XCTAssertNoThrow(try MerchantContentCommand.invite(chapterID: 7, merchantMemberID: 42, replacementOfOfferID: 99, scope: nil, message: nil).validate(against: s))
+        XCTAssertThrowsError(try MerchantContentCommand.invite(chapterID: 7, merchantMemberID: 43, replacementOfOfferID: 99, scope: nil, message: nil).validate(against: s))
+        XCTAssertThrowsError(try MerchantContentCommand.invite(chapterID: 7, merchantMemberID: 42, replacementOfOfferID: 98, scope: nil, message: nil).validate(against: s))
     }
     func testInvitedOrMissingSourceApplicationCannotWithdraw() throws {
         for raw in [#"[{"id":9,"status":0,"source":1}]"#, #"[{"id":9,"status":0}]"#, #"[{"id":9,"status":1,"source":0}]"#] {
@@ -159,9 +161,13 @@ final class MerchantContentContractTests: XCTestCase {
         XCTAssertFalse(try MerchantContentSupplyContext(application: a, recruitmentChapters: []).canEnroll)
         let c = try value(#"{"id":7,"recruitStatus":{"termsMode":"TRAFFIC"}}"#)
         XCTAssertTrue(try MerchantContentSupplyContext(application: a, recruitmentChapters: [c]).canEnroll)
-        let active = try value(#"{"id":12,"chapterId":7,"status":1,"offerActive":1,"offerId":99,"circleThemeCode":"CIRCLE"}"#)
+        let active = try value(#"{"id":12,"chapterId":7,"status":1,"offerActive":1,"offerId":99,"circleThemeCode":"CIRCLE","offerState":" ACTIVE ","offerWithdrawReason":" reason "}"#)
         let bridge = try MerchantContentSupplyContext(application: active, recruitmentChapters: [c])
         XCTAssertEqual(bridge.offerID, 99); XCTAssertTrue(bridge.canReconfirmOrPause); XCTAssertFalse(bridge.canEnroll)
+        XCTAssertEqual(bridge.offerStateRaw, "ACTIVE"); XCTAssertEqual(bridge.offerWithdrawReason, "reason")
+        let blank = try value(#"{"id":12,"chapterId":7,"offerState":" \n ","offerWithdrawReason":" \t "}"#)
+        let blankBridge = try MerchantContentSupplyContext(application: blank, recruitmentChapters: [c])
+        XCTAssertNil(blankBridge.offerStateRaw); XCTAssertNil(blankBridge.offerWithdrawReason)
     }
     func testStationActionUnionCannotAuthorizeAnotherStationState() throws {
         let p = try MerchantStationProjection(value(MerchantContentFixtureData.projection))

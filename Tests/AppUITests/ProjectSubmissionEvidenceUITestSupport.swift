@@ -14,18 +14,18 @@ enum ProjectSubmissionEvidencePhase {
 }
 
 /// Each query.element requires one match. XCTest must reject ambiguous containers or fields.
-/// The original per-family reveal order, swipe bound, 5-second wait and exact expected bytes remain.
+/// History sits above the read/review controls; search upward when its lazy rows are absent.
 @MainActor func assertProjectSubmissionEvidenceValue(_ id: String, _ expected: String,
                                                      in app: XCUIApplication, phase: ProjectSubmissionEvidencePhase,
                                                      maximumSwipes: Int, revealFirst: Bool,
                                                      file: StaticString = #filePath, line: UInt = #line) {
     let target = phase.container(in: app).descendants(matching: .any).matching(identifier: id).element
-    if revealFirst {
-        XCTAssertTrue(revealFixtureElement(target, in: app, maximumSwipes: maximumSwipes, requiresHittable: false), app.debugDescription, file: file, line: line)
+    if revealFirst || !target.exists {
+        XCTAssertTrue(revealFixtureElement(target, in: app, towardTop: phase == .history, maximumSwipes: maximumSwipes, requiresHittable: false), app.debugDescription, file: file, line: line)
         XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription, file: file, line: line)
     } else {
         XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription, file: file, line: line)
-        XCTAssertTrue(revealFixtureElement(target, in: app, maximumSwipes: maximumSwipes, requiresHittable: false), app.debugDescription, file: file, line: line)
+        XCTAssertTrue(revealFixtureElement(target, in: app, towardTop: phase == .history, maximumSwipes: maximumSwipes, requiresHittable: false), app.debugDescription, file: file, line: line)
     }
     guard let actual = target.value as? String else {
         XCTFail("Submission evidence must expose a String accessibility value", file: file, line: line)

@@ -7,17 +7,26 @@ import FoundationNetworking
 public struct GrowthCenterService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
-    public init(configuration: APIConfiguration, transport: any HTTPTransport) {
+    private let leaderboardContract: GrowthLeaderboardReadContract
+    public init(configuration: APIConfiguration, transport: any HTTPTransport,
+                leaderboardContract: GrowthLeaderboardReadContract = .legacy) {
         self.configuration = configuration; self.transport = transport
+        self.leaderboardContract = leaderboardContract
     }
     public func center(token: String) async throws -> GrowthCenterRecord { try await read("api/growth/center", token: token) }
     public func progress(token: String) async throws -> GrowthPlayProgress { try await read("api/play/growth", token: token) }
     public func completed(token: String) async throws -> [GrowthCompletedActivity] { try await read("api/play/my-completed", token: token) }
     public func leaderboard(query: GrowthBoardQuery, limit: Int = 50, token: String) async throws -> GrowthLeaderboard {
         guard (1...50).contains(limit) else { throw APIError.invalidRequest }
-        let board: GrowthLeaderboard = try await read("api/growth/leaderboard", fields: ["metric": query.metric.rawValue, "period": query.period.rawValue, "limit": limit], token: token)
+        if case .anonymous = leaderboardContract {
+            let snapshot: GrowthAnonymousLeaderboardSnapshot = try await read("api/growth/leaderboard/anonymous",
+                form: ["metric": query.metric.rawValue, "period": query.period.rawValue, "limit": String(limit)], token: token, urlEncoded: true)
+            return try snapshot.projection(query: query, limit: limit)
+        }
+        // The source binds LeaderboardQueryDTO from form fields (no @RequestBody), as the mini-program sends them.
+        let board: GrowthLeaderboard = try await read("api/growth/leaderboard", form: ["metric": query.metric.rawValue, "period": query.period.rawValue, "limit": String(limit)], token: token)
         guard board.metric == query.metric, board.period == query.period else { throw APIError.malformedResponse }
-        return board
+        return board.withoutUnrankedPlaceholders()
     }
     public func overview(token: String) async throws -> GrowthCenterOverview {
         async let centerResult = outcome { try await center(token: token) }
@@ -42,12 +51,22 @@ public struct GrowthCenterService {
     private func section<T>(_ result: Result<T, Error>) -> GrowthCenterSection<T> {
         switch result { case .success(let value): return .content(value); case .failure(let error): return .failure(GrowthCenterIssue(error)) }
     }
-    private func read<T: Decodable>(_ path: String, fields: [String: Any] = [:], token: String) async throws -> T {
+    private func read<T: Decodable>(_ path: String, form: [String: String]? = nil, token: String, urlEncoded: Bool = false) async throws -> T {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         try Task.checkCancellation()
-        var request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: [:], token: token)
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])
+        var request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: form ?? [:], token: token)
+        if urlEncoded, let form {
+            // Dedicated anonymous producer specifies URL-encoded form fields.
+            // Values here are closed query enums and the validated numeric limit.
+            var encoder = URLComponents()
+            encoder.queryItems = form.keys.sorted().map { URLQueryItem(name: $0, value: form[$0]) }
+            request.httpBody = Data((encoder.percentEncodedQuery ?? "").utf8)
+            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        }
+        if form == nil {
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = Data("{}".utf8)
+        }
         let (data, status) = try await transport.send(request)
         try Task.checkCancellation()
         let envelope = try? JSONDecoder().decode(Status.self, from: data)

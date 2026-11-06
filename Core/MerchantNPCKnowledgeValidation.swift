@@ -51,6 +51,18 @@ extension MerchantNPCKnowledgeDraft {
         return issues
     }
 
+    /// AI catalog prices stay display facts. Applying them as live commerce is always an issue.
+    static func liveCommerceIssues(_ mutation: MerchantNPCForbiddenAICommerce) -> [MerchantNPCKnowledgeIssue] {
+        let kind: MerchantNPCKnowledgeIssue.Kind
+        switch mutation {
+        case .price: kind = .livePrice
+        case .deductStock: kind = .liveStock
+        case .award: kind = .liveAward
+        case .certifyPresence: kind = .livePresence
+        }
+        return [.init(section: .products, kind: kind)]
+    }
+
     /// Matches the source's Java UTF-16 limits, trim() boundary and ISO-control rejection.
     static func validText(_ value: String, max: Int) -> Bool {
         value.utf16.count <= max && value.unicodeScalars.contains(where: { $0.value > 32 }) &&

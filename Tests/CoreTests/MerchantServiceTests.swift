@@ -145,4 +145,24 @@ final class MerchantServiceTests: XCTestCase {
         catch { XCTAssertEqual((error as? URLError)?.code, .notConnectedToInternet) }
         XCTAssertEqual(t.requests.count, 1)
     }
+    func testNonOwnerAftercareStaffDoesNotDownloadOwnerTodoSummary() async throws {
+        let t = MerchantFixtureTransport()
+        let manager = try access(role: "MERCHANT_MANAGER", permissions: ["merchant:aftercare:read", "merchant:project:manage"])
+        do {
+            _ = try await service(t).todo(access: manager, token: "fixture-token")
+            XCTFail("Expected non-owner todo-summary call to be rejected before transport")
+        } catch {
+            XCTAssertEqual(error as? MerchantReadError, .accessDenied)
+        }
+        XCTAssertTrue(t.requests.isEmpty)
+        let narrow = MerchantTodo(aftercareRefundCount: 3)
+        XCTAssertEqual(narrow.refundCount, 3)
+        XCTAssertEqual(narrow.pendingVerify, 0)
+        XCTAssertEqual(narrow.verifiedCount, 0)
+        XCTAssertEqual(narrow.pendingScanConfirm, 0)
+        XCTAssertEqual(narrow.pendingOrders, 0)
+        XCTAssertEqual(narrow.pendingPredict, 0)
+        XCTAssertEqual(narrow.biddingTopics, 0)
+        XCTAssertNil(narrow.byProject)
+    }
 }

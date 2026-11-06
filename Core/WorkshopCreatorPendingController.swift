@@ -16,7 +16,7 @@ public struct WorkshopCreatorPendingForm: Equatable {
     }
 }
 @MainActor public final class WorkshopCreatorPendingAppearance {
-    fileprivate var started = false, closed = false
+    fileprivate var started = false, closed = false, suspended = false
     fileprivate var action: UUID?
     public init() {}
 }
@@ -93,6 +93,7 @@ public struct WorkshopCreatorPendingForm: Equatable {
     private let makeConsent: MakeConsent
     private var appearance: WorkshopCreatorPendingAppearance?
     private var lifetime: WorkshopCreatorConsentLifetime?
+    private var suspendedForm: WorkshopCreatorPendingForm?
     public init(sourceTemplateId: Int64, service: any WorkshopCreatorPendingServing, previewService: any WorkshopCreatorConsentServing,
                 lease: ContentDraftSessionLease, store: WorkshopCreatorPendingStore, declarationStore: WorkshopCreatorConsentPendingStore? = nil,
                 canReadProposals: @escaping () -> Bool = { true }, canAuthor: @escaping () -> Bool = { false },
@@ -103,15 +104,16 @@ public struct WorkshopCreatorPendingForm: Equatable {
     public var canSubmit: Bool { phase == .editing && pending == nil && preview != nil && canAuthor() && lease.isCurrent }
     public var canRetry: Bool { pending != nil && receipt == nil && ![.loading, .submitting, .reviewing, .invalidated].contains(phase) && canAuthor() && lease.isCurrent }
     public func invalidate() {
-        closeCurrent(); lease.revoke(); form = .init(); pending = nil; receipt = nil; phase = .invalidated; issue = .stale
+        closeCurrent(); suspendedForm = nil; lease.revoke(); form = .init(); pending = nil; receipt = nil; phase = .invalidated; issue = .stale
     }
     private func closeCurrent() {
+        suspendedForm = nil
         appearance?.closed = true; appearance?.action = nil; appearance = nil; lifetime?.revoke(); lifetime = nil
         declaration?.invalidate(); declaration = nil; declarationReceipt = nil; declarationRequestId = nil; selectedDetail = nil; preview = nil; items = []; nextCursor = nil; hasMore = false
     }
     private func current(_ a: WorkshopCreatorPendingAppearance) -> Bool {
         guard lease.isCurrent else { invalidate(); return false }
-        return phase != .invalidated && appearance === a && !a.closed
+        return phase != .invalidated && appearance === a && !a.closed && !a.suspended
     }
     public func appear(_ a: WorkshopCreatorPendingAppearance) -> Action? {
         guard lease.isCurrent, phase != .invalidated, !a.started, !a.closed else { return nil }
@@ -120,8 +122,28 @@ public struct WorkshopCreatorPendingForm: Equatable {
     }
     public func close(_ a: WorkshopCreatorPendingAppearance) {
         a.closed = true; a.action = nil; guard appearance === a else { return }
-        closeCurrent(); form = .init(); receipt = nil; if phase != .invalidated { phase = .idle }; issue = nil
+        closeCurrent(); suspendedForm = nil; form = .init(); receipt = nil; if phase != .invalidated { phase = .idle }; issue = nil
         // The full persisted command survives Back, cancellation, session changes and unknown results.
+    }
+    /// Keep unsubmitted local text privately, but retire every displayed action and
+    /// child review. Neither author nor declaration journal is erased or replayed.
+    public func suspend(_ a: WorkshopCreatorPendingAppearance) {
+        guard appearance === a, !a.closed, !a.suspended, phase != .invalidated else { return }
+        a.suspended = true; a.action = nil; lifetime?.revoke(); lifetime = nil
+        suspendedForm = form; form = .init()
+        declaration?.invalidate(); declaration = nil; selectedDetail = nil
+        preview = nil; items = []; nextCursor = nil; hasMore = false
+        pending = nil; receipt = nil; declarationReceipt = nil; declarationRequestId = nil
+        phase = .idle; issue = nil
+    }
+    public func resume(_ a: WorkshopCreatorPendingAppearance) -> Action? {
+        guard appearance === a, !a.closed, a.suspended, phase != .invalidated else { return nil }
+        guard lease.isCurrent else { invalidate(); return nil }
+        a.suspended = false; form = suspendedForm ?? .init(); suspendedForm = nil
+        // offerLoad reads the original declaration status and current proposal list.
+        // Author has no status endpoint: its saved command remains unresolved until
+        // the user explicitly retries the same command under current write approval.
+        return offerLoad(a)
     }
     private func offer(_ a: WorkshopCreatorPendingAppearance) -> (UUID, WorkshopCreatorConsentLifetime)? {
         guard current(a), phase != .submitting else { return nil }
@@ -139,7 +161,7 @@ public struct WorkshopCreatorPendingForm: Equatable {
         return { [weak self] in
             guard let self, !entered, self.current(a), a.action == ticket else { return }; entered = true
             do {
-                // Preserve native16 history recovery before any current-source or proposal gate.
+                // Preserve history recovery before any current-source or proposal gate.
                 // A recorded receipt is metadata only; it never supplies a current target.
                 if let command = try self.declarationStore?.load() {
                     self.declarationRequestId = command.requestId
@@ -154,6 +176,7 @@ public struct WorkshopCreatorPendingForm: Equatable {
                     }
                 }
                 self.pending = try self.store.load()
+                if self.pending != nil { self.issue = .unknown }
                 guard self.canReadProposals() else { self.issue = .disabled; self.phase = .editing; return }
                 try await self.refresh(life)
                 self.phase = .editing
@@ -243,7 +266,14 @@ public struct WorkshopCreatorPendingForm: Equatable {
     }
     private func fail(_ error: Error, _ a: WorkshopCreatorPendingAppearance, _ ticket: UUID) {
         guard current(a), a.action == ticket else { return }
-        issue = (error as? WorkshopCreatorConsentIssue) ?? .unavailable; phase = .failed
+        let failure = (error as? WorkshopCreatorConsentIssue) ?? .unavailable
+        if failure == .unauthorized {
+            // A current rejection retires this page, not its possibly committed request.
+            // invalidate clears presentation data but leaves both durable journals intact.
+            invalidate(); issue = failure; return
+        }
+        // Individual read/write grant withdrawal is not whole-session rejection.
+        issue = failure; phase = .failed
         preview = nil; items = []; nextCursor = nil; hasMore = false; selectedDetail = nil; declaration?.invalidate(); declaration = nil
     }
 }

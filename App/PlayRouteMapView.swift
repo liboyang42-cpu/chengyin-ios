@@ -1,12 +1,35 @@
 import SwiftUI
 import MapKit
+import CoreFoundation
+
+/// One existing route action the route page reads with GET /api/play/route-action.
+/// The page sends that GET on the host of the held https APIConfiguration.
+/// A caller-held row is not a network read. This request does not insert an action.
+struct RouteActionPageReadRequest {
+    var sessionID: Int64?
+    var memberID: Int64?
+    var actionID: String?
+    /// Missing or non-https closes only this read. No host is invented.
+    var apiBaseURL: URL?
+    var transport: (any HTTPTransport)?
+    var token: String?
+    /// Signed-in account. Zero closes only this read.
+    var accountID: Int?
+    /// Exact grant for api/play/route-action. Nil, or any other path, refuses the send.
+    var approval: OperationEndpointApproval?
+    /// Namespace the approval was issued for. Missing refuses the send.
+    var approvalNamespace: String?
+}
 
 /// Supplementary map for the personal orientation runtime. It never requests
 /// location, directions or a new capability; all actions use the existing node host.
 @MainActor struct PlayRouteMapView: View {
     @Bindable var model: PlayExperienceCoordinator
     let nodeDestination: (Int) -> AnyView
+    var actionRead: RouteActionPageReadRequest? = nil
     @State private var selected: PlayRouteMapDestination?
+    @State private var actionReadAppeared = false
+    @State private var shownActionRow: RouteActionOriginalRow?
     @State private var showMap = true
     @State private var cameraControlsExpanded = false
     @State private var cameraPosition: MapCameraPosition = .automatic
@@ -29,7 +52,7 @@ import MapKit
                         .accessibilityIdentifier("playRoute.explanation")
                     if let id = presentation.currentNodeID,
                        let current = presentation.stops.first(where: { $0.id == id }) {
-                        Label("playRoute.current", systemImage: "flag.fill").font(.headline)
+                        Label("playRoute.current", systemImage: "flag.fill").font(.headline).accessibilityAddTraits(.isHeader)
                         stopName(current)
                         Button("playRoute.openCurrent") { choose(id, snapshot: snapshot, context: context) }
                             .accessibilityIdentifier("playRoute.openCurrent")
@@ -39,7 +62,7 @@ import MapKit
                     Button(cameraControlsExpanded ? LocalizedStringKey("playRouteCamera.hideControls") : LocalizedStringKey("playRouteCamera.showControls")) { cameraControlsExpanded.toggle() }
                         .frame(minHeight: 44).accessibilityIdentifier("playRouteCamera.controls")
                     if cameraControlsExpanded { cameraControls(presentation, snapshot: snapshot, context: context) }
-                }
+                } header: { Text("playRouteCamera.title") }
                 if !presentation.mappedStops.isEmpty {
                     Section("playRoute.map") {
                         Button(showMap ? LocalizedStringKey("playRoute.hideMap") : LocalizedStringKey("playRoute.showMap")) { showMap.toggle() }
@@ -72,8 +95,28 @@ import MapKit
                     if model.phase == .loading { ProgressView("playx.loading") }
                 }
             }
+            if actionRead != nil {
+                Section {
+                    if let shownActionRow {
+                        Text(verbatim: shownActionRow.actionID)
+                            .font(.body)
+                            .accessibilityIdentifier("playRoute.actionRead")
+                    } else {
+                        Text("playRoute.unavailable")
+                            .font(.body)
+                            .accessibilityIdentifier("playRoute.actionRead")
+                    }
+                }
+            }
             Section {
-                Button("playx.refresh") { selected = nil; Task { await model.load() } }
+                Button("playx.refresh") {
+                    selected = nil
+                    Task {
+                        await model.load()
+                        appearActionRead()
+                        await readThisAction()
+                    }
+                }
                     .disabled(!model.available || model.phase == .loading || model.phase == .submitting)
                     .accessibilityIdentifier("playRoute.refresh")
                 Button("playRoute.back") { selected = nil; dismiss() }
@@ -99,8 +142,181 @@ import MapKit
         .onChange(of: model.snapshot) { _, _ in clearRetiredSelection() }
         .onChange(of: model.phase) { _, _ in clearRetiredSelection() }
         .onChange(of: cameraRead) { _, _ in resetCamera() }
-        .onAppear { cameraGate.appear() }
+        .task(id: actionReadToken) {
+            appearActionRead()
+            await readThisAction()
+        }
+        .onAppear { cameraGate.appear(); appearActionRead() }
         .onDisappear { cameraGate.disappear(); cameraPreview = nil; cameraIssue = nil }
+    }
+    private var actionReadToken: String {
+        let base = actionRead?.apiBaseURL?.absoluteString ?? ""
+        let account = actionRead?.accountID ?? 0
+        let tokenMark = actionRead?.token?.utf8.reduce(UInt64(0)) { ($0 &* 131) &+ UInt64($1) } ?? 0
+        let transport = actionRead?.transport == nil ? "0" : "1"
+        let approved = actionRead?.approval?.paths.contains("api/play/route-action") == true ? "1" : "0"
+        return "\(actionRead?.sessionID ?? -1)|\(actionRead?.memberID ?? -1)|\(actionRead?.actionID ?? "")|\(base)|\(account)|\(tokenMark)|\(transport)|\(approved)"
+    }
+    /// Appearance records the route page only. It does not read and does not write.
+    private func appearActionRead() {
+        actionReadAppeared = true
+    }
+    /// Sends GET /api/play/route-action on the held https host.
+    /// A missing configuration, a non-https URL, a blank token, or account id 0
+    /// closes only this read and does not invent a domain.
+    /// An unknown approval refuses the send. A response whose session id, member id,
+    /// or action id differs shows nothing.
+    private func readThisAction() async {
+        guard actionReadAppeared, let request = actionRead else {
+            shownActionRow = nil
+            return
+        }
+        let trimmed = request.actionID?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let token = request.token?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard let configuration = readConfiguration(request.apiBaseURL) else {
+            shownActionRow = nil
+            return
+        }
+        guard let transport = request.transport, !token.isEmpty, AuthRequestBuilder.isValidToken(token) else {
+            shownActionRow = nil
+            return
+        }
+        guard let accountID = request.accountID, accountID != 0 else {
+            shownActionRow = nil
+            return
+        }
+        guard let sessionID = request.sessionID, sessionID > 0,
+              let memberID = request.memberID, memberID > 0,
+              memberID == Int64(accountID), !trimmed.isEmpty else {
+            shownActionRow = nil
+            return
+        }
+        guard let url = routeActionURL(configuration, sessionID: sessionID, memberID: memberID, actionID: trimmed) else {
+            shownActionRow = nil
+            return
+        }
+        let namespace = request.approvalNamespace?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard let approval = request.approval, !namespace.isEmpty,
+              approval.allows(configuration: configuration, namespace: namespace, accountID: accountID, path: "api/play/route-action") else {
+            shownActionRow = nil
+            return
+        }
+        var wire = URLRequest(url: url)
+        wire.httpMethod = "GET"
+        wire.cachePolicy = .reloadIgnoringLocalCacheData
+        wire.timeoutInterval = 20
+        wire.setValue("application/json", forHTTPHeaderField: "Accept")
+        wire.setValue(token, forHTTPHeaderField: "Authorization")
+        let body: Data
+        let status: Int
+        do {
+            (body, status) = try await transport.send(wire)
+        } catch {
+            shownActionRow = nil
+            return
+        }
+        guard !Task.isCancelled,
+              actionRead?.sessionID == sessionID,
+              actionRead?.memberID == memberID,
+              actionRead?.accountID == accountID else {
+            shownActionRow = nil
+            return
+        }
+        guard (200..<300).contains(status),
+              let decoded = decodedRouteAction(body, sessionID: sessionID, memberID: memberID, actionID: trimmed) else {
+            shownActionRow = nil
+            return
+        }
+        var reader = OriginalActionReader(selectActionByAction: { queriedSession, queriedMember, queriedAction in
+            guard queriedSession == sessionID,
+                  queriedMember == memberID,
+                  queriedAction == trimmed else { return nil }
+            guard decoded.sessionID == sessionID,
+                  decoded.memberID == memberID,
+                  decoded.actionID == trimmed else { return nil }
+            return decoded
+        })
+        var page = RouteActionPageRead()
+        do {
+            let row = try page.shownRow(
+                sessionID: request.sessionID,
+                memberID: request.memberID,
+                actionID: request.actionID,
+                selectAction: reader.selectAction)
+            guard let row, row.actionID == trimmed else {
+                shownActionRow = nil
+                return
+            }
+            if let rowSession = row.sessionID, rowSession != request.sessionID {
+                shownActionRow = nil
+                return
+            }
+            if let rowMember = row.memberID, rowMember != request.memberID {
+                shownActionRow = nil
+                return
+            }
+            shownActionRow = row
+        } catch {
+            shownActionRow = nil
+        }
+    }
+    /// Missing or non-https closes only this read. The supplied URL is kept.
+    /// This read does not invent a domain.
+    private func readConfiguration(_ baseURL: URL?) -> APIConfiguration? {
+        guard let baseURL else { return nil }
+        guard let configuration = try? APIConfiguration(baseURL: baseURL) else { return nil }
+        guard configuration.baseURL.scheme == "https", configuration.baseURL == baseURL else { return nil }
+        return configuration
+    }
+    /// GET /api/play/route-action on the configuration host.
+    /// The query carries the session id, the current member id, and the action id.
+    private func routeActionURL(_ configuration: APIConfiguration, sessionID: Int64, memberID: Int64, actionID: String) -> URL? {
+        let endpoint = configuration.baseURL.appendingPathComponent("api/play/route-action")
+        guard var parts = URLComponents(url: endpoint, resolvingAgainstBaseURL: false),
+              parts.scheme == "https",
+              let host = parts.host, host == configuration.baseURL.host,
+              parts.user == nil, parts.password == nil, parts.fragment == nil else { return nil }
+        parts.queryItems = [
+            URLQueryItem(name: "sessionId", value: String(sessionID)),
+            URLQueryItem(name: "memberId", value: String(memberID)),
+            URLQueryItem(name: "actionId", value: actionID)
+        ]
+        guard let url = parts.url, url.scheme == "https", url.host == configuration.baseURL.host else { return nil }
+        return url
+    }
+    /// A row exists only when the response session id, member id, and action id equal the request.
+    private func decodedRouteAction(_ body: Data, sessionID: Int64, memberID: Int64, actionID: String) -> RouteActionOriginalRow? {
+        guard let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else { return nil }
+        guard jsonCode(object["code"]) == 200, let data = object["data"] as? [String: Any] else { return nil }
+        guard let responseSession = jsonInt64(data["sessionId"]), responseSession == sessionID else { return nil }
+        guard let responseMember = jsonInt64(data["memberId"]), responseMember == memberID else { return nil }
+        guard let responseAction = data["actionId"] as? String, responseAction == actionID else { return nil }
+        let responseJSON = data["responseJson"] as? String
+        return RouteActionOriginalRow(
+            actionID: responseAction, responseJSON: responseJSON,
+            sessionID: responseSession, memberID: responseMember)
+    }
+    private func jsonCode(_ value: Any?) -> Int? {
+        if isJSONBool(value) { return nil }
+        if let number = value as? NSNumber { return number.intValue }
+        if let text = value as? String, let code = Int(text), String(code) == text { return code }
+        return nil
+    }
+    private func jsonInt64(_ value: Any?) -> Int64? {
+        if isJSONBool(value) { return nil }
+        if let number = value as? NSNumber {
+            let intValue = number.int64Value
+            guard intValue > 0, Double(intValue) == number.doubleValue else { return nil }
+            return intValue
+        }
+        if let text = value as? String, let intValue = Int64(text), intValue > 0, String(intValue) == text {
+            return intValue
+        }
+        return nil
+    }
+    private func isJSONBool(_ value: Any?) -> Bool {
+        guard let number = value as? NSNumber else { return false }
+        return CFGetTypeID(number as CFTypeRef) == CFBooleanGetTypeID()
     }
     private var cameraRead: PlayRouteMapCamera.Read? {
         guard !model.unresolved else { return nil }
@@ -121,6 +337,8 @@ import MapKit
             onOpen: { choose($0, snapshot: snapshot, context: context) })
     }
     private func focus(_ request: PlayRouteMapCamera.Gate.Request) {
+        let interval = NativePerformanceSignposts.shared.begin(.playRouteCameraFocus)
+        defer { interval.end() }
         guard let decision = cameraGate.consume(request, current: cameraRead) else { return }
         cameraControlsExpanded = true
         cameraPreview = decision.preview; cameraIssue = decision.issue
@@ -149,7 +367,12 @@ import MapKit
         selected = choice
     }
     private func map(_ presentation: PlayRouteMapPresentation, snapshot: PlaySnapshot, context: PlayInteractionContext) -> some View {
-        Map(position: $cameraPosition, interactionModes: [.pan, .zoom]) {
+        // Project the displayed read once per render, not once per annotation:
+        // each Read rebuilds the whole stop projection, which grew quadratically.
+        let (read, inspectingID) = NativePerformanceSignposts.shared.measure(.playRouteMapProjection) {
+            (PlayRouteMapCamera.Read(snapshot: snapshot, context: context), cameraPreview?.resolve(current: cameraRead)?.id)
+        }
+        return Map(position: $cameraPosition, interactionModes: [.pan, .zoom]) {
             ForEach(presentation.segments) { segment in
                 MapPolyline(coordinates: [coordinate(segment.start), coordinate(segment.end)])
                     .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 3, dash: [6, 5]))
@@ -157,8 +380,8 @@ import MapKit
             ForEach(presentation.mappedStops) { stop in
                 if let location = stop.coordinate {
                     Annotation("", coordinate: coordinate(location)) {
-                        let request = cameraGate.request(.preview(stop.id), read: .init(snapshot: snapshot, context: context))
-                        let inspecting = cameraPreview?.resolve(current: cameraRead)?.id == stop.id
+                        let request = cameraGate.request(.preview(stop.id), read: read)
+                        let inspecting = inspectingID == stop.id
                         Button { if let request { focus(request) } } label: {
                             VStack(spacing: 3) {
                                 Image(systemName: stop.state.symbol).font(.title2)
@@ -169,6 +392,7 @@ import MapKit
                                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(inspecting ? Color.primary : Color.clear, lineWidth: 2))
                         }.buttonStyle(.plain).disabled(request == nil)
                             .accessibilityLabel(stopName(stop) + Text(verbatim: ", ") + Text(LocalizedStringKey(stop.state.labelKey)))
+                            .accessibilityHint(request == nil ? Text(verbatim: "") : Text("playRouteCamera.notice"))
                             .accessibilityIdentifier("playRoute.pin.\(stop.id)")
                             .accessibilityAddTraits(inspecting ? .isSelected : [])
                     }

@@ -74,11 +74,21 @@ public struct MerchantNPCKnowledgeDraft: Equatable {
         catch let error as MerchantNPCKnowledgeValidationError { return error.issues }
         catch { return [.init(section: .draft, kind: .encoding)] }
     }
+    /// Display-only catalog facts. This draft never prices SKUs, deducts stock, awards, or certifies presence.
+    public var encodesLiveCommerceMutation: Bool { false }
+    public func applyingAICommerce(_ mutation: MerchantNPCForbiddenAICommerce) -> [MerchantNPCKnowledgeIssue] {
+        Self.liveCommerceIssues(mutation)
+    }
+}
+
+/// AI may only populate a local DRAFT. Applying any of these is a typed refusal, not a successful stub.
+public enum MerchantNPCForbiddenAICommerce: String, Equatable {
+    case price, deductStock, award, certifyPresence
 }
 
 public struct MerchantNPCKnowledgeIssue: Equatable {
     public enum Section: String { case draft, products, hours, promotions, faq, neverSay }
-    public enum Kind: String { case count, text, price, currency, day, duplicateDay, clock, timeZone, instant, order, byteLimit, encoding }
+    public enum Kind: String { case count, text, price, currency, day, duplicateDay, clock, timeZone, instant, order, byteLimit, encoding, livePrice, liveStock, liveAward, livePresence }
     public let section: Section
     /// Zero-based row; no untrusted field content is included in an error or log.
     public let row: Int?

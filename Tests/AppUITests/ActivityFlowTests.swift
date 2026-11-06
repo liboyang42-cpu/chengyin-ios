@@ -120,7 +120,9 @@ final class ActivityFlowTests: XCTestCase {
             tap(app.buttons[identifier])
             XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 10), app.debugDescription)
             tap(app.navigationBars.buttons.firstMatch)
-            waitForDetail()
+            // Back keeps the scroll position, so the row just opened is the proof of return; the header is off screen.
+            XCTAssertTrue(app.navigationBars["Activity details"].waitForExistence(timeout: 5), app.debugDescription)
+            waitForHittable(app.buttons[identifier])
         }
         let missing = element("activity.people.participant.1.readOnly")
         scrollTo(missing, in: element("activity.detail.content"))

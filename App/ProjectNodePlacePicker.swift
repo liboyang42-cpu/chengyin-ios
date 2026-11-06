@@ -189,7 +189,7 @@ extension EnvironmentValues {
                     }
                     switch controller.state {
                     case .idle: EmptyView()
-                    case .loading: ProgressView()
+                    case .loading: ProgressView { Text("projectPlace.search", tableName: "ProjectNodePlacePicker") }
                     case .loaded: EmptyView()
                     case .empty: Text("projectPlace.empty", tableName: "ProjectNodePlacePicker")
                     case .failed: Text("projectPlace.failed", tableName: "ProjectNodePlacePicker")
@@ -198,13 +198,17 @@ extension EnvironmentValues {
                     }
                     ForEach(controller.rows) { row in
                         Button { controller.choose(row, in: original) } label: {
-                            VStack(alignment: .leading) {
-                                Text(verbatim: row.name)
-                                if let coordinate = row.coordinate { Text(verbatim: "GCJ-02: \(coordinate.latitude), \(coordinate.longitude)").font(.caption) }
-                                if !ProjectNodePlaceSelection.permits(row) { Text("projectPlace.invalidResult", tableName: "ProjectNodePlacePicker") }
-                                if controller.selected == row { Image(systemName: "checkmark") }
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(verbatim: row.name).foregroundStyle(.primary)
+                                    if !ProjectNodePlaceSelection.permits(row) { Text("projectPlace.invalidResult", tableName: "ProjectNodePlacePicker").font(.footnote).foregroundStyle(.secondary) }
+                                }
+                                Spacer()
+                                if controller.selected == row { Image(systemName: "checkmark").foregroundStyle(Color.accentColor) }
                             }
-                        }.disabled(!ProjectNodePlaceSelection.permits(row))
+                        }.frame(minHeight: 44).padding(.vertical, 4)
+                            .disabled(!ProjectNodePlaceSelection.permits(row))
+                            .accessibilityAddTraits(controller.selected == row ? [.isSelected] : [])
                     }
                     if let selected = controller.selected {
                         Section {
@@ -215,7 +219,7 @@ extension EnvironmentValues {
                         }
                     }
                 } else { Text("projectStarter.stale") }
-            }.navigationTitle(Text("projectPlace.title", tableName: "ProjectNodePlacePicker"))
+            }.navigationBarTitleDisplayMode(.inline).navigationTitle(Text("projectPlace.title", tableName: "ProjectNodePlacePicker"))
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { controller.close(original) } } }
         }
     }

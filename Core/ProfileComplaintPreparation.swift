@@ -90,6 +90,7 @@ public enum ProfileComplaintReadIssue: String, Equatable {
 @MainActor @Observable public final class ProfileComplaintPreparationController {
     public private(set) var topics: [ProfileComplaintTopic]?
     public private(set) var issue: ProfileComplaintReadIssue?
+    public private(set) var isNetworkFailure = false
     public private(set) var isLoading = false
     public private(set) var draft = ProfileComplaintDraft()
     public private(set) var review: ProfileComplaintReview?
@@ -104,6 +105,10 @@ public enum ProfileComplaintReadIssue: String, Equatable {
     }
     public var contextMatches: Bool { active && owner != nil && reader.session == owner && isCurrent() }
     public var canEdit: Bool { contextMatches && topics?.isEmpty == false && !isLoading && issue == nil && review == nil }
+    public var issueSourceSubtitle: String? {
+        guard let issue else { return nil }
+        return ProfileComplaintTopicLoadFailureCopy.sourceSubtitle(issue: issue, isNetworkError: isNetworkFailure)
+    }
     public func change(_ update: (inout ProfileComplaintDraft) -> Void) {
         guard contextMatches else { retire(); return }
         guard canEdit else { return }
@@ -122,18 +127,18 @@ public enum ProfileComplaintReadIssue: String, Equatable {
     }
     public func retire() {
         active = false; generation &+= 1; isLoading = false
-        topics = nil; issue = nil; draft = .init(); review = nil; validation = nil
+        topics = nil; issue = nil; isNetworkFailure = false; draft = .init(); review = nil; validation = nil
     }
     public func load() async {
         guard contextMatches else { retire(); return }
         guard !isLoading, review == nil else { return }
         generation &+= 1; let stamp = generation
-        isLoading = true; issue = nil; validation = nil
+        isLoading = true; issue = nil; isNetworkFailure = false; validation = nil
         defer { if generation == stamp { isLoading = false } }
         func current() -> Bool { contextMatches && generation == stamp && !Task.isCancelled }
         func abandon() {
             if !contextMatches { retire() }
-            else if generation == stamp { issue = .failed }
+            else if generation == stamp { issue = .failed; isNetworkFailure = false }
         }
         do {
             try Task.checkCancellation()
@@ -146,6 +151,7 @@ public enum ProfileComplaintReadIssue: String, Equatable {
         } catch {
             guard current() else { abandon(); return }
             let failure = ProfileComplaintReadIssue(error)
+            isNetworkFailure = ProfileComplaintTopicLoadFailureCopy.isNetworkError(error)
             issue = failure
             if failure == .signIn || failure == .unavailable {
                 topics = nil; draft = .init(); review = nil

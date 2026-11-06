@@ -140,10 +140,13 @@ public struct GrowthCenterOverview {
 public enum GrowthCenterReadFailure: Error, Equatable { case rejected(code: Int, message: String?) }
 public enum GrowthCenterIssue: Equatable {
     case login, notConfigured, unavailable, network, failed, server(String)
+    /// 403 is the mini-program's 当前账号无法查看 state, distinct from sign-in.
+    case denied
     public init(_ error: Error) {
         switch error {
         case APIError.unauthorized: self = .login
         case APIError.notConfigured: self = .notConfigured
+        case APIError.httpStatus(403), GrowthCenterReadFailure.rejected(403, _): self = .denied
         case APIError.httpStatus: self = .unavailable
         case GrowthCenterReadFailure.rejected(_, let text): self = GrowthCenterFormatting.nonempty(text).map(Self.server) ?? .failed
         case is URLError: self = .network
@@ -156,6 +159,7 @@ public enum GrowthCenterIssue: Equatable {
         case .notConfigured: return "growth.notConfigured"
         case .unavailable: return "growth.unavailable"
         case .network: return "growth.network"
+        case .denied: return "growth.denied"
         case .failed, .server: return "growth.failed"
         }
     }

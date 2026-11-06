@@ -28,12 +28,12 @@
     "zh-Hans": "正在加载…"
   },
   "searchMap.offline": {
-    "en": "Offline synthetic example",
-    "zh-Hans": "离线合成示例"
+    "en": "Example content",
+    "zh-Hans": "示例内容"
   },
   "searchMap.notConfigured": {
-    "en": "Search service is not configured",
-    "zh-Hans": "搜索服务尚未配置"
+    "en": "Search isn't available right now",
+    "zh-Hans": "搜索暂不可用"
   },
   "searchMap.history": {
     "en": "Recent searches",
@@ -76,20 +76,20 @@
     "zh-Hans": "商家"
   },
   "searchMap.partialSignIn": {
-    "en": "Sign in to include results from restricted sources",
-    "zh-Hans": "登录后可查看需要登录的搜索来源"
+    "en": "Sign in to see more results",
+    "zh-Hans": "登录后可查看更多结果"
   },
   "searchMap.signIn": {
     "en": "Sign in",
     "zh-Hans": "去登录"
   },
   "searchMap.partialFailure": {
-    "en": "Some sources could not be refreshed",
-    "zh-Hans": "部分搜索来源未能更新"
+    "en": "Some results couldn't be refreshed",
+    "zh-Hans": "部分结果未能更新"
   },
   "searchMap.allFailed": {
-    "en": "None of the sources could be loaded",
-    "zh-Hans": "所有搜索来源均未能加载"
+    "en": "Couldn't load search results",
+    "zh-Hans": "搜索结果加载失败"
   },
   "searchMap.retry": {
     "en": "Retry",
@@ -104,8 +104,8 @@
     "zh-Hans": "换个关键词或调整筛选条件"
   },
   "searchMap.pageLimit": {
-    "en": "Shows the first 12 topics and activities from each source. Club and shop lists follow their source results.",
-    "zh-Hans": "主题和活动各展示来源的前 12 条，俱乐部和商家按来源结果展示"
+    "en": "Shows up to 12 topics and 12 activities per category.",
+    "zh-Hans": "主题和活动各最多显示 12 条。"
   },
   "searchMap.untitled": {
     "en": "Untitled result",
@@ -160,8 +160,8 @@
     "zh-Hans": "最高价格（0–1000）"
   },
   "searchMap.clientFilters": {
-    "en": "Date and price filters apply locally to loaded topics and activities. Missing dates or prices stay visible. Clubs and shops are unchanged. The source price unit is not converted.",
-    "zh-Hans": "日期和价格仅在本地筛选已加载的主题及活动，缺失日期或价格的结果仍保留。俱乐部和商家不受影响，来源价格单位不做换算"
+    "en": "Date and price filters apply to topics and activities already loaded. Results without a date or price still appear. Clubs and shops aren't filtered. Prices aren't converted between currencies.",
+    "zh-Hans": "日期和价格筛选仅作用于已加载的主题及活动，缺少日期或价格的结果仍会显示。俱乐部和商家不受筛选影响，价格不做币种换算。"
   },
   "searchMap.resetFilters": {
     "en": "Reset filters",
@@ -216,8 +216,8 @@
     "zh-Hans": "显示 Apple 地图"
   },
   "searchMap.offlineMap": {
-    "en": "Synthetic map preview; no map provider is contacted",
-    "zh-Hans": "合成地图预览，不连接地图服务"
+    "en": "Example map",
+    "zh-Hans": "示例地图"
   },
   "searchMap.relatedTopic": {
     "en": "View related topic",
@@ -280,8 +280,8 @@
     "zh-Hans": "距离"
   },
   "searchMap.nodeReadOnly": {
-    "en": "Read-only node information. Check-in, validation and favorite changes are separate flows.",
-    "zh-Hans": "此处仅展示节点信息，打卡、验证和收藏修改需使用对应流程"
+    "en": "Location details. Check in, verify or favorite from their own screens.",
+    "zh-Hans": "此处展示地点信息，打卡、验证和收藏请在对应页面操作。"
   },
   "searchMap.merchantAbout": {
     "en": "About this shop",
@@ -352,8 +352,8 @@
     "zh-Hans": "此处暂不提供公交换乘及分步指引"
   },
   "searchMap.routeBoundary": {
-    "en": "Live route planning, device tracking and external navigation are not enabled in this migration slice.",
-    "zh-Hans": "本阶段未启用实时道路规划、设备位置跟踪及外部导航"
+    "en": "Live route planning, location tracking and external navigation aren't available right now.",
+    "zh-Hans": "实时路线规划、位置跟踪及外部导航暂不可用"
   },
   "searchMap.routeFailed": {
     "en": "The supplied route could not be loaded",
@@ -430,5 +430,85 @@
   "searchMap.cityOptions": {
     "en": "City search options",
     "zh-Hans": "城市搜索选项"
+  },
+  "searchMap.w208.allCategories": {
+    "en": "All categories",
+    "zh-Hans": "全部品类"
+  },
+  "searchMap.w208.capsule.empty": {
+    "en": "No activities around here yet",
+    "zh-Hans": "这一带还没有活动"
+  },
+  "searchMap.w208.date.custom": {
+    "en": "Choose dates",
+    "zh-Hans": "选择日期"
+  },
+  "searchMap.w208.exploreTag": {
+    "en": "Exploration tag",
+    "zh-Hans": "探索标签"
+  },
+  "searchMap.w208.merchantDiscovery": {
+    "en": "Merchant discovery",
+    "zh-Hans": "商家发现"
+  },
+  "searchMap.w208.merchantNodeFallback": {
+    "en": "Merchant spot",
+    "zh-Hans": "商家节点"
+  },
+  "searchMap.w208.offline.cachedAt": {
+    "en": "Cache updated at",
+    "zh-Hans": "缓存更新于"
+  },
+  "searchMap.w208.offline.retry": {
+    "en": "Retry connection",
+    "zh-Hans": "重试连接"
+  },
+  "searchMap.w208.offline.stillOffline": {
+    "en": "Still offline",
+    "zh-Hans": "仍未连接网络"
+  },
+  "searchMap.w208.placeholder": {
+    "en": "Search routes, places and more",
+    "zh-Hans": "搜索路线、地点等"
+  },
+  "searchMap.w208.price.range": {
+    "en": "Price range: ¥0 - ¥1000",
+    "zh-Hans": "价格区间：¥0 - ¥1000"
+  },
+  "searchMap.w208.sheet.emptyHint": {
+    "en": "Try another keyword, or move the map to look elsewhere",
+    "zh-Hans": "换个关键词，或拖动地图看看别处"
+  },
+  "searchMap.w208.sheet.failed": {
+    "en": "Activities couldn't be loaded",
+    "zh-Hans": "活动没能加载出来"
+  },
+  "searchMap.w208.sheet.refreshFailed": {
+    "en": "This refresh didn't succeed",
+    "zh-Hans": "这次刷新没有成功"
+  },
+  "searchMap.w208.sheet.refreshFailed.detail": {
+    "en": "The screen still shows the previous results. Tap Retry to load again",
+    "zh-Hans": "屏幕上还是上一次的结果，点重试再拉一次"
+  },
+  "searchMap.w208.sheet.refreshingActivities": {
+    "en": "Updating map results…",
+    "zh-Hans": "正在更新地图结果…"
+  },
+  "searchMap.w208.sheet.refreshingNodes": {
+    "en": "Updating merchant spots…",
+    "zh-Hans": "正在更新商家点位…"
+  },
+  "searchMap.w208.sheet.title": {
+    "en": "Search results",
+    "zh-Hans": "搜索结果"
+  },
+  "searchMap.w208.topicPoint": {
+    "en": "Theme point",
+    "zh-Hans": "主题点位"
+  },
+  "searchMap.w208.viewActivity": {
+    "en": "View activity details",
+    "zh-Hans": "查看活动详情"
   }
 }

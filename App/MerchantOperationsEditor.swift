@@ -6,15 +6,28 @@ struct MerchantOperationsEditor: View {
     var templateAssistFactory: ((MerchantOperationsCoordinator) -> MerchantTemplateAssistFlow)? = nil
     @StateObject private var storeFieldPresentation = MerchantStoreFieldPresentation()
     @StateObject private var npcFieldPresentation = MerchantNPCFieldPresentation()
+    @StateObject private var presetPresentation = MerchantNPCPresetPresentation()
     @State private var coopFieldRoute: MerchantCoopFieldSession?
     @State private var assist: MerchantTemplateAssistPresentation?
     @State private var categoryPicker: MerchantTemplateCategoryPickerModel?
     var imageContext: ((MerchantImageField) -> RetainedImageSelectionContext?)? = nil
+    /// Supplied by the session. Nil stays on this page and does not construct a publisher.
+    var authorFlow: MerchantNPCKnowledgeAuthorFlow? = nil
+    var draftReadMemberID: Int64? = nil
+    var draftReadRequestID: String? = nil
+    var draftRead: ((Int64, String) -> MerchantNPCDraftReadFact?)? = nil
+    /// Existing theme-draft GET reader. Nil does not invent a request and does not publish.
+    var themeDraftRequestRead: MerchantNPCThemeDraftRequestRead? = nil
+    /// Re-reads the accepted request through the author flow. Nil does not send and does not publish.
+    var knowledgeReviewReentry: ((MerchantNPCKnowledgeReviewReentry) async throws -> MerchantNPCKnowledgeReviewReentry)? = nil
+    @State private var showsUnpublishedDraft = false
+    @State private var heldKnowledgeReview: MerchantNPCKnowledgeReviewReentry?
+    @State private var didRecoverHeldKnowledgeReview = false
     private var coordinator: MerchantOperationsCoordinator { model.coordinator }
     private var isExample: Bool { coordinator.reader.isOfflineExample }
     var body: some View {
         Form {
-            Section { MerchantOperationsBoundary(isExample: isExample) }
+            if isExample { Section { MerchantOperationsBoundary(isExample: isExample) } }
             if let draft = coordinator.draft {
                 fields(draft)
                 if let blocker = draft.blocker { Section { Text(LocalizedStringKey(blocker)).foregroundStyle(.secondary).accessibilityIdentifier("merchant.operations.blocker") } }
@@ -24,11 +37,15 @@ struct MerchantOperationsEditor: View {
             if coordinator.isLocked { Section { Text("merchant.operations.unknownOutcome") } }
             Section {
                 Button("merchant.operations.reviewDraft") { model.prepare() }
+                    .buttonStyle(.questifyPrimary).frame(maxWidth: .infinity)
+                    .listRowBackground(Color.clear)
                     .disabled(!coordinator.canReview).accessibilityIdentifier("merchant.operations.review")
-                if !isExample { Text("merchant.operations.localDraftOnly").font(.footnote).foregroundStyle(.secondary) }
                 if coordinator.isBusy { ProgressView("merchant.loading") }
             }
         }
+        // Scrolling from an edited field to review or the saved notice must
+        // release the keyboard instead of leaving it over the form's last rows.
+        .scrollDismissesKeyboard(.immediately)
         .disabled(coordinator.isBusy)
         .accessibilityIdentifier("merchant.operations.editor")
         .sheet(item: $assist) { presentation in MerchantTemplateAssistSheet(document: model, flow: presentation.flow) }
@@ -36,7 +53,10 @@ struct MerchantOperationsEditor: View {
         .modifier(MerchantBrandImagesPresentation(document: model))
         .modifier(MerchantStoreFieldStablePresentation(document: model, presentation: storeFieldPresentation))
         .modifier(MerchantNPCFieldStablePresentation(document: model, presentation: npcFieldPresentation))
+        .modifier(MerchantNPCPresetStablePresentation(document: model, presentation: presetPresentation))
         .modifier(MerchantCoopFieldStablePresentation(document: model, route: $coopFieldRoute))
+        .onAppear { Task { await recoverHeldKnowledgeReview() } }
+        .onDisappear { didRecoverHeldKnowledgeReview = false }
     }
     @ViewBuilder private func fields(_ draft: MerchantOperationsDraft) -> some View {
         switch draft {
@@ -52,7 +72,6 @@ struct MerchantOperationsEditor: View {
                 })) {
                     ForEach(MerchantBusinessStatus.allCases, id: \.rawValue) { value in Text(LocalizedStringKey(value.titleKey)).tag(value) }
                 }.pickerStyle(.segmented).accessibilityIdentifier("merchant.operations.status.picker")
-                Text("merchant.operations.statusHint").font(.footnote).foregroundStyle(.secondary)
             }
         case .profile(let value):
             MerchantOperationsMediaPreview(source: value.logo, title: "merchant.operations.logo", isExample: isExample)
@@ -61,10 +80,8 @@ struct MerchantOperationsEditor: View {
                 profileField("merchant.operations.description", \.description, "description", multiline: true)
                 profileField("merchant.operations.derivatives", \.derivatives, "derivatives")
                 MerchantStoreFieldEntry(document: model, presentation: storeFieldPresentation, field: .derivativeBenefits)
-                Text("merchant.operations.benefitsHint").font(.footnote).foregroundStyle(.secondary)
                 profileField("merchant.operations.website", \.website, "website")
                 profileField("merchant.operations.preference", \.preference, "preference")
-                Text("merchant.operations.profileWhitelist").font(.footnote).foregroundStyle(.secondary)
             }
             MerchantBrandImagesEntry(document: model)
             MerchantStoreHoursEditor(model: model)
@@ -74,7 +91,6 @@ struct MerchantOperationsEditor: View {
             Section("merchant.operations.decor") {
                 decorField("merchant.operations.slogan", \.slogan, "slogan")
                 decorField("merchant.operations.cityRole", \.cityRole, "cityRole")
-                Text("merchant.featuredClear.draftHint").font(.footnote).foregroundStyle(.secondary)
                 MerchantStoreIndustryPicker(document: model)
                 if let type = value.featuredType, let id = value.featuredID { LabeledContent("merchant.operations.featured", value: "\(type) / \(id)") }
                 MerchantFeaturedClearControl(model: model, source: value)
@@ -90,37 +106,26 @@ struct MerchantOperationsEditor: View {
             mediaSection("merchant.operations.cover", field: .coverImage)
         case .gallery(let value):
             Section("merchant.operations.gallery") {
-                Text("merchant.operations.galleryHint").font(.footnote)
-                ForEach(Array(value.gallery.enumerated()), id: \.offset) { index, reference in
-                    MerchantOperationsMediaPreview(source: reference, title: "merchant.operations.galleryImage", isExample: isExample)
-                    HStack {
-                        Label { Text("merchant.operations.galleryImage"); Text(index + 1, format: .number) } icon: { Image(systemName: "photo") }
-                        Spacer()
-                        Button(role: .destructive) {
-                            guard case .gallery(var value) = coordinator.draft, value.gallery.indices.contains(index) else { return }
-                            value.gallery.remove(at: index); model.edit(.gallery(value))
-                        } label: { Image(systemName: "minus.circle").frame(minWidth: 44, minHeight: 44) }
-                        .accessibilityLabel("merchant.operations.removeImage")
-                        .accessibilityIdentifier("merchant.operations.gallery.remove." + String(index))
-                    }
+                MerchantGalleryGrid(gallery: value.gallery, isExample: isExample) { index in
+                    guard case .gallery(var value) = coordinator.draft,
+                          MerchantGalleryGridLayout.canRemove(index: index, in: value.gallery) else { return }
+                    value.gallery.remove(at: index); model.edit(.gallery(value))
                 }
                 if isExample {
                     Button("merchant.operations.addExampleImage") {
                         guard case .gallery(var value) = coordinator.draft, value.gallery.count < 9 else { return }
                         value.gallery.append("synthetic-gallery-" + UUID().uuidString); model.edit(.gallery(value))
-                    }.disabled(value.gallery.count >= 9).accessibilityIdentifier("merchant.operations.gallery.add")
+                    }.frame(minWidth: 44, minHeight: 44).disabled(value.gallery.count >= 9).accessibilityIdentifier("merchant.operations.gallery.add")
                 }
                 imageControls(.gallery)
             }
         case .story:
             Section("merchant.operations.story") {
                 MerchantStoreFieldEntry(document: model, presentation: storeFieldPresentation, field: .description)
-                Text("merchant.operations.storyHint").font(.footnote).foregroundStyle(.secondary)
             }
         case .cooperation(let value):
             Section("merchant.operations.cooperation") {
                 coopField("merchant.operations.capacity", \.capacity, "capacity", number: true)
-                if value.clearsCapacity { Text("merchant.coopCapacityClear.draftHint").font(.footnote).foregroundStyle(.secondary) }
                 coopField("merchant.operations.availableTime", \.availableTime, "availableTime")
                 Picker("merchant.operations.chargeType", selection: Binding<Int?>(get: {
                     guard case .cooperation(let value) = coordinator.draft else { return nil }; return value.chargeType
@@ -133,13 +138,12 @@ struct MerchantOperationsEditor: View {
                     if let raw = value.chargeType, ![0, 1].contains(raw) { Text("merchant.operations.review.unknown").tag(Int?.some(raw)) }
                 }
                 coopField("merchant.operations.demand", \.demand, "demand")
-                Text("merchant.operations.coopPreserved").font(.footnote).foregroundStyle(.secondary)
             }
         case .character(let value):
             if !value.avatar.hasPrefix("px1:") {
                 MerchantOperationsMediaPreview(source: value.avatar, title: "merchant.operations.avatar", isExample: isExample)
             }
-            MerchantNPCPresetSection(document: model)
+            MerchantNPCPresetSection(document: model, presentation: presetPresentation)
             Section("merchant.operations.character") {
                 LabeledContent("merchantPreset.lastReview") {
                     Text(LocalizedStringKey(value.reviewKey)).accessibilityIdentifier("merchant.operations.character.review")
@@ -151,11 +155,19 @@ struct MerchantOperationsEditor: View {
                 characterField("merchant.operations.greeting", \.greeting, "greeting")
                 characterField("merchant.operations.persona", \.persona, "persona")
                 characterField("merchant.operations.knowledge", \.knowledge, "knowledge")
-                Text("merchantPreset.fieldLimits").font(.footnote).foregroundStyle(.secondary)
                 if value.persona.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     Text("merchantPreset.emptyPersona").font(.footnote).foregroundStyle(.secondary)
                 }
-                Text("merchant.operations.characterReviewHint").font(.footnote).foregroundStyle(.secondary)
+                if authorFlow != nil {
+                    Button("merchantNPC.author.submit") { Task { await submitAuthoredFields() } }
+                        .font(.body)
+                        .disabled(!coordinator.isCurrent || coordinator.isBusy || coordinator.isLocked || coordinator.confirmation != nil)
+                        .accessibilityIdentifier("merchantNPC.author.submit")
+                    if showsUnpublishedDraft || authorFlow?.gate.published == nil {
+                        Text("merchantNPC.draft.unpublished").font(.footnote).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("merchantNPC.author.unpublished")
+                    }
+                }
             }
             mediaSection("merchant.operations.avatar", field: .avatar)
             MerchantNPCGreetingPreviewEntry(document: model).id(coordinator.draftIdentity)
@@ -183,8 +195,6 @@ struct MerchantOperationsEditor: View {
             Section("merchant.templateMetadata.title") {
                 templateField("merchant.templateMetadata.duration", \.gameDurationMinutes, "gameDurationMinutes")
                 templateField("merchant.templateMetadata.players", \.players, "players")
-                Text("merchant.templateMetadata.scopeHint").font(.footnote).foregroundStyle(.secondary)
-                Text("merchant.templateMetadata.omissionHint").font(.footnote).foregroundStyle(.secondary)
             }
             Section("merchant.preparation.title") {
                 Picker("merchant.preparation.venueLabel", selection: Binding(get: { currentTemplate?.usageLocation ?? "" }, set: { text in
@@ -203,8 +213,6 @@ struct MerchantOperationsEditor: View {
                     Text("merchant.preparation.unknownVenue").font(.footnote).foregroundStyle(.secondary)
                 }
                 templateField("merchant.preparation.materials", \.requiredMaterials, "requiredMaterials")
-                Text("merchant.preparation.hint").font(.footnote).foregroundStyle(.secondary)
-                Text("merchant.preparation.omissionHint").font(.footnote).foregroundStyle(.secondary)
             }
             MerchantTemplateCategoryPicker(document: model) { categoryPicker = .init(document: model) }
             MerchantTemplateStoryTimelineFields(model: model)
@@ -231,15 +239,17 @@ struct MerchantOperationsEditor: View {
             Section {
                 templateField("merchant.operations.feedback", \.feedbackText, "feedback")
                 Text("merchant.operations.templateOwnerOnly").font(.footnote).foregroundStyle(.secondary)
-                Text("merchant.operations.templateOmissions").font(.footnote).foregroundStyle(.secondary)
             }
             mediaSection("merchant.operations.cover", field: .imgUrl)
         }
     }
     private var currentDecor: MerchantStoreDecor? { if case .decor(let value) = coordinator.draft { return value }; return nil }
     private var currentTemplate: MerchantNodeTemplate? { if case .template(let value) = coordinator.draft { return value }; return nil }
-    private func mediaSection(_ title: LocalizedStringKey, field: MerchantImageField) -> some View {
-        Section(title) { imageControls(field) }
+    /// Hidden when this host offers no image picker, instead of a section that only says upload is unavailable.
+    @ViewBuilder private func mediaSection(_ title: LocalizedStringKey, field: MerchantImageField) -> some View {
+        if field == .gallery || imageContext?(field) != nil {
+            Section(title) { imageControls(field) }
+        }
     }
     @ViewBuilder private func imageControls(_ field: MerchantImageField) -> some View {
         if field == .gallery {
@@ -256,7 +266,7 @@ struct MerchantOperationsEditor: View {
                 return coordinator.draft == updated
             }.id(context.scope.accessRevision)
             .disabled(coordinator.confirmation != nil || coordinator.isLocked)
-        } else { Label("merchant.operations.uploadDisabled", systemImage: "photo").font(.footnote).foregroundStyle(.secondary) }
+        }
     }
     private var gallerySelectionAvailable: Bool {
         guard !model.galleryBatch.active, !model.galleryBatch.blocked,
@@ -299,20 +309,120 @@ struct MerchantOperationsEditor: View {
             guard var value = currentTemplate else { return }; value[keyPath: key] = text; model.edit(.template(value))
         }), axis: .vertical).accessibilityIdentifier("merchant.operations.field." + id)
     }
+
+    /// The merchant submits name, greeting, persona, and knowledge on this character page.
+    /// The existing author flow ingests an AI draft and stops at original review.
+    /// The read uses the one request id that submit stored on the flow.
+    /// A missing stored id does not call GET. A missing publisher stays unpublished.
+    private func submitAuthoredFields() async {
+        guard let flow = authorFlow else { return }
+        guard let source = coordinator.draft, case .character = source,
+              let name = MerchantNPCFieldDraft(field: .name, source: source),
+              let greeting = MerchantNPCFieldDraft(field: .greeting, source: source),
+              let persona = MerchantNPCFieldDraft(field: .persona, source: source),
+              let knowledge = MerchantNPCFieldDraft(field: .knowledge, source: source) else { return }
+        do {
+            _ = try flow.supply(name: name, greeting: greeting, persona: persona, knowledge: knowledge, source: source)
+            try flow.ingestAsAIDraft()
+            if let authorizer = MerchantNPCAuthorizer(accountID: flow.gate.scope.accountID, merchantRowID: flow.gate.scope.merchantRowID) {
+                try flow.verify(authorizer)
+                let requestID = UUID()
+                let ticket = try await flow.submitForOriginalReview(requestID: requestID)
+                if ticket.requestID == requestID {
+                    heldKnowledgeReview = MerchantNPCKnowledgeReviewReentry(
+                        requestID: requestID,
+                        memberID: Int64(ticket.scope.accountID),
+                        name: name.value,
+                        greeting: greeting.value,
+                        persona: persona.value,
+                        knowledge: knowledge.value)
+                    (model.coordinator.reader as? MerchantOperationsSessionReader)?
+                        .rememberKnowledgeRequest(requestID, merchantRowID: flow.gate.scope.merchantRowID.rawValue)
+                }
+            }
+        } catch {
+            // Missing review or draft capability stays on the authored character.
+        }
+        let phase = flow.gate.phase
+        await readHeldThemeDraft(flow)
+        guard flow.gate.phase == phase else { return }
+        if flow.stayedOnMissingPublisher {
+            showsUnpublishedDraft = flow.gate.published == nil
+        } else {
+            showsUnpublishedDraft = flow.gate.published == nil && flow.gate.phase != .published
+        }
+    }
+
+    /// Read with the request id submit stored on this flow and the member id already on that author request.
+    /// Does not mint another id. A missing stored id does not GET and does not publish.
+    private func readHeldThemeDraft(_ flow: MerchantNPCKnowledgeAuthorFlow) async {
+        guard let memberID = flow.heldThemeDraftMemberID, let requestID = flow.heldThemeDraftRequestID,
+              flow.holdThemeDraftRequest(memberID: memberID, requestID: requestID),
+              let reader = themeDraftRequestRead else { return }
+        do {
+            _ = try await reader.readAndRecover(flow)
+        } catch {
+            // A failed read stays unpublished.
+        }
+    }
+
+    /// Later entry of this editor state. One GET of the request submit already accepted.
+    /// Does not POST again and does not publish. A missing row or a different member stays closed.
+    private func recoverHeldKnowledgeReview() async {
+        if heldKnowledgeReview == nil, let retained = authorFlow?.heldKnowledgeReview {
+            heldKnowledgeReview = retained
+        }
+        if heldKnowledgeReview == nil, let flow = authorFlow,
+           let requestID = (model.coordinator.reader as? MerchantOperationsSessionReader)?
+            .knowledgeRequest(merchantRowID: flow.gate.scope.merchantRowID.rawValue) {
+            do {
+                if let restored = try await flow.recoverKnowledgeRequest(requestID) {
+                    heldKnowledgeReview = restored
+                    didRecoverHeldKnowledgeReview = true
+                }
+            } catch {
+                // This journal id did not read. A defaults record can still be tried.
+            }
+        }
+        if let flow = authorFlow {
+            do {
+                if let restored = try await flow.recoverStoredKnowledgeReview(),
+                   heldKnowledgeReview?.requestID != restored.requestID {
+                    heldKnowledgeReview = restored
+                    didRecoverHeldKnowledgeReview = true
+                    return
+                }
+            } catch {
+                if heldKnowledgeReview == nil { return }
+            }
+        }
+        guard let held = heldKnowledgeReview, !didRecoverHeldKnowledgeReview else { return }
+        guard let recover = knowledgeReviewReentry else { return }
+        didRecoverHeldKnowledgeReview = true
+        do {
+            let kept = try await recover(held)
+            guard kept.requestID == held.requestID, kept.memberID == held.memberID,
+                  kept.name == held.name, kept.greeting == held.greeting,
+                  kept.persona == held.persona, kept.knowledge == held.knowledge else { return }
+            heldKnowledgeReview = kept
+        } catch {
+            // A missing row or a different member stays closed.
+        }
+    }
 }
 
 @MainActor
 struct MerchantOperationsConfirmationView: View {
     @ObservedObject var model: MerchantOperationsViewModel
     let confirmation: MerchantOperationsConfirmation
+    @Environment(\.locale) private var locale
     private var isExample: Bool { model.coordinator.reader.isOfflineExample }
     var body: some View {
         NavigationStack {
             List {
                 Section {
-                    Text(LocalizedStringKey(confirmation.draft.localOnlyReview ? "merchant.participation.localOnly" : (isExample ? "merchant.operations.confirmExampleBody" : (model.coordinator.reader.canSave ? "merchant.operations.confirmLiveHint" : "merchant.operations.liveDisabled"))))
-                    Text("merchant.operations.reviewNoApproval").font(.footnote).foregroundStyle(.secondary)
                     Text(LocalizedStringKey(confirmation.draft.destination.titleKey)).font(.headline)
+                    if confirmation.draft.localOnlyReview { Text("merchant.participation.localOnly") }
                 }
                 if let change = MerchantStoreIndustryChange(baseline: model.coordinator.baseline, draft: confirmation.draft) {
                     MerchantStoreIndustryReview(change: change)
@@ -327,33 +437,19 @@ struct MerchantOperationsConfirmationView: View {
                     } else {
                         MerchantOperationsMediaPreview(source: avatar.rawValue, title: "merchant.operations.avatar", isExample: isExample)
                     }
-                    Section {
-                        Text(verbatim: avatar.rawValue).textSelection(.enabled)
-                            .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("merchantPreset.review.rawValue")
-                    }
                 }
-                Section("merchant.operations.frozenDraft") {
+                Section {
                     if case .cooperation(let value) = confirmation.draft, value.clearsCapacity {
                         Text("merchant.coopCapacityClear.review").fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("merchant.coopCapacityClear.review")
-                    }
-                    if case .decor(let value) = confirmation.draft, value.featuredType == 1, let id = value.featuredID, id > 0 {
-                        LabeledContent("merchant.featuredPicker.reviewActivity", value: String(id))
-                        Text("merchant.featuredPicker.finalValidation").font(.footnote)
                     }
                     if case .decor(let value) = confirmation.draft, value.featuredType == 0, value.featuredID == nil {
                         Text("merchant.featuredClear.review").fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("merchant.featuredClear.review")
                     }
                     ForEach(confirmation.draft.reviewLines) { line in
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(LocalizedStringKey(line.key)).font(.caption).foregroundStyle(.secondary)
-                            if line.key == "merchant.operations.businessStatus", let raw = Int(line.value), let status = MerchantBusinessStatus(rawValue: raw) {
-                                Text(LocalizedStringKey(status.titleKey))
-                            } else if line.key == "merchant.operations.chargeType", ["0", "1"].contains(line.value) {
-                                Text(LocalizedStringKey(line.value == "0" ? "merchant.operations.charge.free" : "merchant.operations.charge.paid"))
-                            } else { Text(verbatim: line.value.isEmpty ? "—" : line.value).fixedSize(horizontal: false, vertical: true) }
-                        }
+                        RevolutInsetRow(title: appLocalized(String.LocalizationValue(stringLiteral: line.key), locale: locale), value: reviewValue(line))
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     if case .template(let value) = confirmation.draft, let method = value.method { Text(LocalizedStringKey(method.titleKey)) }
                 }
@@ -363,7 +459,6 @@ struct MerchantOperationsConfirmationView: View {
                             .accessibilityIdentifier("merchant.templateMetadata.review.duration")
                         LabeledContent("merchant.templateMetadata.players", value: template.players.trimmingCharacters(in: .whitespacesAndNewlines))
                             .accessibilityIdentifier("merchant.templateMetadata.review.players")
-                        Text("merchant.templateMetadata.omissionHint").font(.footnote).foregroundStyle(.secondary)
                     }
                 }
                 if case .template(let template) = confirmation.draft {
@@ -378,7 +473,6 @@ struct MerchantOperationsConfirmationView: View {
                             Text(verbatim: template.requiredMaterials.trimmingCharacters(in: .whitespacesAndNewlines))
                                 .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("merchant.preparation.review.materials")
                         }
-                        Text("merchant.preparation.omissionHint").font(.footnote).foregroundStyle(.secondary)
                     }
                 }
                 if case .template(let template) = confirmation.draft, let plan = template.participationPlan {
@@ -396,11 +490,24 @@ struct MerchantOperationsConfirmationView: View {
                 Section {
                     Button(LocalizedStringKey(confirmation.draft.localOnlyReview ? "merchant.participation.localOnlyAction" : (isExample ? "merchant.operations.confirmExample" : (model.coordinator.reader.canSave ? "merchant.operations.confirmLive" : "merchant.operations.liveDisabled")))) {
                         Task { await model.confirm(confirmation) }
-                    }.disabled(confirmation.draft.localOnlyReview || !model.coordinator.reader.canSave || model.coordinator.isBusy).accessibilityIdentifier("merchant.operations.confirm")
+                    }
+                    .buttonStyle(.questifyPrimary)
+                    .frame(maxWidth: .infinity)
+                    .listRowBackground(Color.clear)
+                    .disabled(confirmation.draft.localOnlyReview || !model.coordinator.reader.canSave || model.coordinator.isBusy).accessibilityIdentifier("merchant.operations.confirm")
                 }
             }
-            .appNavigationTitle("merchant.operations.reviewDraft")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { model.cancel() }.accessibilityIdentifier("merchant.operations.confirm.cancel") } }
+        }
+    }
+    private func reviewValue(_ line: MerchantOperationsReviewLine) -> String {
+        if line.key == "merchant.operations.businessStatus", let raw = Int(line.value), let status = MerchantBusinessStatus(rawValue: raw) {
+            return appLocalized(String.LocalizationValue(stringLiteral: status.titleKey), locale: locale)
+        } else if line.key == "merchant.operations.chargeType", ["0", "1"].contains(line.value) {
+            return appLocalized(String.LocalizationValue(stringLiteral: line.value == "0" ? "merchant.operations.charge.free" : "merchant.operations.charge.paid"), locale: locale)
+        } else {
+            return line.value.isEmpty ? "—" : line.value
         }
     }
 }

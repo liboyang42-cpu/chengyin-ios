@@ -1,3 +1,4 @@
+import SwiftUI
 import XCTest
 @testable import Questify
 
@@ -39,5 +40,52 @@ import XCTest
         current = .init(accountID: 8, epoch: 2, market: "CN", namespace: "synthetic.invalid")
         model.sessionChanged(); await model.load(staleIntent)
         XCTAssertEqual(calls, 1); XCTAssertNil(coordinator.data); XCTAssertNil(model.loadIntent)
+    }
+    private func deletionModel(deletes: @escaping () -> NPCChatLogDeletionOutcome) throws -> NPCChatDataViewModel {
+        let data = try data()
+        return NPCChatDataViewModel(coordinator: NPCChatDataCoordinator(current: { self.session }, available: { _ in true }, read: { _ in data },
+            deletionAvailable: { _ in true }, deleteLogs: { _ in deletes() }))
+    }
+    func testWithoutAnInjectedDeleterTheDestructiveActionIsNeverOffered() async throws {
+        let data = try data()
+        let model = NPCChatDataViewModel(coordinator: NPCChatDataCoordinator(current: { self.session }, available: { _ in true }, read: { _ in data }))
+        model.appear(active: true); await model.load(model.loadIntent)
+        model.requestDeletion(); model.confirmDeletion()
+        XCTAssertFalse(model.coordinator.canRequestDeletion); XCTAssertNil(model.deletionIntent); XCTAssertEqual(model.coordinator.deletion, .idle)
+    }
+    func testDialogDismissAfterConfirmTapKeepsTheConfirmedIntentAndSendsOnce() async throws {
+        var deletes = 0
+        let model = try deletionModel { deletes += 1; return .deleted(count: 1) }
+        model.appear(active: true); await model.load(model.loadIntent)
+        model.requestDeletion(); XCTAssertEqual(model.coordinator.deletion, .confirming)
+        model.confirmDeletion(); let intent = model.deletionIntent; XCTAssertNotNil(intent)
+        model.cancelDeletion() // The dialog binding resets after the button action runs.
+        XCTAssertEqual(model.coordinator.deletion, .confirming)
+        await model.runDeletion(intent); await model.runDeletion(intent)
+        XCTAssertEqual(deletes, 1); XCTAssertNil(model.deletionIntent); XCTAssertEqual(model.coordinator.deletion, .deleted(count: 1))
+    }
+    func testDismissOrBackgroundBetweenConfirmAndDispatchSendsNothing() async throws {
+        for background in [false, true] {
+            var deletes = 0
+            let model = try deletionModel { deletes += 1; return .deleted(count: 1) }
+            model.appear(active: true); await model.load(model.loadIntent)
+            model.requestDeletion(); model.confirmDeletion(); let intent = model.deletionIntent
+            if background { model.suspend() } else { model.disappear() }
+            await model.runDeletion(intent)
+            XCTAssertEqual(deletes, 0); XCTAssertNil(model.deletionIntent); XCTAssertEqual(model.coordinator.deletion, .idle)
+        }
+    }
+    func testUnknownAndFailedStatesAreDistinctFromAConfirmedCount() async throws {
+        let unknown = try deletionModel { .unknown }
+        unknown.appear(active: true); await unknown.load(unknown.loadIntent)
+        unknown.requestDeletion(); unknown.confirmDeletion(); await unknown.runDeletion(unknown.deletionIntent)
+        XCTAssertEqual(unknown.coordinator.deletion, .unknown); XCTAssertNil(unknown.deletionFailureKey)
+        let data = try data()
+        let failed = NPCChatDataViewModel(coordinator: NPCChatDataCoordinator(current: { self.session }, available: { _ in true }, read: { _ in data },
+            deletionAvailable: { _ in true }, deleteLogs: { _ in throw NPCChatDataFailure.signedOut }))
+        failed.appear(active: true); await failed.load(failed.loadIntent)
+        failed.requestDeletion(); failed.confirmDeletion(); await failed.runDeletion(failed.deletionIntent)
+        XCTAssertEqual(failed.coordinator.deletion, .failed(.signedOut))
+        XCTAssertEqual(failed.deletionFailureKey, LocalizedStringKey("npcLogDelete.failure.signedOut"))
     }
 }

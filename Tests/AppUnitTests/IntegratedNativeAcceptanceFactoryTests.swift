@@ -137,6 +137,12 @@ import XCTest
     }
     func testMissingApprovalsAndUnexpectedMutationFailBeforeSyntheticDispatch() async throws {
         let (container, fixture, session) = try container("denied"); await signIn(session)
+        let admittedEpoch = session.sessionRevision
+        let header = try await session.memberHomeReader.identity()
+        XCTAssertEqual(header.id, 7); XCTAssertEqual(header.nickname, "Synthetic owner 7")
+        XCTAssertEqual(fixture.ledger.last?.route, "userInfo"); XCTAssertEqual(fixture.ledger.last?.accountID, 7)
+        XCTAssertEqual(fixture.ledger.last?.epoch, admittedEpoch); XCTAssertEqual(fixture.ledger.last?.token, "synthetic-7")
+        XCTAssertTrue(fixture.violations.isEmpty)
         session.roamArea = IntegratedNativeAcceptanceFixture.area
         let count = fixture.ledger.count
         do { _ = try await session.roamReader.roamPlaces(radiusM: 3000); XCTFail() } catch {}
@@ -154,6 +160,19 @@ import XCTest
         let unexpected = try AuthRequestBuilder.makeFormRequest(url: IntegratedNativeAcceptanceFixture.base.appendingPathComponent("api/registration/pay"), fields: [:], token: "synthetic-7")
         do { _ = try await fixture.send(unexpected); XCTFail() } catch {}
         XCTAssertEqual(fixture.ledger.count, count); XCTAssertEqual(fixture.violations.count, 1)
+        let oldHeader = try AuthRequestBuilder(configuration: .init(baseURL: IntegratedNativeAcceptanceFixture.base))
+            .make(.userInfo, token: "synthetic-7")
+        await session.logout(); await signIn(session, owner: 8)
+        XCTAssertGreaterThan(session.sessionRevision, admittedEpoch)
+        let switchedCount = fixture.ledger.count
+        do { _ = try await fixture.send(oldHeader); XCTFail("Old account header credential") }
+        catch { XCTAssertEqual(error as? APIError, .invalidRequest) }
+        XCTAssertEqual(fixture.ledger.count, switchedCount); XCTAssertEqual(fixture.violations.last, "account readback")
+        XCTAssertEqual(session.account?.id, 8); XCTAssertEqual(fixture.vault.value, "synthetic-8")
+        let replacementHeader = try await session.memberHomeReader.identity()
+        XCTAssertEqual(replacementHeader.id, 8); XCTAssertEqual(replacementHeader.nickname, "Synthetic owner 8")
+        XCTAssertEqual(fixture.ledger.last?.epoch, session.sessionRevision)
+        XCTAssertEqual(fixture.ledger.last?.token, "synthetic-8")
         withExtendedLifetime(container) {}
     }
 }

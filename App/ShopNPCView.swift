@@ -10,8 +10,13 @@ import SwiftUI
     @State private var revision = 0
     @State private var recording = false
     @State private var localFailure: ShopNPCFailure?
+    // W09.5/W09.6: confirmation bound to exact text + request + account/session scope; memory only.
+    @State private var sendGate = AIOutgoingSendGate<ShopNPCScope, UUID?>()
+    @State private var sensitiveFindings: Set<AIOutgoingSensitiveKind> = []
+    @State private var pendingSend: (current: () -> (String, UUID?)?, run: () -> Void)?
     @FocusState private var typing: Bool
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.dismiss) private var dismiss
     private var sending: Bool { coordinator.busy }
     private var showsConversation: Bool { coordinator.active && !coordinator.isSuspended }
@@ -27,6 +32,7 @@ import SwiftUI
                 else if coordinator.isSuspended { Text("shopNPC.paused") }
                 else { Text("shopNPC.stale") }
                 Text("shopNPC.disclosure").font(.footnote).foregroundStyle(.secondary)
+                    .lineLimit(nil).fixedSize(horizontal: false, vertical: true)
             }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal).padding(.vertical, 8)
             ScrollViewReader { proxy in
                 ScrollView {
@@ -51,7 +57,6 @@ import SwiftUI
                                     }
                                     if message.mine, message.source == .voice {
                                         if message.voiceTranscriptMissing { Text("shopNPCQuestionReuse.transcriptUnavailable").font(.footnote).foregroundStyle(.secondary) }
-                                        else { Text("shopNPCQuestionReuse.voiceSource").font(.caption).foregroundStyle(.secondary) }
                                     }
                                     if message.hasReusableQuestion {
                                         ShopNPCQuestionReuseButton(coordinator: coordinator, messageID: message.id, draft: $draft, enabled: canCompose)
@@ -86,6 +91,7 @@ import SwiftUI
                             }.accessibilityIdentifier("shopNPC.error")
                         }
                         Text("shopNPC.voiceDisclosure").font(.footnote).foregroundStyle(.secondary)
+                        if dynamicTypeSize.isAccessibilitySize { composer }
                         Color.clear.frame(height: 1).id("referenceNPC.bottom").accessibilityHidden(true)
                     }.padding()
                 }
@@ -96,7 +102,9 @@ import SwiftUI
                 .onChange(of: coordinator.messages.count) { _, _ in proxy.scrollTo("referenceNPC.bottom", anchor: .bottom) }
             }
         }
-        .safeAreaInset(edge: .bottom) { composer }
+        .safeAreaInset(edge: .bottom) {
+            if !dynamicTypeSize.isAccessibilitySize { composer }
+        }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
@@ -104,7 +112,9 @@ import SwiftUI
             }
         }
         .navigationTitle("shopNPC.title").navigationBarTitleDisplayMode(.inline).privacySensitive()
-        .onDisappear { invalidate() }
+        .modifier(AIOutgoingSensitiveConfirmation(findings: $sensitiveFindings, send: confirmedSend, cancel: cancelSensitiveConfirmation))
+        .onChange(of: draft) { _, _ in cancelSensitiveConfirmation() }
+        .onDisappear { cancelSensitiveConfirmation(); invalidate() }
         .onChange(of: coordinator.active) { _, active in if !active { clearTransient() } }
         .onChange(of: coordinator.scope) { _, _ in clearTransient() }
         .onChange(of: coordinator.grants) { _, _ in clearTransient() }
@@ -117,13 +127,14 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 12) {
             Text("shopNPC.pauseNotice")
             Button("shopNPC.resume") { coordinator.resumeAfterInterruption(); localFailure = nil }
-                .buttonStyle(.borderedProminent).controlSize(.large)
+                .buttonStyle(.questifyPrimary).controlSize(.large)
                 .disabled(scenePhase != .active).accessibilityIdentifier("shopNPC.resume")
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
     private var composer: some View {
         VStack(alignment: .leading, spacing: 8) {
             NPCQuickQuestionBar(draft: $draft, context: .gameNode(coordinator.scope), enabled: canCompose)
+                .lineLimit(nil).fixedSize(horizontal: false, vertical: true)
             TextField("shopNPC.question", text: Binding(get: { showsConversation ? draft : "" }, set: { draft = $0 }), axis: .vertical)
                 .lineLimit(1...3).textFieldStyle(.roundedBorder).focused($typing)
                 .disabled(!canCompose).accessibilityIdentifier("shopNPC.input")
@@ -140,8 +151,8 @@ import SwiftUI
         }.padding().background(.regularMaterial)
     }
     private var textReviewButton: some View {
-        Button("shopNPC.reviewText") { typing = false; attempt { try coordinator.reviewText(draft) } }
-            .buttonStyle(.borderedProminent).controlSize(.large)
+        Button("shopNPC.reviewText") { typing = false; guardedSend(current: { (draft, nil) }) { attempt { try coordinator.reviewText(draft) } } }
+            .buttonStyle(.questifyPrimary).controlSize(.large)
             .disabled(!canCompose || draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             .accessibilityIdentifier("shopNPC.reviewText")
     }
@@ -164,7 +175,8 @@ import SwiftUI
             Text("shopNPC.review").font(.headline).accessibilityAddTraits(.isHeader)
             switch review.content {
             case .text(let text): Text(verbatim: text).textSelection(.enabled)
-            case .voice(let clip): Text("shopNPC.voiceReview"); Text(verbatim: "\(clip.bytes.count) bytes · \(Int(clip.duration)) s")
+            case .voice(let clip): Label { Text("shopNPC.voiceReview") } icon: { Image(systemName: "waveform") }
+                Text(verbatim: "\(Int(clip.duration)) s").font(.subheadline.monospacedDigit()).foregroundStyle(.secondary)
             }
             Text("shopNPC.transmissionDisclosure").font(.footnote)
             if coordinator.failure == .unknownOutcome || coordinator.failure == .malformed || coordinator.failure == .replyProcessing || coordinator.failure == .replyRetryable {
@@ -177,9 +189,15 @@ import SwiftUI
                 }
                 if coordinator.pendingIsTerminalServiceResponse {
                     Text("shopNPCOutcome.newQuestion").font(.footnote)
+                } else if coordinator.pendingIsNonRetryableProcessing {
+                    // An unresolved server response is not terminal and does not
+                    // authorize retry. Cancel still abandons only this local review.
+                    Text("merchantNPCRecovery.abandonConsequences").font(.footnote)
+                        .accessibilityIdentifier("shopNPCOutcome.unresolved")
                 } else {
                     Button {
                         typing = false; localFailure = nil
+        guardedSend(current: { finalText(of: review) }) {
                         attempt {
                             let intent = try coordinator.prepareTransmission(reviewID: review.id)
                             Task {
@@ -192,10 +210,11 @@ import SwiftUI
                                 revision += 1
                             }
                         }
+        }
                     } label: {
                         Text(coordinator.failure == nil ? LocalizedStringKey("shopNPC.confirmSend") : LocalizedStringKey("shopNPC.retry"))
                     }
-                    .buttonStyle(.borderedProminent).controlSize(.large).disabled(!coordinator.canConfirmPending || recording || !showsConversation)
+                    .buttonStyle(.questifyPrimary).controlSize(.large).disabled(!coordinator.canConfirmPending || recording || !showsConversation)
                     .accessibilityIdentifier("shopNPC.confirmSend")
                 }
             }
@@ -206,15 +225,36 @@ import SwiftUI
         }.padding().frame(maxWidth: .infinity, alignment: .leading)
             .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
     }
+    /// The text that would actually leave the device for this review; nil for voice or a stale review.
+    private func finalText(of review: ShopNPCReview) -> (String, UUID?)? {
+        guard coordinator.pending?.id == review.id, case .text(let text) = review.content else { return nil }
+        return (text, review.id)
+    }
+    /// Screens the final text; clean text runs `run` unchanged, otherwise asks first.
+    private func guardedSend(current: @escaping () -> (String, UUID?)?, run: @escaping () -> Void) {
+        guard let (text, request) = current() else { run(); return }
+        switch sendGate.evaluate(text: text, scope: coordinator.scope, request: request) {
+        case .proceed: run()
+        case .confirm(let found): pendingSend = (current, run); sensitiveFindings = found
+        }
+    }
+    /// Runs only if the exact text, request and scope still match what the person was shown.
+    private func confirmedSend() {
+        let held = pendingSend; pendingSend = nil
+        guard let held, let (text, request) = held.current(),
+              sendGate.confirm(text: text, scope: coordinator.scope, request: request) else { sendGate.cancel(); return }
+        held.run()
+    }
+    private func cancelSensitiveConfirmation() { sendGate.cancel(); pendingSend = nil; sensitiveFindings = [] }
     private func attempt(_ action: () throws -> Void) {
         do { try action(); localFailure = nil } catch { localFailure = error as? ShopNPCFailure ?? .invalid }
         revision += 1
     }
     private func suspend() {
-        capture?.cancel(); typing = false; recording = false; localFailure = nil
+        cancelSensitiveConfirmation(); capture?.cancel(); typing = false; recording = false; localFailure = nil
         coordinator.suspend()
     }
-    private func clearTransient() { capture?.cancel(); typing = false; recording = false; draft = ""; localFailure = nil; revision += 1 }
+    private func clearTransient() { cancelSensitiveConfirmation(); capture?.cancel(); typing = false; recording = false; draft = ""; localFailure = nil; revision += 1 }
     private func invalidate() { coordinator.invalidate(); clearTransient() }
 }
 

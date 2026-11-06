@@ -30,7 +30,11 @@ final class MerchantOnboardingFlowTests: XCTestCase {
     }
     private func tap(_ element: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
         reveal(element)
-        let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true AND hittable == true AND enabled == true"), object: element)
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            // Resolve existence and enabled state together before the separate hit test.
+            guard let snapshot = try? element.snapshot(), snapshot.isEnabled else { return false }
+            return element.isHittable
+        }, object: element)
         XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 10), .completed, app.debugDescription, file: file, line: line)
         element.tap()
     }
@@ -46,6 +50,7 @@ final class MerchantOnboardingFlowTests: XCTestCase {
         let name = app.textFields["merchant.onboarding.name"]
         XCTAssertTrue(name.waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertEqual(name.value as? String, "Example Store")
+        capture("Merchant reapply native form")
         tap(app.buttons["merchant.onboarding.next"])
         tap(app.buttons["merchant.onboarding.next"])
         XCTAssertTrue(element("merchant.onboarding.licenseUploaded").waitForExistence(timeout: 5), app.debugDescription)
@@ -56,9 +61,9 @@ final class MerchantOnboardingFlowTests: XCTestCase {
         let dialog = app.alerts.firstMatch
         XCTAssertTrue(dialog.waitForExistence(timeout: 5), app.debugDescription, file: file, line: line)
         XCTAssertEqual(dialog.label, "Submit this merchant application?", file: file, line: line)
-        let disclosure = dialog.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "configured Chengyin service")).firstMatch
+        let disclosure = dialog.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "to Questify for review")).firstMatch
         XCTAssertTrue(disclosure.exists, "The native confirmation must identify the submission recipient", file: file, line: line)
-        XCTAssertTrue(disclosure.label.contains("uploaded license reference"), "The confirmation must disclose the license reference being sent", file: file, line: line)
+        XCTAssertTrue(disclosure.label.contains("uploaded business license"), "The confirmation must disclose the license reference being sent", file: file, line: line)
         let matches = dialog.buttons.matching(NSPredicate(format: "label == %@", actionTitle))
         let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             matches.allElementsBoundByIndex.contains { $0.exists && $0.isEnabled && $0.isHittable }

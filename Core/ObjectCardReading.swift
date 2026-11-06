@@ -112,3 +112,58 @@ public struct ObjectCardSession: Equatable {
         }
     }
 }
+
+/// Owner association supplied by the account host, not an endpoint grant.
+public struct ProfileObjectCardsContext: Hashable {
+    public let memberID: Int
+    public let accountReader: ObjectIdentifier
+    public let viewer: SocialAccountIdentity
+    public let viewerRevision: UInt64
+    public let objectReader: ObjectIdentifier
+    public let objectScope: UUID
+    public let configured: Bool
+    @MainActor public static func capture(memberID: Int, accountReader: any SocialAccountReading,
+        objectReader: any ObjectCardReading, owner: SocialAccountIdentity, ownerScope: UUID,
+        isCurrent: Bool) -> Self? {
+        guard isCurrent, memberID > 0, owner.accountID == memberID,
+              accountReader.identity == owner, accountReader.isConfigured,
+              objectReader.isAuthenticated, objectReader.scope == ownerScope else { return nil }
+        return .init(memberID: memberID, accountReader: ObjectIdentifier(accountReader), viewer: owner,
+            viewerRevision: accountReader.presentationRevision, objectReader: ObjectIdentifier(objectReader),
+            objectScope: ownerScope, configured: objectReader.isConfigured)
+    }
+}
+
+/// A retained profile route cannot follow the collection reader into another session.
+@MainActor public final class ProfileObjectCardsScopedReader: ObjectCardReading {
+    public let scope = UUID()
+    private let expected: ProfileObjectCardsContext
+    private let accountReader: any SocialAccountReading
+    private let reader: any ObjectCardReading
+    private let isCurrent: @MainActor () -> Bool
+    public init(context: ProfileObjectCardsContext, accountReader: any SocialAccountReading,
+                objectReader: any ObjectCardReading, isCurrent: @escaping @MainActor () -> Bool) {
+        expected = context; self.accountReader = accountReader; reader = objectReader; self.isCurrent = isCurrent
+    }
+    public var associationIsCurrent: Bool {
+        ProfileObjectCardsContext.capture(memberID: expected.memberID, accountReader: accountReader,
+            objectReader: reader, owner: expected.viewer, ownerScope: expected.objectScope,
+            isCurrent: isCurrent()) == expected
+    }
+    public var isAuthenticated: Bool { associationIsCurrent && reader.isAuthenticated }
+    public var isConfigured: Bool { associationIsCurrent && reader.isConfigured }
+    public func list(category: ObjectCardCategory) async throws -> ObjectCardCollection {
+        try Task.checkCancellation()
+        guard associationIsCurrent else { throw CancellationError() }
+        guard isConfigured else { throw APIError.notConfigured }
+        do {
+            let value = try await reader.list(category: category)
+            try Task.checkCancellation()
+            guard associationIsCurrent else { throw CancellationError() }
+            return value
+        } catch {
+            guard !Task.isCancelled, associationIsCurrent else { throw CancellationError() }
+            throw error
+        }
+    }
+}

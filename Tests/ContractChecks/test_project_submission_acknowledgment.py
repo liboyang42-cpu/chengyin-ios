@@ -19,7 +19,7 @@ class ProjectSubmissionAcknowledgmentContract(unittest.TestCase):
         for token in ['bundleAcknowledgment: ProjectEditBundleAcknowledgment? = nil','value.hasConsistentAcknowledgment','completedTopicID == bundleAcknowledgment.topicID','ProjectEditStoryContract.createPath','storedPendingMatches(expected']:
             self.assertIn(token,s)
         c=self.read('Core/ProjectEditCoordinator.swift');self.assertIn('completed.bundleAcknowledgment = bundle',c)
-        self.assertIn('try store.savePending(completed',c);self.assertIn('case .unknown: state = .unknown',c)
+        self.assertIn('try store.savePending(completed',c);self.assertIn('case .unknown:',c); self.assertIn('operation.serverAcknowledged == true && operation.completedTopicID != nil ? .acknowledged : .unknown',c)
     def test_submission_evidence_cannot_decode_approval(self):
         s=self.read('Core/ProjectEditStoryContract.swift').split('public struct ProjectEditBundleAcknowledgment',1)[1]
         self.assertIn('self = try Self.decode',s);self.assertIn('["PENDING", "ESCALATED", "DRAFT", "NOT_REQUIRED"]',s)

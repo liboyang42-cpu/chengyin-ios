@@ -1,6 +1,6 @@
 import XCTest
 
-/// Synthetic fixtures only; integrate module key cooperation -> CooperationFixtureHostView.
+/// Examples only; integrate module key cooperation -> CooperationFixtureHostView.
 final class CooperationFlowTests: XCTestCase {
     private var app: XCUIApplication!
     override func setUpWithError() throws { continueAfterFailure = false; app = XCUIApplication() }
@@ -36,7 +36,7 @@ final class CooperationFlowTests: XCTestCase {
     }
     func testPartialInboxKeepsOtherSourcesAndDoesNotClaimFullEmpty() {
         launch("partial")
-        XCTAssertTrue(app.staticTexts["Some cooperation sources could not be loaded"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Some cooperation info couldn't be loaded"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["cooperation.invite.received.71.0"].exists)
         reveal(app.staticTexts["Sample applying club"])
         reveal(app.staticTexts["Sample candidate source unavailable"])
@@ -83,12 +83,12 @@ final class CooperationFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["Sample recorded reply"].exists)
     }
     func testEmptyGuestFailureUnavailableAndChineseStates() {
-        for (scenario, text) in [("empty", "No invitations in this direction"), ("guest", "Sign in to view your cooperation"), ("failure", "Cooperation could not be loaded"), ("unconfigured", "Cooperation service is not configured"), ("unavailable", "This invitation is no longer in this list")] {
+        for (scenario, text) in [("empty", "No invitations in this direction"), ("guest", "Sign in to view your cooperation"), ("failure", "Cooperation could not be loaded"), ("unconfigured", "Cooperation isn't available right now"), ("unavailable", "This invitation is no longer in this list")] {
             launch(scenario)
             XCTAssertTrue(app.staticTexts[text].waitForExistence(timeout: 10), scenario)
             app.terminate()
         }
         launch("guest", chinese: true)
-        XCTAssertTrue(app.staticTexts["登录后查看我的合作"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["登录后查看协作邀请"].waitForExistence(timeout: 10))
     }
 }

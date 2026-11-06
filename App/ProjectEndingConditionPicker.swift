@@ -125,7 +125,7 @@ import SwiftUI
                         .disabled(selectedID == nil).accessibilityIdentifier("projectEndingChoice.confirm")
                 } else { Text("projectStarter.stale") }
             }
-            .navigationTitle(Text(LocalizedStringKey(titleKey), tableName: "ProjectEndingConditionPicker"))
+            .navigationBarTitleDisplayMode(.inline).navigationTitle(Text(LocalizedStringKey(titleKey), tableName: "ProjectEndingConditionPicker"))
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel", action: close) } }
         }
     }

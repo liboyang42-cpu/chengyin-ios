@@ -21,6 +21,8 @@ public struct PublisherPricingInput: Equatable {
 public struct PublisherLineup: Equatable, Identifiable {
     public let type: String; public let partnerID: Int; public let mode: Int
     public let shareRate: String?; public let fixedFee: String?
+    /// Source chapter supply rows (`chapterId`, `termsMode` PERK/TRAFFIC/REVSHARE); nil for plain lineup rows.
+    public let chapterID: Int?; public let termsMode: String?
     public var id: String { "\(type):\(partnerID)" }
     public var validTerms: Bool {
         switch mode {
@@ -35,16 +37,20 @@ public struct PublisherLineup: Equatable, Identifiable {
               let id = PublisherValue.integer(b["toId"]), id > 0 else { return nil }
         self.type = type; partnerID = id; mode = PublisherValue.integer(b["shareMode"]) ?? -1
         shareRate = PublisherValue.raw(b["shareRate"]); fixedFee = PublisherValue.raw(b["fixedFee"])
+        chapterID = PublisherValue.integer(b["chapterId"]).flatMap { $0 > 0 ? $0 : nil }; termsMode = b["termsMode"]?.text
     }
 }
 public struct PublisherPricingPreview: Equatable {
     public let minimum: Decimal; public let reference: Decimal?; public let sampleSize: Int?; public let referenceLabel: String?
     public let lineup: [PublisherLineup]
+    /// Source `canConfirm`; false means the topic is not in its pricing phase yet. Nil is unknown.
+    public let canConfirm: Bool?
     public init(_ data: ProjectEditJSON) throws {
         guard let b = data.object, let floor = PublisherValue.number(b["priceMin"]), !floor.isNaN else { throw PublisherLifecycleError.incomplete }
         minimum = floor; reference = PublisherValue.number(b["cityReferencePrice"])
         sampleSize = PublisherValue.integer(b["cityReferenceSampleSize"]); referenceLabel = b["cityReferenceLabel"]?.text
         lineup = (b["lineup"]?.array ?? []).compactMap(PublisherLineup.init)
+        if case .bool(let value)? = b["canConfirm"] { canConfirm = value } else { canConfirm = nil }
     }
     public func accepts(_ price: Decimal) -> Bool { !price.isNaN && price >= minimum }
 }

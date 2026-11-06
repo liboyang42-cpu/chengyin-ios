@@ -7,6 +7,7 @@ public enum ClubCommunityFailure: Error, Equatable {
 public struct ClubCommunityPost: Equatable, Identifiable {
     public let id: Int, clubID: Int?, authorMemberID: Int?, version: Int, type: Int
     public let content: String, images: [String], nickname: String, createTime: String
+    public let clubName: String
     public let liked: Bool, pinned: Bool, edited: Bool, viewerCanManage: Bool
     public let likeCount: Int, commentCount: Int
     public let refType: Int?, refID: Int?, sportTopicID: Int?
@@ -20,7 +21,8 @@ public struct ClubCommunityPost: Equatable, Identifiable {
         version = (json["version"] as? Int) ?? 0; type = (json["type"] as? Int) ?? 0
         content = CCWire.text(json["content"]); images = CCWire.images(json["images"])
         nickname = CCWire.text(json["nickname"]); createTime = CCWire.text(json["createTime"])
-        liked = CCWire.bool(json["liked"]); pinned = CCWire.bool(json["isPinned"])
+        clubName = CCWire.text(json["clubName"])
+        liked = CCWire.bool(json["isLiked"] ?? json["liked"]); pinned = CCWire.bool(json["isPinned"])
         edited = CCWire.bool(json["edited"]); viewerCanManage = CCWire.bool(json["viewerCanManage"])
         likeCount = (json["likeCount"] as? Int) ?? 0; commentCount = (json["commentCount"] as? Int) ?? 0
         refType = json["refType"] as? Int; refID = json["refId"] as? Int; sportTopicID = json["sportTopicId"] as? Int
@@ -65,13 +67,23 @@ public struct ClubCommunitySession: Equatable {
     }
 }
 public enum ClubCommunityRead: Equatable {
-    case posts(clubID: Int, page: Int), feed(page: Int), comments(postID: Int, page: Int), history(postID: Int)
+    case posts(clubID: Int, beforeID: Int?, limit: Int), feed(limit: Int)
+    /// Compatibility is first-page only. A page number is not a backend cursor.
+    public static func posts(clubID: Int, page: Int) -> Self {
+        .posts(clubID: clubID, beforeID: nil, limit: page == 1 ? 20 : 0)
+    }
+    /// The original joined/cooperating aggregate has no continuation producer.
+    public static func feed(page: Int) -> Self { .feed(limit: page == 1 ? 20 : 0) }
+    case comments(postID: Int, page: Int), history(postID: Int)
     var suffix: String { switch self { case .posts: return "list"; case .feed: return "feed"; case .comments: return "comment/list"; case .history: return "history" } }
     var fields: [String: Any] {
         switch self {
-        case let .posts(id, page): return ["clubId": id, "pageNum": page, "pageSize": 20]
-        case let .feed(page): return ["pageNum": page, "pageSize": 20]
-        case let .comments(id, page): return ["postId": id, "pageNum": page, "pageSize": 50]
+        case let .posts(id, beforeID, limit):
+            var fields: [String: Any] = ["clubId": id, "limit": limit]
+            if let beforeID { fields["beforeId"] = beforeID }
+            return fields
+        case let .feed(limit): return ["limit": limit]
+        case let .comments(id, _): return ["postId": id]
         case let .history(id): return ["id": id]
         }
     }
@@ -79,6 +91,12 @@ public enum ClubCommunityRead: Equatable {
 public struct ClubCommunitySnapshot {
     public let posts: [ClubCommunityPost], comments: [ClubCommunityComment], history: [ClubCommunityRevision]
     public let clubCount: Int?
+    public let postPage: ClubCommunityPostPage?
+    public let feedItems: [ClubCommunityFeedItem]
+    public init(posts: [ClubCommunityPost], comments: [ClubCommunityComment], history: [ClubCommunityRevision], clubCount: Int?, postPage: ClubCommunityPostPage? = nil, feedItems: [ClubCommunityFeedItem]? = nil) {
+        self.posts = posts; self.comments = comments; self.history = history; self.clubCount = clubCount
+        self.postPage = postPage; self.feedItems = feedItems ?? posts.map { .original($0) }
+    }
 }
 public enum ClubCommunityOperation: Equatable {
     case create(content: String, images: [String])

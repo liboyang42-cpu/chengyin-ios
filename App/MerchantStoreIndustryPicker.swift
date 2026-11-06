@@ -31,12 +31,14 @@ import SwiftUI
     var body: some View {
         if case .decor(let value) = document.coordinator.draft {
             VStack(alignment: .leading, spacing: 10) {
-                if let id = value.categoryID {
-                    Text("merchant.industry.currentID \(id)").accessibilityIdentifier("merchant.industry.currentID")
+                if value.categorySourceUnavailable { Text("merchant.industry.sourceUnreadable").fixedSize(horizontal: false, vertical: true) }
+                else if !value.selectedCategoryIDs.isEmpty {
+                    Text(value.industryNames.joined(separator: " · ")).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("merchant.industry.currentID")
+                    Text("merchant.industry.currentID \(value.selectedCategoryIDs[0])").font(.caption).monospacedDigit().fixedSize(horizontal: false, vertical: true)
                 } else { Text("merchant.industry.none") }
                 Button("merchant.industry.choose") { picker = .init(document: document) }
                     .disabled(!editable).accessibilityIdentifier("merchant.industry.open")
-                Text("merchant.industry.scope").font(.footnote).foregroundStyle(.secondary)
+                Text("merchant.industry.orderedHint").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             .sheet(item: Binding(get: { picker }, set: { value in
                 if value == nil { picker?.cancel() }; picker = value
@@ -68,10 +70,10 @@ import SwiftUI
                 } else if !model.selection.loaded { ProgressView("merchant.industry.loading") }
                 else {
                     Section("merchant.industry.original") {
-                        if let id = model.selection.previousID { Text("merchant.industry.currentID \(id)") }
-                        else { Text("merchant.industry.none") }
+                        if model.selection.previousIDs.isEmpty { Text("merchant.industry.none") }
+                        else { Text(model.selection.previousIDs.map { "#\($0)" }.joined(separator: " · ")).monospacedDigit().fixedSize(horizontal: false, vertical: true) }
                         if model.selection.previousIsUnavailable {
-                            Text("merchant.industry.unavailable").accessibilityIdentifier("merchant.industry.unavailable")
+                            Text("merchant.industry.unavailable").fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("merchant.industry.unavailable")
                         }
                     }
                     if model.selection.rows.isEmpty {
@@ -81,22 +83,26 @@ import SwiftUI
                             ForEach(model.selection.rows) { row in
                                 Button { model.select(row.id) } label: {
                                     HStack {
-                                        Text(verbatim: row.name); Spacer()
-                                        if row.id == model.selection.selectedID { Image(systemName: "checkmark.circle.fill") }
+                                        Text(verbatim: row.name).fixedSize(horizontal: false, vertical: true); Spacer()
+                                        if model.selection.selectedIDs.contains(row.id) { Image(systemName: "checkmark.circle.fill") }
                                     }
-                                }.accessibilityAddTraits(row.id == model.selection.selectedID ? .isSelected : [])
+                                }.accessibilityAddTraits(model.selection.selectedIDs.contains(row.id) ? .isSelected : [])
                                     .accessibilityIdentifier("merchant.industry.option.\(row.id)")
                             }
                         }
                     }
-                    if let selected = model.selection.selected {
-                        LabeledContent("merchant.industry.selected") { Text(verbatim: selected.name) }
-                        Text("merchant.industry.currentID \(selected.id)")
-                        if model.selection.previousID != selected.id {
-                            Text("merchant.industry.replaceHint").font(.footnote).accessibilityIdentifier("merchant.industry.replaceHint")
+                    Section("merchant.industry.selectedOrder") {
+                        ForEach(Array(model.selection.selectedIDs.enumerated()), id: \.element) { index, id in
+                            let name = model.selection.rows.first(where: { $0.id == id })?.name ?? "#\(id)"
+                            HStack {
+                                Text("\(index + 1). \(name)").fixedSize(horizontal: false, vertical: true)
+                                Spacer()
+                                Button("merchant.industry.remove") { model.select(id) }
+                            }
                         }
+                        if model.selection.limitReached { Text("merchant.industry.limit").foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true) }
+                        Text("merchant.industry.selectionInvalid").font(.footnote).fixedSize(horizontal: false, vertical: true)
                     }
-                    Text("merchant.industry.noClear").font(.footnote)
                     Button("merchant.industry.reload") { Task { await model.reload() } }.accessibilityIdentifier("merchant.industry.reload")
                 }
             }
@@ -117,11 +123,17 @@ struct MerchantStoreIndustryReview: View {
     let change: MerchantStoreIndustryChange
     var body: some View {
         Section("merchant.industry.reviewTitle") {
-            LabeledContent("merchant.industry.previous", value: change.previousID.map(String.init) ?? "—")
+            LabeledContent("merchant.industry.previous") {
+                Text(verbatim: change.previousIDs.map(String.init).joined(separator: ", "))
+                    .monospacedDigit().fixedSize(horizontal: false, vertical: true)
+            }
                 .accessibilityIdentifier("merchant.industry.review.previous")
-            LabeledContent("merchant.industry.new", value: change.selectedID.map(String.init) ?? "—")
+            LabeledContent("merchant.industry.new") {
+                Text(verbatim: change.selectedIDs.map(String.init).joined(separator: ", "))
+                    .monospacedDigit().fixedSize(horizontal: false, vertical: true)
+            }
                 .accessibilityIdentifier("merchant.industry.review.new")
-            Text("merchant.industry.reviewBody").font(.footnote).foregroundStyle(.secondary)
+            Text("merchant.industry.reviewOrdered").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
     }
 }

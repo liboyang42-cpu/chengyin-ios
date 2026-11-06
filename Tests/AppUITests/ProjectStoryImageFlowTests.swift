@@ -51,7 +51,7 @@ import XCTest
     func testChosenStoryImageAppliesOnlyAfterUploadAndRestoresIntoExactPreparedOrder() throws {
         let app = XCUIApplication(); self.app = app
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--uitesting-module", "projectEdit", "--project-edit-starter-probe", "--project-story-image"]
-        app.launch(); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "large")
+        app.launch(); XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "large")
         tap("projectEdit.saveLocal", app, fixed: true); var saved = try inspect(app)
         let chapter = saved.savedDraft.chapters[0]; XCTAssertEqual(chapter.blocks?.count, 2); XCTAssertEqual(saved.storyImageUploadCount, 0)
         tap("projectEdit.chapter." + chapter.id, app); tap("projectStoryImage.add", app)

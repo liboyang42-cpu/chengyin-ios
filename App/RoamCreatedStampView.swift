@@ -6,14 +6,71 @@ import SwiftUI
     let camera: () -> AnyView
 }
 
+/// Immutable result-page owner. The confirmed target still validates its original reader and account.
+struct RoamCreatedStampReadOwner: Hashable {
+    let target: RoamCreatedStampTarget
+    let readerID: ObjectIdentifier
+    let identity: RoamExperienceIdentity?
+    @MainActor init(target: RoamCreatedStampTarget, reader: any RoamExperienceReading) {
+        self.target = target; readerID = ObjectIdentifier(reader); identity = reader.identity
+    }
+}
+
+/// Cancellation is checked before invoking refresh, because that original method resets its lookup.
+/// Only reads live here. The original create receipt, upload and pending journal are untouched.
+@MainActor final class RoamCreatedStampReadPresentation: ObservableObject {
+    let lookup: RoamCreatedStampLookup
+    let target: RoamCreatedStampTarget
+    let reader: any RoamExperienceReading
+    @Published private var revision = 0
+    private var mounted = false
+    private var operation = UUID()
+    private var work: Task<Void, Never>?
+    init(target: RoamCreatedStampTarget, reader: any RoamExperienceReading) {
+        self.target = target; self.reader = reader; lookup = .init(target: target, reader: reader)
+    }
+    func appear() { mounted = true; retire(); readAction(refresh: true)() }
+    func disappear() { mounted = false; retire() }
+    private func retire() {
+        operation = UUID(); work?.cancel(); work = nil; lookup.cancel(); revision &+= 1
+    }
+    private func accepts(_ offered: UUID) -> Bool {
+        mounted && operation == offered && !Task.isCancelled && target.isCurrent(reader: reader)
+    }
+    func readAction(refresh: Bool = false) -> () -> Void {
+        let offered = operation
+        return { [weak self] in
+            guard let self, self.accepts(offered) else { return }
+            self.operation = UUID(); let issued = self.operation
+            self.work?.cancel()
+            self.work = Task { [weak self] in
+                guard let self, self.accepts(issued) else { return }
+                // Do not let a cancelled queued refresh call cancel() on a newer lookup generation.
+                if refresh { await self.lookup.refresh() } else { await self.lookup.loadNext() }
+                guard self.operation == issued else { return }
+                self.work = nil; self.operation = UUID(); self.revision &+= 1
+            }
+        }
+    }
+}
+
 @MainActor struct RoamCreatedStampView: View {
     let target: RoamCreatedStampTarget
     let album: RoamStampAlbumContinuation
-    @State private var lookup: RoamCreatedStampLookup
-    @State private var work: Task<Void, Never>?
+    var body: some View {
+        RoamCreatedStampContent(target: target, album: album)
+            .id(RoamCreatedStampReadOwner(target: target, reader: album.reader))
+    }
+}
+
+@MainActor private struct RoamCreatedStampContent: View {
+    let target: RoamCreatedStampTarget
+    let album: RoamStampAlbumContinuation
+    @StateObject private var presentation: RoamCreatedStampReadPresentation
+    private var lookup: RoamCreatedStampLookup { presentation.lookup }
     init(target: RoamCreatedStampTarget, album: RoamStampAlbumContinuation) {
         self.target = target; self.album = album
-        _lookup = State(initialValue: .init(target: target, reader: album.reader))
+        _presentation = StateObject(wrappedValue: .init(target: target, reader: album.reader))
     }
     var body: some View {
         ScrollView {
@@ -36,11 +93,12 @@ import SwiftUI
             }.padding()
         }
         .navigationTitle("roam.createdStamp.title")
-        .task { await lookup.refresh() }
-        .onDisappear { work?.cancel(); work = nil; lookup.cancel() }
+        .onAppear { presentation.appear() }
+        .onDisappear { presentation.disappear() }
         .accessibilityIdentifier("roam.createdStamp.result")
     }
     @ViewBuilder private var result: some View {
+        let refresh = presentation.readAction(refresh: true), next = presentation.readAction()
         switch lookup.phase {
         case .idle, .loading:
             ProgressView("roam.loading")
@@ -49,25 +107,21 @@ import SwiftUI
                 RoamStampCard(stamp: stamp, offline: album.reader.isOfflineExample)
                     .accessibilityIdentifier("roam.createdStamp.match")
             }
-            Button("action.retry", systemImage: "arrow.clockwise") { read(refresh: true) }
+            Button("action.retry", systemImage: "arrow.clockwise") { refresh() }
         case .more:
             Text("roam.createdStamp.moreHint")
-            Button("roam.experience.loadMore") { read() }
+            Button("roam.experience.loadMore") { next() }
                 .accessibilityIdentifier("roam.createdStamp.more")
         case .hidden:
             Label("roam.createdStamp.hidden", systemImage: "eye.slash")
-            Button("action.retry", systemImage: "arrow.clockwise") { read(refresh: true) }
+            Button("action.retry", systemImage: "arrow.clockwise") { refresh() }
         case .missing:
             Text("roam.createdStamp.missing")
-            Button("action.retry", systemImage: "arrow.clockwise") { read(refresh: true) }
+            Button("action.retry", systemImage: "arrow.clockwise") { refresh() }
         case .failed:
-            if let error = lookup.error { RoamExperienceIssue(error: error) { read() } }
+            if let error = lookup.error { RoamExperienceIssue(error: error) { next() } }
         case .unavailable:
             EmptyView()
         }
-    }
-    private func read(refresh: Bool = false) {
-        work?.cancel()
-        work = Task { if refresh { await lookup.refresh() } else { await lookup.loadNext() } }
     }
 }

@@ -13,6 +13,11 @@ class EntityCardReferenceTests(unittest.TestCase):
         self.assertIn('Text(verbatim:subtitle).font(.subheadline).lineLimit(nil)',source)
         self.assertNotIn('.lineLimit(3)',source)
         self.assertIn('details().font(.subheadline).lineLimit(nil).fixedSize(horizontal:false,vertical:true)',source)
+        text_panel = source.split('VStack(alignment:.leading,spacing:10) {', 1)[1].split('\n        }\n        .frame(', 1)[0]
+        self.assertIn('.background(.black)', text_panel)
+        self.assertIn('.environment(\\.colorScheme,.dark)', text_panel)
+        self.assertEqual(source.count('.environment(\\.colorScheme,.dark)'), 1)
+        self.assertNotIn('.environment(\\.colorScheme', source.split('        .background {', 1)[1])
     def test_club_and_topic_use_shared_entity_component(self):
         for filename in ['ClubComponents.swift','TopicBrowserView.swift','HomeFeedView.swift']:
             self.assertIn('QuestifyImageEntityCard(', (ROOT/'App'/filename).read_text())

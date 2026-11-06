@@ -15,17 +15,16 @@ import SwiftUI
     @State private var expired = false
     @FocusState private var typingFocused: Bool
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     init(kind: PlayKitScreenKind, segment: PlayWireValue, enabled: Bool, active: Bool, onDirty: @escaping () -> Void, requestReview: @escaping PlayKitReviewRequest, revisionIdentity: String = "", currentRevisionIdentity: (() -> String)? = nil) {
         self.kind = kind; self.segment = segment; self.enabled = enabled; self.active = active; self.onDirty = onDirty; self.requestReview = requestReview
         self.revisionIdentity = revisionIdentity; self.currentRevisionIdentity = currentRevisionIdentity
-        let rounds = segment["rounds"].integer ?? 3
-        _reaction = State(initialValue: PlayKitReactionRun(rounds: rounds > 0 ? rounds : 3))
+        _reaction = State(initialValue: PlayTimedReactionConfiguration.makeRun(segment: segment))
     }
     private var seconds: Double { segment[kind == .stopwatch ? "targetSeconds" : "seconds"].double ?? 0 }
     private var running: Bool { timing.phase == .running || [.waiting, .signal].contains(reaction.phase) }
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("playkit.challenge.authority").font(.footnote).foregroundStyle(.secondary)
             if kind == .reaction { reactionStage }
             else { timedStage }
             if timing.phase == .interrupted || reaction.phase == .interrupted { Label("playkit.challenge.interrupted", systemImage: "pause.circle") }
@@ -48,7 +47,7 @@ import SwiftUI
         }
         .onChange(of: revisionIdentity) { _, next in
             if !expectedRevision.isEmpty && next != expectedRevision {
-                interrupt(); timing = PlayKitTimingRun(); reaction = PlayKitReactionRun(rounds: reaction.rounds)
+                interrupt(); timing = PlayKitTimingRun(); reaction = PlayTimedReactionConfiguration.makeRun(segment: segment)
                 elapsed = 0; input = ""; expectedRevision = next
             }
         }
@@ -57,8 +56,8 @@ import SwiftUI
         .onDisappear { mounted = false; interrupt() }
     }
     @ViewBuilder private var timedStage: some View {
-        if seconds > 0 { LabeledContent("playkit.challenge.target") { Text(verbatim: String(format: "%.2f s", seconds)).monospacedDigit() } }
-        if kind == .stopwatch, let tolerance = segment["toleranceMs"].integer { LabeledContent("playkit.stopwatch.tolerance") { Text(verbatim: "±\(tolerance) ms") } }
+        if seconds > 0 { LabeledContent("playkit.challenge.target") { Text(verbatim: PlayTimedDisplayLocalization.seconds(seconds, locale: locale)).monospacedDigit() } }
+        if kind == .stopwatch, let tolerance = segment["toleranceMs"].integer { LabeledContent("playkit.stopwatch.tolerance") { Text(verbatim: PlayTimedDisplayLocalization.tolerance(tolerance, locale: locale)) } }
         if kind == .typeIn {
             Text(verbatim: segment["target"].text ?? "").font(.title2.monospaced()).textSelection(.disabled)
             Text(segment["caseSensitive"].bool == true ? "playkit.type.caseSensitive" : "playkit.type.caseInsensitive").font(.footnote)
@@ -66,8 +65,8 @@ import SwiftUI
                 .textFieldStyle(.roundedBorder).textInputAutocapitalization(.never).autocorrectionDisabled()
                 .focused($typingFocused).disabled(timing.phase != .running || !enabled)
                 .onChange(of: input) { _, value in if value.count > 4096 { input = String(value.prefix(4096)) }; onDirty() }
-            if let attempts = segment["attempts"].integer, attempts >= 0 { LabeledContent("playkit.attempts") { Text(verbatim: String(attempts)) } }
-            if let cap = segment["tries"].integer, cap > 0 { LabeledContent("playkit.attemptLimit") { Text(verbatim: String(cap)) } }
+            if let attempts = segment["attempts"].integer, attempts >= 0 { LabeledContent("playkit.attempts") { Text(verbatim: PlayTimedDisplayLocalization.count(attempts, locale: locale)) } }
+            if let cap = segment["tries"].integer, cap > 0 { LabeledContent("playkit.attemptLimit") { Text(verbatim: PlayTimedDisplayLocalization.count(cap, locale: locale)) } }
             if let result = PlayKitScreenProjection(kind: kind, segment: segment).typeInResultKey {
                 Text(LocalizedStringKey(result)).accessibilityIdentifier("playkit.type.result")
             }
@@ -75,17 +74,16 @@ import SwiftUI
         Text(verbatim: clockLabel).font(.system(.largeTitle, design: .rounded).monospacedDigit())
             .accessibilityLabel(Text(kind == .stopwatch && running && elapsed >= 1000 ? "playkit.stopwatch.hidden" : "playkit.challenge.clock"))
         if timing.phase == .idle || timing.phase == .interrupted {
-            Button("playkit.challenge.start") { start() }.buttonStyle(.borderedProminent)
+            Button("playkit.challenge.start") { start() }.buttonStyle(.questifyPrimary)
                 .disabled(!enabled || !validConfiguration).accessibilityIdentifier("playkit.challenge.start")
         }
         if timing.phase == .running && kind != .countdown {
             Button(kind == .stopwatch ? "playkit.stopwatch.stop" : "playkit.type.finish") {
                 timing.measure(now: ProcessInfo.processInfo.systemUptime); elapsed = timing.elapsedMilliseconds; typingFocused = false
-            }.buttonStyle(.borderedProminent).disabled(!enabled).accessibilityIdentifier("playkit.challenge.measure")
+            }.buttonStyle(.questifyPrimary).disabled(!enabled).accessibilityIdentifier("playkit.challenge.measure")
         }
         if timing.phase == .measured {
-            Text("playkit.challenge.measurementOnly").font(.footnote)
-            Button("playkit.review") { reviewMeasurement() }.buttonStyle(.borderedProminent)
+            Button("playkit.review") { reviewMeasurement() }.buttonStyle(.questifyPrimary)
                 .disabled(!enabled || (kind == .typeIn && input.isEmpty)).accessibilityIdentifier("playkit.challenge.submit")
         }
         if !validConfiguration { Text("playkit.configurationInvalid") }
@@ -98,16 +96,16 @@ import SwiftUI
     private var clockLabel: String {
         if kind == .stopwatch && timing.phase == .running && elapsed >= 1000 { return "—.—" }
         if kind == .countdown || kind == .typeIn {
-            if seconds <= 0 { return String(format: "%.2f s", Double(elapsed) / 1000) }
-            return String(format: "%.1f s", max(0, seconds - Double(elapsed) / 1000))
+            if seconds <= 0 { return PlayTimedDisplayLocalization.seconds(Double(elapsed) / 1000, locale: locale) }
+            return PlayTimedDisplayLocalization.seconds(max(0, seconds - Double(elapsed) / 1000), precision: .tenths, locale: locale)
         }
-        return String(format: "%.2f s", Double(elapsed) / 1000)
+        return PlayTimedDisplayLocalization.seconds(Double(elapsed) / 1000, locale: locale)
     }
     @ViewBuilder private var reactionStage: some View {
-        LabeledContent("playkit.reaction.round") { Text(verbatim: "\(reaction.roundsMilliseconds.count) / \(reaction.rounds)").monospacedDigit() }
-        if let goal = segment["goalMs"].integer, goal > 0 { LabeledContent("playkit.reaction.goal") { Text(verbatim: "\(goal) ms") } }
+        LabeledContent("playkit.reaction.round") { Text(verbatim: PlayTimedDisplayLocalization.round(current: reaction.roundsMilliseconds.count, total: reaction.rounds, locale: locale)).monospacedDigit() }
+        if let goal = segment["goalMs"].integer, goal > 0 { LabeledContent("playkit.reaction.goal") { Text(verbatim: PlayTimedDisplayLocalization.milliseconds(goal, locale: locale)) } }
         if reaction.phase == .idle || reaction.phase == .interrupted {
-            Button("playkit.challenge.start") { start() }.buttonStyle(.borderedProminent).disabled(!enabled)
+            Button("playkit.challenge.start") { start() }.buttonStyle(.questifyPrimary).disabled(!enabled)
         } else if reaction.phase == .waiting || reaction.phase == .signal {
             Button {
                 reaction.tap(now: ProcessInfo.processInfo.systemUptime); onDirty()
@@ -116,19 +114,18 @@ import SwiftUI
                     Image(systemName: reaction.phase == .signal ? "hand.tap.fill" : "hourglass")
                     Text(reaction.phase == .signal ? "playkit.reaction.tap" : "playkit.reaction.wait")
                 }.font(.largeTitle.bold()).frame(maxWidth: .infinity, minHeight: 240)
-            }.buttonStyle(.borderedProminent).tint(reaction.phase == .signal ? .green : .orange)
+            }.buttonStyle(.questifyPrimary).tint(reaction.phase == .signal ? .green : .orange)
                 .disabled(!enabled).accessibilityIdentifier("playkit.reaction.target")
         } else if reaction.phase == .early || reaction.phase == .betweenRounds {
             if reaction.phase == .early { Label("playkit.reaction.early", systemImage: "exclamationmark.circle") }
             Button("playkit.reaction.next") { reaction.arm(now: ProcessInfo.processInfo.systemUptime, randomUnit: Double.random(in: 0...1)); ticker = UUID() }.disabled(!enabled)
         }
         ForEach(Array(reaction.roundsMilliseconds.enumerated()), id: \.offset) { index, ms in
-            HStack { Text(verbatim: String(index + 1)); Spacer(); Text(verbatim: "\(ms) ms").monospacedDigit() }
+            HStack { Text(verbatim: PlayTimedDisplayLocalization.count(index + 1, locale: locale)); Spacer(); Text(verbatim: PlayTimedDisplayLocalization.milliseconds(ms, locale: locale)).monospacedDigit() }
         }
         if reaction.phase == .measured {
-            Text("playkit.challenge.measurementOnly").font(.footnote)
             Button("playkit.review") { requestReview("SUBMIT_REACTION", ["times": .array(reaction.roundsMilliseconds.map(PlayWireValue.int))], {}) }
-                .buttonStyle(.borderedProminent).disabled(!enabled)
+                .buttonStyle(.questifyPrimary).disabled(!enabled)
         }
     }
     private func start() {
@@ -153,5 +150,14 @@ import SwiftUI
     }
     private func interrupt() {
         timing.interrupt(); reaction.interrupt(); typingFocused = false; ticker = UUID()
+    }
+}
+
+/// A new server revision supplies the round configuration; local measurements never carry over.
+/// Keep the original absent/nonpositive fallback and Core bounds unchanged.
+enum PlayTimedReactionConfiguration {
+    static func makeRun(segment: PlayWireValue) -> PlayKitReactionRun {
+        let rounds = segment["rounds"].integer ?? 3
+        return PlayKitReactionRun(rounds: rounds > 0 ? rounds : 3)
     }
 }

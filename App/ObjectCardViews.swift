@@ -10,8 +10,8 @@ import ImageIO
     private var scope: UUID { reader.scope }
     var body: some View {
         List {
-            if !reader.isAuthenticated { Text("objects.login") }
-            else if !reader.isConfigured { Text("objects.disabled") }
+            if !reader.isAuthenticated { ContentUnavailableView("objects.login", systemImage: "person.crop.circle") }
+            else if !reader.isConfigured { ContentUnavailableView("objects.disabled", systemImage: "rectangle.stack") }
             else {
                 Section {
                     Menu {
@@ -26,9 +26,10 @@ import ImageIO
                     }
                     .buttonStyle(.borderless)
                     .disabled(model.loading).accessibilityIdentifier("objects.filter")
-                    Text("objects.limit").font(.caption).foregroundStyle(.secondary)
                     if model.loading { ProgressView("objects.loading") }
-                    if model.failed {
+                    if model.failed, model.access == .denied {
+                        Text("objectCards.denied").accessibilityIdentifier("objects.denied")
+                    } else if model.failed {
                         Text(model.collection == nil ? "objects.failed" : "objects.filterFailed")
                             .accessibilityIdentifier("objects.failed")
                         Button("objects.retry") { Task { await model.load(category: model.category, reader: reader) } }
@@ -37,7 +38,9 @@ import ImageIO
                 if model.loadedScope == scope, let collection = model.collection {
                     Section {
                         LabeledContent("objects.total", value: collection.total.formatted())
-                        if collection.cards.isEmpty { Text("objects.empty").accessibilityIdentifier("objects.empty") }
+                        if collection.cards.isEmpty {
+                            ObjectCardsEmptyTitle(isAllCategories: model.category == .all).accessibilityIdentifier("objects.empty")
+                        }
                         // Preserve duplicate source rows safely rather than accidentally conflating IDs.
                         ForEach(Array(collection.cards.enumerated()), id: \.offset) { _, card in
                             let capturedScope = model.loadedScope ?? scope
@@ -102,7 +105,6 @@ import ImageIO
                             if steps != 0 { drag += CGFloat(steps * 8); move(steps) }
                         }.onEnded { _ in drag = 0 })
                     if card.hasRotationFrames {
-                        Text("objects.framesHint").font(.caption)
                         HStack {
                             Button("objects.previous") { move(-1) }.accessibilityIdentifier("objects.frame.previous")
                             Spacer()

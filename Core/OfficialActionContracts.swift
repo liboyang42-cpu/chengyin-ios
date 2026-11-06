@@ -134,7 +134,8 @@ public enum OfficialActionCommand: Equatable {
         case .signup(let id), .complete(let id): guard id > 0 else { throw OfficialActionFailure.invalid }; return nil
         case let .respond(id, type, action, reason):
             guard id > 0, ["OFFICIAL", "MERCHANT", "CLUB"].contains(type), !(type == "OFFICIAL" && action == .withdraw) else { throw OfficialActionFailure.invalid }
-            if type == "OFFICIAL" { return nil }
+            // Organizer endpoints take the same optional {reason} body; nil keeps the bodiless request.
+            if type == "OFFICIAL" && reason == nil { return nil }
             return try JSONSerialization.data(withJSONObject: reason.map { ["reason": $0] } ?? [:], options: [.sortedKeys])
         }
     }

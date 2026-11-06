@@ -43,24 +43,36 @@ import XCTest
         let draft = try XCTUnwrap(snapshot["savedDraft"] as? [String: Any])
         return (draft["pendingMaterials"] as? [Any])?.count ?? 0
     }
-    private func chooseChapter(_ app: XCUIApplication, materialID: String, name: String) {
+    private func chooseChapter(_ app: XCUIApplication, materialID: String, chapterID: String, name: String) {
         tap("projectPending.arrange." + materialID, app)
-        let choices = app.buttons.matching(NSPredicate(format: "label == %@", name)).allElementsBoundByIndex.filter { $0.isEnabled && $0.isHittable }
-        XCTAssertEqual(choices.count, 1); guard choices.count == 1 else { return }
-        XCTAssertTrue(app.windows.firstMatch.frame.contains(choices[0].frame)); choices[0].tap()
+        let choices = app.buttons.matching(identifier: "projectPending.chapter." + chapterID)
+        let choice = choices.firstMatch
+        let ready = XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true AND enabled == true AND hittable == true"),
+            object: choice)], timeout: 5)
+        XCTAssertEqual(ready, .completed, app.debugDescription)
+        guard ready == .completed else { return }
+        XCTAssertEqual(choices.count, 1, app.debugDescription)
+        XCTAssertEqual(choice.label, name)
+        let named = app.buttons.matching(NSPredicate(format: "label == %@", name))
+            .allElementsBoundByIndex.filter { $0.isEnabled && $0.isHittable }
+        XCTAssertEqual(named.count, 1, app.debugDescription)
+        XCTAssertTrue(choice.isEnabled && choice.isHittable, app.debugDescription)
+        XCTAssertTrue(app.windows.firstMatch.frame.contains(choice.frame)); choice.tap()
     }
     // UNMEASURED complete-method estimate: 900 seconds. Existing pending story, audio cancel/apply, explicit placement, prepared order and restore.
     func testPendingExistingStoryAudioSavesBeforeExplicitMaterialInsertionAndPreparedReview() throws {
         let app = XCUIApplication(); self.app = app
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--uitesting-module", "projectEdit", "--project-edit-starter-probe", "--project-edit-pending", "--project-story-image", "--project-story-audio"]
-        app.launch(); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "large")
+        app.launch(); XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "large")
         tap("projectEdit.saveLocal", app, fixed: true); var saved = try snapshot(app)
         let materialID = try material(saved), name = try XCTUnwrap(chapter(saved)["name"] as? String)
-        chooseChapter(app, materialID: materialID, name: name); tap("projectStoryAudio.add", app)
+        let chapterID = try XCTUnwrap(chapter(saved)["id"] as? String)
+        chooseChapter(app, materialID: materialID, chapterID: chapterID, name: name); tap("projectStoryAudio.add", app)
         tap("projectPending.close", app, fixed: true); saved = try snapshot(app)
         let blockID = try XCTUnwrap(blocks(saved).last?["id"] as? String)
         XCTAssertEqual(try blocks(saved).last?["url"] as? String, ""); XCTAssertEqual(try pendingCount(saved), 1)
-        chooseChapter(app, materialID: materialID, name: name); tap("projectStoryAudio.open." + blockID, app)
+        chooseChapter(app, materialID: materialID, chapterID: chapterID, name: name); tap("projectStoryAudio.open." + blockID, app)
         tap("projectStoryAudio.choose", app); XCTAssertTrue(app.staticTexts["projectStoryAudio.notUploaded"].exists)
         tap("projectStoryAudio.cancelLocal", app); XCTAssertFalse(app.buttons["projectStoryAudio.upload"].exists)
         tap("projectStoryAudio.choose", app); tap("projectStoryAudio.upload", app)

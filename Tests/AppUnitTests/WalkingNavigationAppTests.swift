@@ -428,3 +428,446 @@ import XCTest
     func preview(_ request: SearchRouteRequest) async throws -> SearchRoutePreview { .straightLine(request) }
     func cancel() {}
 }
+
+@MainActor final class WalkingSavedDestinationAppTests: XCTestCase {
+    func testAcceptedNavigationPersistsReferenceWithoutAdditionalProviderOrLocationWork() async throws {
+        let h = try WalkingCheckpointHarness(), model = try await h.start()
+        let before = (h.targets.calls, h.location.calls, h.directions.requests.count)
+        let saved = try h.factory.saveDestination(from: model)
+        XCTAssertEqual(saved.record.reference, h.reference)
+        XCTAssertEqual(h.targets.calls, before.0); XCTAssertEqual(h.location.calls, before.1)
+        XCTAssertEqual(h.directions.requests.count, before.2); XCTAssertEqual(h.vault.replacements, 1)
+        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: saved.bytes) as? [String: Any])
+        XCTAssertEqual(Set(object.keys), ["schema", "reference", "ownerScope", "revision"])
+        let scope = try XCTUnwrap(JSONSerialization.jsonObject(with: saved.record.ownerScope) as? [String])
+        XCTAssertFalse(scope.contains(try XCTUnwrap(h.context).session.token))
+        XCTAssertFalse(scope.contains("latitude")); XCTAssertFalse(scope.contains("longitude"))
+    }
+    func testNewFactoryAndFreshEpochRestoreReadyOnlyThenReauthorizeOnExplicitStart() async throws {
+        let h = try WalkingCheckpointHarness(), model = try await h.start()
+        let saved = try h.factory.saveDestination(from: model)
+        model.pause()
+        let prior = try XCTUnwrap(h.context)
+        h.context = .init(market: prior.market, baseURL: prior.baseURL, role: prior.role,
+            session: try .init(accountID: prior.session.accountID, epoch: 99, namespace: prior.session.namespace, token: "new-synthetic-credential"))
+        let factory = h.newFactory(), before = (h.targets.calls, h.location.calls, h.directions.requests.count)
+        let loaded = try XCTUnwrap(factory.savedDestination())
+        XCTAssertEqual(loaded.bytes, saved.bytes)
+        let restored = try XCTUnwrap(factory.restoreSavedDestination(loaded))
+        XCTAssertEqual(restored.phase, .ready); XCTAssertNil(restored.route); XCTAssertNil(restored.target)
+        XCTAssertEqual(h.targets.calls, before.0); XCTAssertEqual(h.location.calls, before.1)
+        XCTAssertEqual(h.directions.requests.count, before.2)
+        await restored.start()
+        XCTAssertEqual(restored.phase, .navigating); XCTAssertEqual(h.targets.calls, before.0 + 1)
+        XCTAssertEqual(h.location.calls, before.1 + 1); XCTAssertEqual(h.directions.requests.count, before.2 + 1)
+        XCTAssertNil(factory.restoreSavedDestination(saved))
+    }
+    func testOldOwnerCannotReadRestoreSaveOrDeleteAfterEachIdentityChange() async throws {
+        for variant in 0..<7 {
+            let h = try WalkingCheckpointHarness(), model = try await h.start()
+            let saved = try h.factory.saveDestination(from: model), owner = try XCTUnwrap(h.context)
+            let session = try PlayExperienceSession(accountID: variant == 0 ? 72 : owner.session.accountID,
+                epoch: variant == 1 ? 2 : owner.session.epoch,
+                namespace: variant == 2 ? "other-realm" : owner.session.namespace,
+                token: variant == 3 ? "new-token" : owner.session.token)
+            h.context = .init(market: variant == 4 ? .china : owner.market,
+                baseURL: variant == 5 ? URL(string: "https://other.invalid/")! : owner.baseURL,
+                role: variant == 6 ? "merchant" : owner.role, session: session)
+            let reads = h.vault.reads, writes = h.vault.replacements
+            XCTAssertThrowsError(try h.factory.savedDestination()); XCTAssertNil(h.factory.restoreSavedDestination(saved))
+            XCTAssertThrowsError(try h.factory.saveDestination(from: model))
+            XCTAssertThrowsError(try h.factory.removeSavedDestination(saved))
+            XCTAssertEqual(h.vault.reads, reads); XCTAssertEqual(h.vault.replacements, writes)
+            if [0, 2, 4, 5, 6].contains(variant) { XCTAssertNil(try h.newFactory().savedDestination()) }
+        }
+    }
+    func testDormantFactoryCannotReadOrWriteLocalStore() throws {
+        let vault = WalkingCheckpointFakeStore()
+        let factory = NativeWalkingNavigationFactory(checkpoints: vault)
+        XCTAssertThrowsError(try factory.savedDestination())
+        XCTAssertEqual(vault.reads, 0); XCTAssertEqual(vault.replacements, 0)
+    }
+    func testSaveFailureAndCompareConflictNeverReturnSavedHandle() async throws {
+        for throwsFailure in [false, true] {
+            let h = try WalkingCheckpointHarness(), model = try await h.start()
+            h.vault.rejectReplace = !throwsFailure; h.vault.failReplace = throwsFailure
+            XCTAssertThrowsError(try h.factory.saveDestination(from: model))
+            XCTAssertTrue(h.vault.values.isEmpty); XCTAssertNil(try h.factory.savedDestination())
+            XCTAssertEqual(model.phase, .navigating)
+        }
+    }
+    func testOldHandleCannotRestoreOrDeleteNewerSavedDestination() async throws {
+        let h = try WalkingCheckpointHarness(), first = try await h.start()
+        let old = try h.factory.saveDestination(from: first)
+        let second = try await h.start(reference: .init(kind: .cityNode, id: 72))
+        let fresh = try h.factory.saveDestination(from: second)
+        XCTAssertNotEqual(old.id, fresh.id); XCTAssertNil(h.factory.restoreSavedDestination(old))
+        XCTAssertThrowsError(try h.factory.removeSavedDestination(old))
+        XCTAssertEqual(try h.factory.savedDestination()?.bytes, fresh.bytes)
+        XCTAssertNotNil(h.factory.restoreSavedDestination(fresh))
+    }
+    func testPauseBackgroundAndCancelledModelsCannotCreateSavedState() async throws {
+        for phase in 0..<3 {
+            let h = try WalkingCheckpointHarness(), model = try await h.start()
+            if phase == 0 { model.pause() }
+            else if phase == 1 { model.setForeground(false) }
+            else { model.cancel() }
+            XCTAssertThrowsError(try h.factory.saveDestination(from: model))
+            XCTAssertTrue(h.vault.values.isEmpty)
+        }
+    }
+    func testBackgroundRetainsOnlySavedReferenceAndDoesNotResumeWork() async throws {
+        let h = try WalkingCheckpointHarness(), model = try await h.start()
+        let saved = try h.factory.saveDestination(from: model)
+        model.setForeground(false)
+        let before = (h.targets.calls, h.location.calls, h.directions.requests.count)
+        let restored = try XCTUnwrap(h.factory.restoreSavedDestination(saved))
+        XCTAssertEqual(restored.phase, .ready); XCTAssertNil(restored.route)
+        XCTAssertEqual(h.targets.calls, before.0); XCTAssertEqual(h.location.calls, before.1)
+        XCTAssertEqual(h.directions.requests.count, before.2)
+    }
+    func testExplicitCancellationRemovesOnlyTheCapturedSavedRecord() async throws {
+        let h = try WalkingCheckpointHarness(), model = try await h.start()
+        let saved = try h.factory.saveDestination(from: model)
+        model.cancel(); try h.factory.removeSavedDestination(saved)
+        XCTAssertNil(try h.factory.savedDestination()); XCTAssertNil(h.factory.restoreSavedDestination(saved))
+        XCTAssertEqual(model.phase, .cancelled)
+    }
+    func testExpiredOrRevokedTargetAfterRestoreNeverUsesSavedAuthority() async throws {
+        for expired in [false, true] {
+            let h = try WalkingCheckpointHarness(), model = try await h.start()
+            let saved = try h.factory.saveDestination(from: model)
+            let restored = try XCTUnwrap(h.factory.restoreSavedDestination(saved))
+            let before = (h.location.calls, h.directions.requests.count)
+            if expired { h.targets.lifetime = -1 } else { h.targets.failure = .targetUnavailable }
+            await restored.start()
+            XCTAssertEqual(restored.phase, .failed(.targetUnavailable)); XCTAssertNil(restored.route)
+            XCTAssertEqual(h.location.calls, before.0); XCTAssertEqual(h.directions.requests.count, before.1)
+            XCTAssertThrowsError(try h.factory.saveDestination(from: restored))
+            XCTAssertEqual(try h.factory.savedDestination()?.bytes, saved.bytes)
+        }
+    }
+    func testCorruptStoredBytesAreNotSilentlyReplacedOrDeleted() async throws {
+        let h = try WalkingCheckpointHarness(), model = try await h.start()
+        let saved = try h.factory.saveDestination(from: model)
+        let key = try XCTUnwrap(h.vault.values.keys.first)
+        let corrupt = Data("{\"route\":\"unexpected\"}".utf8); h.vault.values[key] = corrupt
+        XCTAssertThrowsError(try h.factory.savedDestination())
+        XCTAssertThrowsError(try h.factory.saveDestination(from: model))
+        XCTAssertNil(h.factory.restoreSavedDestination(saved))
+        XCTAssertThrowsError(try h.factory.removeSavedDestination(saved))
+        XCTAssertEqual(h.vault.values[key], corrupt)
+    }
+    func testLogoutRetiresOldHandleWithoutReadingOrMutatingAnotherAccountSlot() async throws {
+        let h = try WalkingCheckpointHarness(), model = try await h.start()
+        let saved = try h.factory.saveDestination(from: model), before = h.vault.values
+        h.context = nil
+        XCTAssertFalse(h.factory.savedDestinationIsCurrent(saved))
+        XCTAssertThrowsError(try h.factory.savedDestination())
+        XCTAssertNil(h.factory.restoreSavedDestination(saved))
+        XCTAssertThrowsError(try h.factory.removeSavedDestination(saved))
+        XCTAssertEqual(h.vault.values, before)
+    }
+}
+
+@MainActor private final class WalkingCheckpointFakeStore: WalkingCheckpointStoring {
+    var values: [String: Data] = [:]
+    var reads = 0, replacements = 0
+    var rejectReplace = false, failReplace = false
+    func read(key: String) throws -> Data? { reads += 1; return values[key] }
+    func replace(key: String, expected: Data?, replacement: Data?) throws -> Bool {
+        replacements += 1
+        if failReplace { throw WalkingCheckpointFailure.unavailable }
+        guard !rejectReplace, values[key] == expected else { return false }
+        values[key] = replacement; return true
+    }
+}
+@MainActor private final class WalkingCheckpointTargets: WalkingTargetAuthorizing {
+    var calls = 0, lifetime: TimeInterval = 120
+    var failure: WalkingNavigationFailure?
+    func authorize(_ reference: WalkingTargetReference) async throws -> AuthorizedWalkingTarget {
+        calls += 1
+        if let failure { throw failure }
+        return try .init(reference: reference, title: "Synthetic destination",
+            coordinate: .init(point: RoamCoordinate(latitude: 1.004, longitude: 1.006)!, datum: .wgs84, region: "US"),
+            authorityRevision: "fresh-synthetic", expiresAt: Date().addingTimeInterval(lifetime))
+    }
+}
+@MainActor private final class WalkingCheckpointLocation: WalkingLocationProviding {
+    var authorization: WalkingLocationAuthorization = .authorized
+    var calls = 0
+    func currentFix() async throws -> RoamDeviceFix {
+        calls += 1
+        return try .init(coordinate: RoamCoordinate(latitude: 1, longitude: 1)!, accuracyMeters: 5,
+                         measuredAt: Date(), datum: .wgs84)
+    }
+    func stop() {}
+}
+@MainActor private final class WalkingCheckpointHarness {
+    let vault = WalkingCheckpointFakeStore(), targets = WalkingCheckpointTargets()
+    let location = WalkingCheckpointLocation(), directions = WalkingAppPreviewDirections()
+    let reference: WalkingTargetReference
+    var context: RuntimeDependencyContext?
+    lazy var factory = newFactory()
+    init() throws {
+        reference = try .init(kind: .cityNode, id: 71)
+        context = .init(market: .unitedStates, baseURL: URL(string: "https://walking.invalid/")!, role: "player",
+            session: try .init(accountID: 71, epoch: 1, namespace: "walking.saved.synthetic", token: "synthetic-secret-not-persisted"))
+    }
+    func newFactory() -> NativeWalkingNavigationFactory {
+        guard let owner = context else { return NativeWalkingNavigationFactory(checkpoints: vault) }
+        let dependencies = NativeWalkingNavigationDependencies(owner: owner, verifiedMapKitWGS84Regions: ["US"], targets: targets,
+            makeLocation: { [location] in location }, makePlanner: { [directions] regions in
+                MapKitWalkingRoutePlanner(verifiedRegions: regions, executor: directions)
+            })
+        return .init(dependencies: dependencies, checkpoints: vault, context: { [weak self] in self?.context })
+    }
+    func start(reference: WalkingTargetReference? = nil) async throws -> WalkingNavigationCoordinator {
+        let model = try XCTUnwrap(factory.make(reference: reference ?? self.reference))
+        await model.start(); XCTAssertEqual(model.phase, .navigating)
+        return model
+    }
+}
+
+
+import SwiftUI
+import UIKit
+
+@MainActor final class WalkingLowPowerPresentationTests: XCTestCase {
+    func testPowerChangesPreserveActiveNavigationAndDoNotWriteCheckpoint() async throws {
+        let h = try WalkingCheckpointHarness(), model = try await h.start()
+        _ = try h.factory.saveDestination(from: model)
+        let bytes = h.vault.values, writes = h.vault.replacements
+        let targetCalls = h.targets.calls, locationCalls = h.location.calls, requests = h.directions.requests.count
+        let presentation = WalkingPowerPresentation()
+        for value in [true, true, false, true] {
+            presentation.refresh { value }
+            XCTAssertEqual(presentation.isLowPowerMode, value)
+            XCTAssertEqual(model.phase, .navigating)
+            XCTAssertNotNil(model.route)
+            XCTAssertEqual(h.targets.calls, targetCalls)
+            XCTAssertEqual(h.location.calls, locationCalls)
+            XCTAssertEqual(h.directions.requests.count, requests)
+            XCTAssertEqual(h.vault.replacements, writes)
+            XCTAssertEqual(h.vault.values, bytes)
+        }
+    }
+    func testExplicitPauseAndResumeRemainUserChoicesInEitherPowerMode() async throws {
+        for lowPower in [false, true] {
+            let h = try WalkingCheckpointHarness(), model = try await h.start()
+            let presentation = WalkingPowerPresentation(); presentation.refresh { lowPower }
+            model.pause()
+            presentation.refresh { !lowPower }
+            await model.update()
+            XCTAssertEqual(model.phase, .paused); XCTAssertNil(model.route)
+            XCTAssertEqual(h.targets.calls, 1)
+            await model.start()
+            XCTAssertEqual(model.phase, .navigating)
+            XCTAssertEqual(h.targets.calls, 2); XCTAssertEqual(h.directions.requests.count, 2)
+        }
+    }
+    func testBackgroundReturnStillRequiresExplicitResumeAndFreshTarget() async throws {
+        let h = try WalkingCheckpointHarness(), model = try await h.start()
+        let presentation = WalkingPowerPresentation(); presentation.refresh { true }
+        model.setForeground(false)
+        XCTAssertEqual(WalkingNavigationRefreshPolicy().interval(foreground: model.foreground,
+            lowPowerMode: presentation.isLowPowerMode), 15)
+        await model.update(); XCTAssertEqual(h.location.calls, 1)
+        model.setForeground(true)
+        XCTAssertEqual(WalkingNavigationRefreshPolicy().interval(foreground: model.foreground,
+            lowPowerMode: presentation.isLowPowerMode), 3)
+        await model.update(); XCTAssertEqual(model.phase, .paused); XCTAssertEqual(h.targets.calls, 1)
+        await model.start(); XCTAssertEqual(model.phase, .navigating); XCTAssertEqual(h.targets.calls, 2)
+    }
+    func testPowerChangeCannotReviveCancelledOrOldOwnerGeometry() async throws {
+        for ownerChanged in [false, true] {
+            let h = try WalkingCheckpointHarness(), model = try await h.start()
+            let presentation = WalkingPowerPresentation()
+            if ownerChanged { h.context = nil; model.synchronize() } else { model.cancel() }
+            let phase = model.phase
+            presentation.refresh { true }; presentation.refresh { false }; await model.update()
+            XCTAssertEqual(model.phase, phase); XCTAssertNil(model.cameraSnapshot)
+            XCTAssertNil(model.route); XCTAssertNil(model.target)
+            XCTAssertEqual(h.targets.calls, 1); XCTAssertEqual(h.directions.requests.count, 1)
+        }
+    }
+    func testLowPowerDoesNotOverridePermissionFailureOrInitiateRetry() async throws {
+        let h = try WalkingCheckpointHarness()
+        h.location.authorization = .denied
+        let model = try XCTUnwrap(h.factory.make(reference: h.reference))
+        await model.start()
+        let presentation = WalkingPowerPresentation(); presentation.refresh { true }
+        await model.update()
+        XCTAssertEqual(model.phase, .failed(.permissionDenied)); XCTAssertNil(model.route)
+        XCTAssertEqual(h.location.calls, 0); XCTAssertTrue(h.directions.requests.isEmpty)
+        presentation.refresh { false }
+        XCTAssertEqual(model.phase, .failed(.permissionDenied)); XCTAssertEqual(h.targets.calls, 1)
+    }
+    func testNormalHostReadsInjectedPowerStateAndNotificationWithoutStartingNavigation() async throws {
+        let h = try WalkingCheckpointHarness()
+        var enabled = true, reads = 0
+        let host = UIHostingController(rootView: WalkingNavigationView(reference: h.reference,
+            factory: h.factory, offline: true, powerPolicy: .init(inactiveLowPowerInterval: 20),
+            readLowPowerMode: { reads += 1; return enabled }).environment(\.scenePhase, .active))
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = host; window.makeKeyAndVisible()
+        defer { window.isHidden = true; window.rootViewController = nil }
+        host.view.layoutIfNeeded()
+        for _ in 0..<100 { if reads > 0 { break }; try await Task.sleep(for: .milliseconds(10)) }
+        XCTAssertGreaterThan(reads, 0)
+        let previous = reads; enabled = false
+        NotificationCenter.default.post(name: .NSProcessInfoPowerStateDidChange, object: nil)
+        for _ in 0..<100 { if reads > previous { break }; try await Task.sleep(for: .milliseconds(10)) }
+        XCTAssertGreaterThan(reads, previous)
+        XCTAssertEqual(h.targets.calls, 0); XCTAssertEqual(h.location.calls, 0)
+        XCTAssertTrue(h.directions.requests.isEmpty); XCTAssertEqual(h.vault.replacements, 0)
+    }
+}
+
+
+@MainActor final class WalkingCheckpointReadRetryTests: XCTestCase {
+    func testTemporaryListReadFailureThenExplicitRetryPreservesBytesAndDoesNoNavigationWork() async throws {
+        let h = try WalkingReadRetryHarness(), saved = try await h.saveAcceptedDestination()
+        let gate = WalkingCheckpointReadGate(); gate.appear(active: true)
+        let offered = gate.ticket, bytes = h.store.values, writes = h.store.writes
+        let counts = h.navigationCounts
+        h.store.failRead = true
+        XCTAssertThrowsError(try gate.read(offered, factory: h.factory))
+        XCTAssertEqual(h.store.values, bytes)
+        h.store.failRead = false
+        let loaded = try XCTUnwrap(gate.read(offered, factory: h.factory))
+        XCTAssertEqual(loaded.bytes, saved.bytes); XCTAssertEqual(loaded.id, saved.id)
+        XCTAssertEqual(h.navigationCounts, counts); XCTAssertEqual(h.store.writes, writes)
+        XCTAssertEqual(h.store.values, bytes)
+    }
+    func testTemporaryRestoreReadFailureThenExplicitRetryOnlyCreatesReadyReference() async throws {
+        let h = try WalkingReadRetryHarness(), saved = try await h.saveAcceptedDestination()
+        let gate = WalkingCheckpointReadGate(); gate.appear(active: true)
+        let ticket = gate.ticket, bytes = h.store.values, counts = h.navigationCounts, writes = h.store.writes
+        h.store.failRead = true; XCTAssertNil(gate.restore(ticket, saved: saved, factory: h.factory))
+        h.store.failRead = false
+        let restored = try XCTUnwrap(gate.restore(ticket, saved: saved, factory: h.factory))
+        XCTAssertEqual(restored.phase, .ready); XCTAssertEqual(restored.reference, saved.record.reference)
+        XCTAssertNil(restored.target); XCTAssertNil(restored.route); XCTAssertNil(restored.progress)
+        await restored.update()
+        XCTAssertEqual(h.navigationCounts, counts); XCTAssertEqual(h.store.values, bytes); XCTAssertEqual(h.store.writes, writes)
+    }
+    func testNilAndOldVisitCannotReadOrRestoreAfterDepartureAndReopen() async throws {
+        let h = try WalkingReadRetryHarness(), saved = try await h.saveAcceptedDestination()
+        let gate = WalkingCheckpointReadGate(), unopened = gate.ticket
+        gate.appear(active: true); let old = gate.ticket
+        gate.disappear(); gate.setActive(true)
+        let before = h.store.reads
+        for ticket in [unopened, old] {
+            XCTAssertThrowsError(try gate.read(ticket, factory: h.factory))
+            XCTAssertNil(gate.restore(ticket, saved: saved, factory: h.factory))
+        }
+        gate.appear(active: true)
+        XCTAssertThrowsError(try gate.read(old, factory: h.factory))
+        XCTAssertNil(gate.restore(old, saved: saved, factory: h.factory))
+        XCTAssertEqual(h.store.reads, before)
+        XCTAssertNotNil(try gate.read(gate.ticket, factory: h.factory))
+    }
+    func testBackgroundDoesNotAutoReadAndOldGestureDoesNotReturnWithForeground() async throws {
+        let h = try WalkingReadRetryHarness(), saved = try await h.saveAcceptedDestination()
+        let gate = WalkingCheckpointReadGate(); gate.appear(active: true); let old = gate.ticket
+        let before = h.store.reads, counts = h.navigationCounts
+        gate.setActive(false); gate.setActive(true)
+        XCTAssertEqual(h.store.reads, before)
+        XCTAssertNil(gate.restore(old, saved: saved, factory: h.factory))
+        XCTAssertThrowsError(try gate.read(old, factory: h.factory))
+        XCTAssertEqual(h.store.reads, before); XCTAssertEqual(h.navigationCounts, counts)
+        XCTAssertEqual(gate.restore(gate.ticket, saved: saved, factory: h.factory)?.phase, .ready)
+    }
+    func testChangedSlotIsNeverSilentlyAdoptedByOriginalRestoreRetry() async throws {
+        let h = try WalkingReadRetryHarness(), old = try await h.saveAcceptedDestination()
+        let fresh = try await h.saveAcceptedDestination()
+        let gate = WalkingCheckpointReadGate(); gate.appear(active: true)
+        let bytes = h.store.values, writes = h.store.writes, counts = h.navigationCounts
+        XCTAssertNotEqual(old.id, fresh.id)
+        XCTAssertNil(gate.restore(gate.ticket, saved: old, factory: h.factory))
+        XCTAssertEqual(h.store.values, bytes); XCTAssertEqual(h.store.writes, writes)
+        let reread = try XCTUnwrap(gate.read(gate.ticket, factory: h.factory))
+        XCTAssertEqual(reread.id, fresh.id)
+        XCTAssertEqual(gate.restore(gate.ticket, saved: reread, factory: h.factory)?.phase, .ready)
+        XCTAssertEqual(h.navigationCounts, counts)
+    }
+    func testCorruptAndRemovedSlotsNeverCreateARouteOrOverwriteStorage() async throws {
+        for corrupt in [false, true] {
+            let h = try WalkingReadRetryHarness(), saved = try await h.saveAcceptedDestination()
+            let key = try XCTUnwrap(h.store.values.keys.first)
+            h.store.values[key] = corrupt ? Data("{bad checkpoint}".utf8) : nil
+            let bytes = h.store.values, counts = h.navigationCounts, writes = h.store.writes
+            let gate = WalkingCheckpointReadGate(); gate.appear(active: true)
+            XCTAssertNil(gate.restore(gate.ticket, saved: saved, factory: h.factory))
+            if corrupt { XCTAssertThrowsError(try gate.read(gate.ticket, factory: h.factory)) }
+            else { XCTAssertNil(try gate.read(gate.ticket, factory: h.factory)) }
+            XCTAssertEqual(h.navigationCounts, counts); XCTAssertEqual(h.store.writes, writes); XCTAssertEqual(h.store.values, bytes)
+        }
+    }
+    func testOwnerChangeRejectsCurrentVisitBeforeReadingAnotherSlot() async throws {
+        let h = try WalkingReadRetryHarness(), saved = try await h.saveAcceptedDestination()
+        let gate = WalkingCheckpointReadGate(); gate.appear(active: true); let ticket = gate.ticket
+        h.base.context = nil
+        let before = h.store.reads, bytes = h.store.values, counts = h.navigationCounts
+        XCTAssertThrowsError(try gate.read(ticket, factory: h.factory))
+        XCTAssertNil(gate.restore(ticket, saved: saved, factory: h.factory))
+        XCTAssertEqual(h.store.reads, before); XCTAssertEqual(h.store.values, bytes); XCTAssertEqual(h.navigationCounts, counts)
+    }
+    func testNormalRestoreHostDoesNotRepeatFailedLocalReadOnSceneReturn() async throws {
+        let h = try WalkingReadRetryHarness(), saved = try await h.saveAcceptedDestination()
+        h.store.failRead = true
+        let before = h.store.reads, counts = h.navigationCounts, bytes = h.store.values
+        func view(_ phase: ScenePhase) -> some View {
+            WalkingNavigationView(reference: saved.record.reference, factory: h.factory, offline: true,
+                restoringDestination: saved, readLowPowerMode: { false }).environment(\.scenePhase, phase)
+        }
+        let host = UIHostingController(rootView: view(.active))
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = host; window.makeKeyAndVisible()
+        defer { window.isHidden = true; window.rootViewController = nil }
+        host.view.layoutIfNeeded()
+        for _ in 0..<100 { if h.store.reads > before { break }; try await Task.sleep(for: .milliseconds(10)) }
+        XCTAssertEqual(h.store.reads, before + 1)
+        host.rootView = view(.inactive); host.view.layoutIfNeeded()
+        try await Task.sleep(for: .milliseconds(30))
+        host.rootView = view(.active); host.view.layoutIfNeeded()
+        try await Task.sleep(for: .milliseconds(30))
+        XCTAssertEqual(h.store.reads, before + 1)
+        XCTAssertEqual(h.navigationCounts, counts); XCTAssertEqual(h.store.values, bytes)
+    }
+}
+
+@MainActor private final class WalkingReadRetryStore: WalkingCheckpointStoring {
+    var values: [String: Data] = [:]
+    var failRead = false
+    var reads = 0, writes = 0
+    func read(key: String) throws -> Data? {
+        reads += 1
+        if failRead { throw WalkingCheckpointFailure.unavailable }
+        return values[key]
+    }
+    func replace(key: String, expected: Data?, replacement: Data?) throws -> Bool {
+        guard values[key] == expected else { return false }
+        writes += 1; values[key] = replacement; return true
+    }
+}
+@MainActor private final class WalkingReadRetryHarness {
+    let base: WalkingCheckpointHarness
+    let store = WalkingReadRetryStore()
+    var navigationCounts: [Int] { [base.targets.calls, base.location.calls, base.directions.requests.count] }
+    lazy var factory: NativeWalkingNavigationFactory = {
+        guard let owner = base.context else { return NativeWalkingNavigationFactory(checkpoints: store) }
+        let dependencies = NativeWalkingNavigationDependencies(owner: owner, verifiedMapKitWGS84Regions: ["US"], targets: base.targets,
+            makeLocation: { [base] in base.location }, makePlanner: { [base] regions in
+                MapKitWalkingRoutePlanner(verifiedRegions: regions, executor: base.directions)
+            })
+        return .init(dependencies: dependencies, checkpoints: store, context: { [weak self] in self?.base.context })
+    }()
+    init() throws { base = try WalkingCheckpointHarness() }
+    func saveAcceptedDestination() async throws -> WalkingSavedDestination {
+        let model = try XCTUnwrap(factory.make(reference: base.reference))
+        await model.start(); XCTAssertEqual(model.phase, .navigating)
+        return try factory.saveDestination(from: model)
+    }
+}

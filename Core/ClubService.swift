@@ -12,7 +12,7 @@ public struct ClubService {
     }
     public func home(token: String? = nil) async throws -> ClubHome {
         let data = try await post("api/club/home", json: [:], token: token)
-        return try decode(ClubValueEnvelope<ClubHome>.self, data).data
+        return try decode(ClubValueEnvelope<ClubHomeWirePayload>.self, data).data.home
     }
     public func owned(token: String) async throws -> [ClubRecord] {
         let data = try await post("api/club/my", json: [:], token: token)
@@ -90,6 +90,20 @@ private struct ClubOwnedPayload: Decodable {
     enum CodingKeys: String, CodingKey { case owned }
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        owned = try c.decodeIfPresent([ClubRecord].self, forKey: .owned) ?? []
+        owned = try c.decode([ClubRecord].self, forKey: .owned)
+    }
+}
+
+/// Validate the real HTTP aggregate without changing legacy/local ClubHome decoding.
+private struct ClubHomeWirePayload: Decodable {
+    let home: ClubHome
+    private enum CodingKeys: String, CodingKey { case owned, joined, nearby, events }
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        _ = try c.decode([ClubRecord].self, forKey: .owned)
+        _ = try c.decode([ClubRecord].self, forKey: .joined)
+        _ = try c.decode([ClubRecord].self, forKey: .nearby)
+        _ = try c.decode([ClubHomeEvent].self, forKey: .events)
+        home = try ClubHome(from: decoder)
     }
 }

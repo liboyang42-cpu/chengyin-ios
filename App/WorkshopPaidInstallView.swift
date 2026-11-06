@@ -47,6 +47,8 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
     var makeText: WorkshopPaidInstalledTextControllerFactory = { _ in nil }
     let onClose: () -> Void
     @State private var ownedTask: Task<Void, Never>?
+    @State private var isVisible = false
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     var body: some View {
         let displayed = appearance
@@ -58,7 +60,7 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                 } else if controller.phase == .submitting {
                     ProgressView { installText("submitting") }
                     installText("unknownNote").fixedSize(horizontal: false, vertical: true)
-                } else if controller.phase == .loading {
+                } else if controller.phase == .loading && !controller.loadingPage {
                     ProgressView { installText("loading") }
                 } else if controller.phase == .confirming, let command = controller.confirmation {
                     commandFacts(command)
@@ -69,6 +71,10 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                         Button(role: .cancel) { controller.cancelReview(appearance: displayed) } label: { installText("cancelReview") }
                     }
                 } else {
+                    if controller.loadingPage { ProgressView { installText("loading") } }
+                    if controller.pageIssue != nil {
+                        installText("readOrOutcomeUnavailable").fixedSize(horizontal: false, vertical: true)
+                    }
                     if let issue = controller.issue {
                         Section {
                             installText(issue == .storageUnavailable || issue == .pendingConflict ? "storageBlocked" : issue == .disabled ? "notConfigured" : "readOrOutcomeUnavailable")
@@ -82,6 +88,7 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                             installText("unknownNote").fixedSize(horizontal: false, vertical: true)
                             if let outcome = controller.outcome { installText("state." + outcome.state.rawValue) }
                             Button { schedule(controller.offerStatus(displayed)) } label: { installText("checkOutcome") }
+                                .disabled(controller.loadingPage)
                             Button { controller.reviewRecovery(appearance: displayed) } label: { installText("reviewSameRequest") }
                         } header: { installText("pending") }
                     } else if controller.phase != .failed {
@@ -119,6 +126,7 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                         }
                         if let cursor = controller.nextHistoryCursor {
                             Button { schedule(controller.offerLoad(displayed, beforeHistory: cursor)) } label: { installText("moreHistory") }
+                                .disabled(controller.loadingPage)
                         }
                     } header: { installText("history") }
                 }
@@ -130,13 +138,28 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                     .accessibilityIdentifier("workshopPaidInstall.close")
             } }
         }
-        .onAppear { schedule(controller.appear(displayed)) }
-        .onDisappear { controller.close(displayed); ownedTask?.cancel() }
+        .disabled(scenePhase != .active)
+        .onAppear {
+            isVisible = true
+            let action = controller.appear(displayed)
+            if scenePhase == .active { schedule(action) }
+            else { controller.suspend(displayed) }
+        }
+        .onDisappear { isVisible = false; controller.close(displayed); ownedTask?.cancel(); ownedTask = nil }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active {
+                controller.suspend(displayed); ownedTask?.cancel(); ownedTask = nil
+            } else if isVisible { schedule(controller.resume(displayed)) }
+        }
     }
     @ViewBuilder private func targetSelection(_ displayed: WorkshopPaidInstallAppearance) -> some View {
         Section {
             if controller.item.status != .active { installText("inactive") }
-            else if controller.targetIssue != nil { installText("targetsUnavailable") }
+            else if controller.targetIssue != nil {
+                installText("targetsUnavailable")
+                Button { schedule(controller.offerLoad(displayed)) } label: { installText("refresh") }
+                    .disabled(controller.loadingPage)
+            }
             else if controller.targets.isEmpty { installText("noTargets") }
             else {
                 Picker(selection: Binding<Int64?>(get: { controller.target?.id }, set: { id in
@@ -148,43 +171,50 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                     }
                 } label: { installText("target") }
                 if let target = controller.target {
-                    InstallFact("targetHash", target.targetPayloadHash)
                     installText("unresolvedMode").fixedSize(horizontal: false, vertical: true)
                     Picker(selection: Binding<String?>(get: { controller.region }, set: { controller.chooseRegion($0, appearance: displayed) })) {
                         installText("chooseRegion").tag(String?.none)
                         ForEach(controller.item.allowedRegions, id: \.self) { region in Text(verbatim: region).tag(Optional(region)) }
                     } label: { installText("region") }
-                    installText("regionPlanningOnly").font(.footnote)
                     Toggle(isOn: Binding(get: { controller.commercialUse }, set: { controller.chooseCommercialUse($0, appearance: displayed) })) { installText("commercial") }
                         .disabled(controller.item.commercialUse != .allowed)
                     Button { controller.review(appearance: displayed) } label: { installText("review") }
                         .disabled(controller.region == nil)
                         .accessibilityIdentifier("workshopPaidInstall.review")
                 }
-                if let cursor = controller.nextTargetCursor {
-                    Button { schedule(controller.offerLoad(displayed, beforeTarget: cursor)) } label: { installText("moreTargets") }
-                }
+            }
+            if let cursor = controller.nextTargetCursor {
+                Button { schedule(controller.offerLoad(displayed, beforeTarget: cursor)) } label: { installText("moreTargets") }
+                    .disabled(controller.loadingPage)
             }
         } header: { installText("targets") }
     }
     @ViewBuilder private func commandFacts(_ command: WorkshopPaidInstallCommand) -> some View {
         Section {
             InstallFact("request", command.requestId); InstallFact("license", command.licenseId)
-            InstallFact("version", command.purchasedVersionId); InstallFact("sourceHash", command.contentHash)
-            InstallFact("termsHash", command.termsHash); InstallFact("target", String(command.targetDraftId))
+            InstallFact("version", command.purchasedVersionId)
+            InstallFact("target", String(command.targetDraftId))
             InstallFact("targetRevision", String(command.targetRevision)); InstallFact("businessType", command.businessType)
-            InstallFact("targetHash", command.targetPayloadHash); InstallFact("region", command.planningRegion)
+            InstallFact("region", command.planningRegion)
             installText(command.commercialUse ? "commercialYes" : "commercialNo")
             installText("unresolvedMode").fixedSize(horizontal: false, vertical: true)
         } header: { installText("confirmation") }
     }
     private func schedule(_ action: WorkshopPaidInstallController.Action?) {
-        guard let action else { return }; ownedTask?.cancel(); ownedTask = Task { await action() }
+        guard isVisible, scenePhase == .active, let action else { return }; ownedTask?.cancel(); ownedTask = Task { await action() }
     }
 }
 private struct InstallFact: View {
     let key: String, value: String
     init(_ key: String, _ value: String) { self.key = key; self.value = value }
-    var body: some View { VStack(alignment: .leading, spacing: 4) { installText(key).font(.caption).foregroundStyle(.secondary); Text(verbatim: value) }.fixedSize(horizontal: false, vertical: true) }
+    @Environment(\.locale) private var locale
+    var body: some View {
+        RevolutInsetRow(title: installLabel(key, locale: locale), value: value)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+private func installLabel(_ key: String, locale: Locale) -> String {
+    String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: "workshopPaidInstall." + key), table: "WorkshopPaidInstall", locale: locale))
 }
 private func installText(_ key: String) -> Text { Text(LocalizedStringKey("workshopPaidInstall." + key), tableName: "WorkshopPaidInstall") }
+

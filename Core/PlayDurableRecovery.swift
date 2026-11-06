@@ -10,6 +10,8 @@ import CryptoKit
     private let owner: PlayRecoveryOwner
     private let completion: PlayEncryptedSlot
     private let paused: PlayEncryptedSlot
+    private let game: PlayEncryptedSlot
+    private let tagRevocation: PlayEncryptedSlot
     #if canImport(Security) && canImport(Darwin)
     private var systemStorage: PlayRecoverySystemStorage?
     var isSystemBacked: Bool { systemStorage != nil }
@@ -35,6 +37,8 @@ import CryptoKit
         self.owner = owner; self.key = key; self.processID = processID
         completion = try PlayEncryptedSlot(binding: key + ":completion", anchors: anchors, ciphertexts: ciphertexts)
         paused = try PlayEncryptedSlot(binding: key + ":paused", anchors: anchors, ciphertexts: ciphertexts)
+        game = try PlayEncryptedSlot(binding: key + ":game", anchors: anchors, ciphertexts: ciphertexts)
+        tagRevocation = try PlayEncryptedSlot(binding: key + ":tag", anchors: anchors, ciphertexts: ciphertexts)
     }
     private func check(_ key: String) throws {
         guard self.key.utf8.elementsEqual(key.utf8) else { throw PlayExperienceError.persistenceUnavailable }
@@ -103,6 +107,67 @@ import CryptoKit
         let old = PlayEncryptedSnapshot(data: snapshot.persistedBytes, generation: snapshot.generation)
         let written = try await paused.write(encode(value), replacing: old)
         return .init(value: value, generation: written.generation, persistedBytes: written.data)
+    }
+}
+/// BK-SESSION game command lock in its own slot; it never shares or blocks the classic completion slot.
+extension PlayDurableRecovery: PlayGameCommandJournal {
+    private func gameCommand(_ raw: PlayEncryptedSnapshot) throws -> PlayGameCommandJournalSnapshot? {
+        guard let data = raw.data else { return nil }
+        let value = try PropertyListDecoder().decode(PlayPendingGameCommand.self, from: data)
+        guard value.owner == owner, let generation = raw.generation else { throw PlayExperienceError.persistenceUnavailable }
+        try value.validateOriginalCommand()
+        return .init(value: value, generation: generation, persistedBytes: data)
+    }
+    public func readGameCommand(_ key: String) async throws -> PlayGameCommandJournalSnapshot? {
+        try check(key)
+        do { return try gameCommand(await game.read()) } catch { throw PlayExperienceError.persistenceUnavailable }
+    }
+    public func recordGameCommand(_ value: PlayPendingGameCommand, key: String) async throws -> PlayGameCommandJournalSnapshot {
+        try check(key)
+        guard value.owner == owner else { throw PlayExperienceError.persistenceUnavailable }
+        try value.validateOriginalCommand()
+        let old = try await game.read()
+        guard old.data == nil else { throw PlayExperienceError.persistenceUnavailable }
+        let next = try await game.write(encode(value), replacing: old)
+        guard let result = try gameCommand(next) else { throw PlayExperienceError.persistenceUnavailable }; return result
+    }
+    public func clearGameCommand(_ snapshot: PlayGameCommandJournalSnapshot, key: String) async throws {
+        try check(key)
+        guard snapshot.value.owner == owner, let bytes = snapshot.persistedBytes,
+              try PropertyListDecoder().decode(PlayPendingGameCommand.self, from: bytes) == snapshot.value else { throw PlayExperienceError.persistenceUnavailable }
+        _ = try await game.write(nil, replacing: .init(data: bytes, generation: snapshot.generation))
+    }
+}
+/// Tag-revocation uncertainty has a separate encrypted CAS slot, with no retry API.
+extension PlayDurableRecovery: PlayTagRevocationRecovery {
+    private func tagRevocationSnapshot(_ raw: PlayEncryptedSnapshot, key: String) throws -> PlayTagRevocationRecoverySnapshot? {
+        guard let data = raw.data else { return nil }
+        let value = try PropertyListDecoder().decode(PlayTagRevocationIntent.self, from: data)
+        guard value.owner == owner, let generation = raw.generation else { throw PlayExperienceError.persistenceUnavailable }
+        try value.validate(key: key)
+        return .init(value: value, generation: generation, persistedBytes: data)
+    }
+    public func readTagRevocation(_ key: String) async throws -> PlayTagRevocationRecoverySnapshot? {
+        try check(key)
+        do { return try tagRevocationSnapshot(await tagRevocation.read(), key: key) }
+        catch { throw PlayExperienceError.persistenceUnavailable }
+    }
+    public func recordTagRevocation(_ intent: PlayTagRevocationIntent, key: String) async throws -> PlayTagRevocationRecoverySnapshot {
+        try check(key)
+        guard intent.owner == owner else { throw PlayExperienceError.persistenceUnavailable }
+        try intent.validate(key: key)
+        let old = try await tagRevocation.read()
+        guard old.data == nil else { throw PlayExperienceError.persistenceUnavailable }
+        let next = try await tagRevocation.write(encode(intent), replacing: old)
+        guard let result = try tagRevocationSnapshot(next, key: key) else { throw PlayExperienceError.persistenceUnavailable }
+        return result
+    }
+    public func clearTagRevocation(_ snapshot: PlayTagRevocationRecoverySnapshot, key: String) async throws {
+        try check(key)
+        try snapshot.value.validate(key: key)
+        guard snapshot.value.owner == owner, let bytes = snapshot.persistedBytes,
+              try PropertyListDecoder().decode(PlayTagRevocationIntent.self, from: bytes) == snapshot.value else { throw PlayExperienceError.persistenceUnavailable }
+        _ = try await tagRevocation.write(nil, replacing: .init(data: bytes, generation: snapshot.generation))
     }
 }
 private struct PlayEncryptedSnapshot: Equatable {

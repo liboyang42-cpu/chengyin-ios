@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "report_date": "2026-10-28",
+  "timezone": "America/Los_Angeles",
+  "repository": "liboyang42-cpu/chengyin-ios",
+  "branch": "migration/native-ios",
+  "commit": "76ce1b313af2595f9b7d7ace49040866209c7974",
+  "tree": "976c0ccba5d371db2594605237d77612a6f19fbb",
+  "main": "a8d387e206ed3994b6d265b3618db0c293f6ec15",
+  "ahead_by": 136,
+  "actions_runs_for_exact_commit_observed": 0,
+  "native_tests_run_this_audit": false,
+  "live_api_called": false,
+  "tools_installed": false,
+  "business_sources_modified": false,
+  "host_observed": {
+    "chip": "Apple M5",
+    "cpu_cores": 10,
+    "memory_gb": 16,
+    "macos": "26.6.1",
+    "xcode": "26.6",
+    "xcode_build": "17F113",
+    "runtime_on_disk": "iOS 26.5",
+    "disk_free_gib_first": 5.0,
+    "disk_free_gib_recheck": 3.2,
+    "simulator_api": "ACCESS_UNAVAILABLE_IN_THIS_SESSION",
+    "node": "24.15.0"
+  },
+  "user_environment_update": {
+    "disk_cleaned_gb": 70,
+    "xcode": "27",
+    "verification": "DIFFERS_FROM_SESSION_OBSERVATION_PENDING_HOST_RECHECK"
+  },
+  "second_mac": "NOT_ACCESSED",
+  "case_count": 92,
+  "case_counts_by_module": {
+    "D 城市定向与主题活动": 5,
+    "E 自由探索与漫游": 4,
+    "F 玩法与模组": 8,
+    "G AI NPC与剧情交互": 4,
+    "K 世界与赛季": 2,
+    "A 用户与账号": 8,
+    "B 消息与社交": 11,
+    "C 组队协作": 7,
+    "H 商家与俱乐部": 8,
+    "I 创作者与内容发布": 6,
+    "J 交易与奖励": 7,
+    "L App基础能力": 14,
+    "M 区域隐私与内容治理": 8
+  },
+  "case_execution_status": "PLANNED_NOT_RUN",
+  "report_sha256": "f7eadb4eddff5ae106fa9dc01d7c2414291062264d3e4f4303f9662d2d555123",
+  "candidate_prs": [
+    121,
+    122,
+    123
+  ],
+  "readiness_blockers": [
+    "approved staging deployment and real accounts",
+    "App-side automatic message reception/recovery",
+    "remote-read receipt contract",
+    "server-state oracle and cleanup",
+    "actual simulator access/toolchain and capacity probe"
+  ]
+}

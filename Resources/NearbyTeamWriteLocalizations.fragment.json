@@ -6,13 +6,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server acknowledged this action. Updated membership still comes from server reads."
+            "value": "Done. Refresh to see the latest membership."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已确认本次操作，成员状态仍以服务端读取为准。"
+            "value": "操作已提交，刷新后可查看最新成员状态。"
           }
         }
       }

@@ -4,6 +4,7 @@ public struct ProjectEditConfirmation: Identifiable, Equatable {
     public let id: UUID
     public let draft: ProjectEditDraft
     public let payload: [String: ProjectEditJSON]
+    public var intent: ProjectEditSubmissionIntent { .from(payload: payload) }
     fileprivate let session: ProjectEditSession?
     fileprivate let baseline: ProjectEditSnapshot
 }
@@ -58,9 +59,33 @@ public struct ProjectEditContinuation {
         return unconfirmedChapterRemovalDrafts.contains(.init(ownerKey: session.ownerKey, bucket: identity.bucket))
     }
     public var session: ProjectEditSession? { currentSession() }
+    /// Original author inputs only; no new draft owner, queue, or publishing authority.
+    public func runtimeStructureInputs(draft: ProjectEditDraft) async throws -> NativeRuntimeStructureAuthorInputs {
+        guard !isLocked, !isBusy, !isReadOnly, snapshot?.scope == .full,
+              let session = capturedSession, session == currentSession(),
+              let source = service as? any NativeRuntimeStructureAuthorReading else { throw ProjectEditError.notConfigured }
+        let stamp = generation
+        let inputs = try await source.runtimeStructureInputs(draft: draft, session: session)
+        guard active(session, stamp), !isLocked, snapshot?.scope == .full else { throw ProjectEditError.changedSession }
+        return inputs
+    }
+    public func runtimeStructureInputsAreCurrent(_ inputs: NativeRuntimeStructureAuthorInputs) -> Bool {
+        guard !isLocked, !isReadOnly, snapshot?.scope == .full,
+              let session = capturedSession, session == currentSession(),
+              let source = service as? any NativeRuntimeStructureAuthorReading else { return false }
+        return source.runtimeStructureInputsAreCurrent(inputs, session: session)
+    }
     public var isBusy: Bool { [.loading, .reviewing, .submitting].contains(state) }
     public var isLocked: Bool { (pending != nil && pending?.completedTopicID == nil) || state == .unknown }
-    public var canSubmit: Bool { canSimulate || service.authority == .approved }
+    public var isReadOnly: Bool { snapshot?.scope == .sellingFrozen }
+    public var canSubmit: Bool { !isReadOnly && (canSimulate || service.authority == .approved) }
+    public var canCheckOutcome: Bool {
+        guard let pending else { return false }
+        return canSimulate || (service.supportsRequestReadback && pending.serverRequest != nil && pending.dispatchStarted == true)
+    }
+    public var canRetrySameRequest: Bool { !canSimulate && service.supportsRequestRetry && pending?.serverRequest != nil && pending?.dispatchStarted == true && pending?.completedTopicID == nil }
+    public var canResumePostProcessing: Bool { service.supportsPostProcessingResume && pending?.serverRequestCommitted == true && pending?.postProcessing?.canResume == true }
+    public var hasCommittedRequestReceipt: Bool { pending?.serverRequestCommitted == true }
     public var canSimulate: Bool {
         #if DEBUG
         return service.authority == .synthetic
@@ -109,6 +134,13 @@ public struct ProjectEditContinuation {
         if let isolatedOwner, isolatedOwner != session { state = .blocked; snapshot = nil; messageKey = "projectEdit.memberMismatch"; return }
         generation += 1; let stamp = generation; state = .loading; confirmation = nil; issues = []
         do {
+            // Recover the existing lock before a network preflight, so a temporary detail-reader
+            // outage does not hide the normal exact-request read button on re-entry.
+            let recoveryTarget: ProjectEditDraftIdentity
+            if let id = initial.topicID { recoveryTarget = try .init(topicID: id) }
+            else if let isolatedDraftIdentity { recoveryTarget = isolatedDraftIdentity }
+            else { recoveryTarget = try store.activeIdentity(session: session, product: initial.draft.product, owner: initial.draft.owner) ?? ProjectEditDraftIdentity() }
+            identity = recoveryTarget; pending = try store.pending(session: session, identity: recoveryTarget)
             let baseline: ProjectEditSnapshot
             if let id = initial.topicID {
                 guard service.authority != .disabled else { throw ProjectEditError.notConfigured }
@@ -127,13 +159,15 @@ public struct ProjectEditContinuation {
             restore = store.load(session: session, identity: target, baseline: baseline.draft)
             state = pending == nil ? .idle : (pending?.completedTopicID == nil ? .unknown : (pending?.serverAcknowledged == true ? .acknowledged : .simulated))
             messageKey = pending == nil ? (canSimulate ? "projectEdit.fixtureNotice" : "projectEdit.unconfigured") : (pending?.completedTopicID == nil ? "projectEdit.unknown" : (pending?.serverAcknowledged == true ? "projectEdit.acknowledged" : "projectEdit.simulated"))
+            if pending == nil, isReadOnly { messageKey = nil }
         } catch {
             guard active(session, stamp) else { return }
-            state = .blocked; messageKey = error as? ProjectEditError == .notConfigured ? "projectEdit.unconfigured" : "projectEdit.loadFailed"
+            if pending != nil { state = .unknown; messageKey = "projectEdit.unknown" }
+            else { state = .blocked; messageKey = error as? ProjectEditError == .notConfigured ? "projectEdit.unconfigured" : "projectEdit.loadFailed" }
         }
     }
     public func restoredDraft() -> ProjectEditDraft? {
-        guard !isBusy, !isLocked, capturedSession == currentSession(), let baseline = snapshot,
+        guard !isReadOnly, !isBusy, !isLocked, capturedSession == currentSession(), let baseline = snapshot,
               case .ready(let envelope) = restore else { return nil }
         guard baseline.scope != .whitelist || envelope.draft.whitelistLockedFieldsEqual(to: baseline.draft) else {
             messageKey = "projectEdit.lockedFields"; return nil
@@ -143,12 +177,12 @@ public struct ProjectEditContinuation {
         return draft
     }
     public func discardLocalDraft() {
-        guard !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, let session = capturedSession, session == currentSession(), let identity else { return }
+        guard !isReadOnly, !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, let session = capturedSession, session == currentSession(), let identity else { return }
         do { try store.remove(session: session, identity: identity); restore = .missing; messageKey = "projectEdit.localRemoved" }
         catch { messageKey = "projectEdit.localFailed" }
     }
     @discardableResult public func saveLocal(_ draft: ProjectEditDraft) -> Bool {
-        guard !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, state != .blocked, state != .simulated, state != .acknowledged, let session = capturedSession, session == currentSession(), let identity,
+        guard !isReadOnly, !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, state != .blocked, state != .simulated, state != .acknowledged, let session = capturedSession, session == currentSession(), let identity,
               let baseline = snapshot, baseline.draft.product == draft.product, baseline.draft.owner == draft.owner,
               baseline.scope != .whitelist || draft.whitelistLockedFieldsEqual(to: baseline.draft) else { return false }
         // Never overwrite an unreviewed saved draft/conflict with the blank baseline.
@@ -230,11 +264,15 @@ public struct ProjectEditContinuation {
             messageKey = "projectEdit.localSaved"; return true
         } catch { messageKey = "projectEdit.localFailed"; return false }
     }
-    public func prepare(_ draft: ProjectEditDraft) {
+    public var canSaveCloudDraft: Bool { snapshot?.scope == .full && (snapshot?.topicID == nil || snapshot?.isServerDraft == true) }
+    public var canSubmitServerDraft: Bool { snapshot?.scope == .full && snapshot?.topicID != nil && snapshot?.isServerDraft == true }
+    public var savedCloudDraft: Bool { capturedSession == currentSession() && pending?.ownerKey == currentSession()?.ownerKey && pending?.serverRequestCommitted == true && pending?.payload["saveDraft"] == .number(1) }
+    public func prepare(_ draft: ProjectEditDraft, intent: ProjectEditSubmissionIntent = .ordinary) {
         synchronizeSession(); confirmation = nil
-        guard !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, state != .blocked, state != .simulated, state != .acknowledged, capturedSession == currentSession(), let baseline = snapshot else { return }
+        guard !isReadOnly, !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, state != .blocked, state != .simulated, state != .acknowledged, capturedSession == currentSession(), let baseline = snapshot else { return }
         let session = capturedSession
-        issues = ProjectEditValidation.issues(draft, scope: baseline.scope, baseline: baseline)
+        if intent == .saveCloudDraft && !canSaveCloudDraft || intent == .submitServerDraft && !canSubmitServerDraft { return }
+        issues = intent.issues(draft, scope: baseline.scope, baseline: baseline)
         guard issues.isEmpty else { messageKey = "projectEdit.invalid"; return }
         guard draft.product == baseline.draft.product, draft.owner == baseline.draft.owner,
               draft.baseRevision == baseline.draft.baseRevision,
@@ -242,7 +280,7 @@ public struct ProjectEditContinuation {
             messageKey = "projectEdit.lockedFields"; return
         }
         do {
-            let payload = try ProjectEditContract.payload(draft, topicID: baseline.topicID, scope: baseline.scope, baseline: baseline)
+            let payload = try ProjectEditContract.payload(draft, topicID: baseline.topicID, scope: baseline.scope, baseline: baseline, intent: intent)
             confirmation = .init(id: UUID(), draft: draft, payload: payload, session: session, baseline: baseline)
             messageKey = canSimulate ? "projectEdit.fixtureNotice" : "projectEdit.unconfigured"
         } catch { messageKey = "projectEdit.invalid" }
@@ -251,7 +289,7 @@ public struct ProjectEditContinuation {
     public func leaveScreen() { generation += 1; confirmation = nil; if state != .simulated && state != .acknowledged { state = isLocked ? .unknown : .idle } }
     public func confirm(_ value: ProjectEditConfirmation) async {
         synchronizeSession()
-        guard !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, confirmation == value, currentSession() == value.session else { return }
+        guard !isReadOnly, value.baseline.scope.allowsEditing, !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, confirmation == value, currentSession() == value.session else { return }
         guard let session = value.session, let identity else { messageKey = "projectEdit.signIn"; confirmation = nil; return }
         guard canSubmit else { messageKey = "projectEdit.unconfigured"; confirmation = nil; return }
         generation += 1; let stamp = generation
@@ -260,7 +298,7 @@ public struct ProjectEditContinuation {
             let check = try await service.preflight(topicID: value.baseline.topicID, session: session)
             guard active(session, stamp) else { return }
             if value.baseline.topicID == nil {
-                guard check.capability.allowsCreate else { state = .blocked; messageKey = "projectEdit.capabilityBlocked"; return }
+                guard value.intent == .saveCloudDraft || check.capability.allowsCreate else { state = .blocked; messageKey = "projectEdit.capabilityBlocked"; return }
             } else {
                 guard check.snapshot == value.baseline,
                       ProjectChapterRecruitmentCarryOver.matchesFresh(check.snapshot, baseline: value.baseline) else { state = .blocked; messageKey = "projectEdit.revisionConflict"; return }
@@ -285,7 +323,30 @@ public struct ProjectEditContinuation {
         }
     }
     private func apply(_ result: ProjectEditWriteOutcome, operation: ProjectEditPending, session: ProjectEditSession) {
+        // HTTP submission stamps the exact protocol into durable storage before sending.
+        // Preserve it, and never clear/overwrite a newer operation using a stale callback.
+        guard let durable = try? store.pending(session: session, identity: operation.identity),
+              durable.operationID == operation.operationID, durable.ownerKey == operation.ownerKey,
+              durable.identity == operation.identity,
+              ProjectEditPendingMaterials.exactData(durable.payload) == ProjectEditPendingMaterials.exactData(operation.payload),
+              ProjectEditPendingMaterials.exactData(durable.baseline) == ProjectEditPendingMaterials.exactData(operation.baseline) else {
+            state = .unknown; messageKey = "projectEdit.unknown"; return
+        }
+        let operation = durable; pending = durable
+        if operation.serverRequestCommitted == true {
+            switch result {
+            case .committedReceipt, .postProcessingReceipt, .unknown: break
+            default:
+                // A later unavailable/rejected read is not permission to erase a
+                // previously matched same-transaction writer fact.
+                state = .acknowledged; messageKey = "projectEdit.unknown"; return
+            }
+        }
         switch result {
+        case .postProcessingReceipt(let operationID, let topicID, let bundle, let receipt):
+            acknowledge(operationID: operationID, topicID: topicID, bundle: bundle, operation: operation, session: session, committedRequest: true, postProcessing: receipt)
+        case .committedReceipt(let operationID, let topicID, let bundle):
+            acknowledge(operationID: operationID, topicID: topicID, bundle: bundle, operation: operation, session: session, committedRequest: true)
         case .simulatedReceipt(let operationID, let topicID):
             guard operationID == operation.operationID, topicID > 0,
                   operation.identity.topicID == nil || operation.identity.topicID == topicID else { state = .unknown; messageKey = "projectEdit.unknown"; return }
@@ -304,15 +365,19 @@ public struct ProjectEditContinuation {
                 state = result == .rejected ? .rejected : .notSent
                 messageKey = result == .rejected ? "projectEdit.rejected" : "projectEdit.notSent"
             } catch { state = .unknown; messageKey = "projectEdit.unknown" }
-        case .unknown: state = .unknown; messageKey = "projectEdit.unknown"
+        case .unknown:
+            state = operation.serverAcknowledged == true && operation.completedTopicID != nil ? .acknowledged : .unknown
+            messageKey = "projectEdit.unknown"
         }
     }
-    private func acknowledge(operationID: UUID, topicID: Int, bundle: ProjectEditBundleAcknowledgment?, operation: ProjectEditPending, session: ProjectEditSession) {
+    private func acknowledge(operationID: UUID, topicID: Int, bundle: ProjectEditBundleAcknowledgment?, operation: ProjectEditPending, session: ProjectEditSession, committedRequest: Bool = false, postProcessing: ProjectEditPostProcessingReceipt? = nil) {
         guard operationID == operation.operationID, topicID > 0,
               operation.identity.topicID == nil || operation.identity.topicID == topicID else { state = .unknown; messageKey = "projectEdit.unknown"; return }
         do {
             var completed = operation; completed.completedTopicID = topicID; completed.serverAcknowledged = true
             completed.bundleAcknowledgment = bundle
+            completed.serverRequestCommitted = committedRequest
+            completed.postProcessing = postProcessing ?? operation.postProcessing
             try store.savePending(completed, session: session)
             pending = completed; state = .acknowledged; messageKey = "projectEdit.acknowledged"
         } catch { state = .unknown; messageKey = "projectEdit.unknown" }
@@ -342,6 +407,15 @@ public struct ProjectEditContinuation {
             guard active(session, stamp) else { return false }
             guard let fresh = value.snapshot, fresh.topicID == id, fresh.draft.owner == initial.draft.owner,
                   !fresh.draft.baseRevision.isEmpty else { throw ProjectEditError.invalidContract }
+            if !fresh.scope.allowsEditing {
+                guard let current = try store.pending(session: session, identity: expected.identity),
+                      ProjectEditLocalStore.exactPending(current, expected) else { throw ProjectEditContinuationFailure.changedPending }
+                // This read is a server fact, not permission to start another edit.
+                // Retain the submitted draft and acknowledged journal for a later
+                // explicit reread; never overwrite them with a frozen projection.
+                snapshot = fresh; state = .acknowledged; messageKey = nil
+                return true
+            }
             try store.advanceAcknowledged(expected, baseline: fresh, session: session, isCurrent: { self.active(session, stamp) })
             guard active(session, stamp) else { return false }
             snapshot = fresh; self.pending = nil; restore = .missing; state = .idle
@@ -359,15 +433,34 @@ public struct ProjectEditContinuation {
     }
     public func checkOutcome() async {
         synchronizeSession()
-        guard !isBusy, let session = capturedSession, let pending, canSimulate else { return }
+        guard !isBusy, let session = capturedSession, let pending, canCheckOutcome else { return }
         generation += 1; let stamp = generation; state = .reviewing
         do {
-            let receipt = try await service.terminalReceipt(operationID: pending.operationID, session: session)
+            let receipt = try await service.terminalReceipt(operation: pending, session: session)
             guard active(session, stamp) else { return }
             if let receipt { apply(receipt, operation: pending, session: session) }
-            else { state = .unknown; messageKey = "projectEdit.unknown" }
+            else { state = pending.serverAcknowledged == true ? .acknowledged : .unknown; messageKey = "projectEdit.unknown" }
         } catch {
-            guard active(session, stamp) else { return }; state = .unknown; messageKey = "projectEdit.unknown"
+            guard active(session, stamp) else { return }; state = pending.serverAcknowledged == true ? .acknowledged : .unknown; messageKey = "projectEdit.unknown"
         }
     }
+    /// Never called by load, authentication changes, scene activation or receipt reads.
+    public func retrySameRequest() async {
+        synchronizeSession()
+        guard !isBusy, canRetrySameRequest, let session = capturedSession, let pending else { return }
+        generation += 1; let stamp = generation; state = .submitting
+        let result = await service.retrySameRequest(pending, session: session)
+        guard active(session, stamp) else { return }
+        apply(result, operation: pending, session: session)
+    }
+
+    public func resumePostProcessing() async {
+        synchronizeSession()
+        guard !isBusy, canResumePostProcessing, let session = capturedSession, let pending else { return }
+        generation += 1; let stamp = generation; state = .submitting
+        let result = await service.resumePostProcessing(pending, session: session)
+        guard active(session, stamp) else { return }
+        apply(result, operation: pending, session: session)
+    }
+
 }

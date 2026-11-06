@@ -20,7 +20,7 @@ public struct IMConversationReplyPolicy: Equatable {
     public func permits(_ mutation: IMMutation) -> Bool {
         guard isValidConversation, mutation.conversationID == conversationID else { return false }
         switch mutation {
-        case .read, .mute: return true
+        case .read, .readCursor, .mute: return true
         case .send: return permitsReply
         case .start: return false
         }

@@ -295,8 +295,19 @@ public struct MerchantBusinessDocument: Equatable {
             sections = [try section("batch", [batch], .batch), try section("earnings", object.mbObjects("earningEntries"), .entry), try section("adjustments", object.mbObjects("adjustments"), .entry)]
         case .redemption(let id):
             guard object.mbText("recordKey") == "redemption:\(id)" else { throw MerchantBusinessFailure.malformed }
-            if let returned = object["recordId"]?.numberText, returned != id { throw MerchantBusinessFailure.malformed }
-            if let type = object.mbText("recordType"), type != "redemption" { throw MerchantBusinessFailure.malformed }
+            guard object["recordId"]?.numberText == id,
+                  object.mbText("recordType") == "redemption",
+                  let fulfillment = object.mbText("fulfillmentState"), !fulfillment.isEmpty else {
+                throw MerchantBusinessFailure.malformed
+            }
+            // Original detail is either a full finance projection or wholly redacted.
+            // Neither historical payment facts nor unknown state names grant permission.
+            let financeKeys = ["settlementState", "settlementRoute", "displayState"]
+            let completeFinance = financeKeys.allSatisfy { !(object.mbText($0) ?? "").isEmpty }
+            let redactedFinance = (financeKeys + ["settlementAmount", "publicSettlement"]).allSatisfy {
+                object[$0] == nil || object[$0] == .null
+            }
+            guard completeFinance || redactedFinance else { throw MerchantBusinessFailure.malformed }
             sections = [try section("redemption", [object], .redemption)]
         case .verificationRecords:
             let values = try (payload.array ?? object.mbArray("rows"))

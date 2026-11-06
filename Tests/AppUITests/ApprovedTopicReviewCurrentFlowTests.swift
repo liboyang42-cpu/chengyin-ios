@@ -9,7 +9,7 @@ import XCTest
         let app = XCUIApplication(); self.app = app
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", chinese ? "(zh-Hans)" : "(en)", "-AppleLocale", chinese ? "zh_CN" : "en_US", "--uitesting-module", "projectEdit", "--project-edit-bundle-ack", "--project-review-request", "--project-review-current", "--project-edit-starter-probe"] + flags
         if chinese { app.launchArguments += ["--uitesting-max-text", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
-        app.launch(); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5))
+        app.launch(); XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5))
         if chinese { assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5") }
         return app
     }
@@ -52,7 +52,7 @@ import XCTest
         XCTAssertTrue(app.staticTexts["topicReview.current.notice"].exists); XCTAssertFalse(app.buttons["approvedRelease.publish"].exists)
         tap("topicReview.close",in:app,fixed:true); tap("topicReview.fixture.simulateApproval",in:app,fixed:true); tap("topicReview.open",in:app)
         XCTAssertFalse(app.staticTexts["topicReview.current.state"].exists); tap("topicReview.current.read",in:app)
-        value("topicReview.current.state","Review task approved",in:app); value("topicReview.current.version","1",in:app)
+        value("topicReview.current.state","Review passed",in:app); value("topicReview.current.version","1",in:app)
         value("topicReview.submittedState","Pending review",in:app); value("topicReview.requestID",request,in:app)
         XCTAssertFalse(app.buttons["approvedRelease.publish"].exists); tap("topicReview.close",in:app,fixed:true)
         assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .history, maximumSwipes: 70, revealFirst: true); assertProjectSubmissionEvidenceValue("projectSubmission.submittedState", "Pending", in: app, phase: .history, maximumSwipes: 70, revealFirst: true)

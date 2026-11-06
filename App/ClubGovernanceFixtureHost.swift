@@ -41,13 +41,12 @@ import Observation
                 NavigationLink { ClubOwnerRefundFixtureView(scenario: .disabled) } label: { Text("club.refund.fixtureDisabled") }.accessibilityIdentifier("club.refund.fixtureDisabled")
                 NavigationLink {
                     ClubEnrollmentView(clubID: 81, focusTopicID: 91, identity: store.identity, access: store.access, coordinator: store.coordinator)
-                        .environment(\.clubEnrollmentProfile, .init(reader: SocialAccountFixtureReader(.content), squareReader: SquareFixtureReader()))
                         .toolbar { ToolbarItem(placement: .bottomBar) { Button("club.gov.switchAccount") { store.switchAccount() }.accessibilityIdentifier("club.gov.switchAccount") } }
                 } label: { Text("club.enroll.title") }.accessibilityIdentifier("club.enroll.fixture")
                 ClubGovernanceHomeEntries(identity: store.identity, access: store.access, coordinator: store.coordinator)
                 ClubGovernanceEntryButton(clubID: 81, identity: store.identity, access: store.access, coordinator: store.coordinator,
                     customerTopics: .init(destination: { id in AnyView(Text(verbatim: "Synthetic history topic \(id)").accessibilityIdentifier("club.fixture.historyTopic.\(id)")) }))
-                ForEach([ClubGovernanceRead.customers, .series, .roles, .topicOverview, .editions, .dissolutionBlockers, .leaderboard, .settlement, .audienceCounts, .roster], id: \.rawValue) { operation in
+                ForEach([ClubGovernanceRead.customers, .series, .roles, .topicOverview, .editions, .dissolutionBlockers, .leaderboard, .settlement, .audienceCounts, .roster, .cases, .bans], id: \.rawValue) { operation in
                     NavigationLink {
                         ClubGovernanceReadView(operation: operation, scope: ClubGovernanceFixtures.scope, identity: store.identity, access: store.access, coordinator: store.coordinator)
                             .accessibilityIdentifier("club.gov.fixture.destination." + operation.rawValue)
@@ -62,6 +61,7 @@ import Observation
                 }
                 Button("club.gov.switchAccount") { store.switchAccount() }.accessibilityIdentifier("club.gov.switchAccount")
                 Button("club.gov.simulateUnknown") { store.access.writeFailure = .unknown(message: nil) }.accessibilityIdentifier("club.gov.simulateUnknown")
+                ClubOpsFixtureControls(access: store.access)
             }.accessibilityIdentifier("club.gov.fixture.root").navigationTitle("club.gov.workspace")
         }.environment(\.clubEnrollmentProfile, store.leaderboardProfile)
     }

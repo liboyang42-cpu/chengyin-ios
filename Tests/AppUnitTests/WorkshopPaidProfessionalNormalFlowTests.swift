@@ -170,4 +170,163 @@ import UIKit
         p.open(makeReference:{reference},makeController:factory); let fresh = try XCTUnwrap(p.selection)
         p.replace(nil,expected:old.id); p.dismiss(old); XCTAssertTrue(p.selection === fresh)
     }
+    func testGeneratedReferenceRequiresCurrentCreatedReceiptWithoutWriteOrBodyGrant() async throws {
+        let h = try Harness(); defer { h.clean() }; await h.login(); try h.approve(write:false,prepare:false)
+        h.wire.command = try F.command(); h.wire.state = "CREATED"
+        let c = try h.controller(), a = WorkshopPaidProfessionalAppearance()
+        await (try XCTUnwrap(c.appear(a)))()
+        await (try XCTUnwrap(c.offerInspect(XCTUnwrap(c.operations.first),displayed:a)))()
+        let result = try XCTUnwrap(c.operation)
+        XCTAssertEqual(c.generatedTemplateID(a,expected:result),700)
+        XCTAssertNil(c.generatedTemplateID(WorkshopPaidProfessionalAppearance(),expected:result))
+        XCTAssertTrue(h.wire.writes.isEmpty)
+        XCTAssertFalse(h.session.makeOwnedMemberTemplateReader().isConfigured,
+                       "Historical metadata and professional grants must not grant independent owner reads")
+        c.close(a)
+        XCTAssertNil(c.generatedTemplateID(a,expected:result))
+    }
+    func testGeneratedReferenceRejectsNonCreatedAndSupersededOperation() async throws {
+        let h = try Harness(); defer { h.clean() }; await h.login(); try h.approve(write:false,prepare:false)
+        h.wire.command = try F.command(); h.wire.state = "CREATED"
+        let c = try h.controller(), a = WorkshopPaidProfessionalAppearance()
+        await (try XCTUnwrap(c.appear(a)))()
+        await (try XCTUnwrap(c.offerInspect(XCTUnwrap(c.operations.first),displayed:a)))()
+        let old = try XCTUnwrap(c.operation)
+        for state in ["PREPARED","CANCELLED","REJECTED"] {
+            let nonCreated = try F.decode(WorkshopPaidProfessionalOperation.self,F.operation(try F.command(),state:state))
+            XCTAssertNil(c.generatedTemplateID(a,expected:nonCreated))
+        }
+        await (try XCTUnwrap(c.offerAcknowledge(a)))()
+        XCTAssertNil(c.generatedTemplateID(a,expected:old))
+        XCTAssertTrue(h.wire.writes.isEmpty)
+    }
+    func testGeneratedReferenceRejectsConfigurationABA() async throws {
+        let h = try Harness(); defer { h.clean() }; await h.login(); try h.approve(write:false,prepare:false)
+        h.wire.command = try F.command(); h.wire.state = "CREATED"
+        let c = try h.controller(), a = WorkshopPaidProfessionalAppearance()
+        await (try XCTUnwrap(c.appear(a)))()
+        await (try XCTUnwrap(c.offerInspect(XCTUnwrap(c.operations.first),displayed:a)))()
+        let result = try XCTUnwrap(c.operation), grant = h.read
+        h.session.withWorkshopReadConfigurationChange { h.read = nil; h.read = grant }
+        XCTAssertNil(c.generatedTemplateID(a,expected:result))
+        XCTAssertTrue(h.wire.writes.isEmpty)
+    }
+    func testGeneratedDetailVisitRetirementDoesNotRetireNewVisitOrReceipt() async throws {
+        let command = try F.command(), id = try XCTUnwrap(MemberPlayTemplateID(rawValue:700))
+        let result = try F.decode(WorkshopPaidProfessionalOperation.self,F.operation(command,state:"CREATED"))
+        let old = WorkshopGeneratedDetailSelection(templateID:id,operation:result)
+        let fresh = WorkshopGeneratedDetailSelection(templateID:id,operation:result)
+        XCTAssertNotEqual(old.id,fresh.id); old.retire(); old.retire()
+        XCTAssertFalse(old.live); XCTAssertTrue(fresh.live)
+        XCTAssertEqual(fresh.operation,result)
+    }
+
+    private final class DetailWire: HTTPTransport {
+        var response = Data(#"{"code":200,"data":{"id":700,"memberId":7,"name":"Generated"}}"#.utf8)
+        var status = 200, calls = 0, suspended: CheckedContinuation<Void,Never>?, delay = false
+        func send(_ request: URLRequest) async throws -> (Data,Int) {
+            calls += 1
+            XCTAssertTrue(request.url!.path.hasSuffix("/api/template/myinfo"))
+            if delay { await withCheckedContinuation { suspended = $0 } }
+            return (response,status)
+        }
+    }
+    func testGeneratedDetailLate401AfterCloseDoesNotExpireCurrentOwner() async throws {
+        let h = try Harness(); defer { h.clean() }; await h.login()
+        let context = try h.context(), wire = DetailWire(); wire.status = 401; wire.delay = true
+        let approval = try TemplateShelfReadApproval(context:context,expiresAt:Date().addingTimeInterval(600))
+        var expired = 0, live = true
+        let transport = TemplateShelfReadTransport(configuration:try .init(baseURL:h.base),http:wire,approval:approval,current:{context},onUnauthorized:{expired += 1})
+        let reader = WorkshopGeneratedTemplateReader(base:OwnedMemberTemplateReader(transport:transport,authenticated:{true}),current:{live})
+        let id = try XCTUnwrap(MemberPlayTemplateID(rawValue:700))
+        let task = Task { do { _ = try await reader.memberTemplate(id:id); XCTFail("Stale response accepted") } catch { } }
+        for _ in 0..<1000 { if wire.suspended != nil { break }; await Task.yield() }
+        let continuation = try XCTUnwrap(wire.suspended); live = false; continuation.resume(); await task.value
+        XCTAssertEqual(expired,0); XCTAssertEqual(wire.calls,1)
+        do { _ = try await reader.memberTemplate(id:id); XCTFail("Retired visit read") } catch { }
+        XCTAssertEqual(wire.calls,1)
+    }
+    func testGeneratedDetailCurrent401PreservesUnauthorizedHandling() async throws {
+        let h = try Harness(); defer { h.clean() }; await h.login()
+        let context = try h.context(), wire = DetailWire(); wire.status = 401
+        let approval = try TemplateShelfReadApproval(context:context,expiresAt:Date().addingTimeInterval(600))
+        var expired = 0
+        let transport = TemplateShelfReadTransport(configuration:try .init(baseURL:h.base),http:wire,approval:approval,current:{context},onUnauthorized:{expired += 1})
+        let reader = WorkshopGeneratedTemplateReader(base:OwnedMemberTemplateReader(transport:transport,authenticated:{true}),current:{true})
+        do { _ = try await reader.memberTemplate(id:try XCTUnwrap(MemberPlayTemplateID(rawValue:700))); XCTFail() }
+        catch { XCTAssertEqual(error as? APIError,.unauthorized) }
+        XCTAssertEqual(expired,1)
+    }
+    func testGeneratedDetailIndependentOwnerReadRejectsWrongOwnerAndRetries() async throws {
+        let h = try Harness(); defer { h.clean() }; await h.login()
+        let context = try h.context(), wire = DetailWire()
+        let approval = try TemplateShelfReadApproval(context:context,expiresAt:Date().addingTimeInterval(600))
+        let transport = TemplateShelfReadTransport(configuration:try .init(baseURL:h.base),http:wire,approval:approval,current:{context})
+        let reader = WorkshopGeneratedTemplateReader(base:OwnedMemberTemplateReader(transport:transport,authenticated:{true}),current:{true})
+        let id = try XCTUnwrap(MemberPlayTemplateID(rawValue:700)), good = wire.response
+        for body in [#"{"code":200,"data":{"id":700,"memberId":8}}"#,
+                     #"{"code":200,"data":{"id":701,"memberId":7}}"#] {
+            wire.response = Data(body.utf8)
+            do { _ = try await reader.memberTemplate(id:id); XCTFail("Mismatched owner/id") } catch { }
+        }
+        wire.response = good
+        let detail = try await reader.memberTemplate(id:id)
+        XCTAssertEqual(detail.id,id); XCTAssertEqual(detail.memberID,7); XCTAssertEqual(wire.calls,3)
+        approval.revoke()
+        do { _ = try await reader.memberTemplate(id:id); XCTFail("Revoked grant") } catch { }
+        XCTAssertEqual(wire.calls,3)
+    }
+    func testGeneratedDetailRefreshSynchronouslyRetiresOldRevisionEvenForSameReceipt() async throws {
+        let h = try Harness(); defer { h.clean() }; await h.login(); try h.approve(write:false,prepare:false)
+        h.wire.command = try F.command(); h.wire.state = "CREATED"
+        let c = try h.controller(), a = WorkshopPaidProfessionalAppearance()
+        await (try XCTUnwrap(c.appear(a)))()
+        await (try XCTUnwrap(c.offerInspect(XCTUnwrap(c.operations.first),displayed:a)))()
+        let revision = c.generatedDetailRevision, receipt = c.operation
+        let refresh = try XCTUnwrap(c.offerRefreshStatus(a))
+        XCTAssertNotEqual(c.generatedDetailRevision,revision)
+        await refresh()
+        XCTAssertEqual(c.operation,receipt); XCTAssertNotEqual(c.generatedDetailRevision,revision)
+        XCTAssertTrue(h.wire.writes.isEmpty)
+    }
+
+    func testGeneratedReceiptConfigurationUsesSameOwnerReadAndRetiresOnRefresh() async throws {
+        let h = try Harness(); defer { h.clean() }; await h.login(); try h.approve(write: false, prepare: false)
+        h.wire.command = try F.command(); h.wire.state = "CREATED"
+        let c = try h.controller(), a = WorkshopPaidProfessionalAppearance()
+        await (try XCTUnwrap(c.appear(a)))()
+        await (try XCTUnwrap(c.offerInspect(XCTUnwrap(c.operations.first), displayed: a)))()
+        let result = try XCTUnwrap(c.operation), id = try XCTUnwrap(MemberPlayTemplateID(rawValue: 700))
+        let context = try h.context(), wire = DetailWire()
+        wire.response = Data(#"{"code":200,"data":{"id":700,"memberId":7,"title":"Generated","validationMethod":1,"questionAnswer":"Owner answer"}}"#.utf8)
+        let approval = try TemplateShelfReadApproval(context: context, expiresAt: Date().addingTimeInterval(600))
+        let transport = TemplateShelfReadTransport(configuration: try .init(baseURL: h.base), http: wire,
+            approval: approval, current: { context })
+        let reader = OwnedMemberTemplateReader(transport: transport, authenticated: { true })
+        let selection = WorkshopGeneratedDetailSelection(templateID: id, operation: result, reader: reader, revision: c.generatedDetailRevision)
+        let host = reader.configurationHost(id: id, acceptsResult: {
+            selection.live && selection.revision == c.generatedDetailRevision && c.generatedTemplateID(a, expected: result) == 700
+        })
+        XCTAssertEqual(wire.calls, 0)
+        await host.load(id: id)
+        XCTAssertEqual(host.snapshot?.field(.questionAnswer), .value("Owner answer")); XCTAssertEqual(wire.calls, 1)
+        _ = try XCTUnwrap(c.offerRefreshStatus(a))
+        XCTAssertNil(host.snapshot)
+        await host.load(id: id); XCTAssertEqual(wire.calls, 1)
+        XCTAssertTrue(h.wire.writes.isEmpty)
+    }
+    func testGeneratedReceiptDoesNotGrantIndependentConfigurationRead() async throws {
+        let h = try Harness(); defer { h.clean() }; await h.login(); try h.approve(write: false, prepare: false)
+        let id = try XCTUnwrap(MemberPlayTemplateID(rawValue: 700))
+        let reader = h.session.makeOwnedMemberTemplateReader()
+        let calls = h.wire.requests.count
+        let host = reader.configurationHost(id: id, acceptsResult: { true })
+        XCTAssertFalse(host.available)
+        await host.load(id: id); XCTAssertNil(host.snapshot)
+        XCTAssertEqual(h.wire.requests.count, calls); XCTAssertTrue(h.wire.writes.isEmpty)
+    }
+    func testGeneratedDetailEnvironmentIsNilByDefaultForStandaloneFixtures() {
+        XCTAssertNil(EnvironmentValues().workshopGeneratedTemplateReaderFactory)
+    }
+
 }

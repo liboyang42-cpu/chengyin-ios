@@ -29,6 +29,7 @@ import SwiftUI
         TicketWalletPlayProvider(reader: session.ticketWalletReader, revision: session.sessionRevision,
             currentRevision: { session.sessionRevision }) { entry in
             AnyView(SessionPlayRuntimeView(session: session, destination: .journey(entry.scope))
+                .environment(\.playThemeAuxiliaryProvider, session.playThemeAuxiliaryProvider)
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         NavigationLink {
@@ -42,15 +43,78 @@ import SwiftUI
         }
     }
 }
-@MainActor private final class RoamEnrolledChaptersViewModel: ObservableObject {
+/// A presentation ticket belongs to one foreground visit, not merely the current account.
+/// The original Core model still owns the wallet projection and pushed-detail snapshot.
+@MainActor final class RoamEnrolledChaptersViewModel: ObservableObject {
     let model: RoamEnrolledChaptersModel
     @Published private var revision = 0
+    private var mounted = false
+    private var foreground = false
+    private var visit = UUID()
+    private var work: Task<Void, Never>?
+    var isVisible: Bool { mounted && foreground }
     init(roam: any RoamExperienceReading, tickets: any TicketWalletReading) {
         model = .init(roam: roam, tickets: tickets)
         model.onChange = { [weak self] in self?.revision &+= 1 }
     }
+    func appear(foreground: Bool) {
+        mounted = true; self.foreground = foreground
+        retire(preservingSnapshot: false)
+        if foreground { model.appear(); readAction()() }
+    }
+    func disappear(preservingSnapshot: Bool) {
+        mounted = false; retire(preservingSnapshot: preservingSnapshot)
+    }
+    func setForeground(_ value: Bool, preservingSnapshot: Bool) {
+        guard foreground != value else { return }
+        foreground = value
+        retire(preservingSnapshot: preservingSnapshot)
+        // A foreground notification cannot remount a list hidden behind its original detail.
+        if value && mounted { model.appear(); readAction()() }
+    }
+    private func retire(preservingSnapshot: Bool) {
+        visit = UUID(); work?.cancel(); work = nil
+        if preservingSnapshot { model.cancelPending() } else { model.invalidate() }
+        revision &+= 1
+    }
+    private func accepts(_ offered: UUID, owner: RoamEnrolledChaptersOwner) -> Bool {
+        isVisible && offered == visit && owner == model.owner && !Task.isCancelled
+    }
+    /// Captured when the button is rendered, checked again when its queued Task really starts.
+    func readAction() -> () -> Void {
+        let offered = visit, owner = model.owner
+        return { [weak self] in
+            guard let self, self.accepts(offered, owner: owner) else { return }
+            self.work?.cancel()
+            self.work = Task { [weak self] in
+                guard let self else { return }
+                await self.read(offered: offered, owner: owner)
+            }
+        }
+    }
+    func refreshAction() -> () async -> Void {
+        let offered = visit, owner = model.owner
+        return { [weak self] in
+            guard let self else { return }
+            await self.read(offered: offered, owner: owner)
+        }
+    }
+    private func read(offered: UUID, owner: RoamEnrolledChaptersOwner) async {
+        guard accepts(offered, owner: owner) else { return }
+        await model.load()
+    }
 }
+
 @MainActor struct RoamEnrolledChaptersView: View {
+    let roam: any RoamExperienceReading
+    let tickets: any TicketWalletReading
+    var body: some View {
+        RoamEnrolledChaptersContent(roam: roam, tickets: tickets)
+            .id(RoamEnrolledChaptersOwner(roam: roam, tickets: tickets))
+    }
+}
+@MainActor private struct RoamEnrolledChaptersContent: View {
+    @Environment(\.scenePhase) private var scenePhase
     let tickets: any TicketWalletReading
     @StateObject private var viewModel: RoamEnrolledChaptersViewModel
     @State private var target: RoamEnrolledChapterTarget?
@@ -59,13 +123,14 @@ import SwiftUI
     }
     private var model: RoamEnrolledChaptersModel { viewModel.model }
     var body: some View {
+        let retry = viewModel.readAction(), refresh = viewModel.refreshAction()
         List {
+            if viewModel.isVisible {
             Section {
-                Text("roam.chapters.hint").font(.footnote).foregroundStyle(.secondary)
                 if tickets.isOfflineExample { Text("ticketWallet.offlineExample").font(.caption) }
             }
             if let issue = model.issue {
-                TicketWalletIssueView(issue: issue, retry: { Task { await model.load() } })
+                TicketWalletIssueView(issue: issue, retry: retry)
                     .accessibilityIdentifier("roam.chapters.error")
             }
             if let snapshot = model.snapshot {
@@ -76,7 +141,7 @@ import SwiftUI
                 ForEach(snapshot.topics) { ticket in
                     if ticket.action == .detail {
                         Button {
-                            guard target == nil else { return }
+                            guard viewModel.isVisible, target == nil else { return }
                             target = model.select(registrationID: ticket.id, snapshotID: snapshot.id)
                         } label: { RoamEnrolledChapterRow(ticket: ticket) }
                             .buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
@@ -89,11 +154,15 @@ import SwiftUI
                 }
             }
             if model.isLoading || (model.snapshot == nil && model.issue == nil) { ProgressView("ticketWallet.loading") }
+            } else { ProgressView("ticketWallet.loading") }
         }.navigationTitle("roam.chapters.title")
-            .task(id: model.owner) { model.appear(); await model.load() }
-            .onDisappear { if target == nil { model.invalidate() } else { model.cancelPending() } }
+            .onAppear { viewModel.appear(foreground: scenePhase == .active) }
+            .onDisappear { viewModel.disappear(preservingSnapshot: target != nil) }
+            .onChange(of: scenePhase) { _, phase in
+                viewModel.setForeground(phase == .active, preservingSnapshot: target != nil)
+            }
             .onChange(of: model.owner) { _, _ in target = nil }
-            .refreshable { await model.load() }
+            .refreshable { await refresh() }
             .navigationDestination(item: $target) { selection in
                 if model.mayRemainOpen(selection) {
                     TicketWalletDetailView(id: selection.registrationID, reader: tickets)

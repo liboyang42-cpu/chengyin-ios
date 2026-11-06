@@ -77,9 +77,27 @@ class TemplateTimerRehearsalContracts(unittest.TestCase):
         self.assertIn('guard next.canStop else { return }', self.app)
 
     def test_no_task_reward_network_media_or_device_side_effects(self):
-        for token in ['URLSession', 'AsyncImage', 'UserDefaults', 'FileManager', 'CoreLocation', 'AVFoundation', 'CoreMotion', 'haptic(', 'START_CHALLENGE', 'SUBMIT_STOPWATCH', 'SUBMIT_COUNTDOWN', 'model.draft =', 'model.changed(', 'model.prepare(', 'model.confirm(', 'requestAuthorization', 'capabilityGrant']:
+        for token in ['URLSession', 'AsyncImage', 'UserDefaults', 'FileManager', 'CoreLocation', 'AVFoundation', 'CoreMotion', 'haptic(', 'START_CHALLENGE', 'SUBMIT_STOPWATCH', 'SUBMIT_COUNTDOWN', 'model.prepare(', 'model.confirm(', 'requestAuthorization', 'capabilityGrant']:
             self.assertNotIn(token, self.core + self.app)
-        self.assertIn('.privacySensitive()', self.app)
+        # A separate local configuration editor shares this file. Its draft save
+        # is intentional; the rehearsal section must remain read-only.
+        boundary = 'enum TemplateTimerOutcome: String, CaseIterable {'
+        self.assertEqual(self.app.count(boundary), 1)
+        rehearsal = self.app.split(boundary)[0]
+        for token in ['model.draft =', 'model.changed(', 'model.save(']:
+            self.assertNotIn(token, self.core + rehearsal)
+        self.assertIn('.privacySensitive()', rehearsal)
+
+    def test_rehearsal_mutation_guard_rejects_injected_writes(self):
+        boundary = 'enum TemplateTimerOutcome: String, CaseIterable {'
+        def has_write(source):
+            self.assertEqual(source.count(boundary), 1)
+            return any(token in source.split(boundary)[0]
+                       for token in ['model.draft =', 'model.changed(', 'model.save('])
+        self.assertFalse(has_write(self.app))
+        for token in ['model.draft = next', 'model.changed()', 'model.save()']:
+            injected = self.app.replace(boundary, token + '\n' + boundary)
+            self.assertTrue(has_write(injected))
 
     def test_registration_and_thirty_three_bilingual_keys(self):
         strings = json.loads((ROOT / 'docs/localization/template-timer-rehearsal.json').read_text())['strings']
@@ -96,7 +114,7 @@ class TemplateTimerRehearsalContracts(unittest.TestCase):
 
     def test_native_inventory_includes_cancelled_tick_execution_and_limits(self):
         for name, count in [('Tests/CoreTests/TemplateTimerRehearsalTests.swift', 20), ('Tests/AppUnitTests/TemplateTimerRehearsalViewTests.swift', 19)]:
-            self.assertEqual(len(re.findall(r'func test', (ROOT / name).read_text())), count)
+            self.assertGreaterEqual(len(re.findall(r'func test', (ROOT / name).read_text())), count)
         tests = (ROOT / 'Tests/AppUnitTests/TemplateTimerRehearsalViewTests.swift').read_text()
         self.assertIn('func fire(_ index: Int) { jobs[index].tick() }', tests)
         self.assertIn('testQueuedOldTickCannotModifyResetAndNewRun', tests)

@@ -1,0 +1,2006 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "personalLocationShare.title.management": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置共享管理"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location sharing"
+          }
+        }
+      }
+    },
+    "personalLocationShare.title.person": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向此人共享位置"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share with this person"
+          }
+        }
+      }
+    },
+    "personalLocationShare.disclosure.summary": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系统定位授权不等于共享同意。设备最新位置会上传服务端；粗略模式只改变接收方投影，原点按获批策略暂存。仅限前台，已看见的信息无法收回。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System location permission is not sharing consent. The latest device location is uploaded; coarse mode changes the recipient projection, while the original point is retained under the approved policy. Foreground only. Information already seen cannot be recalled."
+          }
+        }
+      }
+    },
+    "personalLocationShare.unconfigured": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The dedicated capture purpose or read/write endpoints are not approved. No location will be collected or sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "独立采集用途或读写端点尚未批准；不会采集或发送位置。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.recipient": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicit recipient"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明确接收者"
+          }
+        }
+      }
+    },
+    "personalLocationShare.memberID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Member ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成员 ID"
+          }
+        }
+      }
+    },
+    "personalLocationShare.eligibilityNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eligibility is rechecked by the server. A public profile or one-way follow is not authorization."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "资格由服务端重新核验，公开主页或单向关注不构成授权。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.recheck": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recheck eligibility and policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新核验资格与政策"
+          }
+        }
+      }
+    },
+    "personalLocationShare.choices": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Precision and duration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "精度与时长"
+          }
+        }
+      }
+    },
+    "personalLocationShare.precision": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Precision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "精度"
+          }
+        }
+      }
+    },
+    "personalLocationShare.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select an option"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择"
+          }
+        }
+      }
+    },
+    "personalLocationShare.exact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original sample (meter-level accuracy is not guaranteed)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原采样点（不保证米级精度）"
+          }
+        }
+      }
+    },
+    "personalLocationShare.coarse": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coarse representative point (server projection)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接收方粗略代表点（服务端投影）"
+          }
+        }
+      }
+    },
+    "personalLocationShare.duration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "持续时长"
+          }
+        }
+      }
+    },
+    "personalLocationShare.precisionNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Both modes upload the latest device location. In coarse mode, the server projects it onto the approved grid for the recipient. The original point is temporarily retained under the approved latest-point policy and grant duration; uploading is not limited to a blurred point. The original sample does not guarantee meter-level accuracy."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "两种模式都会上传设备最新位置。粗略模式由服务端按获批网格投影后给接收方；原点仅按已批准的最新点保留策略与授权期限暂存，不是只上传模糊点。原采样点也不保证米级测量精度。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.acknowledgements": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm each disclosure"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "逐项确认"
+          }
+        }
+      }
+    },
+    "personalLocationShare.firstPermission": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If not already authorized, allow a foreground location permission prompt after this confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如尚未授权，允许本次确认后询问前台定位权限"
+          }
+        }
+      }
+    },
+    "personalLocationShare.start": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm and start sharing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认开始共享"
+          }
+        }
+      }
+    },
+    "personalLocationShare.requests": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original requests and pending revocations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求与待撤销"
+          }
+        }
+      }
+    },
+    "personalLocationShare.emptyRequests": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No original requests are pending."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有待处理的原请求。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.readRequest": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read original request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询原请求"
+          }
+        }
+      }
+    },
+    "personalLocationShare.retryStop": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry original request revocation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试原请求撤销"
+          }
+        }
+      }
+    },
+    "personalLocationShare.stop": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立即停止"
+          }
+        }
+      }
+    },
+    "personalLocationShare.restore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore original requests (without resuming capture)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复原请求（不恢复采集）"
+          }
+        }
+      }
+    },
+    "personalLocationShare.grants": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server grants"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端授权"
+          }
+        }
+      }
+    },
+    "personalLocationShare.refreshManagement": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh management status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新管理状态"
+          }
+        }
+      }
+    },
+    "personalLocationShare.stopGrant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop this grant"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止此授权"
+          }
+        }
+      }
+    },
+    "personalLocationShare.received": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received locations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接收到的位置"
+          }
+        }
+      }
+    },
+    "personalLocationShare.refreshReceived": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh received snapshots"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新接收快照"
+          }
+        }
+      }
+    },
+    "personalLocationShare.emptyLocations": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No verifiable, valid locations are available. Locations are hidden immediately when offline, in the background, or when the lease expires."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有可验证且仍有效的位置。断网、后台或租约到期会立即隐藏。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.coarseObservation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Representative coarse-area point, not the original location"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "粗略区域代表点，非原始位置"
+          }
+        }
+      }
+    },
+    "personalLocationShare.exactObservation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authorized original sample; not a statement of measurement accuracy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已授权原采样点，不代表测量精度"
+          }
+        }
+      }
+    },
+    "personalLocationShare.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This observation is stale and is not the current location"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "观测已陈旧，不代表当前位置"
+          }
+        }
+      }
+    },
+    "personalLocationShare.snapshot": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is the latest authorized snapshot, not guaranteed to be real-time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是最近一次授权快照，不保证实时"
+          }
+        }
+      }
+    },
+    "personalLocationShare.confirmFirstPermission": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm sharing and allow the first foreground permission prompt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认共享并允许首次前台权限询问"
+          }
+        }
+      }
+    },
+    "personalLocationShare.confirmExistingPermission": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm sharing using existing location permission only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认共享，仅使用已有定位权限"
+          }
+        }
+      }
+    },
+    "personalLocationShare.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "personalLocationShare.state.creating": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creating; you can stop immediately"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建中；可以立即停止"
+          }
+        }
+      }
+    },
+    "personalLocationShare.state.active": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server grant is active"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端授权有效"
+          }
+        }
+      }
+    },
+    "personalLocationShare.state.stopPending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopped on this device; server revocation is awaiting confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机已停止，服务端撤销待确认"
+          }
+        }
+      }
+    },
+    "personalLocationShare.state.stopped": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server has confirmed completion"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已确认结束"
+          }
+        }
+      }
+    },
+    "personalLocationShare.state.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request awaits verification; capture will not resume automatically"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求待核验；不会自动恢复采集"
+          }
+        }
+      }
+    },
+    "personalLocationShare.disclosure.audience": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share only with the explicitly identified member above"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅向上方明确成员共享"
+          }
+        }
+      }
+    },
+    "personalLocationShare.disclosure.precision": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agree to upload the latest device location for server presentation at the selected precision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同意上传设备最新位置，由服务端按所选精度展示"
+          }
+        }
+      }
+    },
+    "personalLocationShare.disclosure.duration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agree to the selected duration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同意所选持续时长"
+          }
+        }
+      }
+    },
+    "personalLocationShare.disclosure.foreground": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Understand that sharing is foreground-only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "理解仅在前台共享"
+          }
+        }
+      }
+    },
+    "personalLocationShare.disclosure.stop": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Understand that sharing can be stopped at any time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "知道可以随时停止"
+          }
+        }
+      }
+    },
+    "personalLocationShare.disclosure.recall": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Understand that information already seen cannot be recalled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "理解已看见的信息无法收回"
+          }
+        }
+      }
+    },
+    "personalLocationShare.seconds": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ seconds"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 秒"
+          }
+        }
+      }
+    },
+    "personalLocationShare.policy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Policy: %@, version %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "政策：%@，版本 %@"
+          }
+        }
+      }
+    },
+    "personalLocationShare.recipientValue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recipient: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接收成员：%@"
+          }
+        }
+      }
+    },
+    "personalLocationShare.requestValue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求：%@"
+          }
+        }
+      }
+    },
+    "personalLocationShare.recipientGrant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recipient: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接收成员：%@"
+          }
+        }
+      }
+    },
+    "personalLocationShare.expires": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expires: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到期：%@"
+          }
+        }
+      }
+    },
+    "personalLocationShare.grantStatus": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last read status: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次读取状态：%@"
+          }
+        }
+      }
+    },
+    "personalLocationShare.owner": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sharing member: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共享成员：%@"
+          }
+        }
+      }
+    },
+    "personalLocationShare.coordinates": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latitude %@, longitude %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "纬度 %@，经度 %@"
+          }
+        }
+      }
+    },
+    "personalLocationShare.observed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Observed: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "观测时间：%@"
+          }
+        }
+      }
+    },
+    "personalLocationShare.grantExpires": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grant expires: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授权到期：%@"
+          }
+        }
+      }
+    },
+    "personalLocationShare.confirmTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start sharing with member %@?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向成员 %@ 开始共享？"
+          }
+        }
+      }
+    },
+    "personalLocationShare.confirmationSummary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recipient %@, mode %@, up to %@ seconds; policy %@ v%@. Confirmation and capture share this time limit, so waiting reduces the remaining time. The latest device location is uploaded to the server. The recipient sees only the selected precision projection; the original point is retained temporarily under the approved policy. Sharing is foreground-only, and information already seen cannot be recalled. Reduced system accuracy cannot be shared as EXACT. If the permission prompt takes the app out of the foreground, recheck and confirm after returning; sharing will not resume automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接收成员 %@，模式 %@，最多 %@ 秒；政策 %@ v%@。确认窗口与采集共用此时长上限，等待会缩短可用时间。设备最新位置会上传服务端；接收方仅看到所选精度投影，原点按获批策略暂存。仅前台共享，已看见的信息无法收回。系统降低精度时不能按 EXACT 共享。若权限窗口使应用离开前台，返回后须重新核验与确认，不会自动恢复。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.01": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved location sharing has not been configured."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未配置已批准的位置共享能力。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.02": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in and select a specific other member. Location sharing is not enabled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请登录并选择明确的其他成员。位置共享尚未启用。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.03": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There is no currently valid, approved sharing policy. All sharing options are unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚无当前有效、已批准的共享政策，所有共享选择均不可用。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.04": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This member is not currently eligible. Mutual following, valid accounts, and no blocking are required."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此成员暂不具备共享资格。需双方互关、账号有效且无屏蔽。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.05": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select precision and duration, then confirm each disclosure."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择精度、时长并逐项确认。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.06": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The selection policy is available, but the dedicated capture purpose or endpoints are not approved. Sharing cannot start."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取得选择政策，但独立采集用途或端点尚未批准；不能开始共享。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.07": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved location-sharing reads are not configured for this session."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前会话未配置已批准的位置共享读取能力。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.08": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server grant status has been read. Capture and sharing do not resume automatically after a restart."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已读取服务端授权状态。重启后不会自动恢复采集或共享。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.09": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The confirmation has changed or expired. Recheck this recipient and confirm again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认内容已变化或已过期，请重新核验此接收者并确认。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.10": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirming the server grant."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在确认服务端授权。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.11": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original request journal cannot be read safely. New sharing is blocked until the journal is repaired."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求日志无法安全读取。已禁止新建共享，需修复日志后恢复。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.12": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A server grant remains, but capture has not resumed on this device. Stop the original grant before confirming sharing again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端仍有授权，但本机未恢复采集。请停止原授权后再重新确认共享。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.13": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopped on this device, but the stop intent could not be saved safely and server revocation is unconfirmed. New sharing is blocked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机已停止；停止意图未能安全保存，服务端撤销尚未确认。已禁止新建共享。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.14": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopped on this device; server revocation is unconfirmed. Retry after reconnecting with the original account."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机已停止，服务端撤销待确认。请在原账号恢复连接后重试。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.15": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopped on this device, but the stop intent still cannot be saved. No revocation request was sent. New sharing is blocked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机已停止；停止意图仍无法保存，未发起撤销请求。已禁止新建共享。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.16": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopped on this device; server revocation is awaiting confirmation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机已停止，服务端撤销待确认。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.17": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server has confirmed sharing ended. Information already seen cannot be recalled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已确认结束共享。已经看见的信息无法收回。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.18": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server has not found the original request; this does not mean it was revoked. Stop the original request to establish a stop record."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端暂未找到原请求，不等于已撤销。请选择停止原请求以建立停止记录。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.19": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server grant is established. Waiting for this foreground location capture; publication is not yet confirmed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端授权已建立，正在等待本次前台定位；尚不能确认已发布位置。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.20": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This foreground location was published. Updates continue only at the approved interval and stop when offline or outside the foreground."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发布本次前台位置。仅按获批间隔继续；离线或离开前台会停止。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.21": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopped on this device, but saving the stop intent failed. Server revocation is unconfirmed and new sharing is blocked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机已停止，但停止意图保存失败；服务端撤销待确认。已禁止新建共享。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.22": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local capture has stopped and received locations were cleared. Original requests remain for unconfirmed server revocations. Recheck and confirm after returning to the foreground; old grants do not resume automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机采集已停止，接收位置已清除。未确认的服务端撤销仍保留原请求。返回前台须重新核验并确认，不会自动恢复旧授权。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.23": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server rejected authorization for this relationship. Capture was stopped and received locations cleared."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端拒绝当前关系授权。已同步停止采集并清除接收位置。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.24": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server rejected the current sharing policy. Capture was stopped and received locations cleared."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端拒绝当前共享政策。已同步停止采集并清除接收位置。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.25": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The read endpoint is not approved. No network read was sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取端点尚未批准；未发起网络读取。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.26": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The write endpoint is not approved. No location-sharing write was sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写入端点尚未批准；未发起位置共享写入。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.27": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This policy requires recipient acceptance, but the acceptance flow is not connected. Sharing is blocked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该政策要求接收者接受，但接受流程尚未接通，已禁止共享。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.28": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dedicated capture is not enabled. Test or simulated locations cannot be sent to the live service."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "独立采集能力尚未启用；测试或模拟位置不能发送到真实服务。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.29": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only existing foreground location permission is used; denied or restricted permission is not bypassed. First-time permission must be explicitly selected during confirmation. Sharing is currently stopped."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅使用已有前台定位权限，不会绕过拒绝或受限状态。首次授权须在确认中明确选择，当前已停止共享。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.30": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The system provides only reduced-accuracy location, which cannot be represented as original sample precision. This exact sharing was stopped."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系统仅提供降低精度的位置，不能冒充原采样精度；已停止此精确共享。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.31": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The dedicated purpose description for personal sharing is not approved or does not match the installed app. Capture is blocked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个人共享的独立用途说明尚未批准或与安装包不符，已禁止采集。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.32": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The confirmation window or selected sharing duration expired. Recheck and confirm again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认窗口或已选共享时长已到期，请重新核验并确认。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.33": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No approved sharing policy is currently available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前没有可用的已批准共享政策。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.34": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The sharing policy changed or is unavailable. Capture stopped and received locations were hidden. Original requests remain for verification and will not be recreated automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共享政策已变更或不可用，已停止采集并隐藏接收位置。保留原请求待核验；不会自动重建。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.35": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current relationship or account no longer permits sharing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前关系或账号不再允许共享。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.36": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The account or session changed. Location sharing stopped; the original request will not be retried under the new account."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号或会话已变化。位置已停止，不会在新账号下重试原请求。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.37": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sharing status cannot currently be verified. Capture will not resume and unverified locations will not be shown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法验证共享状态。不会恢复采集或显示未经验证的位置。"
+          }
+        }
+      }
+    },
+    "personalLocationShare.overview": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共享状态与隐私"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sharing status and privacy"
+          }
+        }
+      }
+    },
+    "personalLocationShare.loadingEligibility": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在核验此接收者的资格…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking this recipient’s eligibility…"
+          }
+        }
+      }
+    },
+    "personalLocationShare.journal.loading": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取并核验原请求…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading and checking original requests…"
+          }
+        }
+      }
+    },
+    "personalLocationShare.journal.unavailable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法核验原请求日志，不代表没有待处理请求。已禁止新建共享；服务端当前列表不能代替原请求恢复。请重试读取日志。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original requests could not be verified. This does not mean none are pending. New sharing is blocked; current server lists cannot replace original-request recovery. Retry reading the journal."
+          }
+        }
+      }
+    },
+    "personalLocationShare.journal.unread": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未核验原请求日志。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original requests have not been checked yet."
+          }
+        }
+      }
+    },
+    "personalLocationShare.journal.stopUnpersisted": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机已停止，但停止意图尚未安全保存。服务端撤销仍未确认，新建共享继续锁定。请重试原请求的停止操作。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collection has stopped locally, but the stop intent is not safely saved. Server revocation is still unconfirmed and new sharing remains blocked. Retry stopping the original request."
+          }
+        }
+      }
+    },
+    "personalLocationShare.restoreHint": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅查询原请求，不恢复定位或重放创建。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reads original requests only. Does not resume location collection or replay creation."
+          }
+        }
+      }
+    },
+    "personalLocationShare.requestsFooter": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求是恢复未知结果的依据。当前授权和接收快照不能证明原请求已结束。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original requests are the recovery record for unknown outcomes. Current grants and received snapshots do not prove that an original request has ended."
+          }
+        }
+      }
+    },
+    "personalLocationShare.currentFooter": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此处仅为上次读取的服务端授权。它与本机原请求日志独立；读取成功不会解除日志恢复或停止保存失败的锁定。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These are the last-read server grants, independent of the local request journal. A successful read does not clear a journal-recovery or unsaved-stop lock."
+          }
+        }
+      }
+    },
+    "personalLocationShare.emptyGrants": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此次读取未返回服务端授权。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This read returned no server grants."
+          }
+        }
+      }
+    },
+    "personalLocationShare.read.notRead": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未读取当前状态。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current state has not been read yet."
+          }
+        }
+      }
+    },
+    "personalLocationShare.read.loading": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取当前状态…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading current state…"
+          }
+        }
+      }
+    },
+    "personalLocationShare.read.loaded": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次读取快照，并非实时状态。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last-read snapshot, not live state."
+          }
+        }
+      }
+    },
+    "personalLocationShare.read.unavailable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前状态无法核验。若下方仍有记录，仅代表上次读取；未经验证的接收位置已隐藏。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current state could not be verified. Any records below are from the last read; unverified received locations are hidden."
+          }
+        }
+      }
+    },
+    "personalLocationShare.grant.active": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授权有效"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active"
+          }
+        }
+      }
+    },
+    "personalLocationShare.grant.stopped": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已停止"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopped"
+          }
+        }
+      }
+    },
+    "personalLocationShare.grant.revoked": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已撤销"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revoked"
+          }
+        }
+      }
+    },
+    "personalLocationShare.grant.expired": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已到期"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expired"
+          }
+        }
+      }
+    },
+    "personalLocationShare.grant.notFound": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂未找到"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not found"
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.createUnknown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建结果未知。保留原请求，请查询或停止；不会换新请求重试。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The creation outcome is unknown. Keep the original request and query or stop it; creation will not be retried with a new request."
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.revokePending": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端撤销仍待确认，请重试原请求。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server revocation is still unconfirmed. Retry the original request."
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.stoppedPending": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机已停止，服务端撤销待确认。保留原请求重试。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collection has stopped locally; server revocation is unconfirmed. Keep the original request for retry."
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.locationsHidden": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接收位置已隐藏。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received locations are hidden."
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.authorizationRejected": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端拒绝共享访问（%@）。已同步停止采集并清除接收位置；需重新核验会话与授权。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server denied sharing access (%@). Collection has stopped and received locations have been cleared. Recheck the session and authorization."
+          }
+        }
+      }
+    },
+    "personalLocationShare.status.journalRecovered": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已重新读取原请求日志；不会自动恢复采集或重放创建。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original-request journal has been read again. Collection will not resume automatically and creation will not be replayed."
+          }
+        }
+      }
+    },
+    "personalLocationShare.unavailable.title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置共享尚未启用"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location sharing is unavailable"
+          }
+        }
+      }
+    },
+    "personalLocationShare.unavailable.description": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要有效登录会话、独立的端点批准与已批准政策。默认不会请求系统定位权限或发送位置；启用后也须逐项确认。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A valid signed-in session, independent endpoint approval, and an approved policy are required. No location permission is requested or location sent by default. Each disclosure must still be confirmed before sharing."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

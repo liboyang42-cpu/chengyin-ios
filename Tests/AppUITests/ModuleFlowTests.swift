@@ -127,6 +127,8 @@ final class ModuleFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["club.fixture.notice"].waitForExistence(timeout:10))
         tap(app.buttons["club.home.owned.81"])
         XCTAssertTrue(app.navigationBars["Club details"].waitForExistence(timeout:5))
+        // Members live on the overview tab; owners land on posts like the mini-program.
+        tap(app.buttons["club.detail.tab.overview"])
         let members=app.buttons["club.openMembers"]
         if !members.isHittable { app.swipeUp() }
         tap(members)
@@ -145,6 +147,7 @@ final class ModuleFlowTests: XCTestCase {
     func testClubMemberPublicProfileReturnsAndReopens() {
         launch(["--uitesting-club-fixture", "member"])
         tap(app.buttons["club.home.joined.81"])
+        tap(app.buttons["club.detail.tab.overview"])
         let members = app.buttons["club.openMembers"]
         if !members.isHittable { app.swipeUp() }
         tap(members)
@@ -158,6 +161,7 @@ final class ModuleFlowTests: XCTestCase {
     func testClubMemberProfileClearsOnSignOut() {
         launch(["--uitesting-club-fixture", "owner"])
         tap(app.buttons["club.home.owned.81"])
+        tap(app.buttons["club.detail.tab.overview"])
         let members = app.buttons["club.openMembers"]
         if !members.isHittable { app.swipeUp() }
         tap(members)
@@ -295,7 +299,7 @@ final class ModuleFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["module.fixture.notice"].waitForExistence(timeout:10))
         tap(app.buttons["roam.display.toggle"])
         tap(app.buttons["roam.row.place-901"])
-        XCTAssertTrue(app.navigationBars["Map details"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.navigationBars["Place"].waitForExistence(timeout:5))
         capture("Map detail – synthetic data")
     }
     func testParticipantCreateRequiresConfirmationAndReadsBack() {
@@ -330,6 +334,19 @@ final class ModuleFlowTests: XCTestCase {
         let submit=app.buttons["play.answer.submit"]
         for _ in 0..<6 { if submit.exists && submit.isHittable { break };app.swipeUp() }
         tap(submit)
+        let cancelReview=app.buttons["play.answer.review.cancel"]
+        XCTAssertTrue(cancelReview.waitForExistence(timeout:5),app.debugDescription)
+        let reviewedAnswer=app.staticTexts["play.answer.review.value"]
+        XCTAssertTrue(reviewedAnswer.exists)
+        let originalReviewValue=reviewedAnswer.label
+        XCTAssertFalse(originalReviewValue.isEmpty)
+        tap(cancelReview)
+        XCTAssertFalse(app.descendants(matching:.any)["play.answer.receipt"].exists,"Cancelling a review never submits")
+        tap(submit)
+        let confirmReview=app.buttons["play.answer.review.confirm"]
+        XCTAssertTrue(confirmReview.waitForExistence(timeout:5),app.debugDescription)
+        XCTAssertEqual(reviewedAnswer.label,originalReviewValue,"Cancelling keeps the staged choice")
+        tap(confirmReview)
         let receipt=app.descendants(matching:.any)["play.answer.receipt"]
         for _ in 0..<4 { if receipt.exists { break };app.swipeUp() }
         XCTAssertTrue(receipt.waitForExistence(timeout:10),app.debugDescription)

@@ -324,6 +324,15 @@ final class ClubGovernanceGroupCodeTests: XCTestCase {
         }
         XCTAssertThrowsError(try ClubGovernanceGroupCode(receipt: .object(["qrcodeUrl": .string("https://example.com/q.png"), "code": .string("synthetic"), "ttlMs": .integer(0)]), receivedAt: Date()))
     }
+    func testAbsentGroupCodeTTLUsesMiniProgramFiveMinuteDefault() throws {
+        let instant = Date(timeIntervalSince1970: 1_000)
+        let code = try ClubGovernanceGroupCode(receipt: .object(["qrcodeUrl": .string("https://example.com/q.png"), "code": .string("synthetic")]), receivedAt: instant)
+        XCTAssertEqual(code.expiresAt, instant.addingTimeInterval(300))
+        XCTAssertTrue(code.isActive(at: instant.addingTimeInterval(299))); XCTAssertFalse(code.isActive(at: instant.addingTimeInterval(300)))
+        for invalid: ClubGovernanceValue in [.integer(-1), .string("soon"), .bool(true)] {
+            XCTAssertThrowsError(try ClubGovernanceGroupCode(receipt: .object(["qrcodeUrl": .string("https://example.com/q.png"), "code": .string("synthetic"), "ttlMs": invalid]), receivedAt: instant))
+        }
+    }
     func testPublicProjectionNeverRetainsProtectedAnswers() throws {
         let raw = ClubGovernanceFixtures.json(#"{"id":91,"name":"Public topic","chaptersList":[{"nodes":[{"answer":"secret","hints":["secret"]}]}],"answerReveal":"secret"}"#)
         let value = try ClubGovernanceValidation.validate(raw, operation: .topicOverview, scope: ClubGovernanceFixtures.scope)

@@ -57,6 +57,57 @@ import SwiftUI
             return try XCTUnwrap(model.selection)
         }
     }
+    func testReadFactoryOpensExactWorkspaceWithoutBroadContentServiceAndPreservesSummaryOnBack() throws {
+        let reader = Reader(), model = MerchantProjectWorkspacePresentation(), factoryID = UUID()
+        let context = MerchantProjectWorkspaceContext(reader: reader, service: nil, workspaceReadID: factoryID)
+        let page = try Fixture.page(), snapshot = MerchantProjectWorkspaceSnapshot(page: page, access: try Fixture.access(), context: context)
+        model.openSummary(project: page.rows[0], snapshot: snapshot, context: context, permit: model.permit(snapshot: snapshot))
+        let selected = try XCTUnwrap(model.selection)
+        model.openWorkspace(selected, snapshot: snapshot, context: context, sourceFresh: true)
+        let route = try XCTUnwrap(model.route); XCTAssertEqual(route.topicID, 70); XCTAssertEqual(route.merchantID, 31)
+        let binding = model.workspaceBinding(); binding.wrappedValue = nil
+        XCTAssertNil(model.route); XCTAssertEqual(model.selection?.id, selected.id)
+        let replacement = MerchantProjectWorkspaceContext(reader: reader, service: nil, workspaceReadID: UUID())
+        XCTAssertFalse(model.canOpenWorkspace(selected, snapshot: snapshot, context: replacement, sourceFresh: true))
+    }
+    func testReadOwnerRetirementDoesNotReactivateOldServiceWhenReopened() throws {
+        let owner = MerchantProjectWorkspaceReadOwner(), service = Service()
+        var lives: [() -> Bool] = []
+        let factory = MerchantProjectWorkspaceReadFactory(id: UUID()) { _, _, valid in lives.append(valid); return service }
+        owner.activate(factory: factory, topicID: 70, merchantID: 31, isCurrent: { true })
+        XCTAssertTrue(lives[0]()); owner.retire(); XCTAssertFalse(lives[0]()); XCTAssertNil(owner.service)
+        owner.activate(factory: factory, topicID: 70, merchantID: 31, isCurrent: { true })
+        XCTAssertFalse(lives[0]()); XCTAssertTrue(lives[1]())
+        owner.activate(factory: factory, topicID: 70, merchantID: 31, isCurrent: { false })
+        XCTAssertFalse(lives[1]()); XCTAssertNil(owner.service); XCTAssertEqual(lives.count, 2)
+    }
+    func testRootRouteOwnsParentReadLeaseUntilBackNotChildOwnerRetirement() throws {
+        let reader = Reader(), model = MerchantProjectWorkspacePresentation(), service = Service(), child = MerchantProjectWorkspaceReadOwner()
+        let factoryID = UUID(), context = MerchantProjectWorkspaceContext(reader: reader, service: nil, workspaceReadID: factoryID)
+        let page = try Fixture.page(), snapshot = MerchantProjectWorkspaceSnapshot(page: page, access: try Fixture.access(), context: context)
+        model.openSummary(project: page.rows[0], snapshot: snapshot, context: context, permit: model.permit(snapshot: snapshot))
+        let selected = try XCTUnwrap(model.selection); model.openWorkspace(selected, snapshot: snapshot, context: context, sourceFresh: true)
+        let route = try XCTUnwrap(model.route); var parentLive: (() -> Bool)?
+        let factory = MerchantProjectWorkspaceReadFactory(id: factoryID) { _, _, current in parentLive = current; return service }
+        model.readOwner.activate(factory: factory, topicID: 70, merchantID: 31,
+            isCurrent: { model.workspaceIsCurrent(route, snapshot: snapshot, context: context, sourceFresh: true) })
+        child.activate(factory: .init(id: UUID(), make: { _, _, _ in Service() }), topicID: 70, merchantID: 31, isCurrent: { parentLive?() == true })
+        child.retire(); XCTAssertTrue(parentLive?() == true); XCTAssertNotNil(model.readOwner.service)
+        let binding = model.workspaceBinding(); binding.wrappedValue = nil
+        XCTAssertNil(model.readOwner.service); XCTAssertFalse(parentLive?() == true); XCTAssertEqual(model.selection?.id, selected.id)
+    }
+    func testClosingSummaryRetiresParentWithoutClearingReopenedSummary() throws {
+        let h = Harness(), snapshot = try h.snapshot(), selected = try h.open(snapshot)
+        h.model.openWorkspace(selected, snapshot: snapshot, context: h.context, sourceFresh: true)
+        let route = try XCTUnwrap(h.model.route); var live: (() -> Bool)?
+        let factory = MerchantProjectWorkspaceReadFactory(id: UUID()) { _, _, current in live = current; return h.service }
+        h.model.readOwner.activate(factory: factory, topicID: 70, merchantID: 31,
+            isCurrent: { h.model.workspaceIsCurrent(route, snapshot: snapshot, context: h.context, sourceFresh: true) })
+        XCTAssertTrue(live?() == true); h.model.closeSummary(id: selected.id)
+        XCTAssertFalse(live?() == true); XCTAssertNil(h.model.readOwner.service)
+        let next = try h.open(snapshot); h.model.closeSummary(id: selected.id)
+        XCTAssertEqual(h.model.selection?.id, next.id)
+    }
     func testInitiallyEmptySummaryBindingObservesFirstSelectionAndDismissesOnlyIt() throws {
         let h = Harness(), snapshot = try h.snapshot()
         let binding = h.model.summaryBinding()

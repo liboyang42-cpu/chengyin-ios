@@ -219,3 +219,125 @@ final class ClubStoryPresentationTests: XCTestCase {
         XCTAssertFalse(String(describing: try game(withPrivateFields)).contains("private"))
     }
 }
+
+extension ClubStoryPresentationTests {
+    private func walkNode(_ id: Int, latitude: ClubGovernanceValue = .integer(31),
+                          longitude: ClubGovernanceValue = .integer(121)) -> ClubGovernanceValue {
+        node(.integer(id), template: .null, ["latitude": latitude, "longitude": longitude])
+    }
+    private func walkStops(_ nodes: [ClubGovernanceValue]) throws -> [ClubStoryStop] {
+        try ClubStoryPresentation(snapshot: snapshot([chapter(nodes: nodes)])).chapters[0].stops
+    }
+    func testWalkingEstimateUsesOnlyTheImmediatelyAdjacentOrderedStops() throws {
+        let stops = try walkStops([walkNode(301), walkNode(302, latitude: .decimal(31.01)),
+            walkNode(303, latitude: .decimal(31.012))])
+        XCTAssertEqual(stops.map(\.nodeID), [301, 302, 303])
+        XCTAssertEqual(stops.map(\.estimatedWalkingMinutes), [nil, 14, 3])
+        XCTAssertEqual(stops.map(\.sequence), [1, 2, 3])
+    }
+    func testWalkingEstimateRestartsAtEveryChapterBoundary() throws {
+        let projection = try ClubStoryPresentation(snapshot: snapshot([
+            chapter(nodes: [walkNode(301), walkNode(302, latitude: .decimal(31.01))]),
+            chapter(.integer(202), nodes: [walkNode(303, latitude: .decimal(31.02)),
+                walkNode(304, latitude: .decimal(31.03))])]))
+        XCTAssertEqual(projection.chapters.flatMap(\.stops).map(\.estimatedWalkingMinutes), [nil, 14, nil, 14])
+        XCTAssertEqual(projection.chapters.flatMap(\.stops).map(\.sequence), [1, 2, 3, 4])
+    }
+    func testWalkingEstimateDoesNotBridgeAnUnknownIntermediateStop() throws {
+        let stops = try walkStops([walkNode(301), walkNode(302, latitude: .null),
+            walkNode(303, latitude: .decimal(31.02)), walkNode(304, latitude: .decimal(31.03))])
+        XCTAssertEqual(stops.map(\.estimatedWalkingMinutes), [nil, nil, nil, 14])
+        XCTAssertEqual(stops.count, 4)
+    }
+    func testWalkingEstimateRejectsUnknownMalformedAndZeroCoordinatesOnEitherEnd() throws {
+        let invalid: [ClubGovernanceValue] = [.null, .bool(false), .bool(true), .string(""), .string(" \n "),
+            .string("unknown"), .string("NaN"), .string("Infinity"), .array([]), .object([:]),
+            .integer(0), .decimal(-0.0), .decimal(.infinity), .decimal(.nan)]
+        for value in invalid {
+            for bad in [walkNode(302, latitude: value), walkNode(302, longitude: value)] {
+                for nodes in [[walkNode(301, latitude: .decimal(31.01)), bad],
+                              [bad, walkNode(303, latitude: .decimal(31.01))]] {
+                    XCTAssertNil(try walkStops(nodes)[1].estimatedWalkingMinutes)
+                }
+            }
+        }
+    }
+    func testWalkingEstimateRejectsOutOfRangeCoordinates() throws {
+        for bad in [walkNode(302, latitude: .decimal(90.001)), walkNode(302, latitude: .decimal(-90.001)),
+                    walkNode(302, longitude: .decimal(180.001)), walkNode(302, longitude: .decimal(-180.001))] {
+            XCTAssertNil(try walkStops([walkNode(301), bad])[1].estimatedWalkingMinutes)
+        }
+    }
+    func testWalkingEstimateAcceptsNumericStringsWithoutChangingStopText() throws {
+        let stops = try walkStops([walkNode(301, latitude: .string(" 31 \n"), longitude: .string(" 121 ")),
+            walkNode(302, latitude: .string("31.01"), longitude: .string("121"))])
+        XCTAssertEqual(stops[1].estimatedWalkingMinutes, 14)
+        XCTAssertEqual(stops[1].name, "Archive"); XCTAssertEqual(stops[1].address, "Fixture lane")
+        XCTAssertEqual(stops[1].businessTime, "09:00–18:00")
+    }
+    func testWalkingEstimateOmitsIdenticalLocationsAndRoundsSmallPositiveDistanceToOne() throws {
+        XCTAssertNil(try walkStops([walkNode(301), walkNode(302)])[1].estimatedWalkingMinutes)
+        XCTAssertEqual(try walkStops([walkNode(301), walkNode(302, latitude: .decimal(31.00001))])[1].estimatedWalkingMinutes, 1)
+    }
+    func testWalkingEstimateDoesNotUseChapterDurationOrOpeningHours() throws {
+        let original = try snapshot([chapter(nodes: [walkNode(301), walkNode(302, latitude: .decimal(31.01))])])
+        let changed = try snapshot([chapter(nodes: [walkNode(301), walkNode(302, latitude: .decimal(31.01))],
+            ["totalTime": .integer(99999)])])
+        XCTAssertEqual(try ClubStoryPresentation(snapshot: original).chapters[0].stops,
+            try ClubStoryPresentation(snapshot: changed).chapters[0].stops)
+    }
+    func testWalkingEstimateReloadUsesNewCoordinatesAndDoesNotRetainAnOldEstimate() throws {
+        let first = try walkStops([walkNode(301), walkNode(302, latitude: .decimal(31.01))])
+        let changed = try walkStops([walkNode(301), walkNode(302, latitude: .decimal(31.02))])
+        let unknown = try walkStops([walkNode(301), walkNode(302, latitude: .null)])
+        XCTAssertEqual(first[1].estimatedWalkingMinutes, 14)
+        XCTAssertEqual(changed[1].estimatedWalkingMinutes, 28)
+        XCTAssertNil(unknown[1].estimatedWalkingMinutes)
+    }
+    func testWalkingEstimateCannotBypassExistingProjectionPermission() throws {
+        let value = try snapshot([chapter(nodes: [walkNode(301), walkNode(302, latitude: .decimal(31.01))])])
+        let denied = ClubGovernanceSnapshot(operation: value.operation, scope: value.scope, permissions: nil, value: value.value)
+        XCTAssertThrowsError(try ClubStoryPresentation(snapshot: denied)) { error in
+            XCTAssertEqual(error as? ClubGovernanceFailure, .forbidden)
+        }
+    }
+    func testWalkingCoordinateChangeExpiresTheOriginalTemplateAndAnswerRoutes() throws {
+        let first = try snapshot([chapter(nodes: [node(.integer(301), ["latitude": .integer(31), "longitude": .integer(121)])])])
+        let changed = try snapshot([chapter(nodes: [node(.integer(301), ["latitude": .decimal(31.01), "longitude": .integer(121)])])])
+        let template = try XCTUnwrap(templateRoute(first)), answer = try XCTUnwrap(answerRoute(first))
+        XCTAssertFalse(template.isCurrent(snapshot: changed, context: context(), snapshotGeneration: 7))
+        XCTAssertFalse(answer.isCurrent(snapshot: changed, context: context(), snapshotGeneration: 7))
+    }
+    func testWalkingEstimateKeepsDuplicateDisplayRowsAndDoesNotCreateIdentities() throws {
+        let stops = try walkStops([walkNode(301), walkNode(301, latitude: .decimal(31.01))])
+        XCTAssertEqual(stops.map(\.sequence), [1, 2]); XCTAssertEqual(stops.map(\.nodeID), [nil, nil])
+        XCTAssertEqual(stops.map(\.estimatedWalkingMinutes), [nil, 14])
+    }
+}
+
+extension ClubStoryPresentationTests {
+    func testWalkingEmptyVisibleNodeProjectionDoesNotUseOpaqueGeometry() throws {
+        let value = try snapshot([chapter(nodes: [], ["routeGeometry": .string("do-not-project"),
+            "blocks": .array([.object(["latitude": .integer(31), "longitude": .integer(121)])])])])
+        let result = try ClubStoryPresentation(snapshot: value)
+        XCTAssertTrue(result.chapters[0].stops.isEmpty)
+        XCTAssertFalse(String(describing: result).contains("do-not-project"))
+    }
+    func testWalkingSingleVisibleNodeCannotEstimateTowardAnOmittedNode() throws {
+        let value = try snapshot([chapter(nodes: [walkNode(301)], ["routeGeometry": .string("do-not-project"),
+            "blocks": .array([.object(["nodeId": .integer(302), "latitude": .decimal(31.01), "longitude": .integer(121)])])])])
+        let result = try ClubStoryPresentation(snapshot: value)
+        XCTAssertEqual(result.chapters[0].stops.count, 1)
+        XCTAssertNil(result.chapters[0].stops[0].estimatedWalkingMinutes)
+        XCTAssertFalse(String(describing: result).contains("do-not-project"))
+    }
+    func testWalkingOnlyUsesReturnedChaptersWithoutReconstructingLockedContent() throws {
+        let value = try snapshot([chapter(nodes: [walkNode(301), walkNode(302, latitude: .decimal(31.01))])],
+            canAnswer: false, ["totalChapterCount": .integer(5), "unlockedChapterCount": .integer(1),
+                              "storyLocked": .bool(true), "routeGeometry": .string("do-not-project")])
+        let result = try ClubStoryPresentation(snapshot: value)
+        XCTAssertEqual(result.chapters.count, 1)
+        XCTAssertEqual(result.chapters[0].stops.map(\.estimatedWalkingMinutes), [nil, 14])
+        XCTAssertFalse(String(describing: result).contains("do-not-project"))
+    }
+}

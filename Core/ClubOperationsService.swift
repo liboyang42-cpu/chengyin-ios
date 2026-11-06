@@ -89,13 +89,18 @@ public struct ClubOperationsService {
         return approval.allows(configuration: configuration, namespace: session.storageNamespace, accountID: accountID, path: path)
     }
     /// No automatic retry. Any ambiguous post-dispatch failure retains the local replay lock.
-    func dispatch(_ command: ClubOperationsCommand, snapshot: ClubOperationsSnapshot, session: ClubOperationsSession,
-                  checkSession: () throws -> Void) async throws -> ClubOperationsReceipt {
+    @MainActor func dispatch(_ command: ClubOperationsCommand, snapshot: ClubOperationsSnapshot, session: ClubOperationsSession,
+                  checkSession: @escaping () throws -> Void, media: ClubProfileMediaService? = nil) async throws -> ClubOperationsReceipt {
         let request: URLRequest
         do { try checkSession(); request = try makeReviewRequest(command, snapshot: snapshot, identity: session.identity, token: session.token); try checkSession() }
         catch { throw ClubActionWriteError.notSent(.invalidRequest) }
         do {
-            let (data, status) = try await transport.send(request)
+            let data: Data; let status: Int
+            if !command.profileMediaReceipts.isEmpty {
+                guard let media else { throw ClubActionWriteError.notSent(.notConfigured) }
+                (data, status) = try await media.sendSave(request, command: command, identity: session.identity,
+                    current: { (try? checkSession()) != nil })
+            } else { (data, status) = try await transport.send(request) }
             try checkSession()
             return try Self.decodeReceipt(command: command, data: data, status: status)
         } catch let error as ClubActionWriteError { throw error }
@@ -164,11 +169,17 @@ public struct ClubOperationsSession: Equatable {
     private let onUnauthorized: (ClubOperationsSession) -> Void
     private let approval: OperationEndpointApproval?
     private let journal: (any OperationPendingJournal)?
+    public let profileMedia: ClubProfileMediaService?
+    public let welcomeNote: ClubWelcomeNoteService?
+    private let welcomeNoteRevisionProvider: () -> UInt64
+    public var welcomeNoteRevision: UInt64 { welcomeNoteRevisionProvider() }
+    private let profileDraftProvider: () -> ClubProfileLocalDraftContext?
+    public var profileDrafts: ClubProfileLocalDraftContext? { profileDraftProvider() }
     public var identity: ClubReadIdentity? { currentSession()?.identity }
     public var isConfigured: Bool { service != nil }
     public var writeAvailability: ClubOperationsWriteAvailability { approval != nil && journal != nil ? .approved : .unverified }
-    public init(service: ClubOperationsService?, currentSession: @escaping () -> ClubOperationsSession?, approval: OperationEndpointApproval? = nil, journal: (any OperationPendingJournal)? = nil, onUnauthorized: @escaping (ClubOperationsSession) -> Void = { _ in }) {
-        self.service = service; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized; self.approval = approval; self.journal = journal
+    public init(service: ClubOperationsService?, currentSession: @escaping () -> ClubOperationsSession?, approval: OperationEndpointApproval? = nil, journal: (any OperationPendingJournal)? = nil, profileMedia: ClubProfileMediaService? = nil, welcomeNote: ClubWelcomeNoteService? = nil, welcomeNoteRevision: @escaping () -> UInt64 = { 0 }, profileDrafts: @escaping () -> ClubProfileLocalDraftContext? = { nil }, onUnauthorized: @escaping (ClubOperationsSession) -> Void = { _ in }) {
+        self.service = service; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized; self.approval = approval; self.journal = journal; self.profileMedia = profileMedia; self.welcomeNote = welcomeNote; self.welcomeNoteRevisionProvider = welcomeNoteRevision; self.profileDraftProvider = profileDrafts
     }
     public func snapshot(target: ClubOperationsTarget) async throws -> ClubOperationsSnapshot {
         guard let service else { throw APIError.notConfigured }
@@ -204,11 +215,15 @@ public struct ClubOperationsSession: Equatable {
             fresh = try await snapshot(target: target); try check(session)
             guard fresh.target == target else { throw ClubOperationsBlock.changed }
             try command.validate(snapshot: fresh, identity: expectedIdentity)
+            if !command.profileMediaReceipts.isEmpty {
+                guard let profileMedia else { throw ClubOperationsBlock.mediaUnavailable }
+                try profileMedia.validate(command, identity: expectedIdentity)
+            }
             guard try journal.pending(ownerKey: record.ownerKey, targetKey: record.targetKey) == nil else { throw ClubOperationsBlock.pending }
             try journal.write(record); try check(session)
         } catch { throw ClubActionWriteError.preflightFailed }
         do {
-            let receipt = try await service.dispatch(command, snapshot: fresh, session: session) { try self.check(session) }
+            let receipt = try await service.dispatch(command, snapshot: fresh, session: session, checkSession: { try self.check(session) }, media: profileMedia)
             try check(session)
             record.acknowledgedSteps = 1; try journal.write(record); try journal.clear(record)
             return receipt

@@ -1,11 +1,14 @@
 import SwiftUI
 
+/// Example-content marker for offline samples only; live screens show nothing here.
 struct RoamExperienceNotice: View {
     let offline: Bool
     var body: some View {
-        Label(offline ? "roam.experience.offline" : "roam.experience.readOnly", systemImage: offline ? "testtube.2" : "lock.shield")
-            .font(.caption).foregroundStyle(.secondary)
-            .accessibilityIdentifier("roam.experience.notice")
+        if offline {
+            Label("roam.experience.offline", systemImage: "testtube.2")
+                .font(.caption).foregroundStyle(.secondary)
+                .accessibilityIdentifier("roam.experience.notice")
+        }
     }
 }
 struct RoamExperienceIssue: View {
@@ -70,13 +73,15 @@ struct RoamRouteSketchView: View {
 struct RoamRecordedStats: View {
     let record: RoamHistoryRecord
     var body: some View {
+        // Mini-program kv: 总距离 / 时长 / 探店 / 探索度; a missing value shows —.
         VStack(spacing: 8) {
-            if let distance = record.distance {
-                LabeledContent("roam.experience.distance") { Text(distance, format: .number.precision(.fractionLength(1))) + Text(verbatim: " km") }
+            LabeledContent("roam.experience.distance") {
+                if let distance = record.distance { Text(distance, format: .number.precision(.fractionLength(1))) + Text(verbatim: " km") }
+                else { Text(verbatim: "—") }
             }
-            if let duration = record.durationText { LabeledContent("roam.experience.duration", value: duration) }
-            if let shops = record.shops { LabeledContent("roam.experience.shops", value: String(shops)) }
-            if record.distance == nil && record.durationText == nil && record.shops == nil { Text("roam.experience.statsUnknown").foregroundStyle(.secondary) }
+            LabeledContent("roam.experience.duration", value: record.durationText ?? "—")
+            LabeledContent("roam.experience.shops", value: record.shops.map { String($0) } ?? "—")
+            LabeledContent("roam.experience.explorePct", value: record.explorePct.map { "\($0)%" } ?? "—")
         }.font(.subheadline).monospacedDigit()
     }
 }

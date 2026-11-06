@@ -113,3 +113,93 @@ final class ClubEnrollmentTests: XCTestCase {
         XCTAssertTrue(reader.teams.isEmpty); XCTAssertTrue(reader.rosters.isEmpty); XCTAssertEqual(reader.failure, .signedOut)
     }
 }
+
+@MainActor final class ClubEnrollmentAuthorizationTests: XCTestCase {
+    private final class Access: ClubGovernanceAccess {
+        let fixture = ClubGovernanceFixtureAccess()
+        var authorizationGeneration: UUID? = UUID()
+        var identity: ClubReadIdentity? { fixture.identity }
+        var isConfigured: Bool { fixture.isConfigured }
+        var storageNamespace = "enrollment-auth-tests"
+        var journalRealm = "enrollment-auth-tests"
+        let allowsOfflineWrites = false
+        var hold: ClubGovernanceRead?
+        private(set) var reads: [ClubGovernanceRead] = []
+        private var pending: CheckedContinuation<Void, Never>?
+        private var waiting: CheckedContinuation<Void, Never>?
+        func waitUntilHeld() async {
+            if pending != nil { return }
+            await withCheckedContinuation { waiting = $0 }
+        }
+        func release() { let p = pending; pending = nil; p?.resume() }
+        func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue]) async throws -> ClubGovernanceSnapshot {
+            reads.append(operation)
+            let snapshot = try await fixture.read(operation, scope: scope, options: options)
+            if hold == operation {
+                hold = nil
+                await withCheckedContinuation { pending = $0; waiting?.resume(); waiting = nil }
+            }
+            return snapshot
+        }
+        func send(_ review: ClubGovernanceReview) async throws -> ClubGovernanceValue { XCTFail("Read-only path sent a command"); throw ClubGovernanceFailure.forbidden }
+    }
+    func testChangedAuthorizationDuringTopicsCannotPublishOrStartDetails() async {
+        let access = Access(); access.hold = .topics
+        let old = ClubEnrollmentReader(clubID: 81, focusTopicID: 91, access: access)
+        let task = Task { await old.activate(identity: access.identity) }
+        await access.waitUntilHeld(); access.authorizationGeneration = UUID(); access.release(); await task.value
+        XCTAssertFalse(old.isCurrentAccess); XCTAssertFalse(old.hasLoaded); XCTAssertTrue(old.teams.isEmpty)
+        XCTAssertTrue(old.rosters.isEmpty); XCTAssertEqual(access.reads, [.topics])
+        let fresh = ClubEnrollmentReader(clubID: 81, focusTopicID: 91, access: access)
+        await fresh.activate(identity: access.identity)
+        XCTAssertTrue(fresh.isCurrentAccess); XCTAssertNotNil(fresh.rosters[91])
+    }
+    func testChangedAuthorizationDuringRosterCannotPublishAcceptedRow() async {
+        let access = Access(); access.hold = .registrations
+        let reader = ClubEnrollmentReader(clubID: 81, focusTopicID: 91, access: access)
+        let task = Task { await reader.activate(identity: access.identity) }
+        await access.waitUntilHeld(); access.authorizationGeneration = UUID(); access.release(); await task.value
+        XCTAssertFalse(reader.isCurrentAccess); XCTAssertTrue(reader.rosters.isEmpty)
+        let count = access.reads.count
+        await reader.toggle(topicID: 91); await reader.loadDetail(topicID: 91)
+        XCTAssertEqual(access.reads.count, count)
+    }
+    func testRealmNamespaceAndReplacementAccessAreNotTheAcceptedReader() async {
+        let access = Access(), replacement = Access()
+        let reader = ClubEnrollmentReader(clubID: 81, access: access)
+        await reader.activate(identity: access.identity)
+        XCTAssertTrue(reader.usesAccess(access)); XCTAssertFalse(reader.usesAccess(replacement))
+        access.journalRealm = "replacement"; XCTAssertFalse(reader.isCurrentAccess)
+        access.journalRealm = "enrollment-auth-tests"; access.storageNamespace = "replacement"
+        XCTAssertFalse(reader.isCurrentAccess)
+        await reader.refresh(); XCTAssertEqual(reader.failure, .staleReview); XCTAssertTrue(reader.teams.isEmpty)
+    }
+    func testAcceptedRevisionSurvivesPushSuspensionButChangesForFreshRead() async {
+        let access = Access()
+        let current = ClubEnrollmentReader(clubID: 81, focusTopicID: 91, access: access)
+        await current.activate(identity: access.identity)
+        let revision = current.presentationRevision, count = access.reads.count
+        current.suspend(); await current.activate(identity: access.identity)
+        XCTAssertEqual(current.presentationRevision, revision); XCTAssertEqual(access.reads.count, count)
+        await current.refresh(); XCTAssertGreaterThan(current.presentationRevision, revision)
+        XCTAssertNotNil(current.rosters[91])
+    }
+    func testConcurrentActivationDoesNotDuplicateAnInFlightRead() async {
+        let access = Access(); access.hold = .topics
+        let reader = ClubEnrollmentReader(clubID: 81, access: access)
+        let first = Task { await reader.activate(identity: access.identity) }
+        await access.waitUntilHeld(); await reader.activate(identity: access.identity)
+        XCTAssertEqual(access.reads, [.topics]); access.release(); await first.value
+        XCTAssertTrue(reader.hasLoaded)
+    }
+    func testDepartedReadCannotPublishAfterFreshGenerationStarts() async {
+        let access = Access(); access.hold = .topics
+        let reader = ClubEnrollmentReader(clubID: 81, access: access)
+        let old = Task { await reader.activate(identity: access.identity) }
+        await access.waitUntilHeld(); reader.suspend()
+        await reader.activate(identity: access.identity)
+        let revision = reader.presentationRevision
+        XCTAssertTrue(reader.hasLoaded); access.release(); await old.value
+        XCTAssertEqual(reader.presentationRevision, revision); XCTAssertTrue(reader.hasLoaded); XCTAssertFalse(reader.loading)
+    }
+}

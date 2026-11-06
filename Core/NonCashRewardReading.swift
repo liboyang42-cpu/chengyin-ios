@@ -60,12 +60,12 @@ public extension NonCashRewardReading {
     }
 }
 @MainActor public final class NonCashRewardSessionReader: NonCashRewardReading {
-    private let service: NonCashRewardService?
+    private let resolveService: () -> NonCashRewardService?
     private let currentSession: () -> NonCashRewardReadSession?
     private let onUnauthorized: (NonCashRewardReadSession) -> Void
     private var snapshot: NonCashRewardReadSession?
     private var stamp = UUID()
-    public var isConfigured: Bool { service != nil }
+    public var isConfigured: Bool { resolveService() != nil }
     public var isAuthenticated: Bool { currentSession() != nil }
     public var isOfflineExample: Bool { false }
     public var scope: UUID {
@@ -73,9 +73,13 @@ public extension NonCashRewardReading {
         if snapshot != current { snapshot = current; stamp = UUID() }
         return stamp
     }
-    public init(service: NonCashRewardService?, currentSession: @escaping () -> NonCashRewardReadSession?,
+    public convenience init(service: NonCashRewardService?, currentSession: @escaping () -> NonCashRewardReadSession?,
                 onUnauthorized: @escaping (NonCashRewardReadSession) -> Void = { _ in }) {
-        self.service = service; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized
+        self.init(service: { service }, currentSession: currentSession, onUnauthorized: onUnauthorized)
+    }
+    public init(service: @escaping () -> NonCashRewardService?, currentSession: @escaping () -> NonCashRewardReadSession?,
+                onUnauthorized: @escaping (NonCashRewardReadSession) -> Void = { _ in }) {
+        resolveService = service; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized
         snapshot = currentSession()
     }
     public func rewards(cursor: String?) async throws -> NonCashRewardPage {
@@ -91,7 +95,7 @@ public extension NonCashRewardReading {
                          _ operation: (NonCashRewardService, String) async throws -> T) async throws -> T {
         try lifetime?.check()
         guard let session = currentSession() else { throw APIError.unauthorized }
-        guard let service else { throw APIError.notConfigured }
+        guard let service = resolveService() else { throw APIError.notConfigured }
         let captured = scope
         try Task.checkCancellation()
         do {

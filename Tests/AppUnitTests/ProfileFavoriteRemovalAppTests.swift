@@ -39,4 +39,52 @@ import XCTest
         let(c,w,context,p,s)=try make();let id=try XCTUnwrap(c.begin(post:p,collectionScope:s));await c.prepare(id);let review=try XCTUnwrap(c.review)
         context.session=nil;await c.confirm(review);XCTAssertEqual(w.writes,0)
     }
+    func testSuccessfulDismissalRefreshesOnceAcrossEntryAndSheetCallbacks() async throws {
+        let (c, w, _, p, scope) = try make()
+        let id = try XCTUnwrap(c.begin(post: p, collectionScope: scope)); await c.prepare(id)
+        await c.confirm(try XCTUnwrap(c.review))
+        let presentation = ProfileFavoriteRemovalPresentation(id: id, postID: p.id, scope: scope)
+        let refreshed = expectation(description: "One verified return refresh"); refreshed.expectedFulfillmentCount = 1
+        var count = 0
+        for _ in 0..<3 {
+            presentation.finish(controller: c, isCurrent: { true }, onRemoved: { count += 1; refreshed.fulfill() })
+        }
+        await fulfillment(of: [refreshed], timeout: 2)
+        XCTAssertEqual(count, 1); XCTAssertEqual(w.writes, 1); XCTAssertEqual(c.phase, .idle)
+    }
+    func testCancelledOrUnknownDismissalDoesNotReportRemoval() async throws {
+        for scenario in ["success", "unknown"] {
+            let (c, w, _, p, scope) = try make(scenario)
+            let id = try XCTUnwrap(c.begin(post: p, collectionScope: scope)); await c.prepare(id)
+            if scenario == "unknown" { await c.confirm(try XCTUnwrap(c.review)) }
+            let presentation = ProfileFavoriteRemovalPresentation(id: id, postID: p.id, scope: scope)
+            var count = 0
+            presentation.finish(controller: c, isCurrent: { true }, onRemoved: { count += 1 })
+            await Task.yield()
+            XCTAssertEqual(count, 0); XCTAssertEqual(w.writes, scenario == "unknown" ? 1 : 0)
+        }
+    }
+    func testOldPresentationFinishCannotRetireNewReviewOrRefreshNewScope() async throws {
+        let (c, _, _, p, scope) = try make()
+        let first = try XCTUnwrap(c.begin(post: p, collectionScope: scope)); await c.prepare(first)
+        let presentation = ProfileFavoriteRemovalPresentation(id: first, postID: p.id, scope: scope)
+        c.retire(first)
+        let next = try XCTUnwrap(c.begin(post: p, collectionScope: scope)); await c.prepare(next)
+        var count = 0
+        presentation.finish(controller: c, isCurrent: { true }, onRemoved: { count += 1 })
+        await Task.yield()
+        XCTAssertEqual(c.presentationID, next); XCTAssertEqual(c.phase, .reviewed); XCTAssertEqual(count, 0)
+    }
+    func testSuccessfulDismissalRejectsChangedCollectionBeforeDelivery() async throws {
+        let (c, _, _, p, scope) = try make()
+        let id = try XCTUnwrap(c.begin(post: p, collectionScope: scope)); await c.prepare(id)
+        await c.confirm(try XCTUnwrap(c.review))
+        let presentation = ProfileFavoriteRemovalPresentation(id: id, postID: p.id, scope: scope)
+        var current = true, count = 0
+        presentation.finish(controller: c, isCurrent: { current }, onRemoved: { count += 1 })
+        current = false
+        await Task.yield()
+        XCTAssertEqual(count, 0)
+    }
+
 }

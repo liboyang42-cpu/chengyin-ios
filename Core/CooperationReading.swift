@@ -69,6 +69,24 @@ public struct CooperationReadSession: Equatable {
     }
 }
 
+public struct CooperationReadOwner: Hashable {
+    public let readerID: ObjectIdentifier
+    public let scope: UUID
+    public let configured: Bool
+    public let authenticated: Bool
+    public let resource: String
+    @MainActor public init(reader: any CooperationReading, resource: String) {
+        readerID = ObjectIdentifier(reader); scope = reader.scope
+        configured = reader.isConfigured; authenticated = reader.isAuthenticated; self.resource = resource
+    }
+    public var canRead: Bool { configured && authenticated && !resource.isEmpty }
+}
+public struct CooperationReadPresentation: Equatable {
+    fileprivate let nonce = UUID()
+    public let owner: CooperationReadOwner
+    fileprivate init(owner: CooperationReadOwner) { self.owner = owner }
+}
+
 /// Generation guard shared by both screens; fresh reads clear all previous private content.
 /// It stays framework-independent so overlap, cancellation and scope hiding can be unit tested.
 @MainActor public final class CooperationReadModel<Value> {
@@ -76,15 +94,49 @@ public struct CooperationReadSession: Equatable {
     public private(set) var issue: CooperationIssue?
     public private(set) var loadedScope: UUID?
     public private(set) var isLoading = false
+    public private(set) var loadedOwner: CooperationReadOwner?
+    public private(set) var presentation: CooperationReadPresentation?
     private var generation: UInt64 = 0
     public init() {}
     public func visibleValue(scope: UUID) -> Value? { loadedScope == scope ? value : nil }
     public func visibleIssue(scope: UUID) -> CooperationIssue? { loadedScope == scope ? issue : nil }
     public func invalidate() {
-        generation &+= 1; value = nil; issue = nil; loadedScope = nil; isLoading = false
+        generation &+= 1; value = nil; issue = nil; loadedScope = nil; loadedOwner = nil; isLoading = false
     }
     /// Preserve the current same-scope navigation rows while a pushed screen is visible.
     public func cancelPending() { generation &+= 1; isLoading = false }
+    public func visibleValue(owner: CooperationReadOwner) -> Value? { loadedOwner == owner ? value : nil }
+    public func visibleIssue(owner: CooperationReadOwner) -> CooperationIssue? { loadedOwner == owner ? issue : nil }
+    @discardableResult public func beginPresentation(owner: CooperationReadOwner) -> CooperationReadPresentation? {
+        if loadedOwner != owner { invalidate() } else { cancelPending() }
+        presentation = owner.canRead ? CooperationReadPresentation(owner: owner) : nil
+        return presentation
+    }
+    public func endPresentation(preservingValues: Bool = true) {
+        presentation = nil
+        if preservingValues { cancelPending() } else { invalidate() }
+    }
+    public func accepts(_ permit: CooperationReadPresentation, currentOwner: CooperationReadOwner) -> Bool {
+        presentation == permit && permit.owner == currentOwner && currentOwner.canRead
+    }
+    public func load(presentation permit: CooperationReadPresentation, currentOwner: () -> CooperationReadOwner,
+                     operation: () async throws -> Value) async {
+        guard !Task.isCancelled, accepts(permit, currentOwner: currentOwner()) else { return }
+        invalidate()
+        let captured = generation
+        isLoading = true
+        defer { if generation == captured { isLoading = false } }
+        do {
+            let result = try await operation()
+            guard !Task.isCancelled, generation == captured, accepts(permit, currentOwner: currentOwner()) else { return }
+            value = result; loadedOwner = permit.owner; loadedScope = permit.owner.scope
+        } catch {
+            guard !Task.isCancelled, !(error is CancellationError), generation == captured,
+                  accepts(permit, currentOwner: currentOwner()) else { return }
+            issue = CooperationIssue(error); loadedOwner = permit.owner; loadedScope = permit.owner.scope
+        }
+    }
+    /// Compatibility for existing scope-only callers. Native screens use the owner-bound overload.
     public func load(scope: UUID, currentScope: () -> UUID, operation: () async throws -> Value) async {
         invalidate()
         let captured = generation

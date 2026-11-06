@@ -25,7 +25,7 @@ class OfficialPreferenceUIRegressions(unittest.TestCase):
     def test_official_browser_does_not_override_search_and_retry_identity(self):
         text = source('App/OfficialEventsBrowserView.swift')
         self.assertNotIn('.accessibilityIdentifier("official.browser")', text)
-        for leaf in ['official.search', 'official.filter', 'official.more']:
+        for leaf in ['official.search', 'official.filter', 'official.inboxLink', 'official.publishedLink']:
             self.assertIn(f'.accessibilityIdentifier("{leaf}")', text)
         self.assertIn('let visible = query.visible(rows)', text)
         self.assertIn('isPrivate: privateList, requestID: privateList ? "mine" : "public"', text)
@@ -39,7 +39,7 @@ class OfficialPreferenceUIRegressions(unittest.TestCase):
             self.assertIn(required, text)
         tests = source('Tests/AppUITests/OfficialEventFlowTests.swift')
         self.assertEqual(tests.count('        expectUnspecifiedPrice()'), 2)
-        self.assertIn('XCTAssertEqual(price.value as? String, "Price not provided by the source")', tests)
+        self.assertIn('XCTAssertEqual(price.value as? String, "Price not available")', tests)
         self.assertIn('XCTAssertFalse(app.staticTexts["Free"].exists)', tests)
         self.assertIn('XCTAssertFalse(app.buttons["Sign up"].exists)', tests)
 

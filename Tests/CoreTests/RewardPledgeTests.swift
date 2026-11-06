@@ -1,0 +1,261 @@
+import XCTest
+@testable import QuestifyCore
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
+
+final class RewardPledgeTests: XCTestCase {
+    private let digest = "4519c0b051d2fda04db36e4e9e7042d27ab76f0746807aed50f34c1308eb0494"
+
+    private func approved() -> RewardPledgePolicy {
+        var policy = RewardPledgePolicy.unset
+        policy.ruleVersion = "rule-a"
+        policy.validity = "server-window"
+        policy.quota = 2
+        policy.reserveShare = 1
+        policy.serviceCapacity = 4
+        policy.merchantEvidence = "evidence-1"
+        policy.nonCashEnabled = true
+        policy.readSource = .plannedController
+        policy.refusalPolicy = "manual"
+        return policy
+    }
+
+    private func capabilities() -> SponsoredRewardCapabilities {
+        var value = SponsoredRewardCapabilities()
+        value.nonCash = true
+        return value
+    }
+
+    private func terms(_ machine: RewardPledgeMachine) throws -> RewardPledgeTerms {
+        let read = machine.readTerms(serverRule: "rule-a", serverLimit: "two left", serverValidity: "server-window",
+                                     eligibility: "fact-9", rewardScope: "scope-theme", beneficiary: "42", storeID: "7",
+                                     serverQuota: 2, minorPrize: false, reviewRequired: false, clientComplete: false,
+                                     capabilities: capabilities(), seen: machine.scope)
+        guard case .success(let value) = read else { throw RewardPledgeFailure.closed("read") }
+        return value
+    }
+
+    func testStableIntentAndUnknownRecovery() throws {
+        var machine = RewardPledgeMachine(accountID: "42", storeID: "7", policy: approved())
+        let terms = try terms(machine)
+        XCTAssertEqual(RewardPledgeIdentity.requestID(for: terms.businessKey), digest)
+        guard case .success(let first) = machine.confirmClaim(terms, seen: machine.scope) else { return XCTFail("confirm") }
+        guard case .success(let second) = machine.confirmClaim(terms, seen: machine.scope) else { return XCTFail("reconfirm") }
+        XCTAssertEqual(first.requestID, digest)
+        XCTAssertEqual(second.requestID, first.requestID)
+        guard case .success(let row) = machine.recordUnknown(first, seen: machine.scope) else { return XCTFail("unknown") }
+        XCTAssertEqual(row.requestID, digest)
+        let stale = machine.recoveryIntent(row, proposedRequestID: String(repeating: "a", count: 64), seen: machine.scope)
+        guard case .failure(.closed("requestID")) = stale else { return XCTFail("new id") }
+        guard case .success(let recovered) = machine.recoveryIntent(row, proposedRequestID: row.requestID, seen: machine.scope) else { return XCTFail("recover") }
+        XCTAssertEqual(recovered.requestID, digest)
+        guard case .success = machine.acceptGrant(awardID: "award-1", termsVersion: "t1", termsText: "frozen terms", requestID: recovered.requestID, businessKey: recovered.businessKey, seen: machine.scope) else { return XCTFail("grant") }
+        XCTAssertEqual(machine.grant?.state, "GRANTED_UNREDEEMED")
+        XCTAssertTrue(machine.unknowns.isEmpty)
+        guard case .success(let path) = machine.markRefreshed(seen: machine.scope) else { return XCTFail("refresh") }
+        XCTAssertEqual(path, "api/rewards/noncash")
+        XCTAssertTrue(machine.listRefreshed)
+        XCTAssertTrue(machine.detailRefreshed)
+        XCTAssertEqual(RewardPledgeRoutes.detailPath(.plannedController, awardID: "award-1"), "api/rewards/noncash/award-1")
+    }
+
+    func testUnsetPolicyCashSwitchAndClientCompleteFailClosed() {
+        let open = RewardPledgeMachine(accountID: "42", storeID: "7", policy: .unset)
+        let denied = open.readTerms(serverRule: "rule-a", serverLimit: "two left", serverValidity: "server-window",
+                                   eligibility: "fact-9", rewardScope: "scope-theme", beneficiary: "42", storeID: "7",
+                                   serverQuota: 2, minorPrize: false, reviewRequired: false, clientComplete: false,
+                                   capabilities: capabilities(), seen: open.scope)
+        guard case .failure(.closed("nonCashEnabled")) = denied else { return XCTFail("unset") }
+        var caps = capabilities()
+        caps.cash = true
+        let machine = RewardPledgeMachine(accountID: "42", storeID: "7", policy: approved())
+        let cash = machine.readTerms(serverRule: "rule-a", serverLimit: "two left", serverValidity: "server-window",
+                                    eligibility: "fact-9", rewardScope: "scope-theme", beneficiary: "42", storeID: "7",
+                                    serverQuota: 2, minorPrize: false, reviewRequired: false, clientComplete: false,
+                                    capabilities: caps, seen: machine.scope)
+        guard case .failure(.closed("switches")) = cash else { return XCTFail("cash") }
+        let complete = machine.readTerms(serverRule: "rule-a", serverLimit: "two left", serverValidity: "server-window",
+                                        eligibility: "fact-9", rewardScope: "scope-theme", beneficiary: "42", storeID: "7",
+                                        serverQuota: 2, minorPrize: false, reviewRequired: false, clientComplete: true,
+                                        capabilities: capabilities(), seen: machine.scope)
+        guard case .failure(.closed("clientComplete")) = complete else { return XCTFail("complete") }
+        XCTAssertEqual(machine.replenish(), .closed("topUp"))
+        var topped = approved()
+        topped.topUp = "approved"
+        XCTAssertEqual(RewardPledgeMachine(accountID: "42", storeID: "7", policy: topped).replenish(), .closed("W06"))
+    }
+
+    func testJournalRestartIsolationAndTerminalCases() throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("pledge-\(UUID().uuidString).json")
+        let journal = RewardPledgeFileJournal(url: url)
+        var machine = RewardPledgeMachine(accountID: "42", storeID: "7", policy: approved())
+        let terms = try terms(machine)
+        guard case .success(let intent) = machine.confirmClaim(terms, seen: machine.scope) else { return XCTFail("confirm") }
+        guard case .success = machine.recordUnknown(intent, seen: machine.scope) else { return XCTFail("unknown") }
+        let other = RewardPledgeUnknown(ownerID: "99", storeID: "7", businessKey: "other", requestID: RewardPledgeIdentity.requestID(for: "other"), kind: "claim")
+        try journal.save(machine.persistedRows(existing: [other]))
+        let restarted = RewardPledgeMachine.restored(accountID: "42", storeID: "7", policy: approved(), journal: try journal.load())
+        XCTAssertEqual(restarted.unknowns.map(\.requestID), [digest])
+        var switched = restarted
+        switched.replaceAccount("99", store: "7", journal: try journal.load())
+        XCTAssertEqual(switched.unknowns, [other])
+        XCTAssertNotEqual(switched.scope.generation, restarted.scope.generation)
+        let old = restarted.recoveryIntent(restarted.unknowns[0], proposedRequestID: digest, seen: restarted.scope)
+        guard case .failure(.stale) = switched.recoveryIntent(restarted.unknowns[0], proposedRequestID: digest, seen: oldScope(restarted)) else { return XCTFail("stale query") }
+        _ = old
+        guard case .success = machine.acceptGrant(awardID: "award-1", termsVersion: "t1", termsText: "frozen terms", requestID: intent.requestID, businessKey: intent.businessKey, seen: machine.scope) else { return XCTFail("grant") }
+        guard case .success = machine.preview(permissionStore: "7", seen: machine.scope) else { return XCTFail("preview") }
+        guard case .success(let expired) = machine.expire(awardID: "award-1", seen: machine.scope) else { return XCTFail("expire") }
+        XCTAssertEqual(expired.reason, "EXPIRED")
+        XCTAssertFalse(expired.readable.isEmpty)
+        let blocked = machine.beginRedeem(explicit: true, historyID: "award-1", serverCapacity: 4, seen: machine.scope)
+        guard case .failure(.terminal(let reason)) = blocked, reason == "EXPIRED" else { return XCTFail("redeem after expire") }
+    }
+
+    func testPledgeFreezeStaffRoutesAndSingleReadSource() throws {
+        var machine = RewardPledgeMachine(accountID: "42", storeID: "7", policy: approved())
+        guard case .success(let draft) = machine.saveDraft(pledgeID: "p1", quantityText: "2", termsText: "bring the card", serverReserve: 1, seen: machine.scope) else { return XCTFail("draft") }
+        XCTAssertEqual(draft.status, "DRAFT")
+        guard case .success(let submitted) = machine.submitDraft(seen: machine.scope) else { return XCTFail("submit") }
+        guard case .success(let frozen) = machine.freeze(serverVersion: submitted.version, seen: machine.scope) else { return XCTFail("freeze") }
+        XCTAssertEqual(frozen.status, "FROZEN")
+        XCTAssertNil(machine.draft)
+        let terms = try terms(machine)
+        guard case .success(let intent) = machine.confirmClaim(terms, seen: machine.scope) else { return XCTFail("confirm") }
+        guard case .success = machine.acceptGrant(awardID: "15", termsVersion: "t1", termsText: "frozen terms", requestID: intent.requestID, businessKey: intent.businessKey, seen: machine.scope) else { return XCTFail("grant") }
+        guard case .success = machine.withdraw(seen: machine.scope) else { return XCTFail("withdraw") }
+        XCTAssertEqual(machine.grant?.awardID, "15")
+        XCTAssertEqual(machine.frozen?.status, "WITHDRAWN")
+        XCTAssertEqual(machine.serviceCase?.reason, "WITHDRAWN")
+        var staff = RewardPledgeMachine(accountID: "42", storeID: "7", policy: approved())
+        guard case .success(let staffIntent) = staff.confirmClaim(try self.terms(staff), seen: staff.scope) else { return XCTFail("staff confirm") }
+        _ = staff.acceptGrant(awardID: "15", termsVersion: "t1", termsText: "frozen terms", requestID: staffIntent.requestID, businessKey: staffIntent.businessKey, seen: staff.scope)
+        XCTAssertNil(try? staffPreviewWrongStore(&staff))
+        guard case .success = staff.preview(permissionStore: "7", seen: staff.scope) else { return XCTFail("preview") }
+        guard case .failure(.stale) = staff.preview(permissionStore: "8", seen: staff.scope) else { return XCTFail("cross store") }
+        guard case .success(let redeem) = staff.beginRedeem(explicit: true, historyID: "15", serverCapacity: 4, seen: staff.scope) else { return XCTFail("redeem") }
+        XCTAssertEqual(staff.staffRoutes, ["api/coupon/qr-token", "api/coupon/status", "api/coupon/verification", "api/coupon/myrecvlist"])
+        let base = try APIConfiguration(baseURL: URL(string: "https://example.com")!).baseURL
+        let requests = try RewardPledgeRequests.staff(historyID: 15, verificationCode: "code-1", baseURL: base, token: "fixture-token")
+        XCTAssertEqual(requests.compactMap { $0.url?.path }, staff.staffRoutes.map { "/" + $0 })
+        XCTAssertFalse(requests.contains { $0.url?.path.contains("citynode") == true })
+        XCTAssertThrowsError(try RewardPledgeRequests.query(original: redeem.asUnknown, proposedRequestID: "other", baseURL: base, token: "fixture-token"))
+        let query = try RewardPledgeRequests.query(original: redeem.asUnknown, proposedRequestID: redeem.requestID, baseURL: base, token: "fixture-token")
+        XCTAssertEqual(query.httpMethod, "POST")
+        XCTAssertTrue(query.url?.path.hasSuffix(RewardPledgeRoutes.plannedIntentQuery) == true)
+        let queryFields = try JSONSerialization.jsonObject(with: XCTUnwrap(query.httpBody)) as? [String: String]
+        XCTAssertEqual(queryFields, ["requestId": redeem.requestID])
+        let claim = try RewardPledgeRequests.claim(requestID: digest, versionID: "version-1", subjectID: "100", baseURL: base, token: "fixture-token")
+        let claimFields = try JSONSerialization.jsonObject(with: XCTUnwrap(claim.httpBody)) as? [String: String]
+        XCTAssertEqual(claimFields, ["branch": "THEME", "requestId": digest, "subjectId": "100", "versionId": "version-1"])
+        XCTAssertFalse(claimFields?.keys.contains("ownerId") == true)
+        let redeemRequest = try RewardPledgeRequests.redeem(awardID: "award-1", baseURL: base, token: "fixture-token")
+        XCTAssertTrue(redeemRequest.url?.path.hasSuffix(RewardPledgeRoutes.redeem) == true)
+        let redeemFields = try JSONSerialization.jsonObject(with: XCTUnwrap(redeemRequest.httpBody)) as? [String: String]
+        XCTAssertEqual(redeemFields?["confirm"], "true")
+        XCTAssertEqual(redeemFields?["awardId"], "award-1")
+        XCTAssertNil(redeemFields?["requestId"])
+        var closed = approved(); closed.readSource = nil
+        staff.applyPolicy(closed)
+        guard case .failure(.closed("readSource")) = staff.refreshSource() else { return XCTFail("unset source") }
+        var couponPolicy = approved(); couponPolicy.readSource = .couponHistory
+        staff.applyPolicy(couponPolicy)
+        XCTAssertEqual(try staff.refreshSource().get(), "api/coupon/myrecvlist")
+        XCTAssertEqual(RewardPledgeRoutes.detailPath(.couponHistory, awardID: "15"), "api/coupon/myrecvlist")
+        XCTAssertFalse(CityNodeRedemptionCode.acceptsPledgeRedeem("api/coupon/verification"))
+        let item = SponsoredPoolItem(itemID: "i", pledgeID: "p", pledgeVersion: "1", merchantID: "1", storeID: "7", kind: .coupon,
+                                     allocation: .fixedMilestone, title: "hat", termsVersion: "t", termsText: "bring the card",
+                                     validFrom: Date(timeIntervalSince1970: 1), validUntil: Date(timeIntervalSince1970: 2),
+                                     remaining: 1, guaranteeReserved: false, asOf: Date(timeIntervalSince1970: 1))
+        XCTAssertTrue(item.pledgePresentable(capabilities()))
+        var guaranteed = capabilities(); guaranteed.guaranteed = true
+        XCTAssertFalse(item.pledgePresentable(guaranteed))
+        let coupon = try JSONDecoder().decode(CouponDefinition.self, from: Data(#"{"id":3,"name":"hat","startTime":"2026-10-21 00:00:00","endTime":"2026-10-22 00:00:00"}"#.utf8))
+        let supply = try RewardPledgeRequests.Supply(coupon: coupon, supplyRef: "in store", terms: "bring the card", quantity: 2, requestID: "draft-key-1")
+        let drafted = try RewardPledgeRequests.draft(supply, baseURL: base, token: "fixture-token")
+        XCTAssertEqual(drafted.url?.path.hasSuffix("api/reward-pledge/drafts"), true)
+        let draftBody = try JSONSerialization.jsonObject(with: XCTUnwrap(drafted.httpBody)) as? [String: Any]
+        XCTAssertEqual(draftBody?["requestId"] as? String, "draft-key-1")
+        XCTAssertEqual(draftBody?["rewardKind"] as? String, "NON_CASH")
+        XCTAssertEqual((draftBody?["couponId"] as? NSNumber)?.intValue, 3)
+        XCTAssertEqual((draftBody?["serviceStart"] as? NSNumber)?.int64Value, (draftBody?["redeemStart"] as? NSNumber)?.int64Value)
+        XCTAssertNil(draftBody?["storeId"])
+        XCTAssertNil(draftBody?["merchantMemberId"])
+        XCTAssertEqual(RewardPledgeRoutes.operation(drafted, baseURL: base), "draft")
+        let pledge = "11111111-1111-1111-1111-111111111111"
+        let submit = try RewardPledgeRequests.submit(pledgeID: pledge, baseURL: base, token: "fixture-token")
+        XCTAssertEqual(RewardPledgeRoutes.operation(submit, baseURL: base), "submit")
+        XCTAssertThrowsError(try RewardPledgeRequests.openCase(awardID: "award-1", versionID: "version-1", reason: "CASH_REFUND", baseURL: base, token: "fixture-token"))
+        let caseRead = try RewardPledgeRequests.readCase(caseID: "case-1", baseURL: base, token: "fixture-token")
+        XCTAssertEqual(RewardPledgeRoutes.operation(caseRead, baseURL: base), "case")
+        var compensation = URLRequest(url: base.appendingPathComponent("api/reward-pledge/compensations"))
+        compensation.httpMethod = "POST"
+        XCTAssertNil(RewardPledgeRoutes.operation(compensation, baseURL: base))
+        let stats = try RewardPledgeRequests.stats(pledgeID: pledge, baseURL: base, token: "fixture-token")
+        XCTAssertEqual(RewardPledgeRoutes.operation(stats, baseURL: base), "stats")
+        let catalog = try RewardPledgeRequests.catalog(subjectID: "100", baseURL: base, token: "fixture-token")
+        XCTAssertEqual(RewardPledgeRoutes.operation(catalog, baseURL: base), "catalog")
+        XCTAssertNil(catalog.url?.query)
+        let owned = try RewardPledgeRequests.ownedPledges(baseURL: base, token: "fixture-token")
+        XCTAssertEqual(RewardPledgeRoutes.operation(owned, baseURL: base), "manage")
+        let review = try RewardPledgeRequests.reviewQueue(baseURL: base, token: "fixture-token")
+        XCTAssertEqual(RewardPledgeRoutes.operation(review, baseURL: base), "review")
+        let readBack = try RewardPledgeRequests.reviewVersion(versionID: "version-1", baseURL: base, token: "fixture-token")
+        XCTAssertEqual(RewardPledgeRoutes.operation(readBack, baseURL: base), "review")
+    }
+
+    func testAwardArrayDecodesThemeSubjectAndReadDoesNotClaim() async throws {
+        let listed = """
+        {"code":200,"data":[
+          {"awardId":"a1","versionId":"v1","ruleVersion":"r","rewardScope":"THEME","factRef":"THEME:100:session:210","state":"AWARDED","requestId":"req-1","beneficiaryId":1,"createdAt":1,"historyId":9},
+          {"awardId":"a2","versionId":"v2","ruleVersion":"r","rewardScope":"X","factRef":"COMPENSATION:3","state":"AWARDED","requestId":"req-2","beneficiaryId":1,"createdAt":1,"historyId":null}
+        ]}
+        """
+        let rows = try RewardPledgeAwardRow.decodeList(Data(listed.utf8))
+        XCTAssertEqual(rows.map(\.themeSubjectID), ["100", nil])
+        XCTAssertEqual(rows[0].historyId, "9")
+        XCTAssertThrowsError(try RewardPledgeAwardRow.decodeList(Data(#"{"code":200,"data":{"items":[],"nextCursor":null,"asOf":1}}"#.utf8)))
+        let transport = RewardPledgeScriptTransport()
+        let configuration = try APIConfiguration(baseURL: URL(string: "https://example.test")!)
+        let client = RewardPledgeClient(configuration: configuration, transport: transport)
+        do {
+            _ = try await client.claim(requestID: digest, versionID: "v1", subjectID: "100", token: "fixture-token", open: false, still: { true })
+            XCTFail("read grant sent a claim")
+        } catch RewardPledgeFailure.closed("not open") {}
+        XCTAssertTrue(transport.requests.isEmpty)
+        transport.body = listed
+        var moved = false
+        let loaded = try await client.awards(token: "fixture-token", open: true, still: { !moved })
+        XCTAssertEqual(loaded.map(\.awardId), ["a1", "a2"])
+        moved = true
+        transport.body = #"{"code":200,"msg":"ok","data":{"awardId":"a1","requestId":"req-1","state":"AWARDED","historyId":"9","useStatus":"0"}}"#
+        do {
+            _ = try await client.claim(requestID: digest, versionID: "v1", subjectID: "100", token: "fixture-token", open: true, still: { !moved })
+            XCTFail("stale claim was kept")
+        } catch RewardPledgeFailure.stale {}
+    }
+
+    private func staffPreviewWrongStore(_ machine: inout RewardPledgeMachine) throws -> RewardPledgeGrant {
+        let preview = machine.preview(permissionStore: "8", seen: machine.scope)
+        guard case .success(let value) = preview else { throw RewardPledgeFailure.stale }
+        return value
+    }
+
+    private func oldScope(_ machine: RewardPledgeMachine) -> RewardPledgeScope { machine.scope }
+}
+
+private final class RewardPledgeScriptTransport: HTTPTransport {
+    var requests: [URLRequest] = []
+    var body = ""
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        requests.append(request)
+        return (Data(body.utf8), 200)
+    }
+}
+
+private extension RewardPledgeIntent {
+    var asUnknown: RewardPledgeUnknown {
+        RewardPledgeUnknown(ownerID: ownerID, storeID: storeID, businessKey: businessKey, requestID: requestID, kind: kind)
+    }
+}

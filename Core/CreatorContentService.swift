@@ -8,10 +8,20 @@ public struct CreatorContentService {
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration; self.transport = transport
     }
-    public func projects(query: CreatorContentQuery = .init(), token: String) async throws -> CreatorContentProjectPage {
+    public func projects(query: CreatorContentQuery = .init(), operationScope: String? = nil, token: String) async throws -> CreatorContentProjectPage {
         guard query.isValid else { throw APIError.invalidRequest }
-        let data = try await post("api/project/my", fields: ["type": query.type, "state": query.state, "ownerType": query.ownerType, "pageNum": "1", "pageSize": "200"], token: token)
+        var fields = ["type": query.type, "state": query.state, "ownerType": query.ownerType, "pageNum": "1", "pageSize": "200"]
+        if let scope = try Self.merchantWireScope(operationScope) { fields["scope"] = scope }
+        let data = try await post("api/project/my", fields: fields, token: token)
         return try decode(ProjectsEnvelope.self, data).data
+    }
+    /// Personal and club entries omit `scope`. Only the merchant entry sends `MERCHANT`.
+    /// Any other non-empty value is rejected here; the server also rejects unknown scopes.
+    public static func merchantWireScope(_ raw: String?) throws -> String? {
+        let trimmed = (raw ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return nil }
+        guard trimmed.caseInsensitiveCompare("MERCHANT") == .orderedSame else { throw APIError.invalidRequest }
+        return "MERCHANT"
     }
     public func center(token: String) async throws -> CreatorContentCenter {
         let data = try await post("api/creator/center", fields: [:], token: token)

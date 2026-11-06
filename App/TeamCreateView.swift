@@ -12,7 +12,7 @@ import SwiftUI
             Section { TeamNotice(coordinator: model.coordinator) }
             if model.running { ProgressView("team.loading") }
             if let context = model.coordinator.creation {
-                Section("team.create.activity") { Text(verbatim: context.title) }
+                Section("team.create.activity") { Text(verbatim: context.title).font(.headline).fixedSize(horizontal: false, vertical: true) }
                 Section("team.create.settings") {
                     Picker("team.size", selection: $size) { ForEach(context.sizes, id: \.self) { Text(verbatim: "\($0)").tag($0) } }
                         .accessibilityIdentifier("team.create.size")
@@ -26,7 +26,10 @@ import SwiftUI
                 }
             }
             if model.coordinator.pending != nil {
-                Button("team.checkOutcome") { Task { await model.run { await model.coordinator.checkOutcome() } } }
+                Button("team.checkOutcome") {
+                    let permit = model.captureRun()
+                    Task { await model.run(permit: permit) { await model.coordinator.checkOutcome() } }
+                }
                     .disabled(model.running || !model.coordinator.canSimulate).accessibilityIdentifier("team.checkOutcome")
             }
         }.appNavigationTitle("team.create")

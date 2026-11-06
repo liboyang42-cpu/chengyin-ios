@@ -330,6 +330,62 @@ final class OfficialEventTests: XCTestCase {
         XCTAssertEqual(OfficialEventBrowseQuery(bucket: .mine, keyword: " ").emptyKey, "official.emptyMine")
         XCTAssertEqual(OfficialEventBrowseQuery(bucket: .live, keyword: "").emptyKey, "official.empty")
     }
+    func testSourceListQueryHidesMineSearchAndUsesTabSpecificEmptyCopy() throws {
+        let rows = try decode([OfficialEvent].self, #"[{"id":1,"title":"Harbor Walk","status":3},{"id":2,"title":"Museum","status":5}]"#)
+        let mine = OfficialEventBrowseQuery.sourceList(bucket: .mine, keyword: "missing")
+        XCTAssertEqual(mine.visible(rows).map(\.id), [1, 2]); XCTAssertFalse(mine.isSearching)
+        XCTAssertEqual(mine.emptyTitleKey, "official.empty.mine"); XCTAssertEqual(mine.emptyDetailKey, "official.emptyDetail.mine")
+        let live = OfficialEventBrowseQuery.sourceList(bucket: .live, keyword: "  harbor ")
+        XCTAssertEqual(live.visible(rows).map(\.id), [1]); XCTAssertEqual(live.trimmedKeyword, "harbor")
+        XCTAssertEqual(live.emptyTitleKey, "official.empty.search"); XCTAssertEqual(live.emptyDetailKey, "official.searchEmptyDetail")
+        XCTAssertEqual(OfficialEventBrowseQuery.sourceList(bucket: .upcoming, keyword: "").emptyTitleKey, "official.empty.upcoming")
+        XCTAssertEqual(OfficialEventBrowseQuery.sourceList(bucket: .ended, keyword: "").emptyDetailKey, "official.emptyDetail.ended")
+        XCTAssertEqual(OfficialEventBrowseQuery.sourceList(bucket: .live, keyword: "").emptyDetailKey, "official.emptyDetail.curated")
+        XCTAssertEqual(OfficialEventBucket.mine.tabTitleKey, "official.tab.mine")
+        XCTAssertEqual(OfficialEventBucket.live.tabTitleKey, "official.bucket.live")
+    }
+    func testCountdownMirrorsSourceUnitsOnlyForNumericTimestamps() throws {
+        let now = Date(timeIntervalSince1970: 1_000_000)
+        func event(_ fields: String) throws -> OfficialEvent { try decode(OfficialEvent.self, #"{"id":1,"title":"Timer""# + fields + "}") }
+        let ms = 1_000_000_000.0
+        XCTAssertEqual(try event(#","status":1,"activityStart":\#(ms + 3 * 86_400_000 + 5)"#).countdown(now: now), .startsIn(.days(3)))
+        XCTAssertEqual(try event(#","status":1,"activityStart":\#(ms - 1)"#).countdown(now: now), .startingSoon)
+        XCTAssertEqual(try event(#","status":3,"activityEnd":\#(ms + 5 * 3_600_000)"#).countdown(now: now), .endsIn(.hours(5)))
+        XCTAssertEqual(try event(#","status":2,"activityEnd":\#(ms + 20_000)"#).countdown(now: now), .endsIn(.minutes(1)))
+        XCTAssertEqual(try event(#","status":2,"activityEnd":\#(ms)"#).countdown(now: now), .endingSoon)
+        XCTAssertNil(try event(#","status":1,"activityStart":"2026-10-20 10:00:00""#).countdown(now: now))
+        XCTAssertNil(try event(#","status":5,"activityEnd":\#(ms + 1_000)"#).countdown(now: now))
+        XCTAssertTrue(try event(#","collective":{"enabled":true}"#).collectivePercentShown)
+        XCTAssertFalse(try event(#","collective":{"enabled":false,"pct":40}"#).collectivePercentShown)
+    }
+    func testRewardsFollowSourceStrictTypesAndRanges() throws {
+        func rewards(_ raw: String) throws -> OfficialEvent {
+            let json = try JSONSerialization.data(withJSONObject: ["id":71,"title":"Synthetic","rewardJson":raw])
+            return try JSONDecoder().decode(OfficialEvent.self, from: json)
+        }
+        XCTAssertTrue(try rewards(#"{"settleBadge":false,"settleXp":0,"settleCouponId":"0","collectiveCouponId":-3}"#).rewards.isEmpty)
+        XCTAssertTrue(try rewards(#"{"settleBadge":"yes","settleXp":2147483648,"settleCouponId":"12a","collectiveCouponId":1.5}"#).rewards.isEmpty)
+        let valid = try rewards(#"{"settleBadge":true,"settleXp":"0025","settleCouponId":"9223372036854775807","collectiveCouponId":7}"#)
+        XCTAssertEqual(valid.rewards, [.badge, .coupon, .experience("25"), .collectiveCoupon]); XCTAssertTrue(valid.hasCollectiveReward)
+        XCTAssertFalse(try rewards(#"{"collectiveCouponId":"9223372036854775808"}"#).hasCollectiveReward)
+        XCTAssertFalse(try rewards(#"{"collectiveCouponId":true}"#).hasCollectiveReward)
+    }
+    func testBroadcastReachPrefersSourceReachedCount() throws {
+        XCTAssertEqual(try decode(OfficialBroadcast.self, #"{"id":9,"title":"N","reachedCount":12,"reach":3}"#).reach, 12)
+        XCTAssertEqual(try decode(OfficialBroadcast.self, #"{"id":9,"title":"N","reach":3}"#).reach, 3)
+        XCTAssertNil(try decode(OfficialBroadcast.self, #"{"id":9,"title":"N","reachedCount":-1}"#).reach)
+    }
+    func testInviteSourceStatusRoleAndScopeTables() throws {
+        let invite = try decode(OfficialPartyInvite.self, #"{"partyId":5,"eventTitle":"E","status":"ACTIVE","role":"FULFILLMENT_CLUB","targetType":"ROUTE","responsibilitySummary":"Guide"}"#)
+        XCTAssertEqual(invite.sourceStatusKey, "official.inbox.status.active")
+        XCTAssertEqual(invite.roleKey, "official.inbox.role.club"); XCTAssertEqual(invite.scopeKey, "official.inbox.scope.route")
+        XCTAssertEqual(invite.responsibilitySummary, "Guide")
+        let bare = try decode(OfficialPartyInvite.self, #"{"partyId":6,"state":"INVITED","role":"FUTURE"}"#)
+        XCTAssertEqual(bare.sourceStatusKey, "official.inbox.status.unknown")
+        XCTAssertNil(bare.roleKey); XCTAssertEqual(bare.role, "FUTURE"); XCTAssertEqual(bare.scopeKey, "official.inbox.scope.event")
+        XCTAssertEqual(try decode(OfficialPartyInvite.self, #"{"partyId":7,"targetType":"EVENT"}"#).scopeKey, "official.inbox.scope.event")
+        XCTAssertEqual(try decode(OfficialPartyInvite.self, #"{"partyId":8,"targetType":"ZONE"}"#).scopeKey, "official.inbox.scope.unknown")
+    }
     func testUnknownVisibilityStillRejectsIncompleteAndDuplicateRows() throws {
         let rows = try decode([OfficialEvent].self, #"[{"id":1,"title":"Unknown","status":99},{"id":1,"title":"Duplicate"},{"id":0,"title":"Invalid"},{"id":2,"title":""}]"#)
         XCTAssertEqual(OfficialEventBrowseQuery(bucket: .live, keyword: "unknown").visible(rows).map(\.id), [1])

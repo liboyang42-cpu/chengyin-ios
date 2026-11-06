@@ -13,7 +13,7 @@ class UIFactAssertionBoundaryChecks(unittest.TestCase):
   for key in ['eligibility','claimProgress','allocation']:
    label=strings['rewards.read.'+key]['localizations']['en']['stringUnit']['value']
    self.assertIn(f'("rewards.read.{key}.value", "{label}")',ui)
-  self.assertIn('field + ", Not provided by this read contract"',ui)
+  self.assertIn('field + ", Not available"',ui)
   self.assertEqual(ui.count('XCTAssertEqual(query.count, 1)'),2)
   self.assertIn('XCTAssertFalse(app.buttons["Claim reward"].exists)',ui)
  def test_saved_message_is_revealed_then_checked_exactly_not_replaced_by_generic_status(self):

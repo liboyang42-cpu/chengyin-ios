@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm this action for this conversation. Unread and notification indicators will refresh from the server after it is accepted."
+            "value": "Confirm this action for this conversation. Unread and notification status will update afterwards."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确认对这个会话执行此操作。服务端受理后会重新读取未读和免打扰状态。"
+            "value": "确认对此会话执行此操作，完成后将更新未读和免打扰状态。"
           }
         }
       }
@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server accepted the action. Badges change only after a successful list refresh. Close this sheet to check the list and retry its refresh if needed."
+            "value": "Done. Badges update after the conversation list refreshes. Close this sheet to check the list and refresh again if needed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已受理操作。只有会话列表刷新成功后才会更新角标；请关闭此页查看列表，必要时重试刷新。"
+            "value": "操作已受理。会话列表刷新后角标才会更新；请关闭此页查看列表，必要时重新刷新。"
           }
         }
       }

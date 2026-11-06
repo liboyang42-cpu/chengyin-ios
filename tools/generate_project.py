@@ -6,9 +6,13 @@ def ident(name): return hashlib.sha256(name.encode()).hexdigest()[:24].upper()
 objects = {}
 def obj(object_key, **fields):
     key = ident(object_key); objects[key] = fields; return key
-sources = sorted([*ROOT.glob('App/*.swift'), *ROOT.glob('App/*.m'), *ROOT.glob('Core/*.swift')])
+sources = sorted([*ROOT.glob('App/*.swift'), *ROOT.glob('App/Theme/*.swift'), *ROOT.glob('App/*.m'), *ROOT.glob('Core/*.swift')])
 ui_source_paths = sorted(ROOT.glob('Tests/AppUITests/*.swift'))
-unit_source_paths = sorted(ROOT.glob('Tests/AppUnitTests/**/*.swift'))
+# Compile this canonical demo source in the app only for Debug. Release AppUnit
+# retains the old tests by compiling that same source in the test bundle instead.
+release_test_fixture_sources = [ROOT/'App/AppStoreReviewDemoAccountAndFixtureSectionView.swift']
+release_test_fixture_names = ' '.join(path.name for path in release_test_fixture_sources)
+unit_source_paths = sorted([*ROOT.glob('Tests/AppUnitTests/**/*.swift'), *release_test_fixture_sources])
 
 def validate_swift_basenames(target_name, paths):
     # Swift localization extraction emits <basename>.stringsdata within each
@@ -31,11 +35,11 @@ for target_name, paths in [('Questify', sources), ('QuestifyUITests', ui_source_
                            ('QuestifyAppUnitTests', unit_source_paths)]:
     validate_swift_basenames(target_name, paths)
 headers = sorted(ROOT.glob('App/*.h'))
-resources = sorted([*ROOT.glob('Resources/*.xcstrings'), *ROOT.glob('Resources/*Notices.txt')])
+resources = sorted([*ROOT.glob('Resources/*.xcstrings'), *ROOT.glob('Resources/*Notices.txt'), *ROOT.glob('Resources/PrivacyInfo.xcprivacy'), *ROOT.glob('Resources/SettingsBrandMark.png')])
 refs, source_builds, resource_builds = [], [], []
 for path in sources + resources + headers:
     relative = str(path.relative_to(ROOT))
-    ref = obj(relative, isa='PBXFileReference', lastKnownFileType={'.swift': 'sourcecode.swift', '.m': 'sourcecode.c.objc', '.h': 'sourcecode.c.h'}.get(path.suffix, 'text.json.xcstrings' if path.suffix == '.xcstrings' else 'text'), path=relative, sourceTree='<group>')
+    ref = obj(relative, isa='PBXFileReference', lastKnownFileType={'.swift': 'sourcecode.swift', '.m': 'sourcecode.c.objc', '.h': 'sourcecode.c.h', '.xcprivacy': 'text.xml', '.png': 'image.png'}.get(path.suffix, 'text.json.xcstrings' if path.suffix == '.xcstrings' else 'text'), path=relative, sourceTree='<group>')
     refs.append(ref)
     if path in headers: continue
     options = {'settings': {'COMPILER_FLAGS': '-fobjc-arc'}} if path.suffix == '.m' else {}
@@ -70,6 +74,8 @@ def configurations(scope):
         if scope=='target' and name=='Debug':
             settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS']='DEBUG $(inherited)'
             settings['ENABLE_TESTABILITY']='YES'
+        if scope=='target' and name=='Release':
+            settings['EXCLUDED_SOURCE_FILE_NAMES']='$(inherited) '+release_test_fixture_names
         extra={'baseConfigurationReference':config_ref} if scope=='target' else {}
         configs.append(obj(scope+name,isa='XCBuildConfiguration',name=name,buildSettings=settings,**extra))
     return obj(scope+'configs',isa='XCConfigurationList',buildConfigurations=configs,defaultConfigurationIsVisible=0,defaultConfigurationName='Release')
@@ -97,14 +103,17 @@ unit_files=[]
 for path in unit_source_paths:
     relative=str(path.relative_to(ROOT))
     ref=obj(relative,isa='PBXFileReference',lastKnownFileType='sourcecode.swift',path=relative,sourceTree='<group>')
-    objects[group]['children'].append(ref)
+    # Shared canonical sources reuse their existing reference/build object, but
+    # must appear only once in the navigator and once in each target's phase.
+    if ref not in objects[group]['children']:
+        objects[group]['children'].append(ref)
     unit_files.append(obj('build:'+relative,isa='PBXBuildFile',fileRef=ref))
 if not unit_files:
     raise SystemExit('No app-unit sources found; refusing to generate an empty test target')
 unit_product=obj('unit-product',isa='PBXFileReference',explicitFileType='wrapper.cfbundle',includeInIndex=0,path='QuestifyAppUnitTests.xctest',sourceTree='BUILT_PRODUCTS_DIR')
 objects[products]['children'].append(unit_product)
 unit_configs=[obj('unit'+name,isa='XCBuildConfiguration',name=name,baseConfigurationReference=unit_config_ref,
-    buildSettings={'PRODUCT_NAME':'$(TARGET_NAME)', **({'SWIFT_ACTIVE_COMPILATION_CONDITIONS':'DEBUG $(inherited)'} if name=='Debug' else {})})
+    buildSettings={'PRODUCT_NAME':'$(TARGET_NAME)', **({'SWIFT_ACTIVE_COMPILATION_CONDITIONS':'DEBUG $(inherited)', 'EXCLUDED_SOURCE_FILE_NAMES':'$(inherited) '+release_test_fixture_names} if name=='Debug' else {})})
     for name in ['Debug','Release']]
 unit_config_list=obj('unitconfigs',isa='XCConfigurationList',buildConfigurations=unit_configs,defaultConfigurationIsVisible=0,defaultConfigurationName='Debug')
 unit_sources=obj('unit-sources',isa='PBXSourcesBuildPhase',buildActionMask=2147483647,files=unit_files,runOnlyForDeploymentPostprocessing=0)

@@ -18,6 +18,7 @@ import SwiftUI
     @State private var mapEnabled = false
     @State private var mapLayers = SearchMapLayerVisibility()
     @State private var layerNavigation: SearchMapLayerNavigation?
+    @State private var publicLayerNavigation: MapPublicLayerDetailRoute?
     @State private var mapCameraIdentityArea: RoamSearchArea?
     @State private var categories: [DiscoveryCategory] = []
     @State private var categoryFailed = false
@@ -68,7 +69,6 @@ import SwiftUI
         ScrollViewReader { scroll in
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("searchMap.manualDisclosure").font(.footnote).foregroundStyle(.secondary)
                 if reader.isOfflineExample { Text("searchMap.offline").font(.caption) }
                 if let area, !area.label.isEmpty { Text(verbatim: area.label).font(.headline) }
                 if mode == .city {
@@ -81,7 +81,7 @@ import SwiftUI
                 }
                 if mode == .city { layerControls }
                 Button("searchMap.searchArea") { startLoad() }
-                    .buttonStyle(.borderedProminent).frame(minHeight: 44)
+                    .buttonStyle(.questifyPrimary).frame(minHeight: 44)
                     .disabled(area == nil || !reader.isConfigured || loading)
                     .accessibilityIdentifier("searchMap.searchArea")
                 if visibleCityResults != nil { refreshControls }
@@ -98,7 +98,6 @@ import SwiftUI
                         if !reader.isOfflineExample { viewportControls }
                     } else {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("searchMap.appleMapDisclosure").font(.footnote)
                             Button("searchMap.showMap") { mapCameraIdentityArea = area; mapEnabled = true }.buttonStyle(.bordered).frame(minHeight: 44)
                                 .accessibilityIdentifier("searchMap.showMap")
                         }
@@ -111,6 +110,21 @@ import SwiftUI
                 else if let issue { SearchMapIssue(key: issue) { startLoad() } }
                 if let result = visibleCityResults { cityContent(result) }
                 if let result = nearbyResults { nearbyContent(result) }
+                if let publicCoordinator = reader.publicLayerCoordinator {
+                    MapPublicLayerSectionView(
+                        coordinator: publicCoordinator,
+                        reader: reader,
+                        area: area,
+                        selectedPin: selectedPin,
+                        selectPin: { item in
+                            let pinID = MapPublicLayerCoordinator.pinID(for: item.key)
+                            publicCoordinator.selectItem(item.key)
+                            selectPin(pinID, rendered: pinSelectionContext)
+                        },
+                        openDetail: { item in openPublicLayerDetail(item) },
+                        destination: destination
+                    )
+                }
             }.padding()
         }
         .onChange(of: selectedPin) { _, value in
@@ -119,7 +133,7 @@ import SwiftUI
             selectionFocused = true
         }
         }
-        .appNavigationTitle(key: mode == .city ? "searchMap.citySearch" : "searchMap.nearby")
+        .appNavigationTitle(key: mode == .city ? "searchMap.mapTitle" : "searchMap.nearby")
         .navigationDestination(item: $layerNavigation) { route in
             if route.readerID == ObjectIdentifier(reader), route.scope == reader.scope, reader.isConfigured {
                 switch route.target {
@@ -134,9 +148,41 @@ import SwiftUI
                     .accessibilityIdentifier("mapLayers.staleSelection")
             }
         }
+        .navigationDestination(item: $publicLayerNavigation) { route in
+            if let publicCoordinator = reader.publicLayerCoordinator,
+               publicCoordinator.acceptsDetailRoute(route),
+               reader.isConfigured {
+                switch route.target {
+                case .store(let sourceID, _, _, _):
+                    destination(.merchant(sourceID))
+                case .activity(let sourceID, _):
+                    destination(.activity(sourceID))
+                case .roamPOI(let sourceID, _, let origin):
+                    SearchMapCityDetailView(id: sourceID, reader: reader, origin: origin ?? area?.coordinate, destination: destination)
+                case .theme(let target):
+                    destination(.topic(target.topicID))
+                case .storyNode(let target):
+                    if let topicReader = reader.topicReader {
+                        MapPublicStoryNodeDetailView(
+                            destination: target,
+                            reader: topicReader,
+                            topicDestination: { AnyView(destination(.topic($0))) }
+                        )
+                    } else {
+                        SearchMapIssue(key: "searchMap.notConfigured")
+                    }
+                }
+            } else {
+                ContentUnavailableView("mapLayers.changed", systemImage: "arrow.clockwise")
+                    .accessibilityIdentifier("mapLayers.staleSelection")
+            }
+        }
+        .onChange(of: publicLayerNavigation) { _, next in
+            if next == nil { reader.publicLayerCoordinator?.returnFromDetail() }
+        }
         .sheet(isPresented: $showsArea) {
             RoamAreaPicker { selected in
-                reader.selectManualArea(selected); area = selected; mapEnabled = false; mapCameraIdentityArea = nil; invalidate()
+                reader.selectManualArea(selected); area = selected; mapEnabled = false; mapCameraIdentityArea = nil; invalidate(); reader.publicLayerCoordinator?.purgeAllState()
             }
         }
         .sheet(isPresented: $showsFilters) {
@@ -185,7 +231,7 @@ import SwiftUI
                       context == viewportContext else { viewportFailed = true; return }
                 guard center.datum == .gcj02 else { viewportFailed = true; return }
                 let chosen = RoamSearchArea(coordinate: center.coordinate, label: appLocalized("mapViewport.areaLabel", locale: locale))
-                area = chosen; startLoad()
+                area = chosen; startLoad(confirmedViewport: (center, ticket.viewport))
             }.buttonStyle(.bordered).frame(minHeight: 44).disabled(!enabled)
                 .accessibilityIdentifier("mapViewport.search")
             Text(LocalizedStringKey(viewportFailed ? "mapViewport.failed" :
@@ -194,10 +240,6 @@ import SwiftUI
                 .font(.footnote).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("mapViewport.status")
             if let ticket {
-                Text("mapViewport.draft").font(.caption)
-                Text(verbatim: "\(ticket.viewport.center.latitude), \(ticket.viewport.center.longitude) · WGS84")
-                    .font(.caption).fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("mapViewport.draft")
                 Button("mapViewport.clear") {
                     guard context == viewportContext, viewportSelection.current(in: context)?.id == ticket.id else { return }
                     invalidateViewport()
@@ -221,7 +263,6 @@ import SwiftUI
             if mapLayers.isEmpty {
                 Text("mapLayers.none").font(.subheadline).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("mapLayers.none")
-                Text("mapLayers.none.hint").font(.footnote).fixedSize(horizontal: false, vertical: true)
                 Button("mapLayers.showAll") { mapLayers.showAll() }.frame(minHeight: 44)
                     .accessibilityIdentifier("mapLayers.showAll")
             }
@@ -282,6 +323,16 @@ import SwiftUI
         for node in nearbyResults?.nodes ?? [] {
             if let coordinate = node.coordinate { result.append(SearchMapPin(id: "nearby-\(node.id)", title: node.addressName, coordinate: coordinate, symbol: "mappin")) }
         }
+        for item in reader.publicLayerCoordinator?.visibleReadyItems ?? [] {
+            if let coordinate = RoamCoordinate(latitude: item.coordinate.latitude, longitude: item.coordinate.longitude) {
+                result.append(SearchMapPin(
+                    id: MapPublicLayerCoordinator.pinID(for: item.key),
+                    title: item.title,
+                    coordinate: coordinate,
+                    symbol: MapPublicLayerSectionView<Destination>.itemSymbol(for: item.key.type)
+                ))
+            }
+        }
         return result
     }
     @ViewBuilder private func pinDetail(_ id: String, area: RoamSearchArea) -> some View {
@@ -300,7 +351,18 @@ import SwiftUI
         } else if let node = nearbyResults?.nodes.first(where: { "nearby-\($0.id)" == id }) {
             if let address = node.address { Text(verbatim: address).font(.subheadline).fixedSize(horizontal: false, vertical: true) }
             NavigationLink { nearbyDetail(node, area: area) } label: { Label(node.addressName, systemImage: "mappin") }.frame(minHeight: 44)
+        } else if let key = MapPublicLayerCoordinator.parsePinID(id),
+                  let item = reader.publicLayerCoordinator?.visibleReadyItems.first(where: { $0.key == key }) {
+            Button { openPublicLayerDetail(item) } label: {
+                Label(item.title, systemImage: MapPublicLayerSectionView<Destination>.itemSymbol(for: item.key.type))
+            }.frame(minHeight: 44).accessibilityIdentifier("searchMap.selected.publicLayer.\(item.key.type.rawValue).\(item.key.id)")
         }
+    }
+    private func openPublicLayerDetail(_ item: MapLayerItem) {
+        guard layerNavigation == nil, publicLayerNavigation == nil, reader.isConfigured,
+              let route = reader.publicLayerCoordinator?.openDetail(for: item.key) else { return }
+        selectedPin = MapPublicLayerCoordinator.pinID(for: item.key)
+        publicLayerNavigation = route
     }
     private func openLayerActivity(_ row: ActivitySummary, rendered: SearchMapLayerSelection, relatedTopic: Bool = false) {
         guard layerNavigation == nil, rendered.acceptsActivity(row, current: pinSelectionContext, isConfigured: reader.isConfigured),
@@ -329,6 +391,7 @@ import SwiftUI
             ContentUnavailableView(LocalizedStringKey(mapLayers.shows(.activities) && pagination.nextPage != nil ? "mapPagination.noMatchesYet" : "searchMap.empty"), systemImage: "mappin.slash")
         }
         if mapLayers.shows(.activities) {
+            Text("searchMap.kind.activity").font(.headline).accessibilityAddTraits(.isHeader)
             let missingCoordinateCount = pagination.rows.filter { !$0.hasValidCoordinates }.count
             if missingCoordinateCount > 0 {
                 LabeledContent("searchMap.listOnly") { Text(missingCoordinateCount, format: .number) }.font(.footnote)
@@ -342,6 +405,7 @@ import SwiftUI
             activityPaginationControls
         }
         if mapLayers.shows(.cityPlaces) {
+            Text("searchMap.cityNodes").font(.headline).accessibilityAddTraits(.isHeader)
             ForEach(value.nodes) { row in
                 Button { openLayerCity(row, rendered: renderedContext) } label: {
                     QuestifyImageEntityCard(imageSource: reader.isOfflineExample ? nil : row.imageURL, title: row.name, subtitle: row.templateTitle ?? row.merchantName, fallbackTitle: "searchMap.untitled", fallbackSymbol: "mappin", minimumHeight: 230) {
@@ -355,7 +419,6 @@ import SwiftUI
     @ViewBuilder private var refreshControls: some View {
         if refresh.isLoading {
             ProgressView("mapRefresh.loading").accessibilityIdentifier("mapRefresh.loading")
-            Text("mapRefresh.previousWhileLoading").font(.footnote).foregroundStyle(.secondary)
         } else {
             Button { startRefresh() } label: {
                 Text(LocalizedStringKey(refresh.hasRetainedResults ? "mapRefresh.retry" : "mapRefresh.refresh"))
@@ -381,7 +444,6 @@ import SwiftUI
         } else if let failure = pagination.failure {
             VStack(alignment: .leading, spacing: 8) {
                 Label(LocalizedStringKey(failure == .unauthorized ? "searchMap.partialSignIn" : "mapPagination.failed"), systemImage: "exclamationmark.circle")
-                Text("mapPagination.retained").font(.footnote).foregroundStyle(.secondary)
                 if failure == .unauthorized, let onSignIn {
                     Button("searchMap.signIn", action: onSignIn).frame(minHeight: 44)
                 } else {
@@ -391,9 +453,6 @@ import SwiftUI
                 }
             }.accessibilityIdentifier("mapPagination.failure")
         } else if pagination.nextPage != nil {
-            if pagination.rows.isEmpty {
-                Text("mapPagination.filteredPage").font(.footnote).foregroundStyle(.secondary)
-            }
             Button("mapPagination.more") { startLoadMore() }
                 .buttonStyle(.bordered).frame(minHeight: 44)
                 .disabled(loading || refresh.isLoading || !reader.isConfigured)
@@ -422,7 +481,7 @@ import SwiftUI
     }
     private func nearbyDetail(_ node: RoamRouteNode, area: RoamSearchArea) -> some View {
         List {
-            Text(verbatim: node.addressName).font(.title2.bold())
+            Text(verbatim: node.addressName).font(.title3.weight(.semibold))
             if let address = node.address { Text(verbatim: address) }
             if let topicID = node.topicId, topicID > 0 {
                 NavigationLink { destination(.topic(topicID)) } label: { Text("searchMap.relatedTopic") }
@@ -430,18 +489,29 @@ import SwiftUI
             if let coordinate = node.coordinate {
                 NavigationLink { SearchRoutePreviewView(origin: area.coordinate, destination: coordinate, name: node.addressName, scope: reader.scope, navigationReference: try? WalkingTargetReference(kind: .nearbyNode, id: node.id), offline: reader.isOfflineExample) } label: { Text("searchMap.routePreview") }.accessibilityIdentifier("searchMap.openRoute")
             }
-            Text("searchMap.routeNodeDomain").font(.footnote).foregroundStyle(.secondary)
         }.appNavigationTitle("searchMap.nodeDetail")
     }
     private func invalidate() {
-        layerNavigation = nil
+        layerNavigation = nil; publicLayerNavigation = nil
         invalidateViewport()
         readOwner.cancel(); refresh.invalidate(); gate.invalidate(); pagination.invalidate(); cityResults = nil; nearbyResults = nil; selectedPin = nil; issue = nil; loading = false
     }
-    private func startLoad() {
+    private func startLoad(confirmedViewport: (center: RuntimeLocationProjection.MapCenter, viewport: SearchMapViewport)? = nil) {
         // This button explicitly searches the shown manual area, including after another view changed it.
         if let area { reader.selectManualArea(area) }
         invalidate()
+        if let publicCoordinator = reader.publicLayerCoordinator, publicCoordinator.isConfigured, publicCoordinator.isAuthenticated {
+            if let confirmedViewport,
+               let box = try? MapPublicLayerBoundingBox.fromConfirmedCenter(
+                   confirmedViewport.center,
+                   latitudeSpan: confirmedViewport.viewport.latitudeSpan,
+                   longitudeSpan: confirmedViewport.viewport.longitudeSpan
+               ) {
+                publicCoordinator.loadAuthorizedViewport(box, origin: confirmedViewport.center.coordinate, label: area?.label)
+            } else if let area {
+                publicCoordinator.loadManualArea(area)
+            }
+        }
         readOwner.start { await performLoad() }
     }
     private func startRefresh() {

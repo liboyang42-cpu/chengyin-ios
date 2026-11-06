@@ -5,6 +5,8 @@ enum RegistrationFixtureScenario: String, CaseIterable {
     case standard, noPaymentParameters, unknownAmounts, quoteError, participantsError
     case createTimeout, readbackError, conflictingStatus, soldOut, disabled, signupClosed
     case waitlistWaiting, waitlistOffer, waitlistExpiringOffer, waitlistClaimed, waitlistConverted, waitlistOrderError
+    /// Source checkout parity: isSignUp=1 banner, ticket meeting point and a priority-only club benefit.
+    case alreadyRegistered
     var isWaitlist: Bool { self == .waitlistWaiting || isOffer || isOrder }
     var isOrder: Bool { self == .waitlistClaimed || self == .waitlistConverted || self == .waitlistOrderError }
     var isOffer: Bool { self == .waitlistOffer || self == .waitlistExpiringOffer }
@@ -43,7 +45,8 @@ private final class RegistrationFixtureStore: RegistrationCoordinatingService, P
         return try decode("""
         {"payAmount":\(amount),"pointsUsed":\(selection.usePoints ? 250 : 0),
          "pointsDeductYuan":\(selection.usePoints ? 2.5 : 0),"pointsUsable":true,
-         "memberDiscountYuan":0,"couponDeductYuan":0,"clubMember":false,
+         "memberDiscountYuan":0,"couponDeductYuan":0,"clubMember":\(scenario == .alreadyRegistered),
+         "prioritySignupEnabled":\(scenario == .alreadyRegistered),
          "quoteSign":"offline-only-\(selection.ticketID ?? 0)-\(selection.usePoints)"}
         """)
     }
@@ -107,9 +110,9 @@ private final class RegistrationFixtureModel: ObservableObject {
         coordinator = RegistrationCoordinator(service: store, makeRequestID: { "offline-fixture-retained-intent" })
         try? coordinator.setAccount(id: 9400, token: "offline-fixture-unused-token")
         activity = try? JSONDecoder().decode(ActivityDetail.self, from: Data("""
-        {"id":9400,"name":"Offline fixture activity","startDate":"2026-10-12","endDate":"2026-10-12",
+        {"id":9400,"name":"Offline fixture activity","startDate":"2026-10-12","endDate":"2026-10-12",\(scenario == .alreadyRegistered ? "\"isSignUp\":1," : "")
          "addressName":"Synthetic meeting point","omsTicketList":[
-         {"id":9401,"name":"Standard fixture ticket","price":12.5,"remainingInventory":\(scenario == .soldOut || scenario.isWaitlist ? 0 : 4),"startTime":\(scenario == .signupClosed ? "\"2020-01-01 00:00:00\"" : "null")},
+         {"id":9401,"name":"Standard fixture ticket","price":12.5,"remainingInventory":\(scenario == .soldOut || scenario.isWaitlist ? 0 : 4),"startTime":\(scenario == .signupClosed ? "\"2020-01-01 00:00:00\"" : "null")\(scenario == .alreadyRegistered ? ",\"meetingPoint\":\"Synthetic gathering point\"" : "")},
          {"id":9402,"name":"Unknown-price fixture ticket","price":null,"remainingInventory":null},
          {"id":9403,"name":"Zero-price fixture ticket","price":0,"remainingInventory":2}]}
         """.utf8))

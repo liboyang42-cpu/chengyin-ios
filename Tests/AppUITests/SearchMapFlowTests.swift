@@ -30,6 +30,18 @@ final class SearchMapFlowTests: XCTestCase {
         app.navigationBars.buttons.firstMatch.tap()
         XCTAssertTrue(app.buttons["searchMap.result.merchant-71"].waitForExistence(timeout: 5))
     }
+    func testRecommendedKeywordFillsFieldAndSearches() {
+        launch(chinese: true)
+        XCTAssertTrue(app.staticTexts["推荐搜索"].waitForExistence(timeout: 5), app.debugDescription)
+        let first = app.buttons["searchMap.recommended.0"]; reveal(first)
+        XCTAssertEqual(first.label, "骑行")
+        XCTAssertTrue(app.buttons["searchMap.recommended.7"].exists)
+        first.tap()
+        XCTAssertEqual(app.textFields["searchMap.keyword"].value as? String, "骑行")
+        let rows = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "searchMap.result."))
+        XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertFalse(app.buttons["searchMap.recommended.0"].exists)
+    }
     func testGuestKeepsPublicResultsAndShowsExplicitGate() {
         launch("guest"); search()
         XCTAssertTrue(app.descendants(matching: .any)["searchMap.guestGate"].waitForExistence(timeout: 5))
@@ -50,6 +62,10 @@ final class SearchMapFlowTests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["searchMap.filter.invalid"].waitForExistence(timeout: 5))
         app.buttons["Cancel"].tap(); app.buttons["searchMap.filters"].tap()
         XCTAssertEqual(app.textFields["searchMap.filter.min"].value as? String, "Minimum (0–1000)")
+    }
+    /// Reset is the Form's last row; reveal it before tapping since offscreen Form rows are not materialized.
+    private func resetFilters() {
+        let reset = app.buttons["searchMap.filter.reset"]; reveal(reset); reset.tap()
     }
     private func openGlobalFilters() {
         XCTAssertTrue(revealFixtureElement(app.buttons["searchMap.filters"], in: app, towardTop: true))
@@ -83,7 +99,7 @@ final class SearchMapFlowTests: XCTestCase {
         obsolete.isInverted = true
         wait(for: [obsolete], timeout: 1)
         assertCategoryRows(8)
-        openGlobalFilters(); app.buttons["searchMap.filter.reset"].tap(); app.buttons["searchMap.filter.apply"].tap()
+        openGlobalFilters(); resetFilters(); app.buttons["searchMap.filter.apply"].tap()
         XCTAssertTrue(app.buttons["searchMap.category.7"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["searchMap.result.club-8"].exists)
         XCTAssertFalse(app.buttons["searchMap.result.merchant-8"].exists)
@@ -98,9 +114,9 @@ final class SearchMapFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["searchMap.result.club-70"].exists)
         XCTAssertFalse(app.buttons["searchMap.result.merchant-70"].exists)
         releaseGlobalSearch(); assertCategoryRows(7)
-        openGlobalFilters(); app.buttons["searchMap.filter.reset"].tap(); app.buttons["searchMap.filter.cancel"].tap()
+        openGlobalFilters(); resetFilters(); app.buttons["searchMap.filter.cancel"].tap()
         assertCategoryRows(7)
-        openGlobalFilters(); app.buttons["searchMap.filter.reset"].tap(); app.buttons["searchMap.filter.apply"].tap()
+        openGlobalFilters(); resetFilters(); app.buttons["searchMap.filter.apply"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["searchMap.loading"].waitForExistence(timeout: 5))
         releaseGlobalSearch(); assertCategoryRows(70)
         XCTAssertEqual(app.textFields["searchMap.keyword"].value as? String, "sample")

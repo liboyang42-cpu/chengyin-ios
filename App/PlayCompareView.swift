@@ -45,7 +45,7 @@ import SwiftUI
                             requestReview("SUBMIT_COMPARE", payload, {})
                             issue = nil
                         } catch { issue = error as? PlayExperienceError ?? .invalidAction }
-                    }.buttonStyle(.borderedProminent)
+                    }.buttonStyle(.questifyPrimary)
                         .disabled(!enabled || selection.revision != revision)
                         .accessibilityIdentifier("playkit.submit.compare")
                 }
@@ -101,7 +101,6 @@ import SwiftUI
     let marked: [String]
     var body: some View {
         Text(verbatim: question.prompt).font(.headline)
-        Text("playkit.compare.reviewBoundary").font(.footnote)
         if marked.isEmpty { Text("playkit.compare.none") }
         ForEach(Array([question.left, question.right].enumerated()), id: \.offset) { _, side in
             ForEach(side.items.filter { marked.contains($0.id) }) { item in

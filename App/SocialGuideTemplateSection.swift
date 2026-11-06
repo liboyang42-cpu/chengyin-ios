@@ -93,12 +93,8 @@ enum SocialGuideTemplateRows {
 @MainActor struct SocialGuideTemplateSection: View {
     let reader: (any DiscoveryReading)?
     var body: some View {
+        // Without a template reader the section is left out rather than shown as unavailable.
         if let reader { SocialGuideTemplateContent(reader: reader) }
-        else {
-            Section("social.guideTemplates.title") {
-                Text("social.guideTemplates.unavailable").foregroundStyle(.secondary)
-            }
-        }
     }
 }
 
@@ -120,7 +116,6 @@ enum SocialGuideTemplateRows {
         let catalogPermit = model.catalogPermit(reader: reader)
         let retryPermit = model.reloadPermit(reader: reader)
         Section("social.guideTemplates.title") {
-            Text("social.guideTemplates.hint").font(.footnote).foregroundStyle(.secondary)
             if !reader.isConfigured { Text("social.guideTemplates.unavailable") }
             else if scenePhase == .active, let snapshot = model.visibleSnapshot(reader: reader) {
                 if snapshot.rows.isEmpty {
@@ -135,8 +130,9 @@ enum SocialGuideTemplateRows {
                             Text(verbatim: SocialGuideTemplateRows.text(item.title)).font(.headline)
                             let description = SocialGuideTemplateRows.text(item.description)
                             if !description.isEmpty { Text(verbatim: description).font(.subheadline).foregroundStyle(.secondary).lineLimit(3) }
-                            if let count = SocialGuideTemplateRows.useCount(item) {
-                                LabeledContent("social.guideTemplates.used", value: String(count)).font(.caption)
+                            // Mini-program `_usedText`: 已玩 N 次, only when it has been played.
+                            if let count = SocialGuideTemplateRows.useCount(item), count > 0 {
+                                Text("social.guideTemplates.playedTimes \(count)").font(.caption).foregroundStyle(.secondary)
                             }
                         }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).padding(.vertical, 6)
                     }.buttonStyle(.plain).accessibilityIdentifier("social.guideTemplates.detail.\(item.id)")

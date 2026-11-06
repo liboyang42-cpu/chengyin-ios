@@ -86,13 +86,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Place keyword (optional)"
+            "value": "Search (optional)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "地点关键词（可选）"
+            "value": "搜索（选填）"
           }
         }
       }
@@ -118,13 +118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No places found. Change the centre or keyword and search again."
+            "value": "No places found. Move the map or change the search."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未找到地点。请修改中心或关键词后重新搜索。"
+            "value": "未找到地点，请移动地图或修改搜索词。"
           }
         }
       }
@@ -166,13 +166,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter valid latitude and longitude. Use at most 256 UTF-8 bytes for the keyword, without surrounding spaces or control characters."
+            "value": "Enter a valid location and a shorter search."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请输入有效经纬度。关键词最多 256 个 UTF-8 字节，不能含首尾空格或控制字符。"
+            "value": "请输入有效位置，并缩短搜索词。"
           }
         }
       }

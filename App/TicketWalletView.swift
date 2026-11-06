@@ -20,13 +20,15 @@ import SwiftUI
         let offeredPendingPresentation = pendingOrderEntry.presentationID
         NavigationStack {
             List {
-                if reader.isOfflineExample { Text("ticketWallet.offlineExample").font(.caption) }
                 if !reader.isAuthenticated {
                     TicketWalletIssueView(issue: .login)
                     if let onSignIn { Button("ticketWallet.signIn", action: onSignIn) }
                 } else if !reader.isConfigured { TicketWalletIssueView(issue: .notConfigured) }
                 else if model.isLoading || model.loadedOwner != key { ProgressView("ticketWallet.loading") }
                 else if let issue = model.issue(owner: key) {
+                    // Source failure title 票夹没能打开 precedes the specific reason.
+                    Text("ticketWallet.parity.error.title").font(.headline)
+                        .accessibilityIdentifier("ticketWallet.errorTitle")
                     TicketWalletIssueView(issue: issue, retry: { schedule(offeredPresentation) })
                 } else if let snapshot = model.value(owner: key) {
                     if let partial = snapshot.partialFailure {
@@ -38,8 +40,17 @@ import SwiftUI
                     }
                     if snapshot.tickets.isEmpty {
                         // A partial empty response never claims the whole wallet is empty.
-                        Text(LocalizedStringKey(snapshot.partialFailure == nil ? "ticketWallet.empty" : "ticketWallet.partialEmpty"))
-                            .accessibilityIdentifier("ticketWallet.empty")
+                        ContentUnavailableView {
+                            Label {
+                                Text(LocalizedStringKey(snapshot.partialFailure == nil ? "ticketWallet.empty" : "ticketWallet.partialEmpty"))
+                                    .accessibilityIdentifier("ticketWallet.empty")
+                            } icon: { Image(systemName: "ticket") }
+                        } description: {
+                            if snapshot.partialFailure == nil {
+                                Text("ticketWallet.parity.empty.detail")
+                                    .accessibilityIdentifier("ticketWallet.emptyHint")
+                            }
+                        }
                     }
                     // Source preserves both lanes and row order, including repeated server IDs.
                     ForEach(Array(snapshot.tickets.enumerated()), id: \.offset) { rowIndex, ticket in
@@ -48,6 +59,7 @@ import SwiftUI
                                 TicketWalletDetailView(id: ticket.id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator, makeTeamCoordinator: makeTeamCoordinator)
                             } label: { TicketWalletRow(ticket: ticket) }
                             .buttonStyle(QuestifyCardButtonStyle())
+                            .questifyHidesLinkIndicator()
                             .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
                             .questifyCardListRow()
                         } else if let provider = pendingOrderProvider, pendingOrderReadOwner == provider.owner,
@@ -64,7 +76,7 @@ import SwiftUI
                             .accessibilityIdentifier("ticketWallet.pendingOrder.open.\(ticket.id)")
                             .questifyCardListRow()
                         } else {
-                            TicketWalletRow(ticket: ticket, showsActionNotice: true)
+                            TicketWalletRow(ticket: ticket)
                                 .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
                                 .questifyCardListRow()
                         }
@@ -77,7 +89,6 @@ import SwiftUI
                         }.accessibilityIdentifier("ticketWallet.teams")
                     }
                 }
-                Section { Text("ticketWallet.readOnly").font(.footnote).foregroundStyle(.secondary) }
             }
             .listStyle(.insetGrouped)
             .listSectionSpacing(20)
@@ -147,17 +158,11 @@ import SwiftUI
 
 private struct TicketWalletRow: View {
     let ticket: TicketWalletTicket
-    var showsActionNotice = false
     var showsPendingOrderAction = false
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top, spacing: 12) {
-                TicketWalletStatusBadge(status: ticket.status)
-                Spacer(minLength: 0)
-                Image(systemName: "ticket")
-                    .font(.title2).foregroundStyle(QuestifyPalette.accent).accessibilityHidden(true)
-            }
-            TicketWalletTitle(title: ticket.title)
+        VStack(alignment: .leading, spacing: 12) {
+            TicketWalletStatusBadge(status: ticket.status)
+            TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
                 .font(.title3.weight(.semibold)).foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
             if let date = ticket.participateDate, !date.isEmpty {
@@ -166,29 +171,38 @@ private struct TicketWalletRow: View {
             if let place = ticket.addressName, !place.isEmpty {
                 QuestifyMetadataLine(label: "ticketWallet.place", value: place, systemImage: "mappin.and.ellipse")
             }
-            if let number = ticket.registrationNumber, !number.isEmpty {
-                Divider()
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("ticketWallet.number").font(.caption).foregroundStyle(.secondary)
-                    Text(verbatim: number).font(.caption.monospaced()).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+            if ticket.needsScheduleSync {
+                Label {
+                    Text("ticketWallet.p2.notice.scheduleSync").fixedSize(horizontal: false, vertical: true)
+                } icon: { Image(systemName: "clock.arrow.circlepath").accessibilityHidden(true) }
+                .font(.footnote).foregroundStyle(.secondary)
+                .accessibilityIdentifier("ticketWallet.scheduleSync.\(ticket.id)")
+            }
+            // The whole card is the control; this strip only names what a tap does.
+            if let hint = ticket.statusHintKey, ticket.action == .detail {
+                TicketWalletCardAction(title: LocalizedStringKey(hint), systemImage: "play.fill")
+                    .accessibilityIdentifier("ticketWallet.statusHint.\(ticket.id)")
             }
             if showsPendingOrderAction {
-                Label {
-                    Text("ticketPendingOrder.open", tableName: "TicketPendingOrder")
-                        .fixedSize(horizontal: false, vertical: true)
-                } icon: { Image(systemName: "list.bullet.rectangle").accessibilityHidden(true) }
-                .font(.footnote.weight(.semibold)).foregroundStyle(QuestifyPalette.accent)
-            }
-            if showsActionNotice {
-                Label {
-                    Text(LocalizedStringKey("ticketWallet.action." + ticket.action.rawValue))
-                        .fixedSize(horizontal: false, vertical: true)
-                } icon: { Image(systemName: "info.circle").accessibilityHidden(true) }
-                .font(.footnote).foregroundStyle(.secondary)
+                TicketWalletCardAction(title: Text("ticketPendingOrder.open", tableName: "TicketPendingOrder"), systemImage: "list.bullet.rectangle")
             }
         }
         .questifyCardSurface()
+    }
+}
+
+/// Full-width action strip at the foot of a ticket card. Not a separate button: the card handles the tap.
+private struct TicketWalletCardAction: View {
+    let title: Text
+    let systemImage: String
+    init(title: LocalizedStringKey, systemImage: String) { self.title = Text(title); self.systemImage = systemImage }
+    init(title: Text, systemImage: String) { self.title = title; self.systemImage = systemImage }
+    var body: some View {
+        Label { title.lineLimit(1).minimumScaleFactor(0.8) } icon: { Image(systemName: systemImage).accessibilityHidden(true) }
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(QuestifyPalette.accent)
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .background(QuestifyPalette.accent.opacity(0.12), in: Capsule())
+            .padding(.top, 4)
     }
 }

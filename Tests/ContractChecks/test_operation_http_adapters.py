@@ -50,7 +50,7 @@ class OperationHTTPAdapters(unittest.TestCase):
         ]
         for name, topic, audit, state, ids in cases:
             method = tests.split('func ' + name + '()', 1)[1].split('\n    func ', 1)[0]
-            self.assertIn('guard case .bundleAcknowledged(let operationID, let acknowledgment) = result else { return XCTFail(', method)
+            self.assertIn('guard case .committedReceipt(let operationID, _, let acknowledgment?) = result else { return XCTFail(', method)
             for assertion in ['XCTAssertEqual(operationID, op.operationID)',
                               'XCTAssertEqual(acknowledgment.topicID, ' + topic + ')', audit,
                               'XCTAssertEqual(acknowledgment.reviewState, "' + state + '")',

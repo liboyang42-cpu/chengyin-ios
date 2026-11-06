@@ -74,7 +74,7 @@ import UIKit
         await signIn(session, wire: wire)
         XCTAssertEqual(vault.scope, deployment.storageScope); XCTAssertEqual(session.operationalMarket, .china)
         let host = UIHostingController(rootView: SessionRootView(session: session)); host.loadViewIfNeeded()
-        let model = HomeFeedModel(); await model.reload(reader: session.homeFeedReader, query: HomeFeedQuery())
+        let model = HomeFeedModel(); await model.resume(reader: session.homeFeedReader, query: HomeFeedQuery())
         XCTAssertEqual(model.pagination.items.map(\.id), [.topic(31)])
         let detail = try await session.topicReader.topicDetail(id: 31); XCTAssertEqual(detail.id, 31)
         XCTAssertEqual(wire.requests.last?.value(forHTTPHeaderField: "Authorization"), "synthetic-7")
@@ -124,7 +124,7 @@ import UIKit
     }
     func testOfflineAndValidEmptyHomeRemainDifferentStates() async throws {
         let wire = Wire(), vault = Vault(), session = root(wire, vault, try deployment()).makeSession(), model = HomeFeedModel()
-        wire.offline = true; await model.reload(reader: session.homeFeedReader, query: HomeFeedQuery())
+        wire.offline = true; await model.resume(reader: session.homeFeedReader, query: HomeFeedQuery())
         XCTAssertTrue(model.pageFailed); XCTAssertTrue(model.categoryFailed); XCTAssertTrue(model.bannerFailed)
         XCTAssertTrue(model.pagination.items.isEmpty); XCTAssertFalse(model.loading)
         wire.offline = false; wire.empty = true
@@ -201,11 +201,15 @@ import UIKit
     func testNewViewerReloadClearsLoadedRowsBeforeNewResponse() async throws {
         let wire = Wire(), vault = Vault(), session = root(wire, vault, try deployment()).makeSession(), model = HomeFeedModel()
         await signIn(session, wire: wire)
-        await model.reload(reader: session.homeFeedReader, query: HomeFeedQuery())
+        await model.resume(reader: session.homeFeedReader, query: HomeFeedQuery())
         XCTAssertEqual(model.pagination.items.map(\.id), [.topic(31)])
         wire.role = "merchant"; await session.refreshOwnAccount(); wire.pausePath = "/api/topic/list"; wire.plainTopicOnly = true
+        let beforeStaleRefresh = wire.requests.count
+        await model.reload(reader: session.homeFeedReader, query: HomeFeedQuery())
+        XCTAssertFalse(model.canOpen(session.homeFeedReader))
+        XCTAssertEqual(wire.requests.count, beforeStaleRefresh)
         let started = expectation(description: "New viewer page"); wire.onPaused = { started.fulfill() }
-        let task = Task { await model.reload(reader: session.homeFeedReader, query: HomeFeedQuery()) }
+        let task = Task { await model.resume(reader: session.homeFeedReader, query: HomeFeedQuery()) }
         await fulfillment(of: [started], timeout: 2)
         guard wire.hasPending else { task.cancel(); return XCTFail("No pending page") }
         XCTAssertTrue(model.pagination.items.isEmpty); XCTAssertTrue(model.loading)

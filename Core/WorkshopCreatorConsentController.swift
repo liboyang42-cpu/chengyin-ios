@@ -2,7 +2,7 @@ import Foundation
 import Observation
 
 @MainActor public final class WorkshopCreatorConsentAppearance {
-    fileprivate var started = false, closed = false
+    fileprivate var started = false, closed = false, suspended = false
     fileprivate var action: UUID?
     public init() {}
     fileprivate func close() { closed = true; action = nil }
@@ -90,7 +90,7 @@ import Observation
     }
     private func current(_ displayed: WorkshopCreatorConsentAppearance) -> Bool {
         guard lease.isCurrent else { invalidate(); return false }
-        return phase != .invalidated && appearance === displayed && !displayed.closed
+        return phase != .invalidated && appearance === displayed && !displayed.closed && !displayed.suspended
     }
     public func appear(_ displayed: WorkshopCreatorConsentAppearance) -> Action? {
         guard lease.isCurrent, phase != .invalidated, !displayed.started, !displayed.closed else { return nil }
@@ -102,6 +102,22 @@ import Observation
         lifetime?.revoke(); lifetime = nil; appearance = nil; preview = nil; targets = []; selected = nil; acknowledgments = []; receipt = nil
         if phase != .invalidated { phase = .idle }; issue = nil
         // Back cannot undo a possible committed declaration or erase its original request UUID.
+    }
+    /// Background cancels presentation authority, never the durable original request.
+    public func suspend(_ displayed: WorkshopCreatorConsentAppearance) {
+        guard appearance === displayed, !displayed.closed, phase != .invalidated else { return }
+        displayed.suspended = true; displayed.action = nil
+        lifetime?.revoke(); lifetime = nil
+        preview = nil; targets = []; selected = nil; acknowledgments = []; receipt = nil; pending = nil
+        phase = .idle; issue = nil
+    }
+    /// A pending declaration is checked by its original request only. Returning to the
+    /// foreground cannot replay a write or restore previous acknowledgments.
+    public func resume(_ displayed: WorkshopCreatorConsentAppearance) -> Action? {
+        guard appearance === displayed, !displayed.closed, displayed.suspended,
+              phase != .invalidated else { return nil }
+        displayed.suspended = false
+        return offerLoad(displayed, recoveryOnly: true)
     }
     private func offer(_ displayed: WorkshopCreatorConsentAppearance) -> (UUID, WorkshopCreatorConsentLifetime)? {
         guard current(displayed), phase != .submitting else { return nil }
@@ -115,6 +131,9 @@ import Observation
         target.sourceTemplateId == sourceTemplateId && now() < target.expiresAt && currentTargets().contains(target)
     }
     public func offerLoad(_ displayed: WorkshopCreatorConsentAppearance) -> Action? {
+        offerLoad(displayed, recoveryOnly: false)
+    }
+    private func offerLoad(_ displayed: WorkshopCreatorConsentAppearance, recoveryOnly: Bool) -> Action? {
         guard let (ticket, life) = offer(displayed) else { return nil }
         phase = .loading; preview = nil; selected = nil; targets = []; acknowledgments = []; issue = nil
         var entered = false
@@ -126,6 +145,7 @@ import Observation
                     let status = try await self.service.status(command: pending, lifetime: life); try life.check()
                     if case .recorded(let receipt) = status { try self.accept(receipt, pending); self.phase = .recorded; return }
                     self.issue = .unknown
+                    if recoveryOnly { self.phase = .failed; return }
                 }
                 let preview = try await self.service.preview(sourceTemplateId: self.sourceTemplateId, lifetime: life); try life.check()
                 guard preview.sourceTemplateId == self.sourceTemplateId, self.reviewMatchesPreview(preview) else { throw WorkshopCreatorConsentIssue.malformed }
@@ -135,7 +155,7 @@ import Observation
                 self.targets = choices; self.phase = .reviewing
             } catch {
                 guard self.current(displayed), displayed.action == ticket else { return }
-                self.issue = (error as? WorkshopCreatorConsentIssue) ?? .unavailable; self.phase = .failed
+                self.handleCurrentFailure(error, fallback: .unavailable, phase: .failed)
             }
         }
     }
@@ -168,8 +188,21 @@ import Observation
             do { try writeLife.check(); let receipt = try await self.service.declare(confirmation); try writeLife.check(); try self.accept(receipt, command); self.phase = .recorded }
             catch {
                 guard self.current(displayed), displayed.action == ticket else { return }
-                self.issue = (error as? WorkshopCreatorConsentIssue) ?? .unknown; self.phase = .reviewing
+                self.handleCurrentFailure(error, fallback: .unknown, phase: .reviewing)
             }
+        }
+    }
+    private func handleCurrentFailure(_ error: Error, fallback: WorkshopCreatorConsentIssue, phase: Phase) {
+        let failure = (error as? WorkshopCreatorConsentIssue) ?? fallback
+        if failure == .unauthorized {
+            // Retire only this rejected presentation. A dispatched declaration may have
+            // committed: invalidate never deletes its original owner-scoped journal.
+            invalidate()
+            issue = failure
+        } else {
+            // Missing write approval is not revocation of the separate read approval.
+            // Keep original-request status recovery available without authorizing a write.
+            issue = failure; self.phase = phase
         }
     }
     private func accept(_ receipt: WorkshopCreatorDeclarationReceipt, _ expected: WorkshopCreatorDeclarationCommand) throws {

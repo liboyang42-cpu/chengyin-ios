@@ -1,0 +1,69 @@
+# C03 route page readback — closed attach
+
+Issue: https://github.com/liboyang42-cpu/chengyin-remote-ops/issues/5
+Repo: github.com/liboyang42-cpu/chengyin-ios
+Branch: cursor/c03-route-page-readback-e504
+Base: cursor/c03-route-action-flow-e504 @ 91ce157df90bb2659d88842b7091851dca74e937
+
+`RouteActionReadbackFlow.recover` is unchanged. This branch does not insert a route action.
+
+Applied on the existing route page `App/PlayRouteMapView.swift` (`playRoute.screen`):
+one quiet system-text row. The page calls `RouteActionPageRead.shownRow`, which calls
+`RouteActionReadbackFlow.recover`. A different session id, member id, or action id is
+not shown. The same ids keep that same row. `appear()` / `onAppear` does not call the
+reader and does not write. No new localization key. No gradient, glow, or emoji icon.
+
+`PlayRouteMapView.swift` is already in the app target. This branch does not add a
+PBX file reference for it.
+
+## Not applied
+
+The running journey screen is `SessionPlayRuntimeView`, which only receives `AppSession`.
+Passing the real `topicRouteSessionMapper.selectActionByAction` into
+`PlayRouteMapView.actionRead` would require `App/AppSession.swift` or
+`App/AppCompositionRoot.swift`. That mapper is not in this repo. The Xcode target
+does not yet list the Core file, so compiling the page in the app target would also
+require `Questify.xcodeproj/project.pbxproj`.
+
+Do not apply the paste below from this branch. Do not edit those three files here.
+
+```
+App/AppSession.swift
+App/AppCompositionRoot.swift
+Questify.xcodeproj/project.pbxproj
+```
+
+Unapplied pbx paste, for D6/dot only. `ident(name) = sha256(name)[:24].upper()`.
+
+```
+Core/RouteActionPageRead.swift
+  PBXFileReference 61AAB3CFE6D7C847E7148074
+  PBXBuildFile     FD758C74197F12CAC699A24B  fileRef = 61AAB3CFE6D7C847E7148074
+
+Tests/CoreTests/RouteActionPageReadTests.swift
+  PBXFileReference FFCC0F394878FE626EEB2D81
+  PBXBuildFile     C5FA9346BDC8265685419940  fileRef = FFCC0F394878FE626EEB2D81
+```
+
+`RouteActionReadbackFlow.swift` still uses the parent ids and is still not in pbxproj:
+
+```
+Core/RouteActionReadbackFlow.swift
+  PBXFileReference CAB8BBA2C8E3E33F758B0FB1
+  PBXBuildFile     55ED2BD3B10E177CFDA630D4  fileRef = CAB8BBA2C8E3E33F758B0FB1
+```
+
+Unapplied call, not inserted into `SessionPlayRuntimeView` or `AppSession`:
+
+```
+PlayRouteMapView(
+    model: model,
+    nodeDestination: { AnyView(nodeDestination($0)) },
+    actionRead: session.routeActionPageRead(for: scope))
+```
+
+`session.routeActionPageRead` does not exist. Do not add it on this branch.
+Until that reader exists, `actionRead` stays nil: the page shows no extra row and
+does not call `selectAction`. Not a second writer.
+
+XCTest / App / CI = NOT_RUN where swiftc is absent. Not 100%.

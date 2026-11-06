@@ -17,6 +17,10 @@ public struct CoopRelationDisplayContext: Hashable {
     }
 }
 public enum CoopRelationDiscoveryKind: String, CaseIterable, Hashable { case merchants, clubs }
+/// Mini-program cy-merchant-card venue tags (components/cy/merchant-card/index.js:33-38).
+public enum CoopRelationVenueTag: Hashable {
+    case freeVenue, paidVenue, capacity(Int)
+}
 public enum CoopRelationProfileRoute: Hashable {
     case merchant(PublicMerchantOwnerID)
     case club(Int)
@@ -33,6 +37,13 @@ public struct CoopRelationDiscoveryRow: Equatable, Identifiable {
     public let category: String?
     public let cover: String?
     public let logo: String?
+    /// businessTime, falling back to availableTime (relation/index.wxml merchant card).
+    public let hours: String?
+    public let venueTags: [CoopRelationVenueTag]
+    /// suitActivityTypes split on the source separators and joined with " · ".
+    public let suitText: String?
+    /// coopOpen == 0: the source venue card renders nothing for this merchant.
+    public let coopClosed: Bool
     public var route: CoopRelationProfileRoute? {
         guard let rowID else { return nil }
         switch kind {
@@ -49,6 +60,20 @@ public struct CoopRelationDiscoveryRow: Equatable, Identifiable {
         category = value["sysCategoryList"].rows?.compactMap { Self.text($0["categoryName"]) }.first
         cover = Self.text(value[kind == .merchants ? "coverImage" : "cover"])
         logo = Self.text(value["logo"])
+        if kind == .merchants {
+            hours = Self.text(value["businessTime"]) ?? Self.text(value["availableTime"])
+            var tags: [CoopRelationVenueTag] = []
+            switch value["chargeType"].integer { case 0: tags.append(.freeVenue); case 1: tags.append(.paidVenue); default: break }
+            if let capacity = value["capacity"].integer, capacity > 0 { tags.append(.capacity(capacity)) }
+            venueTags = tags
+            let separators = CharacterSet(charactersIn: ",;、，；/")
+            let parts = (Self.text(value["suitActivityTypes"]) ?? "").components(separatedBy: separators)
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+            suitText = parts.isEmpty ? nil : parts.joined(separator: " · ")
+            coopClosed = value["coopOpen"].integer == 0
+        } else {
+            hours = nil; venueTags = []; suitText = nil; coopClosed = false
+        }
     }
     private static func text(_ value: CoopFlowJSON) -> String? {
         guard let text = value.text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
@@ -64,9 +89,11 @@ public struct CoopRelationDiscovery: Equatable {
         guard value["relations"].rows != nil,
               let merchants = value["discovery"]["merchants"].rows,
               let clubs = value["discovery"]["clubs"].rows else { throw CoopFlowFailure.malformed }
-        self.merchants = merchants.enumerated().compactMap { CoopRelationDiscoveryRow(value: $0.element, kind: .merchants, index: $0.offset) }
+        let merchantRows = merchants.enumerated().compactMap { CoopRelationDiscoveryRow(value: $0.element, kind: .merchants, index: $0.offset) }
+        // Closed-for-cooperation venues are hidden like the source card, not reported as invalid.
+        self.merchants = merchantRows.filter { !$0.coopClosed }
         self.clubs = clubs.enumerated().compactMap { CoopRelationDiscoveryRow(value: $0.element, kind: .clubs, index: $0.offset) }
-        invalidMerchantCount = merchants.count - self.merchants.filter { $0.route != nil }.count
+        invalidMerchantCount = merchants.count - (merchantRows.count - self.merchants.count) - self.merchants.filter { $0.route != nil }.count
         invalidClubCount = clubs.count - self.clubs.filter { $0.route != nil }.count
     }
     public func rows(_ kind: CoopRelationDiscoveryKind) -> [CoopRelationDiscoveryRow] { kind == .merchants ? merchants : clubs }

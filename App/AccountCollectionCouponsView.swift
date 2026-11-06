@@ -8,6 +8,7 @@ import SwiftUI
     @State private var filter = AccountCollectionCouponFilter.all
     @State private var searchText = ""
     @State private var submittedQuery = ""
+    @State private var needsReturnRefresh = false
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader, query: submittedQuery) }
     private var request: OwnedCouponReadRequest { .list(ownerScope: key.scope, keyword: submittedQuery.isEmpty ? nil : submittedQuery) }
     var body: some View {
@@ -15,7 +16,6 @@ import SwiftUI
         let presentation = appearance.permit
         let offeredRequest = request
         return List {
-            if reader.isOfflineExample { Text("accountCollection.offlineExample").font(.caption) }
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
             else {
@@ -31,11 +31,9 @@ import SwiftUI
                     let rows = coupons.filter { filter.includes($0) }
                     if rows.isEmpty {
                         if filter == .all, submittedQuery.isEmpty {
-                            ContentUnavailableView("accountCollection.coupons.empty", systemImage: "ticket",
-                                                   description: Text("accountCollection.coupons.emptyHint"))
+                            ContentUnavailableView("accountCollection.coupons.empty", systemImage: "ticket")
                         } else {
-                            ContentUnavailableView("accountCollection.coupons.filteredEmpty", systemImage: "line.3.horizontal.decrease.circle",
-                                                   description: Text("accountCollection.coupons.filteredEmptyHint"))
+                            ContentUnavailableView("accountCollection.coupons.filteredEmpty", systemImage: "line.3.horizontal.decrease.circle")
                         }
                     }
                     let selections = model.selections(for: offeredRequest, filter: filter)
@@ -45,6 +43,7 @@ import SwiftUI
                             AccountCollectionCouponDetailView(selection: selection, reader: reader).id(selection.id)
                         } label: { AccountCollectionCouponRow(coupon: coupon) }
                         .buttonStyle(QuestifyCardButtonStyle())
+                        .questifyHidesLinkIndicator()
                         .accessibilityIdentifier("accountCollection.coupon.\(coupon.id)")
                         .questifyCardListRow()
                     }
@@ -53,7 +52,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .appNavigationTitle("accountCollection.coupons.title")
-        .searchable(text: $searchText, prompt: Text("accountCollection.coupons.search"))
+        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("accountCollection.coupons.search"))
         .onSubmit(of: .search) { submittedQuery = searchText }
         .onChange(of: searchText) { _, text in
             if text.isEmpty, !submittedQuery.isEmpty { submittedQuery = "" }
@@ -67,7 +66,12 @@ import SwiftUI
         }
         .onAppear {
             guard let permit = appearance.begin(model: model, request: offeredRequest, foreground: scenePhase == .active) else { return }
-            model.schedule(request: offeredRequest, reader: reader, presentation: permit)
+            if needsReturnRefresh {
+                model.schedule(request: offeredRequest, reader: reader, presentation: permit)
+            } else {
+                model.scheduleListIfNeeded(request: offeredRequest, reader: reader, presentation: permit)
+            }
+            if scenePhase == .active { needsReturnRefresh = false }
         }
         .onChange(of: key) { _, _ in
             guard let permit = appearance.replace(model: model, request: offeredRequest, foreground: scenePhase == .active) else { return }
@@ -75,7 +79,11 @@ import SwiftUI
         }
         .refreshable { await model.refresh(request: offeredRequest, reader: reader, presentation: presentation) }
         .onChange(of: scenePhase) { _, phase in
+            // A hidden list must still reread after the app left the foreground.
+            if phase != .active { needsReturnRefresh = true }
             model.setForeground(phase == .active, request: offeredRequest, reader: reader, presentation: presentation)
+            if phase == .active, let presentation, presentation.isActive,
+               model.presentation === presentation { needsReturnRefresh = false }
         }
         .onDisappear {
             appearance.end(model: model)
@@ -87,23 +95,23 @@ import SwiftUI
 struct AccountCollectionCouponRow: View {
     let coupon: AccountCollectionCoupon
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top) {
-                AccountCollectionCouponBadge(status: coupon.status)
-                Spacer(minLength: 0)
-                Image(systemName: "ticket").font(.title2).foregroundStyle(QuestifyPalette.accent).accessibilityHidden(true)
-            }
+        VStack(alignment: .leading, spacing: 12) {
+            AccountCollectionCouponBadge(status: coupon.status)
             AccountCollectionTitle(value: coupon.name, fallback: "accountCollection.coupon.untitled")
                 .font(.title3.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
             if let description = coupon.displayDescription, !description.isEmpty {
                 Text(verbatim: description).font(.subheadline).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            if coupon.status == .invalid {
-                Label("accountCollection.coupon.invalidHint", systemImage: "xmark.circle").font(.footnote)
-            } else if let day = AccountCollectionCoupon.calendarDay(coupon.endTime) {
+            if let day = coupon.futureStartDay(relativeTo: Date()) {
+                Text("accountCollection.coupon.startsLater").font(.footnote.weight(.semibold))
+                    .accessibilityIdentifier("accountCollection.coupon.futureStart")
+                QuestifyMetadataLine(label: "accountCollection.coupon.validFrom", value: day, systemImage: "calendar.badge.clock")
+            }
+            // The pill already says Invalid; an unknown end date is left out rather than spelled out.
+            if coupon.status != .invalid, let day = AccountCollectionCoupon.calendarDay(coupon.endTime) {
                 QuestifyMetadataLine(label: "accountCollection.coupon.validUntil", value: day, systemImage: "calendar")
-            } else { Text("accountCollection.coupon.validityUnknown").font(.footnote).foregroundStyle(.secondary) }
+            }
         }.questifyCardSurface()
     }
 }

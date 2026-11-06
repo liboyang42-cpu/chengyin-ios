@@ -93,7 +93,7 @@ final class SquareReportFlowTests: XCTestCase {
         let status = app.descendants(matching: .any)["squareReport.stage"].firstMatch
         reveal(status)
         // LabeledContent exposes the exact label/value as one static element.
-        let readback = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "Server status, IN_REVIEW"), object: status)
+        let readback = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "Status, IN_REVIEW"), object: status)
         XCTAssertEqual(XCTWaiter.wait(for: [readback], timeout: 5), .completed, app.debugDescription)
         XCTAssertFalse(app.buttons["squareReport.review"].exists)
         attachFixtureScreenshot(self, app: app, name: "Versioned Square report case readback - synthetic IN_REVIEW")

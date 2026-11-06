@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor private final class DetailCompositionReader: NonCashRewardReading {
     var scope = UUID(), isConfigured = true, isAuthenticated = true
-    var isOfflineExample: Bool { false }
+    var isOfflineExample = false
     var requests: [NonCashRewardReference] = []
     var suspends = true
     var pending: CheckedContinuation<NonCashReward, Error>?
@@ -54,7 +54,133 @@ private actor DetailCloseSuspendedTransport: HTTPTransport {
             state: .awarded, awardedAt: Date(timeIntervalSince1970: 100), asOf: Date(timeIntervalSince1970: 150))
     }
 }
+@MainActor private final class RewardMerchantReaderFixture: PublicMerchantHomeReading {
+    var scope = UUID(), isConfigured = true, isOfflineExample = false
+    var calls: [PublicMerchantHomeTarget] = []
+    var hold = false, wrongID = false, fail = false
+    var pending: CheckedContinuation<PublicMerchantHome, Error>?
+    func value() throws -> PublicMerchantHome {
+        try JSONDecoder().decode(PublicMerchantHome.self, from: Data("{\"id\":\(wrongID ? 8 : 7),\"memberId\":77,\"name\":\"Issuer\"}".utf8))
+    }
+    func home(_ target: PublicMerchantHomeTarget) async throws -> PublicMerchantHome {
+        calls.append(target)
+        if hold { return try await withCheckedThrowingContinuation { pending = $0 } }
+        if fail { throw PublicMerchantHomeFailure.retryable }
+        return try value()
+    }
+}
 @MainActor final class NonCashRewardDetailCompositionTests: XCTestCase {
+    private func accepted(_ reward: DetailCompositionReader) async -> NonCashRewardDetailScreenModel {
+        reward.suspends = false
+        let screen = reward.destination().makeScreenModel(); screen.beginPresentation()
+        await screen.refresh(reader: reward, presentation: screen.presentation)
+        return screen
+    }
+    private func merchantSelection(_ screen: NonCashRewardDetailScreenModel, _ reward: DetailCompositionReader,
+                                   _ merchant: RewardMerchantReaderFixture) -> NonCashRewardMerchantSelection? {
+        .capture(model: screen, rewardReader: reward, merchantReader: merchant,
+            snapshotToken: screen.snapshotToken, presentation: screen.presentation)
+    }
+    func testMerchantRowRequiresCanonicalPositiveSignedLongNotAlternateIdentity() {
+        XCTAssertEqual(NonCashRewardMerchantSelection.merchantRow("7")?.rawValue, 7)
+        for invalid in ["", "0", "07", "-7", "+7", " 7", "7 ", "7.0", "７", "7e1", "9223372036854775808", "EXAMPLE-MERCHANT"] {
+            XCTAssertNil(NonCashRewardMerchantSelection.merchantRow(invalid), invalid)
+        }
+    }
+    func testMerchantCaptureRequiresAcceptedSnapshotAndIndependentRealReadScopes() async throws {
+        let reward = DetailCompositionReader(), merchant = RewardMerchantReaderFixture()
+        let screen = reward.destination().makeScreenModel(); screen.beginPresentation()
+        XCTAssertNil(merchantSelection(screen, reward, merchant))
+        reward.suspends = false; await screen.refresh(reader: reward, presentation: screen.presentation)
+        let selected = try XCTUnwrap(merchantSelection(screen, reward, merchant))
+        XCTAssertEqual(selected.merchantID.rawValue, 7); XCTAssertEqual(selected.reward.storeId, "8")
+        XCTAssertTrue(merchant.calls.isEmpty)
+        merchant.isConfigured = false; XCTAssertNil(merchantSelection(screen, reward, merchant))
+        merchant.isConfigured = true; reward.isOfflineExample = true
+        XCTAssertNil(merchantSelection(screen, reward, merchant))
+        reward.isOfflineExample = false; reward.isAuthenticated = false
+        XCTAssertNil(merchantSelection(screen, reward, merchant))
+    }
+    func testMerchantReadUsesOnlyCapturedRowAndBuildsNoActionContexts() async throws {
+        let reward = DetailCompositionReader(), merchant = RewardMerchantReaderFixture(), screen = await accepted(reward)
+        let selected = try XCTUnwrap(merchantSelection(screen, reward, merchant))
+        let scoped = NonCashRewardMerchantReader(base: merchant, selection: selected,
+            current: { selected.isCurrent(model: screen, rewardReader: reward, merchantReader: merchant) })
+        do { _ = try await scoped.home(.ownerMemberID(PublicMerchantOwnerID(7)!)); XCTFail() } catch {}
+        XCTAssertTrue(merchant.calls.isEmpty)
+        let result = try await scoped.home(.legacyMerchantRowID(selected.merchantID))
+        XCTAssertEqual(result.id, 7); XCTAssertEqual(result.memberId, 77)
+        XCTAssertEqual(merchant.calls, [.legacyMerchantRowID(PublicMerchantRowID(7)!)])
+        let context = PublicMerchantHomeContext(reader: scoped)
+        XCTAssertNil(context.publicReviews); XCTAssertNil(context.featured); XCTAssertNil(context.ownerProfile)
+        XCTAssertNil(context.npcDestination); XCTAssertFalse(context.shopNpcChat)
+    }
+    func testRewardRefreshRetiresSameValueSnapshotAndQueuedOldButton() async throws {
+        let reward = DetailCompositionReader(), merchant = RewardMerchantReaderFixture(), screen = await accepted(reward)
+        let selected = try XCTUnwrap(merchantSelection(screen, reward, merchant)), oldSnapshot = screen.snapshotToken
+        await screen.refresh(reader: reward, presentation: screen.presentation)
+        XCTAssertEqual(screen.value(scope: reward.scope), selected.reward)
+        XCTAssertFalse(selected.isCurrent(model: screen, rewardReader: reward, merchantReader: merchant))
+        XCTAssertNil(NonCashRewardMerchantSelection.capture(model: screen, rewardReader: reward,
+            merchantReader: merchant, snapshotToken: oldSnapshot, presentation: screen.presentation))
+        XCTAssertNotNil(merchantSelection(screen, reward, merchant))
+    }
+    func testMerchantCloseIsSingleUseAndOldCloseCannotDismissNewSelection() async throws {
+        let reward = DetailCompositionReader(), merchant = RewardMerchantReaderFixture(), screen = await accepted(reward)
+        let old = try XCTUnwrap(merchantSelection(screen, reward, merchant))
+        let next = try XCTUnwrap(merchantSelection(screen, reward, merchant))
+        var navigation = NonCashRewardMerchantNavigation()
+        navigation.open(old); navigation.close(old.id); XCTAssertFalse(navigation.canOpen)
+        navigation.open(next); XCTAssertNil(navigation.selection)
+        XCTAssertEqual(navigation.finish(old.id)?.id, old.id); XCTAssertNil(navigation.finish(old.id))
+        navigation.open(next); navigation.close(old.id)
+        XCTAssertEqual(navigation.selection?.id, next.id); XCTAssertNil(navigation.finish(old.id))
+        navigation.cancel(); XCTAssertTrue(navigation.canOpen)
+    }
+    func testMerchantLateSuccessAndFailureAfterCloseAreDiscarded() async throws {
+        for fails in [false, true] {
+            let reward = DetailCompositionReader(), merchant = RewardMerchantReaderFixture(), screen = await accepted(reward)
+            let selected = try XCTUnwrap(merchantSelection(screen, reward, merchant))
+            var live = true; merchant.hold = true
+            let scoped = NonCashRewardMerchantReader(base: merchant, selection: selected,
+                current: { live && selected.isCurrent(model: screen, rewardReader: reward, merchantReader: merchant) })
+            let task = Task { try await scoped.home(.legacyMerchantRowID(selected.merchantID)) }
+            for _ in 0..<100 where merchant.pending == nil { await Task.yield() }
+            guard let pending = merchant.pending else { task.cancel(); XCTFail("request not started"); return }
+            live = false; merchant.pending = nil
+            if fails { pending.resume(throwing: PublicMerchantHomeFailure.retryable) }
+            else { pending.resume(returning: try merchant.value()) }
+            do { _ = try await task.value; XCTFail() } catch { XCTAssertTrue(error is CancellationError) }
+        }
+    }
+    func testMerchantBackgroundReaderScopeAndReopenedPermitRejectOldSelection() async throws {
+        let reward = DetailCompositionReader(), merchant = RewardMerchantReaderFixture(), screen = await accepted(reward)
+        let selected = try XCTUnwrap(merchantSelection(screen, reward, merchant))
+        merchant.scope = UUID()
+        XCTAssertFalse(selected.isCurrent(model: screen, rewardReader: reward, merchantReader: merchant))
+        let fresh = try XCTUnwrap(merchantSelection(screen, reward, merchant))
+        screen.setForeground(false, reader: reward, presentation: screen.presentation)
+        XCTAssertFalse(fresh.isCurrent(model: screen, rewardReader: reward, merchantReader: merchant))
+        XCTAssertNil(merchantSelection(screen, reward, merchant))
+        screen.beginPresentation(); await screen.refresh(reader: reward, presentation: screen.presentation)
+        XCTAssertFalse(fresh.isCurrent(model: screen, rewardReader: reward, merchantReader: merchant))
+        XCTAssertNotNil(merchantSelection(screen, reward, merchant))
+    }
+    func testMerchantCurrentFailureCanRetryButMismatchedReturnedRowCannotDisplay() async throws {
+        let reward = DetailCompositionReader(), merchant = RewardMerchantReaderFixture(), screen = await accepted(reward)
+        let selected = try XCTUnwrap(merchantSelection(screen, reward, merchant))
+        let scoped = NonCashRewardMerchantReader(base: merchant, selection: selected,
+            current: { selected.isCurrent(model: screen, rewardReader: reward, merchantReader: merchant) })
+        merchant.fail = true
+        do { _ = try await scoped.home(.legacyMerchantRowID(selected.merchantID)); XCTFail() }
+        catch { XCTAssertEqual(error as? PublicMerchantHomeFailure, .retryable) }
+        merchant.fail = false; merchant.wrongID = true
+        do { _ = try await scoped.home(.legacyMerchantRowID(selected.merchantID)); XCTFail() }
+        catch { XCTAssertTrue(error is CancellationError) }
+        merchant.wrongID = false
+        let home = try await scoped.home(.legacyMerchantRowID(selected.merchantID))
+        XCTAssertEqual(home.id, 7)
+    }
     func testAcceptedRowSelectionRetainedBeforeDestinationConstructionCannotRebindAccount() async throws {
         let reader = DetailCompositionReader(), collection = NonCashRewardCollectionScreenModel(), scopeA = reader.scope
         await collection.refresh(reader: reader)

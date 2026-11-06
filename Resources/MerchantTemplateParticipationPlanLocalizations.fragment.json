@@ -260,13 +260,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Planning details are not proof of staffing, opening hours, capacity, safety approval or publication. Existing server facts, stock and rewards remain authoritative."
+          "value": "Planning details don't confirm staffing, opening hours, capacity, safety review or publication. Current stock and rewards on record still apply."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "规划内容不代表已确认员工、营业时间、场地容量、安全审核或发布。既有服务端事实、库存与奖励保持权威。"
+          "value": "规划内容不代表已确认人员、营业时间、场地容量、安全审核或发布。现有库存与奖励以平台记录为准。"
         }
       }
     }

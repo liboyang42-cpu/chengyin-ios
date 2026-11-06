@@ -70,7 +70,6 @@ struct AuthChannelView: View {
                     .disabled(!model.canStart || !validPhone || !validCode)
                     .accessibilityIdentifier("auth.channels.phoneSignIn")
                 } header: { Text("auth.channels.phoneTitle") }
-                  footer: { Text("auth.channels.codeLifetime") }
                 } else { Section { Text("region.usLoginPending").accessibilityIdentifier("region.auth.pending") } }
                 if model.state.smsSent {
                     Section { Label("auth.channels.smsSent", systemImage: "checkmark.circle") }
@@ -80,6 +79,11 @@ struct AuthChannelView: View {
                         Text(LocalizedStringKey(issue.localizationKey))
                             .foregroundStyle(issue == .appleIncomplete ? Color.secondary : Color.red)
                             .accessibilityIdentifier("auth.channels.error")
+                        if model.state.requiresAppUpdate && issue != .upgradeRequired {
+                            Text("auth.channels.upgradeRequired")
+                                .foregroundStyle(Color.red)
+                                .accessibilityIdentifier("auth.channels.upgradeRequired")
+                        }
                     }
                 }
                 Section {
@@ -91,8 +95,6 @@ struct AuthChannelView: View {
                         if model.state.work == .appleAuthorization || model.state.work == .appleExchange {
                             ProgressView("auth.channels.appleWorking")
                         }
-                    } else {
-                        Label("auth.channels.appleNotConfigured", systemImage: "info.circle")
                     }
                 }
                 if !model.coordinator.isConfigured {
@@ -106,9 +108,6 @@ struct AuthChannelView: View {
                     Button("auth.channels.privacyPolicy") { focus = nil; onOpenPrivacy?() }
                         .disabled(onOpenPrivacy == nil)
                         .frame(minHeight: 44)
-                    if !legalReleaseContentVerified || onOpenAgreement == nil || onOpenPrivacy == nil {
-                        Label("auth.channels.legalPending", systemImage: "exclamationmark.triangle")
-                    }
                 }
             }
             .appNavigationTitle("auth.channels.title")

@@ -34,9 +34,9 @@ class WalkingCameraControlsTests(unittest.TestCase):
         self.assertNotIn('withAnimation', control)
         for value in ['.onChange(of: model?.cameraSnapshot) { _, _ in cameraGate.invalidate() }',
                       '.onChange(of: model?.cameraScope) { _, _ in synchronizeCamera() }',
-                      '.onDisappear { cameraGate.invalidate();']:
+                      '.onDisappear { restoreReadGate.disappear(); cameraGate.invalidate();']:
             self.assertIn(value, self.view)
-        self.assertNotIn('cameraPosition', self.view.split('.task {', 1)[1].split('@ViewBuilder private var mapContent', 1)[0])
+        self.assertNotIn('cameraPosition', self.view.split('.task(id: scenePhase) {', 1)[1].split('@ViewBuilder private var mapContent', 1)[0])
 
     def test_camera_has_no_location_network_authorization_or_navigation_actions(self):
         control = self.view.split('private func cameraControl', 1)[1].split('@ViewBuilder private func actions', 1)[0]
@@ -102,7 +102,7 @@ class WalkingCameraControlsTests(unittest.TestCase):
         for forbidden in ['stopWork(', 'invalidate()', 'phase =', 'route =', 'location.', 'planner.', '.cancel(', '.stop(']:
             self.assertNotIn(forbidden, cleanup)
         self.assertIn('cameraScopeValue = nil', cleanup)
-        task = self.view.split('.task {', 1)[1].split('.onChange(of:', 1)[0]
+        task = self.view.split('.task(id: scenePhase) {', 1)[1].split('.onChange(of:', 1)[0]
         self.assertIn('model?.synchronize()', task)
         self.assertIn('testCameraRetentionCleanupNeverCancelsOrMutatesNavigation',
                       (ROOT / 'Tests/CoreTests/WalkingMapCameraTests.swift').read_text())
@@ -130,6 +130,19 @@ class WalkingCameraControlsTests(unittest.TestCase):
         self.assertIn('launch("longText", chinese: chinese, maximumType: true)', ui)
         app = (ROOT / 'Tests/AppUnitTests/WalkingNavigationAppTests.swift').read_text()
         self.assertIn('testCameraRejectsChangedFactoryIdentityBeforePollingClearsRoute', app)
+
+    def test_new_lifecycle_prefix_does_not_hide_camera_cleanup_or_domain_polling(self):
+        original = self.view
+        try:
+            for old, replacement, check in [
+                ('restoreReadGate.disappear(); cameraGate.invalidate();', 'restoreReadGate.disappear();', self.test_only_explicit_buttons_change_position_without_automatic_follow),
+                ('model?.synchronize()', '// polling removed', self.test_camera_privacy_reset_does_not_invoke_domain_synchronization_or_provider_stop),
+            ]:
+                self.view = original.replace(old, replacement)
+                with self.assertRaises(AssertionError):
+                    check()
+        finally:
+            self.view = original
 
 if __name__ == '__main__':
     unittest.main()

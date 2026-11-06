@@ -47,9 +47,21 @@ class MerchantReviewPhotoGalleryContracts(unittest.TestCase):
         self.assertIn('@Published private(set) var generation = UUID()',self.gallery)
         self.assertNotIn('Task {',self.gallery)
     def test_stale_binding_getter_and_dismissal_capture_presented_id(self):
-        for text in ['let presentedID = session?.id','self.session?.id == presentedID','guard value == nil, let presentedID',
-                     'self?.cancel(id: presentedID)','guard session?.id == id else { return }','generation = UUID(); session?.retire(); session = nil']:
+        for text in ['let epoch = generation','var presentedID = session?.id',
+                     'return shown.id == presentedID ? shown : nil',
+                     'self.generation == epoch, value == nil, let presentedID',
+                     'self.cancel(id: presentedID)','guard session?.id == id else { return }','generation = UUID(); session?.retire(); session = nil']:
             self.assertIn(text,self.gallery)
+        binding=self.gallery.split('func presentationBinding()')[1].split('/// No image request')[0]
+        self.assertEqual(binding.count('self.generation == epoch'),2)
+    def test_empty_binding_adopts_once_and_only_sheet_owner_remounts(self):
+        self.assertIn('if presentedID == nil { presentedID = shown.id }',self.gallery)
+        self.assertIn('guard let self, self.active, self.generation == epoch',self.gallery)
+        self.assertIn('let shown = self.session, shown.isCurrent else { return nil }',self.gallery)
+        host=self.gallery.split('.background {')[1].split('.onAppear')[0]
+        self.assertIn('Color.clear.frame(width: 0, height: 0)',host)
+        self.assertIn('.sheet(item: model.presentationBinding())',host)
+        self.assertIn('.id(model.generation)',host)
     def test_late_image_phase_and_retry_are_generation_fenced(self):
         self.assertGreaterEqual(self.gallery.count('session.isImageCurrent(generation, at: position)'),2)
         self.assertIn('isCurrent && imageGeneration == generation && index == position',self.gallery)

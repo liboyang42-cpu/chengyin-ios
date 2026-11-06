@@ -7,15 +7,14 @@ struct LoginView: View {
     @State private var username = ""
     @State private var password = ""
     @State private var showsOtherSignIn=false
+    @State private var consentGranted = UsageConsentEnvironment.policy.granted
+    @State private var legalDocument: AuthEntryLegalSheet?
     @FocusState private var focusedField: Field?
     private enum Field { case username, password }
 
     var body: some View {
         NavigationStack {
             Form {
-                Section {
-                    Text(intent == .merchant ? LocalizedStringKey("auth.merchantNotice") : LocalizedStringKey("auth.playerNotice"))
-                }
                 if session.canUsePassword {
                 Section("auth.existingAccount") {
                     TextField("auth.username",text:$username)
@@ -44,7 +43,11 @@ struct LoginView: View {
                 if let key=session.errorKey {
                     Section { Text(LocalizedStringKey(key)).foregroundStyle(.red).accessibilityIdentifier("auth.error") }
                 }
-                if session.operationalMarket == .china {
+                SessionRestorationRetrySection(session: session)
+                if !consentGranted {
+                    UsageConsentSignInRequirement(market: session.operationalMarket, granted: $consentGranted)
+                }
+                if session.operationalMarket == .china && consentGranted {
                     WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
                 }
                 Section {
@@ -53,9 +56,8 @@ struct LoginView: View {
                         recordIntegratedLoginPhase("other_action")
 #endif
                     }
-                        .disabled(session.isWorking)
+                        .disabled(session.isWorking || !consentGranted)
                         .accessibilityIdentifier("auth.otherChannels")
-                    Text("auth.registrationPending").foregroundStyle(.secondary)
                 }
             }
             .appNavigationTitle("auth.title")
@@ -67,7 +69,18 @@ struct LoginView: View {
                 }
             }
             .sheet(isPresented:$showsOtherSignIn) {
-                AuthChannelView(coordinator:session.authChannels,sessionSnapshot:session.authChannelSnapshot,domesticPhoneVisible:session.supportsDomesticPhoneInput)
+                AuthChannelView(coordinator:session.authChannels,sessionSnapshot:session.authChannelSnapshot,domesticPhoneVisible:session.supportsDomesticPhoneInput,
+                                onOpenAgreement: { legalDocument = AuthEntryLegalSheet(type: .userAgreement) },
+                                onOpenPrivacy: { legalDocument = AuthEntryLegalSheet(type: .privacyPolicy) })
+                    .sheet(item: $legalDocument) { sheet in
+                        NavigationStack {
+                            Group {
+                                if sheet.type == .privacyPolicy { PrivacyProtectionView(market: session.operationalMarket) }
+                                else { SettingsLegalDocumentView(type: sheet.type, market: session.operationalMarket, reader: SettingsBundledLegalReader()) }
+                            }
+                            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { legalDocument = nil } } }
+                        }
+                    }
 #if DEBUG
                     .onAppear { recordIntegratedLoginPhase("channels_appear") }
                     .onDisappear { recordIntegratedLoginPhase("channels_disappear") }

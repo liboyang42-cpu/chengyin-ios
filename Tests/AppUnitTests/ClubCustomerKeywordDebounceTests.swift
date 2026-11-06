@@ -103,4 +103,57 @@ import XCTest
         await task.value
         XCTAssertEqual(reads, 0)
     }
+
+    func testClearFiltersRestoresEverySupportedFilterToTheDefaultQuery() {
+        for filter in ["all", "repeat", "new", "remark"] {
+            var query = ClubCustomerFilters(filter: filter, keyword: "Ada")
+            XCTAssertTrue(query.isFiltered)
+            XCTAssertTrue(query.clear())
+            XCTAssertEqual(query.filter, "all")
+            XCTAssertEqual(query.keyword, "")
+            XCTAssertFalse(query.isFiltered)
+        }
+    }
+    func testClearFiltersHandlesKeywordOnlyAndFilterOnlyQueries() {
+        for initial in [ClubCustomerFilters(filter: "all", keyword: "Ada"),
+                        ClubCustomerFilters(filter: "repeat", keyword: "")] {
+            var query = initial
+            XCTAssertTrue(query.clear())
+            XCTAssertEqual(query, ClubCustomerFilters())
+            XCTAssertNotEqual(initial, query)
+        }
+    }
+    func testClearFiltersDoesNotTrimOrPreserveWhitespaceInTheResetKeyword() {
+        var query = ClubCustomerFilters(filter: "all", keyword: "  ")
+        XCTAssertEqual(query.keyword, "  ")
+        XCTAssertTrue(query.isFiltered)
+        XCTAssertTrue(query.clear())
+        XCTAssertEqual(query.keyword, "")
+    }
+    func testClearFiltersIsIdempotentForAnAlreadyUnfilteredQuery() {
+        var query = ClubCustomerFilters()
+        XCTAssertFalse(query.isFiltered)
+        XCTAssertFalse(query.clear())
+        XCTAssertEqual(query, ClubCustomerFilters())
+        query.keyword = "Ada"
+        XCTAssertTrue(query.clear())
+        XCTAssertFalse(query.clear())
+    }
+    func testClearFiltersCancelsAnOlderKeywordDelayBeforeTheUnfilteredRead() async {
+        let entered = expectation(description: "old customer query sleeping")
+        let gate = Gate(entered), timer = ClubCustomerKeywordDebounce(sleep: { try await gate.sleep() })
+        var query = ClubCustomerFilters(filter: "new", keyword: "Ada")
+        var reads: [ClubCustomerFilters] = []
+        let oldQuery = query
+        let pending = timer.schedule { reads.append(oldQuery) }
+        await fulfillment(of: [entered], timeout: 1)
+        timer.cancel()
+        XCTAssertTrue(query.clear())
+        reads.append(query)
+        gate.release()
+        await pending.value
+        XCTAssertEqual(reads, [ClubCustomerFilters()])
+        XCTAssertFalse(query.clear())
+        XCTAssertEqual(reads.count, 1)
+    }
 }

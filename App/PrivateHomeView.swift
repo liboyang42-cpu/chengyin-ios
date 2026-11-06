@@ -29,6 +29,8 @@ import SwiftUI
     @State private var invalidInput = false
     @State private var picker: PrivateHomeMapPickerModel
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.homeReturnCoordinator) private var homeReturn
+    @Environment(\.nativeHomeReturnSelection) private var nativeHomeReturnSelection
     init(model: PrivateHomeCoordinator, mapAdapter: (any PrivateHomeMapPointPicking)? = nil) {
         self.model = model
         _picker = State(initialValue: PrivateHomeMapPickerModel(owner: model, adapter: mapAdapter ?? PrivateHomeInactiveMapKitAdapter()))
@@ -40,7 +42,7 @@ import SwiftUI
                 Text(LocalizedStringKey("privateHome.phase." + model.phase.rawValue)).accessibilityIdentifier("privateHome.phase")
                 if let home = model.home {
                     Text(LocalizedStringKey(home.status == .active ? "privateHome.active" : "privateHome.empty"))
-                    if let label = home.label { Text(verbatim: label).privacySensitive() }
+                    if let label = home.label { Text(verbatim: label).font(.title3.weight(.semibold)).fixedSize(horizontal: false, vertical: true).privacySensitive() }
                 }
                 if let decision = model.decision { Text(LocalizedStringKey("privateHome.decision." + decision.rawValue)) }
                 if model.issue != nil { Text("privateHome.issue").accessibilityIdentifier("privateHome.issue") }
@@ -91,19 +93,27 @@ import SwiftUI
                     Button("privateHome.retry") { Task { await model.retryExact() } }.accessibilityIdentifier("privateHome.retry")
                 }
             }
+            if let nativeHomeReturnSelection {
+                NativeHomeReturnRunSection(model: nativeHomeReturnSelection, home: model.phase == .ready ? model.home : nil)
+            } else {
+                HomeReturnSection(model: homeReturn, home: model.home)
+            }
         }
         .navigationTitle("privateHome.title").privacySensitive().accessibilityIdentifier("privateHome.host")
         .task { await model.load() }
+        .task { await nativeHomeReturnSelection?.load() }
         .sheet(isPresented: Binding(get: { picker.isPresented }, set: { if !$0 { picker.close() } })) {
             PrivateHomeMapPickerView(picker: picker, initialLabel: label)
                 .id(picker.selection.generation)
         }
         .onDisappear { picker.close(); clearInput(); model.cancelReview() }
+        .onDisappear { nativeHomeReturnSelection?.cancelVerification() }
         .onChange(of: model.phase) { _, phase in
             if phase != .ready { picker.close() }
             if phase == .invalidated { clearInput() }
         }
-        .onChange(of: scenePhase) { _, phase in if phase != .active { picker.close() } }
+        .onChange(of: scenePhase) { _, phase in if phase != .active { picker.close(); model.cancelReview() } }
+        .onChange(of: scenePhase) { _, phase in if phase != .active { nativeHomeReturnSelection?.cancelVerification() } }
         .overlay { if scenePhase != .active { Color(.systemBackground).overlay(Text("privateHome.title")) } }
     }
     private func clearInput() { label = ""; latitude = ""; longitude = ""; invalidInput = false }

@@ -6,6 +6,7 @@ public struct ProfileAuthorPostsContext: Hashable {
     public let memberID: Int
     public let viewer: SocialAccountIdentity
     public let revision: UInt64
+    public let publicRetention: ProfilePublicInfoRetentionIdentity?
     public let squareScope: UUID
     public let isConfigured: Bool
     public let isSignedIn: Bool
@@ -14,8 +15,13 @@ public struct ProfileAuthorPostsContext: Hashable {
 
     @MainActor public init(memberID: Int, accountReader: any SocialAccountReading, squareReader: any SquareReading) {
         self.memberID = memberID; viewer = accountReader.identity
-        revision = accountReader.presentationRevision; squareScope = squareReader.scope
+        let publicReader = accountReader as? ProfilePublicInfoReader
+        publicRetention = publicReader?.authorPostsRetentionIdentity
+        // Generic readers still use their full presentation revision to fence ABA.
+        revision = publicReader == nil ? accountReader.presentationRevision : 0
+        squareScope = squareReader.scope
         isConfigured = accountReader.isConfigured && squareReader.isConfigured
+            && (publicReader == nil || publicRetention?.memberID == memberID)
         isSignedIn = viewer.accountID != nil && squareReader.isSignedIn
         accountReaderID = ObjectIdentifier(accountReader); squareReaderID = ObjectIdentifier(squareReader)
     }
@@ -47,6 +53,28 @@ public struct ProfileAuthorPostsContext: Hashable {
     public func retire() {
         generation &+= 1; context = nil; pagination = .init()
         activeOperation = nil; error = nil; failedOperation = nil
+    }
+    /// Remounting the header/section is not an explicit feed refresh.
+    /// Preserve accepted pages and recorded retry intent under the exact same read scope.
+    public func activate(memberID: Int, accountReader: any SocialAccountReading, squareReader: any SquareReading,
+                         isCurrent: @MainActor () -> Bool = { true }) async {
+        let expected = ProfileAuthorPostsContext(memberID: memberID, accountReader: accountReader, squareReader: squareReader)
+        guard !Task.isCancelled else { return }
+        guard isCurrent() else { if context == expected { retire() }; return }
+        if context != expected { retire() }
+        guard expected.isConfigured, expected.isSignedIn, memberID > 0 else { retire(); return }
+        if context == expected, pagination.hasLoadedPage || error != nil || isBusy { return }
+        await refresh(memberID: memberID, accountReader: accountReader, squareReader: squareReader, isCurrent: isCurrent)
+    }
+    @discardableResult public func rejectHeader(_ error: Error, context expected: ProfileAuthorPostsContext) -> Bool {
+        guard context == expected else { return false }
+        var unavailable = Self.isAccessDenial(error)
+        if case APIError.httpStatus(404) = error { unavailable = true }
+        if case APIError.businessCode(404) = error { unavailable = true }
+        if case SocialAccountFailure.rejected(let code, _) = error,
+           [2, 401, 403, 404].contains(code) { unavailable = true }
+        guard unavailable else { return false }
+        retire(); return true
     }
     public func refresh(memberID: Int, accountReader: any SocialAccountReading, squareReader: any SquareReading,
                         isCurrent: @MainActor () -> Bool = { true }) async {

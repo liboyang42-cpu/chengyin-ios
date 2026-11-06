@@ -73,4 +73,14 @@ final class ProfileOrderHistoryFilterTests: XCTestCase {
         s.retire(); XCTAssertEqual(s.value(for:a),.all)
     }
     private func owner(_ reader:NSObject,_ account:Int)->ProfileOrderFilterOwner { .init(readerID:ObjectIdentifier(reader),identity:.init(accountID:account,epoch:1),isConfigured:true) }
+    func testSourceRowModeAndActualPaidAmount() throws {
+        XCTAssertEqual(try order(#""cmsActivity":{"name":"A","productType":2}"#).sourceMode, .cityOrienteering)
+        XCTAssertEqual(try order(#""cmsTopic":{"name":"T","productType":2}"#).sourceMode, .freeExplore)
+        XCTAssertEqual(try order(#""cmsTopic":{"name":"T","productType":1}"#).sourceMode, .cityOrienteering)
+        XCTAssertNil(try order(#""cmsTopic":{"name":"T"}"#).sourceMode)
+        XCTAssertNil(try order(#""cmsTopic":{"name":"T","productType":7}"#).sourceMode)
+        XCTAssertEqual(try order(#""payableAmount":30,"wechatPaymentAmount":12"#).actualPaidAmount, 12)
+        XCTAssertEqual(try order(#""payableAmount":30"#).actualPaidAmount, 30)
+        XCTAssertNil(try order().actualPaidAmount)
+    }
 }

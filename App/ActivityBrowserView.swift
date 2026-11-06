@@ -39,6 +39,7 @@ private struct ActivityListDestination: Hashable { let id: Int }
                         ForEach(model.items) { item in
                             NavigationLink(value: ActivityListDestination(id: item.id)) { ActivityListCard(item:item) }
                                 .buttonStyle(QuestifyCardButtonStyle())
+                                .questifyHidesLinkIndicator()
                                 .questifyCardListRow()
                                 .accessibilityIdentifier("activity.row.\(item.id)")
                         }
@@ -58,9 +59,14 @@ private struct ActivityListDestination: Hashable { let id: Int }
             .appNavigationTitle("activity.browse")
             .searchable(text:$query,placement:.navigationBarDrawer(displayMode:.always),prompt:"activity.search")
             .onSubmit(of:.search) { loads.start { await model.load(reader: reader, reset: true, keyword: query) } }
+            .onChange(of: query) { _, text in
+                if text.isEmpty, model.canClearSearch(reader: reader) {
+                    loads.start { await model.clearSearchIfNeeded(reader: reader) }
+                }
+            }
             .task(id: identity) {
                 if model.identity != identity { query = "" }
-                await loads.run { await model.load(reader: reader, reset: true, keyword: query) }
+                await loads.run { await model.resume(reader: reader, keyword: query) }
             }
             .onDisappear { loads.cancel(); model.cancelPending() }
             // Kept outside replaceable List content, preserving a pushed Activity→topic route.
@@ -84,6 +90,22 @@ private struct ActivityListDestination: Hashable { let id: Int }
     private var generation: UInt64 = 0
     private var appliedQuery = ""
     func cancelPending() { generation &+= 1; isLoading = false }
+    /// Navigation return is not a new search. Preserve accepted pages and any
+    /// later-page retry; only an initial unfinished read or changed reader needs loading.
+    func resume(reader: any ActivityReading, keyword: String) async {
+        guard !Task.isCancelled else { return }
+        let sameReader = identity == ActivityListReadIdentity(reader)
+        if sameReader, page > 0 { return }
+        await load(reader: reader, reset: true, keyword: sameReader ? appliedQuery : keyword)
+    }
+    /// Clearing the search field explicitly returns to the unfiltered first page.
+    func canClearSearch(reader: any ActivityReading) -> Bool {
+        identity == ActivityListReadIdentity(reader) && !appliedQuery.isEmpty
+    }
+    func clearSearchIfNeeded(reader: any ActivityReading) async {
+        guard !Task.isCancelled, canClearSearch(reader: reader) else { return }
+        await load(reader: reader, reset: true, keyword: "")
+    }
     func load(reader: any ActivityReading, reset: Bool, keyword: String) async {
         let captured = ActivityListReadIdentity(reader)
         let replaced = identity != captured
@@ -119,12 +141,21 @@ struct AmountLabel: View {
         formatter.minimumFractionDigits=2;formatter.maximumFractionDigits=2
         return formatter.string(from:NSDecimalNumber(decimal:amount))
     }
+    var captionKey: String? = nil
     var body: some View {
         if let formatted {
-            VStack(alignment:.leading,spacing:4) {
-                Text(formatted).monospacedDigit()
-                Text("activity.currencyUnconfirmed").font(.caption).foregroundStyle(.primary)
-            }
+            RevolutAmountView(figure: formatted, label: quietLabel(includeCurrency: true))
+        } else if let captionKey {
+            RevolutAmountView(figure: appLocalized("activity.priceUnknown", locale: locale), label: localized(captionKey))
         } else { Text("activity.priceUnknown").foregroundStyle(.secondary) }
+    }
+    private func quietLabel(includeCurrency: Bool) -> String {
+        var parts: [String] = []
+        if let captionKey { parts.append(localized(captionKey)) }
+        if includeCurrency { parts.append(appLocalized("activity.currencyUnconfirmed", locale: locale)) }
+        return parts.joined(separator: "\n")
+    }
+    private func localized(_ key: String) -> String {
+        appLocalized(String.LocalizationValue(stringLiteral: key), locale: locale)
     }
 }

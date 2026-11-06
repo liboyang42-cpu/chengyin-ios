@@ -4,13 +4,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This native feature awaits service and privacy approval."
+          "value": "This feature isn't available right now."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "此原生功能尚待服务与隐私审核通过。"
+          "value": "此功能暂不可用。"
         }
       }
     }
@@ -100,13 +100,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This native record is for auditing only. It does not complete the task or unlock points or rewards."
+          "value": "This step record is for review only. It doesn't complete the task or unlock points or rewards."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "原生步数仅用于审核记录，不会完成任务或解锁积分及奖励。"
+          "value": "步数仅用于审核记录，不会完成任务或解锁积分及奖励。"
         }
       }
     }

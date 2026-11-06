@@ -1,0 +1,22 @@
+--- a/App/MerchantOperationsEditor.swift
++++ b/App/MerchantOperationsEditor.swift
+@@ -379,7 +379,18 @@
+         if heldKnowledgeReview == nil, let retained = authorFlow?.heldKnowledgeReview {
+             heldKnowledgeReview = retained
+         }
+-        guard let held = heldKnowledgeReview, !didRecoverHeldKnowledgeReview else { return }
++        if heldKnowledgeReview == nil, let flow = authorFlow {
++            do {
++                if let restored = try await flow.recoverStoredKnowledgeReview() {
++                    heldKnowledgeReview = restored
++                    didRecoverHeldKnowledgeReview = true
++                    return
++                }
++            } catch {
++                // A missing row or a different member stays closed.
++                return
++            }
++        }
+         guard let recover = knowledgeReviewReentry else { return }
+         didRecoverHeldKnowledgeReview = true
+         do {

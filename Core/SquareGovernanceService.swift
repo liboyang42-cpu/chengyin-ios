@@ -78,7 +78,9 @@ public struct SquareGovernanceService {
         if let limit { query.append(.init(name: "limit", value: String(limit))) }
         if let cursor { guard cursor > 0 else { throw SquareGovernanceFailure.invalid }; query.append(.init(name: "cursor", value: String(cursor))) }
         let request = try request(path: path, method: "GET", query: query, token: token)
-        try check(); let (data, status) = try await transport.send(request); try check()
+        try Task.checkCancellation(); try check()
+        let (data, status) = try await transport.send(request)
+        try Task.checkCancellation(); try check()
         return try Self.decode(data, status: status, mutation: false)
     }
     public func enforcements(cursor: Int? = nil, token: String, check: () throws -> Void) async throws -> [SquareEnforcement] {
@@ -117,10 +119,12 @@ public struct SquareGovernanceService {
     }
     func dispatch(_ review: SquareGovernanceReview, token: String, check: () throws -> Void) async throws -> SquareGovernanceReceipt {
         guard allows(review.action) else { throw SquareGovernanceFailure.disabled }
-        let request = try command(review, token: token); try check()
+        let request = try command(review, token: token)
+        try Task.checkCancellation(); try check()
         let data: Data, status: Int
         do { (data, status) = try await transport.send(request) } catch { throw SquareGovernanceFailure.unknown }
-        do { try check() } catch { throw SquareGovernanceFailure.unknown }
+        // Once dispatched, cancellation cannot prove non-execution or release the original lock.
+        do { try Task.checkCancellation(); try check() } catch { throw SquareGovernanceFailure.unknown }
         _ = try Self.decode(data, status: status, mutation: true)
         // Ajax success is acknowledgement only: no invented appeal result, deletion or approval.
         return .acknowledgedNeedsRefresh

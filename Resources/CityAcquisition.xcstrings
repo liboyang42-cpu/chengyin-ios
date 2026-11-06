@@ -1,0 +1,1211 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "cityAcquire.entry": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CITY 经营权与原回执"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CITY ownership and original receipts"
+          }
+        }
+      }
+    },
+    "cityAcquire.boundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅支持完成原现场任务的本人，明确同意扣自己的原积分，为原队取得无人点位。无代付、抢占、挑战、自动奖励或服务收费。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the original onsite task actor may explicitly pay their own points to acquire an unowned point for their original team. No payment for others, takeover, challenges, automatic rewards or service fees."
+          }
+        }
+      }
+    },
+    "cityAcquire.map.owned": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此点已有真实经营归属"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This point has recorded ownership"
+          }
+        }
+      }
+    },
+    "cityAcquire.map.noRecordedTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未记录经营归属，仍须取得合格任务和明确报价"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No ownership is recorded. A qualified task and explicit quote are still required."
+          }
+        }
+      }
+    },
+    "cityAcquire.map.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "经营归属当前不可核验，不推定无人经营"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ownership cannot currently be verified. Do not assume this point is unowned."
+          }
+        }
+      }
+    },
+    "cityAcquire.refresh": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取最新资格与本人归属"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read current eligibility and my titles"
+          }
+        }
+      }
+    },
+    "cityAcquire.recover": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只查询原请求回执"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the original request receipt only"
+          }
+        }
+      }
+    },
+    "cityAcquire.pending.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果未知时只读取原回执，不换新 key，不重复扣分或行动。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "While the outcome is unknown, read the original receipt only. Do not create another key or repeat the debit."
+          }
+        }
+      }
+    },
+    "cityAcquire.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CITY 首次经营权"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CITY first ownership acquisition"
+          }
+        }
+      }
+    },
+    "cityAcquire.reviewConfirmation": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核对报价并明确确认"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review the quote and give explicit consent"
+          }
+        }
+      }
+    },
+    "cityAcquire.quote": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取本人不可变报价，不扣分"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get my immutable quote without a debit"
+          }
+        }
+      }
+    },
+    "cityAcquire.quote.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原报价与本人确认条件"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original quote and personal confirmation terms"
+          }
+        }
+      }
+    },
+    "cityAcquire.quote.payer": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "唯一付款人（本人）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sole payer (me)"
+          }
+        }
+      }
+    },
+    "cityAcquire.quote.team": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受益原队伍"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original beneficiary team"
+          }
+        }
+      }
+    },
+    "cityAcquire.quote.point": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "真实 CITY 点位"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actual CITY point"
+          }
+        }
+      }
+    },
+    "cityAcquire.quote.points": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认后扣除本人积分"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My points debited on confirmation"
+          }
+        }
+      }
+    },
+    "cityAcquire.quote.actions": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原队同轮行动消耗"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original team-round action cost"
+          }
+        }
+      }
+    },
+    "cityAcquire.quote.balance": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报价时本人积分"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My balance when quoted"
+          }
+        }
+      }
+    },
+    "cityAcquire.quote.remainingActions": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报价时同轮剩余行动"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Round actions remaining when quoted"
+          }
+        }
+      }
+    },
+    "cityAcquire.quote.limit": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本队持有上限"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team holding limit"
+          }
+        }
+      }
+    },
+    "cityAcquire.quote.term": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已批准期限（秒）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved term (seconds)"
+          }
+        }
+      }
+    },
+    "cityAcquire.quote.expiry": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原报价到期时间"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original quote expiry"
+          }
+        }
+      }
+    },
+    "cityAcquire.quote.release": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结发布版本"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen release ID"
+          }
+        }
+      }
+    },
+    "cityAcquire.quote.pointVersion": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点位状态版本"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Point state version"
+          }
+        }
+      }
+    },
+    "cityAcquire.quote.budgetVersion": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原行动预算版本"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original action budget version"
+          }
+        }
+      }
+    },
+    "cityAcquire.quote.assurance": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此政策明确接受原人工门店证据，不代表传感器到场证明。确认时重验原证据、任务、成员、营业和权限。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This policy explicitly accepts the original merchant attestation, not sensor proof of arrival. The original evidence, task, membership, store availability and authority are rechecked on confirmation."
+          }
+        }
+      }
+    },
+    "cityAcquire.quote.expired": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此报价已过期，不能确认；须重新读取权威条件"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This quote has expired and cannot be confirmed. Read the authoritative terms again."
+          }
+        }
+      }
+    },
+    "cityAcquire.confirm.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明确同意本人支付积分"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicitly consent to pay my points"
+          }
+        }
+      }
+    },
+    "cityAcquire.confirm.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我已核对上述固定报价，仅扣本人积分并消耗原队同轮行动，为原队取得该无人点位。任何状态冲突都不自动涨价、代付或重试。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I have reviewed this fixed quote. Only my points and the original team-round actions may be consumed to acquire this unowned point for that team. Conflicts never authorize a higher price, another payer or an automatic retry."
+          }
+        }
+      }
+    },
+    "cityAcquire.confirm.pay": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同意按此原报价扣本人积分并取得"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay my points under this original quote and acquire"
+          }
+        }
+      }
+    },
+    "cityAcquire.confirm.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消，不扣分"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel without a debit"
+          }
+        }
+      }
+    },
+    "cityAcquire.receipt.success": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求已完成，可回读结果"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original request is complete; its result can be read"
+          }
+        }
+      }
+    },
+    "cityAcquire.receipt.rejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求明确拒绝，本次未取得经营权"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original request was rejected; no ownership was acquired"
+          }
+        }
+      }
+    },
+    "cityAcquire.tasks.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人已通过的真实现场任务"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My actual passed onsite tasks"
+          }
+        }
+      }
+    },
+    "cityAcquire.tasks.none": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚无可列出的本人现场任务。请先从板块的人工到场与现场任务入口完成原流程，不会用普通 POI 或远程题替代。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No personal onsite tasks are available. Complete the board’s merchant-attested arrival and onsite task flow first. Ordinary POIs and remote questions cannot substitute."
+          }
+        }
+      }
+    },
+    "cityAcquire.task.eligible": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可读取原政策报价，不代表已取得"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An original-policy quote is available; ownership is not yet acquired"
+          }
+        }
+      }
+    },
+    "cityAcquire.task.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前条件不可用，保留已完成的原任务"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current conditions are unavailable. The completed original task is retained."
+          }
+        }
+      }
+    },
+    "cityAcquire.titles.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人最近 200 条已确认经营归属"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My latest 200 confirmed ownership records"
+          }
+        }
+      }
+    },
+    "cityAcquire.title.debit": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求扣除积分"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Points debited by the original request"
+          }
+        }
+      }
+    },
+    "cityAcquire.title.after": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求提交后本人积分"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My balance after the original commit"
+          }
+        }
+      }
+    },
+    "cityAcquire.title.active": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "经营归属已取得，处于获批期限内"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ownership acquired within the approved term"
+          }
+        }
+      }
+    },
+    "cityAcquire.title.paused": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点位暂停，期限冻结，原归属保留"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Point paused; term frozen and original title retained"
+          }
+        }
+      }
+    },
+    "cityAcquire.title.review": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "期限或恢复需要复核，原归属仍保留"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Term or resumption requires review; the original title remains"
+          }
+        }
+      }
+    },
+    "cityAcquire.title.sourceUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前来源不可核验，原归属仍保留"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current sources cannot be verified; the original title remains"
+          }
+        }
+      }
+    },
+    "cityAcquire.lifecycleBoundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本批不自动回收或重新出售已取得点位。到期、暂停后恢复或来源不可用时保留归属待复核；不自动续期、补偿、退款、收费或发奖。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This version never automatically reclaims or resells an acquired point. Expiry, resumption after a pause or unavailable sources retain the title for review. No automatic renewal, compensation, refund, fee or reward is executed."
+          }
+        }
+      }
+    },
+    "cityAcquire.status.initial": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未读取"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not yet read"
+          }
+        }
+      }
+    },
+    "cityAcquire.status.contextChanged": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号或批准已变化，旧状态已清除"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account or approval changed; old state cleared"
+          }
+        }
+      }
+    },
+    "cityAcquire.status.disabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "经营权独立批准尚未启用"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Independent acquisition approval is not enabled"
+          }
+        }
+      }
+    },
+    "cityAcquire.status.ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已读取权威资格与归属"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authoritative eligibility and ownership read"
+          }
+        }
+      }
+    },
+    "cityAcquire.status.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求结果未知，请只查询原回执"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original outcome unknown; read its receipt only"
+          }
+        }
+      }
+    },
+    "cityAcquire.status.recoverFirst": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "须先读取待确认的原请求"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recover the pending original request first"
+          }
+        }
+      }
+    },
+    "cityAcquire.status.quoted": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报价已保存，尚未扣分；请核对后本人确认"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quote saved without a debit; review it before personally confirming"
+          }
+        }
+      }
+    },
+    "cityAcquire.status.committed": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "经营权、原积分明细与行动已原子提交"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ownership, original points entry and actions committed atomically"
+          }
+        }
+      }
+    },
+    "cityAcquire.status.rejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求已拒绝，任务证明保留"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request rejected; task proof retained"
+          }
+        }
+      }
+    },
+    "cityAcquire.status.signedOut": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录已失效，旧状态已清除"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Session expired; old state cleared"
+          }
+        }
+      }
+    },
+    "cityAcquire.status.accessWithdrawn": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "权限已撤回，不能继续"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authority withdrawn; cannot continue"
+          }
+        }
+      }
+    },
+    "cityAcquire.status.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前条件读取失败，未新增扣分；历史原回执仍可查询"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current conditions could not be read; no new debit was made. Original receipts remain available."
+          }
+        }
+      }
+    },
+    "cityAcquire.map.mine": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此点真实经营归属为本队"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This point is authoritatively owned by my team"
+          }
+        }
+      }
+    },
+    "cityAcquire.map.other": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此点真实经营归属为另一队"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This point is authoritatively owned by another team"
+          }
+        }
+      }
+    },
+    "cityAcquire.map.releaseReview": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此点已有旧发布下的归属，保留待复核，不映射成新发布的经营授权"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ownership exists under an earlier release and is retained for review. It is not operating authority under this release."
+          }
+        }
+      }
+    },
+    "cityAcquire.failure.owned": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此点已有人取得，或此任务已有取得结果。本次不扣分，已完成的任务证明保留。请读取当前归属或返回选择其它目标。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The point is already owned, or this task already has an acquisition result. No new debit was made. Task proof is retained. Read current ownership or return to choose another target."
+          }
+        }
+      }
+    },
+    "cityAcquire.failure.points": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人积分不足，本次未取得、未扣分。不会向队友扣分，请返回或自行决定下一步。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your points are insufficient. No acquisition or debit occurred. Teammates are never charged; return or decide your next step."
+          }
+        }
+      }
+    },
+    "cityAcquire.failure.actions": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原队同轮行动额度或版本已变化，本次未扣分。读取最新状态后再自行决定，不会补给或重新投骰。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original team-round budget or version changed. No debit occurred. Read current state before deciding; no refill or reroll is performed."
+          }
+        }
+      }
+    },
+    "cityAcquire.failure.limit": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原队已达到获批持有上限，本次未扣分。到期或暂停的原归属也不会自动清空。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original team reached its approved holding limit. No debit occurred. Expired or paused titles are not automatically cleared."
+          }
+        }
+      }
+    },
+    "cityAcquire.failure.expired": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原报价或人工证据已过期，本次未扣分。原任务保留，但不能延长或刷新证据来继续取得。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original quote or attestation expired. No debit occurred. The task is retained, but evidence is not extended or refreshed to authorize acquisition."
+          }
+        }
+      }
+    },
+    "cityAcquire.failure.original": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "必须先查明原意图结果，不能换 key 重试取得。请查询原请求回执。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resolve the original intent first. Do not change keys and retry acquisition. Read the original receipt."
+          }
+        }
+      }
+    },
+    "cityAcquire.failure.changed": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成员、门店、权限、证据或冻结条件不再满足，本次未扣分。保留原任务，请重新读取当前状态或返回。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Membership, store authority, evidence or frozen conditions no longer qualify. No debit occurred. The original task is retained; read current state or return."
+          }
+        }
+      }
+    },
+    "cityAcquire.receipt.historical": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以下为原提交时的回执快照，当前可用性请看下方最新归属。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The following is the receipt snapshot at the original commit. Current availability is shown in the latest titles below."
+          }
+        }
+      }
+    },
+    "cityAcquire.quote.currentRelease": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新取得只允许当前冻结发布。发布被替换后旧任务与资格保留，但不会跨发布扣分或映射到新地点。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New acquisition is allowed only under the current frozen release. A replaced release retains original tasks and qualification but never authorizes a cross-release debit or a new-place mapping."
+          }
+        }
+      }
+    },
+    "cityAcquire.status.originalUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original receipt is available. Some recovery or current-state reads are unavailable; retry the original request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已读取原回执，但部分恢复或当前状态暂不可用。请重查原请求。"
+          }
+        }
+      }
+    },
+    "cityAcquire.original.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reopen the original request. This does not repeat a quote or payment."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取原请求，不会重复报价或付款。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

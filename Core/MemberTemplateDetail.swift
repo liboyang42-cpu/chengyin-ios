@@ -12,6 +12,8 @@ public struct MemberTemplateDetail: Decodable, Equatable {
     public let overview: DiscoveryPlayTemplate
     public let memberID: Int?
     public let draftStatus: Int?
+    /// 审核反馈 (`reason`), shown only on the owner's own detail (mini-program `scope=my`).
+    public let reviewFeedback: String?
     public let gallery: [String]
     public let story: [MemberTemplateStoryPart]
     public init(from decoder: Decoder) throws {
@@ -21,6 +23,7 @@ public struct MemberTemplateDetail: Decodable, Equatable {
         let raw = try PlayWireValue(from: decoder)
         memberID = raw["memberId"].tolerantInteger.flatMap { $0 > 0 ? $0 : nil }
         draftStatus = raw["draftStatus"].tolerantInteger
+        reviewFeedback = DiscoveryPlayTemplateExtras.text(raw["reason"].text)
         gallery = Self.images(overview.imgUrl)
         if let storyJSON = raw["storyJson"].text, !storyJSON.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             // Corrupt optional authored rich content is not an empty successful story.

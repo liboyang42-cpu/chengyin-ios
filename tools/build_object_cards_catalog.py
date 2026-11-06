@@ -5,7 +5,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PAIRS = {
  'objects.title': ('Object cards', '物件卡'), 'objects.item': ('Object details', '物件详情'),
  'objects.login': ('Sign in to view your object cards', '登录后查看你的物件卡'),
- 'objects.disabled': ('Object card reads are not enabled in this build', '此版本尚未启用物件卡读取'),
+ 'objects.disabled': ('Object cards aren\'t available right now', '物件卡暂不可用'),
  'objects.limit': ('Showing up to the latest 40 cards per category', '每个分类最多显示最新40张物件卡'),
  'objects.loading': ('Loading', '加载中'), 'objects.failed': ('Could not load your cards', '无法加载物件卡'),
  'objects.filterFailed': ('Could not change the filter. Your previous cards are still shown.', '切换分类失败，仍显示上次加载的物件卡'),
@@ -18,12 +18,12 @@ PAIRS = {
  'objects.information': ('Information', '信息'), 'objects.name': ('Name', '名称'),
  'objects.category': ('Category', '分类'), 'objects.place': ('Place', '地点'),
  'objects.style': ('Card style', '卡片样式'), 'objects.plain': ('Plain', '普通'), 'objects.foil': ('Foil', '闪卡'),
- 'objects.status': ('Generation status', '生成状态'), 'objects.source': ('Source image host', '来源图片域名'),
- 'objects.mediaDisabled': ('Image loading is not enabled', '尚未启用图片加载'),
+ 'objects.status': ('Generation status', '生成状态'), 'objects.source': ('Image from', '图片出处'),
+ 'objects.mediaDisabled': ('Images aren\'t available right now', '图片暂不可用'),
  'objects.mediaFailed': ('Image unavailable', '图片暂不可用'), 'objects.noImage': ('No preview image', '暂无预览图片'),
  'objects.enamel': ('Enamel style', '珐琅样式'), 'objects.glow': ('Glow style', '发光样式'),
  'objects.staticPreview': ('Static badge preview', '静态徽章预览'),
- 'objects.offline': ('Synthetic offline example', '离线合成示例'),
+ 'objects.offline': ('Example content', '示例内容'),
 }
 for i, pair in enumerate(zip(['All','Electronics','Clothing','Shoes and bags','Food and drinks','Books and stationery','Toys and ornaments','Household items','Other'], ['全部','电子产品','服饰','鞋包','食物饮料','书籍文具','玩具摆件','日用杂物','其他'])):
     PAIRS[f'objects.category.{i}'] = pair

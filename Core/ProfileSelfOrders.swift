@@ -114,7 +114,9 @@ public enum ProfileSelfOrdersIssue: String, Equatable {
         catch {
             guard current() else { return }
             let failure = ProfileSelfOrdersIssue(error); issue = failure
-            if failure == .signIn || failure == .unavailable { rows = nil }
+            if failure == .signIn || failure == .unavailable
+                || (error as? ProfileReadFailure)?.isDenied == true
+                || error as? APIError == .httpStatus(403) { rows = nil }
         }
     }
     public func canOpen(_ row: ProfileOrder, reader: ProfileSelfOrdersScopedReader) -> Bool {

@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review this frozen set of unread conversations from the currently loaded list, across categories and search results. Includes direct, system, and official conversations; excludes groups and unknown types. This does not cover unloaded server conversations."
+            "value": "Review these unread conversations from the list currently loaded, across all categories and search results. Includes direct, system and official messages; excludes group chats and other types. Conversations not yet loaded aren't included."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请确认当前已加载列表中的这组未读会话。范围跨分类、不受搜索结果影响，包含私信、系统及官方会话，不含群聊或未知类型，也不包含服务端尚未加载的会话。"
+            "value": "请确认当前已加载列表中的这些未读会话。范围跨所有分类，不受搜索结果影响；包含私信、系统及官方消息，不含群聊或其他类型，也不包含尚未加载的会话。"
           }
         }
       }
@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Requests run one at a time. Stop or Close prevents the remaining requests. A request already sent may still take effect. New messages in a selected conversation may also be marked read by the server."
+            "value": "Conversations are handled one at a time. Stop or Close cancels the rest, but ones already sent may still take effect. New messages in a selected conversation may also be marked as read."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确认后将逐个处理。停止或关闭会取消尚未发出的请求；已经发出的请求仍可能生效。同一会话中新到的消息也可能被服务端一并标为已读。"
+            "value": "确认后将逐个处理。停止或关闭会取消剩余操作，已发出的仍可能生效。所选会话中新到的消息也可能一并标为已读。"
           }
         }
       }
@@ -166,13 +166,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Counts describe request outcomes. Badges update only from a successful server list refresh. Close to check the list; if refresh fails, retry the list refresh."
+            "value": "Counts show the results of each request. Badges update after the conversation list refreshes. Close to check the list; if it doesn't refresh, try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "以上计数反映请求结果。角标只在服务端会话列表回读成功后更新。关闭后请查看列表；若回读失败，请重试刷新列表。"
+            "value": "以上计数为各项操作结果。角标会在会话列表刷新后更新。关闭后请查看列表，若刷新失败请重试。"
           }
         }
       }
@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Accepted by server"
+            "value": "Received"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已受理"
+            "value": "已受理"
           }
         }
       }

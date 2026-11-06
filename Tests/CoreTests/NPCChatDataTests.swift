@@ -208,3 +208,201 @@ private final class NPCDataHTTP: HTTPTransport {
         XCTAssertNil(flow.data); XCTAssertEqual(flow.failure, .malformed)
     }
 }
+
+/// BK-EXISTING POST api/ai/npc/chat/data/delete: own NPC chat log rows only, `{deleted:n}`.
+/// Synthetic values only; no live endpoint, device or deployment is claimed.
+final class NPCChatLogDeletionDecodingTests: XCTestCase {
+    func testConfirmedCountIncludingZeroIsTheServerValue() throws {
+        XCTAssertEqual(try NPCChatLogDeletion.decode(Data(#"{"code":200,"msg":"ok","data":{"deleted":3}}"#.utf8)), .deleted(count: 3))
+        XCTAssertEqual(try NPCChatLogDeletion.decode(Data(#"{"code":200,"data":{"deleted":0}}"#.utf8)), .deleted(count: 0))
+    }
+    func testMissingNullNegativeFractionalOrTypedWrongCountIsUnknownNeverZero() throws {
+        for json in [#"{"code":200}"#, #"{"code":200,"data":null}"#, #"{"code":200,"data":{}}"#, #"{"code":200,"data":{"deleted":null}}"#,
+                     #"{"code":200,"data":{"deleted":-1}}"#, #"{"code":200,"data":{"deleted":1.5}}"#, #"{"code":200,"data":{"deleted":"3"}}"#,
+                     #"{"code":200,"data":{"deleted":true}}"#, "not json", ""] {
+            XCTAssertEqual(try NPCChatLogDeletion.decode(Data(json.utf8)), .unknown, json)
+        }
+    }
+    func testBusinessRejectionIsDefiniteAndCarriesNoServerText() {
+        XCTAssertThrowsError(try NPCChatLogDeletion.decode(Data(#"{"code":500,"msg":"Internal diagnostic"}"#.utf8))) {
+            XCTAssertEqual($0 as? NPCChatDataFailure, .rejected)
+        }
+    }
+}
+
+private final class NPCDeleteHTTP: HTTPTransport {
+    var requests: [URLRequest] = []
+    var response = #"{"code":200,"data":{"deleted":2}}"#
+    var status = 200
+    var error: Error?
+    var afterSend: (() -> Void)?
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        requests.append(request); afterSend?()
+        if let error { throw error }
+        return (Data(response.utf8), status)
+    }
+}
+
+@MainActor final class NPCChatLogDeletionServiceTests: XCTestCase {
+    private let session = ComplianceSession(accountID: 7, epoch: 1, market: "CN", namespace: "synthetic.invalid")
+    private var configuration: APIConfiguration { try! .init(baseURL: URL(string: "https://synthetic.test")!) }
+    private func approval(account: Int = 7, namespace: String = "synthetic.invalid", path: String = NPCChatLogDeletion.path) throws -> OperationEndpointApproval {
+        try .init(baseURL: configuration.baseURL, namespace: namespace, accountID: account, paths: [path])
+    }
+    private func service(_ http: NPCDeleteHTTP, current: @escaping () -> ComplianceSession? = { nil }, token: @escaping () -> String? = { "synthetic-test-token" },
+                         approval: @escaping () -> OperationEndpointApproval?) -> NPCChatLogDeletionService {
+        NPCChatLogDeletionService(configuration: configuration, transport: http, current: current, token: token, approval: approval)
+    }
+    func testDefaultOffAndTheExportReadApprovalDoesNotAuthorizeDeletion() async throws {
+        let http = NPCDeleteHTTP()
+        let candidates: [OperationEndpointApproval?] = [nil, try approval(path: NPCChatData.path), try approval(account: 8), try approval(namespace: "other")]
+        for value in candidates {
+            let flow = service(http, current: { self.session }, approval: { value })
+            XCTAssertFalse(flow.canDelete(session: session))
+            do { _ = try await flow.delete(session: session); XCTFail() }
+            catch { XCTAssertEqual(error as? NPCChatDataFailure, .unavailable) }
+        }
+        let unapproved = NPCChatLogDeletionService(configuration: configuration, transport: http, current: { self.session }, token: { "synthetic-test-token" })
+        XCTAssertFalse(unapproved.canDelete(session: session))
+        XCTAssertTrue(http.requests.isEmpty)
+    }
+    func testExactPOSTWithOnlyTheExistingAuthorizationIdentity() async throws {
+        let http = NPCDeleteHTTP(), accepted = try approval()
+        let flow = service(http, current: { self.session }, approval: { accepted })
+        let outcome = try await flow.delete(session: session); XCTAssertEqual(outcome, .deleted(count: 2))
+        let request = try XCTUnwrap(http.requests.first); XCTAssertEqual(http.requests.count, 1)
+        XCTAssertEqual(request.httpMethod, "POST"); XCTAssertEqual(request.url?.path, "/api/ai/npc/chat/data/delete")
+        XCTAssertNil(request.url?.query); XCTAssertEqual(request.httpBody, Data("{}".utf8))
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "synthetic-test-token")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Cache-Control"), "no-store")
+    }
+    func testDispatchedRequestWithLostOrUnreadableResponseIsUnknownAndNotResent() async throws {
+        for variant in 0..<3 {
+            let http = NPCDeleteHTTP(), accepted = try approval()
+            if variant == 0 { http.error = URLError(.networkConnectionLost) }
+            else if variant == 1 { http.status = 502; http.response = "private gateway text" }
+            else { http.response = #"{"code":200,"data":{}}"# }
+            let flow = service(http, current: { self.session }, approval: { accepted })
+            let outcome = try await flow.delete(session: session); XCTAssertEqual(outcome, .unknown)
+            XCTAssertEqual(http.requests.count, 1)
+        }
+    }
+    func testSignedOutAndRejectionAreNotReportedAsDeleted() async throws {
+        let http = NPCDeleteHTTP(), accepted = try approval(); http.status = 401
+        let flow = service(http, current: { self.session }, approval: { accepted })
+        do { _ = try await flow.delete(session: session); XCTFail() } catch { XCTAssertEqual(error as? NPCChatDataFailure, .signedOut) }
+        http.status = 200; http.response = #"{"code":403,"msg":"denied"}"#
+        do { _ = try await flow.delete(session: session); XCTFail() } catch { XCTAssertEqual(error as? NPCChatDataFailure, .rejected) }
+    }
+    func testAccountOrTokenChangeDuringTheRequestDiscardsTheResult() async throws {
+        for variant in [0, 1] {
+            let http = NPCDeleteHTTP(), accepted = try approval()
+            var current: ComplianceSession? = session; var token = "synthetic-test-token"
+            let flow = service(http, current: { current }, token: { token }, approval: { accepted })
+            http.afterSend = {
+                if variant == 0 { current = .init(accountID: 8, epoch: 2, market: "CN", namespace: "synthetic.invalid") }
+                else { token = "different-synthetic-token" }
+            }
+            do { _ = try await flow.delete(session: session); XCTFail() }
+            catch { XCTAssertEqual(error as? NPCChatDataFailure, .staleSession) }
+        }
+    }
+    func testComplianceParentKeepsDeletionOffUntilAServiceIsInjected() async throws {
+        let read = NPCDataHTTP(), readApproval = try approval(path: NPCChatData.path)
+        let compliance = AccountComplianceService(configuration: configuration, transport: read, journal: NPCDataJournal(),
+            current: { self.session }, token: { "synthetic-test-token" }, readsEnabled: true, writesEnabled: true, npcChatDataReadApproval: { readApproval })
+        let parent = AccountComplianceCoordinator(service: compliance, auth: NPCDataUnusedAuth(), effects: NPCDataUnusedEffects(), current: { self.session }, invalidateSession: { _ in XCTFail() })
+        let off = parent.makeNPCChatDataCoordinator(); off.appear(active: true); await off.load()
+        XCTAssertNotNil(off.data); XCTAssertFalse(off.canRequestDeletion)
+        let http = NPCDeleteHTTP(), accepted = try approval()
+        parent.npcChatLogDeletion = service(http, current: { self.session }, approval: { accepted })
+        let on = parent.makeNPCChatDataCoordinator(); on.appear(active: true); await on.load()
+        XCTAssertTrue(on.canRequestDeletion); on.requestDeletion(); await on.confirmDeletion()
+        XCTAssertEqual(on.deletion, .deleted(count: 2)); XCTAssertEqual(http.requests.count, 1); XCTAssertEqual(read.requests.count, 3)
+    }
+}
+
+@MainActor final class NPCChatLogDeletionCoordinatorTests: XCTestCase {
+    private let session = ComplianceSession(accountID: 7, epoch: 1, market: "CN", namespace: "synthetic.invalid")
+    private func data(_ json: String = npcDataJSON) throws -> NPCChatData { try .decode(Data(json.utf8), expectedAccountID: 7) }
+    private let empty = #"{"code":200,"data":{"records":[]}}"#
+    func testNoInjectedDeleterOrApprovalNeverOffersDeletion() async throws {
+        let value = try data()
+        let none = NPCChatDataCoordinator(current: { self.session }, available: { _ in true }, read: { _ in value })
+        none.appear(active: true); await none.load(); none.requestDeletion()
+        XCTAssertFalse(none.canRequestDeletion); XCTAssertEqual(none.deletion, .idle)
+        var calls = 0
+        let unapproved = NPCChatDataCoordinator(current: { self.session }, available: { _ in true }, read: { _ in value },
+            deletionAvailable: { _ in false }, deleteLogs: { _ in calls += 1; return .deleted(count: 1) })
+        unapproved.appear(active: true); await unapproved.load(); unapproved.requestDeletion(); await unapproved.confirmDeletion()
+        XCTAssertFalse(unapproved.canRequestDeletion); XCTAssertEqual(calls, 0)
+    }
+    func testDeletionRequiresLoadedRecordsAndAnExplicitConfirmation() async throws {
+        var calls = 0; let value = try data()
+        let flow = NPCChatDataCoordinator(current: { self.session }, available: { _ in true }, read: { _ in value },
+            deletionAvailable: { _ in true }, deleteLogs: { _ in calls += 1; return .deleted(count: 1) })
+        flow.appear(active: true); XCTAssertFalse(flow.canRequestDeletion)
+        await flow.confirmDeletion(); XCTAssertEqual(calls, 0)
+        await flow.load(); XCTAssertTrue(flow.canRequestDeletion)
+        flow.requestDeletion(); XCTAssertEqual(flow.deletion, .confirming)
+        flow.cancelDeletion(); await flow.confirmDeletion(); XCTAssertEqual(calls, 0); XCTAssertEqual(flow.deletion, .idle)
+    }
+    func testConfirmedCountClearsShownTextAndReadsBackOnceWithoutResending() async throws {
+        var reads = 0, deletes = 0; let before = try data(), after = try data(empty)
+        let flow = NPCChatDataCoordinator(current: { self.session }, available: { _ in true }, read: { _ in reads += 1; return reads == 1 ? before : after },
+            deletionAvailable: { _ in true }, deleteLogs: { _ in deletes += 1; return .deleted(count: 1) })
+        flow.appear(active: true); await flow.load(); flow.requestDeletion(); await flow.confirmDeletion()
+        XCTAssertEqual(deletes, 1); XCTAssertEqual(reads, 2)
+        XCTAssertEqual(flow.deletion, .deleted(count: 1)); XCTAssertEqual(flow.data?.records.count, 0)
+        await flow.confirmDeletion(); XCTAssertEqual(deletes, 1)
+    }
+    func testReadbackShowsALateLogInsteadOfClaimingFullErasure() async throws {
+        var reads = 0; let value = try data()
+        let flow = NPCChatDataCoordinator(current: { self.session }, available: { _ in true }, read: { _ in reads += 1; return value },
+            deletionAvailable: { _ in true }, deleteLogs: { _ in .deleted(count: 1) })
+        flow.appear(active: true); await flow.load(); flow.requestDeletion(); await flow.confirmDeletion()
+        XCTAssertEqual(reads, 2); XCTAssertEqual(flow.deletion, .deleted(count: 1)); XCTAssertEqual(flow.data?.records.count, 1)
+    }
+    func testUnknownOutcomeIsNotResentAndNeedsANewConfirmation() async throws {
+        var deletes = 0; let value = try data()
+        let flow = NPCChatDataCoordinator(current: { self.session }, available: { _ in true }, read: { _ in value },
+            deletionAvailable: { _ in true }, deleteLogs: { _ in deletes += 1; return .unknown })
+        flow.appear(active: true); await flow.load(); flow.requestDeletion(); await flow.confirmDeletion()
+        XCTAssertEqual(flow.deletion, .unknown); XCTAssertEqual(deletes, 1); XCTAssertNotNil(flow.data)
+        await flow.confirmDeletion(); XCTAssertEqual(deletes, 1)
+        flow.requestDeletion(); XCTAssertEqual(flow.deletion, .confirming); await flow.confirmDeletion(); XCTAssertEqual(deletes, 2)
+    }
+    func testFailureBeforeConfirmationKeepsRecordsAndReportsNoDeletion() async throws {
+        let value = try data()
+        let flow = NPCChatDataCoordinator(current: { self.session }, available: { _ in true }, read: { _ in value },
+            deletionAvailable: { _ in true }, deleteLogs: { _ in throw NPCChatDataFailure.rejected })
+        flow.appear(active: true); await flow.load(); flow.requestDeletion(); await flow.confirmDeletion()
+        XCTAssertEqual(flow.deletion, .failed(.rejected)); XCTAssertNotNil(flow.data); XCTAssertTrue(flow.canRequestDeletion)
+    }
+    func testLateResponseAfterCloseOrAccountChangeIsDiscarded() async throws {
+        for variant in [0, 1, 2] {
+            var continuation: CheckedContinuation<NPCChatLogDeletionOutcome, Never>?
+            var current: ComplianceSession? = session; var reads = 0; let value = try data()
+            let flow = NPCChatDataCoordinator(current: { current }, available: { _ in true }, read: { _ in reads += 1; return value },
+                deletionAvailable: { _ in true }, deleteLogs: { _ in await withCheckedContinuation { continuation = $0 } })
+            flow.appear(active: true); await flow.load(); flow.requestDeletion()
+            let task = Task { await flow.confirmDeletion() }
+            for _ in 0..<1_000 { if continuation != nil { break }; await Task.yield() }
+            XCTAssertEqual(flow.deletion, .deleting); XCTAssertFalse(flow.canLoad); XCTAssertFalse(flow.canRequestDeletion)
+            if variant == 0 { flow.invalidate() }
+            else if variant == 1 { flow.suspend() }
+            else { current = .init(accountID: 8, epoch: 2, market: "CN", namespace: "synthetic.invalid"); flow.sessionChanged() }
+            continuation?.resume(returning: .deleted(count: 1)); await task.value
+            XCTAssertEqual(flow.deletion, .idle); XCTAssertNil(flow.data); XCTAssertEqual(reads, 1)
+        }
+    }
+    func testConfirmationDoesNotSurviveAReloadOrAccountChange() async throws {
+        var deletes = 0; var current: ComplianceSession? = session; let value = try data()
+        let flow = NPCChatDataCoordinator(current: { current }, available: { _ in true }, read: { _ in value },
+            deletionAvailable: { _ in true }, deleteLogs: { _ in deletes += 1; return .deleted(count: 1) })
+        flow.appear(active: true); await flow.load(); flow.requestDeletion(); await flow.load()
+        XCTAssertEqual(flow.deletion, .idle); await flow.confirmDeletion(); XCTAssertEqual(deletes, 0)
+        flow.requestDeletion(); current = .init(accountID: 8, epoch: 2, market: "CN", namespace: "synthetic.invalid")
+        await flow.confirmDeletion(); XCTAssertEqual(deletes, 0); XCTAssertEqual(flow.deletion, .idle)
+    }
+}

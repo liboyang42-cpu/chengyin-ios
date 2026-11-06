@@ -1,0 +1,15 @@
+not applied
+Public 79091845f138035910f8c8d9998c4541ff06c20d still has no CreateSession response holder outside AppSession.
+AppSession.swift does not read parentOrigin, shellURL, or launchTicket, and it does not open a shell.
+This hunk is not applied. It does not edit AppSession.swift.
+The helper is H5ShellBinding.keptOrigin in Core/H5ShellBinding.swift. It is not an undefined name.
+openExistingShell calls the existing H5ShellParentFlow.open once. A missing field returns nil and is not filled.
+launchTicket is passed only as the nonce argument H5LaunchDescription already has. No URL and no nonce is invented.
+Swift and HTTP are NOT_RUN. The shell is not connected.
+
+single call, not applied:
+    _ = H5ShellBinding.openExistingShell(
+        parentOrigin: response.parentOrigin,
+        shellURL: response.shellURL,
+        launchTicket: response.launchTicket,
+        parent: &parent)

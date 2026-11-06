@@ -25,7 +25,6 @@ import SwiftUI
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("template.imageCrop.title").font(.headline)
-            Text("template.imageCrop.localOnly").font(.footnote)
             if let rect, let preview = try? TemplateImageCropRenderer.preview(draft.source, rect: rect) {
                 Image(uiImage: preview).resizable()
                     .aspectRatio(CGFloat(draft.source.width) / CGFloat(draft.source.height), contentMode: .fit)
@@ -46,6 +45,12 @@ import SwiftUI
                     .accessibilityIdentifier("template.imageCrop.reset")
                 Button("template.imageCrop.confirm") { confirm(draft.id, rect) }
                     .accessibilityIdentifier("template.imageCrop.confirm")
+                // Mini pages/crop "使用原图": the identity rect keeps the original bytes unchanged.
+                if let original = try? TemplateImageCropRect(sourceWidth: draft.source.width, sourceHeight: draft.source.height,
+                                                             horizontal: 0.5, vertical: 0.5, zoom: 1) {
+                    Button("publishParity.crop.useOriginal") { confirm(draft.id, original) }
+                        .accessibilityIdentifier("template.imageCrop.useOriginal")
+                }
             } else { Text("image.retained.failed") }
             Button("image.retained.cancel", role: .cancel) { cancel(draft.id) }
                 .accessibilityIdentifier("template.imageCrop.cancel")

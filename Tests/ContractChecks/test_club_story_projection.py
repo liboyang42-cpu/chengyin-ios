@@ -23,11 +23,16 @@ class ClubStoryProjectionContracts(unittest.TestCase):
 
     def test_projection_uses_only_verified_p057_fields(self):
         for field in ["chaptersList", "nodes", "cmsMemberTemplate", "name", "description", "totalTime", "businessTime",
-                      "address", "imgUrl", "title", "validationMethod", "validationMethodStr", "players", "duration", "difficulty"]:
+                      "address", "imgUrl", "title", "validationMethod", "validationMethodStr", "players", "duration", "difficulty",
+                      "latitude", "longitude"]:
             self.assertIn('["' + field + '"]', CORE)
         for forbidden in ['["answer"]', '["answerReveal"]', '["questionAnswer"]', '["hints"]', '["feedbackText"]',
-                          '["latitude"]', '["longitude"]', 'haversine', 'WALK_METERS_PER_MIN', 'Date()', 'URLSession']:
+                          'haversine', 'WALK_METERS_PER_MIN', 'Date()', 'URLSession']:
             self.assertNotIn(forbidden, CORE)
+        for expected in ['return RoamCoordinate(latitude: latitude, longitude: longitude)',
+                         'latitude != 0, longitude != 0', 'meters.isFinite, meters > 0',
+                         'Self.walkingMinutes(from: nodesByChapter[index][nodeIndex - 1], to: node) : nil']:
+            self.assertIn(expected, CORE)
         self.assertIn("number.isFinite, number > 0", CORE)
         self.assertIn("if value == .null { return [] }", CORE)
         self.assertIn("rows.allSatisfy({ $0.object != nil })", CORE)
@@ -77,8 +82,10 @@ class ClubStoryProjectionContracts(unittest.TestCase):
         self.assertNotRegex(selection, r"let\s+(record|value|snapshot):\s+ClubGovernance")
 
     def test_authored_core_coverage_is_explicitly_distinct_from_execution(self):
-        expected = ["testTypedProjectionUsesExactSourceFieldsAndMemberTemplateNamespace",
-                    "testSequenceContinuesAcrossChaptersAndNodesWithoutGames", "testEmptyChaptersAndMissingOptionalListsRemainDisplayable",
+        expected = [
+                    "testTypedProjectionUsesExactSourceFieldsAndMemberTemplateNamespace",
+                    "testSequenceContinuesAcrossChaptersAndNodesWithoutGames",
+                    "testEmptyChaptersAndMissingOptionalListsRemainDisplayable",
                     "testMalformedNestedListsFailInsteadOfPretendingTheRouteIsEmpty",
                     "testMissingInvalidAndDuplicateIDsPreserveContentButDisableEveryAction",
                     "testEquivalentStringAndIntegerIDsAreDuplicateAndSafeIntegerLimitIsEnforced",
@@ -90,7 +97,22 @@ class ClubStoryProjectionContracts(unittest.TestCase):
                     "testRefreshAccountEpochReaderAuthorityAndScopeChangesExpireBothRoutes",
                     "testAnyChangedSourceFieldAndRemovedOrReplacedRowsExpireSelection",
                     "testPermissionLossDisablesAnswerAndForeignGameplayCannotSelect",
-                    "testProjectionNeverRetainsProtectedTemplateAndNodeFields"]
+                    "testProjectionNeverRetainsProtectedTemplateAndNodeFields",
+                    "testWalkingEstimateUsesOnlyTheImmediatelyAdjacentOrderedStops",
+                    "testWalkingEstimateRestartsAtEveryChapterBoundary",
+                    "testWalkingEstimateDoesNotBridgeAnUnknownIntermediateStop",
+                    "testWalkingEstimateRejectsUnknownMalformedAndZeroCoordinatesOnEitherEnd",
+                    "testWalkingEstimateRejectsOutOfRangeCoordinates",
+                    "testWalkingEstimateAcceptsNumericStringsWithoutChangingStopText",
+                    "testWalkingEstimateOmitsIdenticalLocationsAndRoundsSmallPositiveDistanceToOne",
+                    "testWalkingEstimateDoesNotUseChapterDurationOrOpeningHours",
+                    "testWalkingEstimateReloadUsesNewCoordinatesAndDoesNotRetainAnOldEstimate",
+                    "testWalkingEstimateCannotBypassExistingProjectionPermission",
+                    "testWalkingCoordinateChangeExpiresTheOriginalTemplateAndAnswerRoutes",
+                    "testWalkingEstimateKeepsDuplicateDisplayRowsAndDoesNotCreateIdentities",
+                    "testWalkingEmptyVisibleNodeProjectionDoesNotUseOpaqueGeometry",
+                    "testWalkingSingleVisibleNodeCannotEstimateTowardAnOmittedNode",
+                    "testWalkingOnlyUsesReturnedChaptersWithoutReconstructingLockedContent"]
         self.assertEqual(set(re.findall(r"func (test\w+)\(", TESTS)), set(expected))
 
 

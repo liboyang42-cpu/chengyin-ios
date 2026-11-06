@@ -180,13 +180,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Team lookup is not configured for this session."
+          "value": "Team lookup isn't available right now."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "当前会话未配置队伍查询。"
+          "value": "队伍查询暂不可用。"
         }
       }
     }

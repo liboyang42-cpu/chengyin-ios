@@ -5,7 +5,10 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 class NonCashRewardReaderChecks(unittest.TestCase):
     def test_normal_root_passes_dormant_session_reader(self):
         session = (ROOT / 'App/AppSession.swift').read_text()
-        self.assertIn('private let nonCashRewardService: NonCashRewardService? = nil', session)
+        self.assertIn('func makeNonCashRewardService() -> NonCashRewardService?', session)
+        self.assertIn('guard runtimeDependencies.nonCashRewardApproved, let configuration = regionalConfiguration?.apiConfiguration else { return nil }', session)
+        self.assertIn('return NonCashRewardService(configuration: configuration, transport: runtimeHTTPTransport)', session)
+        self.assertNotIn('private let nonCashRewardService: NonCashRewardService? = nil', session)
         self.assertIn('epoch: gate.currentStamp', session)
         self.assertIn('self.currentNonCashRewardSession == captured', session)
         self.assertIn('rewards:session.nonCashRewardReader', (ROOT / 'App/AccountView.swift').read_text())

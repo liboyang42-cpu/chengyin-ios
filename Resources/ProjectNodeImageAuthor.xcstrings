@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Append photo and save locally"
+            "value": "Add photo"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "添加照片并在本地保存"
+            "value": "添加照片"
           }
         }
       }
@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm local crop"
+            "value": "Use this crop"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确认本地裁剪"
+            "value": "使用此裁剪"
           }
         }
       }
@@ -118,13 +118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Finish local receipt saving"
+            "value": "Finish adding"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "完成本地回执保存"
+            "value": "完成添加"
           }
         }
       }
@@ -134,13 +134,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The draft or applied receipt save did not complete. The upload receipt is retained. Retry this local save without uploading again. Draft and receipt storage are separate steps."
+            "value": "Couldn't add the photo. Try again; it won't upload twice."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "草稿或应用回执尚未完成保存，上传回执会保留。可重试本地保存，无需再次上传。草稿与回执分别保存。"
+            "value": "未能添加照片，请重试，不会重复上传。"
           }
         }
       }
@@ -150,13 +150,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save upload receipt locally"
+            "value": "Finish adding"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在本地保存上传回执"
+            "value": "完成添加"
           }
         }
       }
@@ -166,13 +166,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is a legacy upload reference, not proof of ownership, moderation or an immutable asset version."
+            "value": "This image was uploaded earlier. Its ownership and review status haven't been checked."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这是旧版上传接口返回的引用，不证明素材归属、审核状态或不可变版本。"
+            "value": "此图片为之前上传，尚未核实归属和审核状态。"
           }
         }
       }
@@ -182,13 +182,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose one local photo, crop to 4:3, explicitly upload, then append its reference to this node. This does not publish, delete or verify an asset."
+            "value": "Choose a photo, crop it to 4:3, upload it, then add it to this stop."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选择一张本地照片并裁剪为4:3，明确上传后再将返回引用添加到此节点。此操作不会发布、删除或核验素材。"
+            "value": "选择照片并裁剪为 4:3，上传后添加到此地点。"
           }
         }
       }
@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "An upload has no saved response. It may have reached the server. This node remains locked against another upload; no retry or upload-status result is inferred."
+            "value": "We couldn't confirm the last upload. Uploading is paused for this stop so the photo isn't added twice."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "有一次上传尚无已保存的响应，可能已到达服务器。此节点保持上传锁定，不会自动重试或推断上传状态。"
+            "value": "无法确认上次上传结果，此地点暂停上传以免重复添加。"
           }
         }
       }
@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The upload response could not be saved. Recovery currently exists only in this app session; save the receipt locally before appending."
+            "value": "The photo uploaded but isn't added yet. Finish adding it before leaving."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上传响应尚未成功保存，目前仅在本次应用会话中可恢复。请先保存回执，再添加照片。"
+            "value": "照片已上传但尚未添加，离开前请完成添加。"
           }
         }
       }
@@ -246,13 +246,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The returned reference cannot be safely represented in the existing photo list. Its unapplied receipt is retained."
+            "value": "This uploaded photo can't be added to the stop."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "返回引用无法安全写入现有照片列表，其尚未应用的上传回执会保留。"
+            "value": "上传的照片无法添加到此地点。"
           }
         }
       }
@@ -278,13 +278,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Upload this cropped photo using the separately approved node-photo channel. Selection and cropping alone send nothing."
+            "value": "Upload this cropped photo for this stop. Choosing and cropping alone doesn't upload anything."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "通过单独授权的节点照片通道上传此裁剪结果。仅选择和裁剪不会发送照片。"
+            "value": "上传此裁剪后的站点照片。仅选择和裁剪不会上传照片。"
           }
         }
       }

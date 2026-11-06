@@ -82,7 +82,6 @@ import Combine
     var body: some View {
         Form {
             Section {
-                Text("templatePrediction.scope").font(.callout)
                 if editor.needsReload {
                     Text("templatePrediction.changed").font(.caption)
                     Button("templatePrediction.reload") { editor.reload() }.disabled(!editor.canReload)
@@ -93,7 +92,6 @@ import Combine
                 TextField("creator.field.hint", text: editor.textInput(.hint), axis: .vertical).accessibilityIdentifier("templatePrediction.hint")
             }.disabled(!editor.canEdit)
             Section("templatePrediction.options") {
-                Text("templatePrediction.keysNotice").font(.caption)
                 ForEach(editor.rows) { row in
                     VStack(alignment: .leading) {
                         TextField("creator.field.label", text: editor.labelInput(row.id), axis: .vertical).accessibilityIdentifier("templatePrediction.option.\(row.id).label")
@@ -120,11 +118,10 @@ import Combine
                     LabeledContent("creator.field.closeAtHour", value: hour(editor.timing(.closeAtHour)))
                     LabeledContent("creator.field.revealDays") { dayLabel(editor.timing(.revealDays)) }
                     LabeledContent("creator.field.revealHour", value: hour(editor.timing(.revealHour)))
-                    Text("templatePrediction.relative").font(.caption)
                 }
             }
             if !editor.issues.isEmpty {
-                Section("templateAuthor.validationTitle") { ForEach(editor.issues) { issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)); Text(verbatim: issue.path).font(.caption) } } }
+                Section("templateAuthor.validationTitle") { ForEach(editor.issues) { issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(.red) } } }
             }
             Section { Button("templateAuthor.saveLocal", action: editor.saveAction()).disabled(!editor.canEdit || !model.draft.canSave).accessibilityIdentifier("templatePrediction.saveLocal") }
         }.navigationTitle("templatePrediction.title")

@@ -10,16 +10,20 @@ public protocol ClubGovernanceOfflineTransport: HTTPTransport {}
 public struct ClubGovernanceService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
+    private let participationTrendApproval: @MainActor (Int, ClubGovernanceSession) -> OperationEndpointApproval?
     private let offlineRisks: Set<String>
     private let productionTransport: ClubGovernanceProductionTransport?
     public var allowsOfflineWrites: Bool { !offlineRisks.isEmpty }
-    public init(configuration: APIConfiguration, transport: any HTTPTransport) {
+    public init(configuration: APIConfiguration, transport: any HTTPTransport, participationTrendApproval: @escaping @MainActor (Int, ClubGovernanceSession) -> OperationEndpointApproval? = { _, _ in nil }) {
+        self.participationTrendApproval = participationTrendApproval
         self.configuration = configuration; self.transport = transport; offlineRisks = []; productionTransport = nil
     }
     public init(offlineConfiguration: APIConfiguration, offlineTransport: any ClubGovernanceOfflineTransport, risks: Set<ClubGovernanceRisk> = [.administrative]) {
+        participationTrendApproval = { _, _ in nil }
         configuration = offlineConfiguration; transport = offlineTransport; offlineRisks = Set(risks.map(\.rawValue)); productionTransport = nil
     }
     init(productionConfiguration: APIConfiguration, productionTransport: ClubGovernanceProductionTransport) {
+        participationTrendApproval = { _, _ in nil }
         configuration = productionConfiguration; transport = productionTransport; offlineRisks = []; self.productionTransport = productionTransport
     }
     @MainActor public func permits(_ command: ClubGovernanceCommand) -> Bool {
@@ -39,20 +43,29 @@ public struct ClubGovernanceService {
         request.httpBody = try encoder.encode(fields)
         return request
     }
-    private func post(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue], token: String, check: () throws -> Void) async throws -> ClubGovernanceValue {
+    private func post(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue], token: String, validating: Bool = true, check: () throws -> Void) async throws -> ClubGovernanceValue {
         let fields = try operation.fields(scope: scope, options: options)
-        let request = try request(path: operation.path, fields: fields, form: [.topicOverview, .members].contains(operation), token: token)
+        let request = try request(path: operation.path, fields: fields, form: operation == .topicOverview, token: token)
         try check()
         let (data, status) = try await transport.send(request)
         try check()
-        let value = try Self.decode(data: data, status: status, mutation: false)
-        return try ClubGovernanceValidation.validate(value, operation: operation, scope: scope)
+        let body = try Self.decodeEnvelope(data: data, status: status, mutation: false)
+        let payload = Self.payload(body, operation: operation)
+        return validating ? try ClubGovernanceValidation.validate(payload, operation: operation, scope: scope) : payload
     }
     public func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue] = [:], session: ClubGovernanceSession, check: () throws -> Void) async throws -> ClubGovernanceSnapshot {
         try check(); _ = try operation.fields(scope: scope, options: options)
         var permissions: ClubGovernancePermissions?
         if scope.clubID != nil {
-            let raw = try await post(.access, scope: scope, options: [:], token: session.token, check: check)
+            // Access is validated below; only an explicit inactive answer for this exact club may skip it, and only for own cases.
+            let accessReply = try await post(.access, scope: scope, options: [:], token: session.token, validating: false, check: check)
+            // A banned former member keeps only their own cases and appeal fact; every other read still needs active access.
+            if operation == .cases, accessReply["active"] == .bool(false), let clubID = accessReply["club"]["id"].int, clubID == scope.clubID {
+                let own = try await post(operation, scope: scope, options: options, token: session.token, check: check)
+                try check()
+                return .init(operation: operation, scope: scope, permissions: nil, value: own)
+            }
+            let raw = try ClubGovernanceValidation.validate(accessReply, operation: .access, scope: scope)
             let access = try ClubGovernancePermissions(value: raw, scope: scope)
             var permitted = access.allows(operation.permission, scope: scope)
             if [.audienceCounts, .notificationStatus].contains(operation), scope.activityID != nil {
@@ -74,6 +87,47 @@ public struct ClubGovernanceService {
         }
         try check()
         return .init(operation: operation, scope: scope, permissions: permissions, value: value)
+    }
+    @MainActor public func readParticipationTrend(topicID: Int, session: ClubGovernanceSession,
+                                       check: () throws -> Void) async throws -> ClubParticipationTrend {
+        try check()
+        let path = "api/registration/count_by_date"
+        guard let actor = session.identity.accountID,
+              let grant = participationTrendApproval(topicID, session), grant.paths == [path],
+              grant.allows(configuration: configuration, namespace: session.storageNamespace, accountID: actor, path: path) else {
+            throw ClubGovernanceFailure.notConfigured
+        }
+        let originalCheck = check
+        let check: () throws -> Void = {
+            try originalCheck()
+            guard self.participationTrendApproval(topicID, session) == grant else { throw ClubGovernanceFailure.notConfigured }
+        }
+        guard topicID > 0, session.identity.isSignedIn else { throw ClubGovernanceFailure.invalidRequest }
+        let request = try request(path: "api/registration/count_by_date",
+            fields: ["owner_type": .integer(1), "owner_id": .integer(topicID)], form: true, token: session.token)
+        try check()
+        let (data, status) = try await transport.send(request)
+        try check()
+        guard data.count <= 4 * 1024 * 1024 else { throw ClubGovernanceFailure.malformed }
+        let envelope = try? JSONDecoder().decode(ClubGovernanceValue.self, from: data)
+        let code = envelope?["code"].int
+        if status == 401 || code == 401 { throw ClubGovernanceFailure.signedOut }
+        if status == 403 || code == 403 || code == 2 {
+            throw ClubParticipationTrendDenied(message: envelope?["msg"].string)
+        }
+        return try ClubParticipationTrend(topicID: topicID, value: Self.decode(data: data, status: status, mutation: false))
+    }
+    public func readCalendarSessions(clubID: Int, month: ClubEventMonth, session: ClubGovernanceSession,
+                                     check: () throws -> Void) async throws -> ClubCalendarSessionsSnapshot {
+        try check()
+        guard clubID > 0, (session.identity.accountID ?? 0) > 0 else { throw ClubGovernanceFailure.signedOut }
+        let request = try request(path: "api/club/calendar/sessions", fields: ["clubId": .integer(clubID), "month": .string(month.key)], form: false, token: session.token)
+        try check()
+        let (data, status) = try await transport.send(request)
+        try check()
+        guard data.count <= 4 * 1024 * 1024 else { throw ClubGovernanceFailure.malformed }
+        let value = try Self.decode(data: data, status: status, mutation: false)
+        return try ClubCalendarSessionsSnapshot(value: value, clubID: clubID, month: month)
     }
     @MainActor func dispatch(_ command: ClubGovernanceCommand, session: ClubGovernanceSession, authorization: ClubGovernanceDispatchAuthorization? = nil, check: () throws -> Void) async throws -> ClubGovernanceValue {
         guard permits(command) else { throw ClubGovernanceFailure.notConfigured }
@@ -114,7 +168,16 @@ public struct ClubGovernanceService {
         } catch { throw ClubGovernanceFailure.unknown(message: nil) }
         return ClubGovernanceValidation.sanitize(value)
     }
+    /// Own cases keep `data` as the case array; the sibling `activeBan` (appeal fact) is carried as
+    /// `{"data": [...], "activeBan": …}` only when the server sent it, so an absent fact stays unknown.
+    static func payload(_ body: ClubGovernanceValue, operation: ClubGovernanceRead) -> ClubGovernanceValue {
+        guard operation == .cases, let ban = body.object?["activeBan"] else { return body["data"] }
+        return .object(["data": body["data"], "activeBan": ban])
+    }
     static func decode(data: Data, status: Int, mutation: Bool) throws -> ClubGovernanceValue {
+        try decodeEnvelope(data: data, status: status, mutation: mutation)["data"]
+    }
+    static func decodeEnvelope(data: Data, status: Int, mutation: Bool) throws -> ClubGovernanceValue {
         let envelope = try? JSONDecoder().decode(ClubGovernanceValue.self, from: data)
         let code = envelope?["code"].int, message = envelope?["msg"].string
         if status == 401 || code == 401 { throw mutation ? ClubGovernanceFailure.rejected(code: 401, message: message) : .signedOut }
@@ -126,7 +189,7 @@ public struct ClubGovernanceService {
             if code != nil || !(200..<300).contains(status) { throw ClubGovernanceFailure.rejected(code: code ?? status, message: message) }
             throw ClubGovernanceFailure.malformed
         }
-        return envelope["data"]
+        return envelope
     }
 }
 
@@ -148,6 +211,8 @@ public struct ClubGovernanceSession: Equatable {
     var authorizationGeneration: UUID? { get }
     var journalRealm: String { get }
     func canDispatch(_ command: ClubGovernanceCommand) -> Bool
+    func readParticipationTrend(topicID: Int, check: () throws -> Void) async throws -> ClubParticipationTrend
+    func readCalendarSessions(clubID: Int, month: ClubEventMonth, check: () throws -> Void) async throws -> ClubCalendarSessionsSnapshot
     func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue]) async throws -> ClubGovernanceSnapshot
     func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue], check: () throws -> Void) async throws -> ClubGovernanceSnapshot
     func send(_ review: ClubGovernanceReview) async throws -> ClubGovernanceValue
@@ -155,6 +220,12 @@ public struct ClubGovernanceSession: Equatable {
     func send(_ review: ClubGovernanceReview, authorization: ClubGovernanceDispatchAuthorization, check: () throws -> Void) async throws -> ClubGovernanceValue
 }
 public extension ClubGovernanceAccess {
+    func readParticipationTrend(topicID: Int, check: () throws -> Void) async throws -> ClubParticipationTrend {
+        try check(); throw ClubGovernanceFailure.notConfigured
+    }
+    func readCalendarSessions(clubID: Int, month: ClubEventMonth, check: () throws -> Void) async throws -> ClubCalendarSessionsSnapshot {
+        try check(); throw ClubGovernanceFailure.notConfigured
+    }
     var authorizationGeneration: UUID? { nil }
     var journalRealm: String { storageNamespace }
     func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue], check: () throws -> Void) async throws -> ClubGovernanceSnapshot {
@@ -230,6 +301,40 @@ public extension ClubGovernanceAccess {
             throw error
         }
     }
+    public func readParticipationTrend(topicID: Int, check readCheck: () throws -> Void) async throws -> ClubParticipationTrend {
+        try readCheck()
+        guard let service else { throw ClubGovernanceFailure.notConfigured }
+        guard let session = currentSession() else { throw ClubGovernanceFailure.signedOut }
+        let revision = viewerRevision(), authorization = authorizationGeneration
+        do {
+            let result = try await service.readParticipationTrend(topicID: topicID, session: session) {
+                try self.checkRead(session, viewerRevision: revision, authorization: authorization, check: readCheck)
+            }
+            try checkRead(session, viewerRevision: revision, authorization: authorization, check: readCheck)
+            return result
+        } catch {
+            try checkRead(session, viewerRevision: revision, authorization: authorization, check: readCheck)
+            if (error as? ClubGovernanceFailure) == .signedOut || (error as? APIError) == .unauthorized { onUnauthorized(session.identity) }
+            throw error
+        }
+    }
+    public func readCalendarSessions(clubID: Int, month: ClubEventMonth, check readCheck: () throws -> Void) async throws -> ClubCalendarSessionsSnapshot {
+        try readCheck()
+        guard let service else { throw ClubGovernanceFailure.notConfigured }
+        guard let session = currentSession() else { throw ClubGovernanceFailure.signedOut }
+        let revision = viewerRevision(), authorization = authorizationGeneration
+        do {
+            let snapshot = try await service.readCalendarSessions(clubID: clubID, month: month, session: session) {
+                try self.checkRead(session, viewerRevision: revision, authorization: authorization, check: readCheck)
+            }
+            try checkRead(session, viewerRevision: revision, authorization: authorization, check: readCheck)
+            return snapshot
+        } catch {
+            try checkRead(session, viewerRevision: revision, authorization: authorization, check: readCheck)
+            if (error as? ClubGovernanceFailure) == .signedOut || (error as? APIError) == .unauthorized { onUnauthorized(session.identity) }
+            throw error
+        }
+    }
     public func send(_ review: ClubGovernanceReview) async throws -> ClubGovernanceValue { try await send(review, check: {}) }
     public func send(_ review: ClubGovernanceReview, check: () throws -> Void) async throws -> ClubGovernanceValue {
         guard allowsOfflineWrites else { throw ClubGovernanceFailure.notConfigured }
@@ -252,7 +357,11 @@ public extension ClubGovernanceAccess {
         if [.createSeries, .updateSeries, .assignRole].contains(command.operation) {
             let members = try await service.read(.members, scope: command.scope, session: session) { try self.check(session); try reviewCheck() }
             let target = command.fields[command.operation == .assignRole ? "targetMemberId" : "defaultLeadMemberId"]?.int
-            guard members == review.supportingMembers, let target, (members.value.array ?? []).contains(where: { $0["memberId"].int == target && (command.operation != .assignRole || $0["isOwner"] == .bool(false)) }) else { throw ClubGovernanceFailure.targetChanged }
+            let ownerDefault = command.operation == .createSeries && command.fields["defaultLeadMemberId"] == .null
+            guard members == review.supportingMembers, (members.value.array ?? []).contains(where: { row in
+                ownerDefault ? (row["memberId"].int ?? 0) > 0 && row["isOwner"] == .bool(true)
+                    : target != nil && row["memberId"].int == target && (command.operation != .assignRole || row["isOwner"] == .bool(false))
+            }) else { throw ClubGovernanceFailure.targetChanged }
         }
         guard authorizationGeneration == review.authorizationGeneration else { throw ClubGovernanceFailure.staleReview }
         do { return try await service.dispatch(command, session: session, authorization: authorization) { try self.check(session); try reviewCheck() } }

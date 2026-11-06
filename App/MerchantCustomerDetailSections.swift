@@ -18,24 +18,44 @@ import SwiftUI
               let amount = try? MerchantBusinessMoney(detail.customer.fields["paidAmount"]), amount.raw != nil else { return nil }
         return amount.display
     }
+    /// Cumulative-paid card state. Missing/null is `.unknown` (never 0); refunds never feed this value.
+    enum PaidCardState: Equatable {
+        case permissionHidden, unknown, amount(String)
+        var isUnrecorded: Bool { self == .unknown }
+    }
+    var paidCardState: PaidCardState {
+        guard canRead, access.allows("merchant:crm:sensitive:read") else { return .permissionHidden }
+        if let paidAmount { return .amount(paidAmount) }
+        return .unknown
+    }
 
     var body: some View {
         Group {
             if canRead {
-                Section("merchant.customerDetail.identity") {
+                // Source customer/detail order: name and 累计实付 first, then 客户概览, 参与记录, 标签与备注, 跟进与触达.
+                Section {
                     Text(verbatim: detail.customer.title).font(.title3.bold())
                         .fixedSize(horizontal: false, vertical: true)
-                    LabeledContent("merchant.customerDetail.lastInteraction") { timestamp(detail.lastInteractionAt) }
+                    MerchantCustomerIdentityLine(lastInteraction: detail.lastInteractionAt)
                     LabeledContent("merchant.business.field.paidAmount") {
-                        if let paidAmount { Text(verbatim: paidAmount).monospacedDigit() }
-                        else { Text("merchant.business.sensitiveUnavailable").foregroundStyle(.secondary) }
+                        switch paidCardState {
+                        case .amount(let text):
+                            Text(verbatim: text).monospacedDigit()
+                        case .unknown:
+                            Text("merchant.customerDetail.paidAmountUnrecorded", tableName: "MerchantReviewAndCustomerDetail")
+                                .foregroundStyle(.secondary)
+                        case .permissionHidden:
+                            Text("merchant.business.sensitiveUnavailable").foregroundStyle(.secondary)
+                        }
                     }.accessibilityIdentifier("merchant.customerDetail.paidAmount")
+                }.accessibilityIdentifier("merchant.customerDetail.paidCard")
+                Section("merchant.customerDetail.identity") {
                     ForEach(["arrivedCount", "pendingCount", "refundedCount"], id: \.self) { key in
                         if let value = detail.customer.fields[key] { MerchantBusinessField(key: key, value: value) }
                     }
+                    LabeledContent("merchant.customerDetail.lastInteraction") { timestamp(detail.lastInteractionAt) }
                 }
                 Section("merchant.customerDetail.participation") {
-                    Text("merchant.customerDetail.recentScope").font(.footnote).foregroundStyle(.secondary)
                     if detail.participation.isEmpty {
                         Text("merchant.customerDetail.participationEmpty").foregroundStyle(.secondary)
                             .accessibilityIdentifier("merchant.customerDetail.participationEmpty")
@@ -47,9 +67,6 @@ import SwiftUI
                             if let latest = group.latest {
                                 Text(LocalizedStringKey(latest.kind.titleKey))
                                 LabeledContent("merchant.customerDetail.recordTime") { timestamp(latest.occurredAt) }
-                                if latest.kind == .refunded {
-                                    Text("merchant.customerDetail.refundTimeBoundary").font(.footnote).foregroundStyle(.secondary)
-                                }
                             } else {
                                 Text("merchant.customerDetail.orderUncertain").foregroundStyle(.secondary)
                             }
@@ -115,9 +132,6 @@ import SwiftUI
             Text(LocalizedStringKey(event.kind.titleKey))
             if let description = event.description { Text(verbatim: description) }
             LabeledContent("merchant.customerDetail.recordTime") { timestamp(event.occurredAt) }
-            if event.kind == .refunded {
-                Text("merchant.customerDetail.refundTimeBoundary").font(.footnote).foregroundStyle(.secondary)
-            }
             if let corrects = event.record.fields["correctsNoteId"]?.integer, corrects > 0 {
                 LabeledContent("merchant.business.field.correctsNoteId", value: "#\(corrects)")
             }

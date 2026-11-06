@@ -20,15 +20,16 @@ struct TopicBrowserView: View {
     @State private var issue: TopicScreenIssue?
     @State private var generation = 0
     @State private var artworkRevision = UUID()
-    private struct Key: Hashable { let scope: UUID; let query: TopicQuery; let configured: Bool }
+    @Environment(\.locale) private var locale
+    @Environment(\.timeZone) private var timeZone
+    private struct Key: Hashable { let readerID: ObjectIdentifier; let scope: UUID; let query: TopicQuery; let configured: Bool }
     private var key: Key {
-        Key(scope: reader.scope, query: TopicQuery(keyword: keyword.isEmpty ? nil : keyword, categoryID: categoryID, recommend: recommend, pageSize: pageSize), configured: reader.isConfigured)
+        Key(readerID: ObjectIdentifier(reader), scope: reader.scope, query: TopicQuery(keyword: keyword.isEmpty ? nil : keyword, categoryID: categoryID, recommend: recommend, pageSize: pageSize), configured: reader.isConfigured)
     }
     var body: some View {
         NavigationStack {
             List {
                 Section {
-                    if reader.isOfflineExample { Text("topic.offlineExample").font(.caption) }
                     Toggle("topic.recommended", isOn: $recommend)
                 }
                 if !reader.isConfigured { TopicIssueView(issue: .notConfigured) }
@@ -40,25 +41,14 @@ struct TopicBrowserView: View {
                         NavigationLink {
                             TopicDetailView(id: item.id, reader: reader, publicMerchant: publicMerchant, makeAudio: makeAudio, makeExternalMaps: makeExternalMaps, selfPlayDestination: selfPlayDestination)
                         } label: {
+                            // Same card as home: cover, title, one date · place line, starting price.
                             QuestifyImageEntityCard(imageSource:item.imageURL,title:item.name,
-                                                    subtitle:item.introduction,fallbackSymbol:"map",progressiveBlur:.cover,
+                                                    fallbackSymbol:"map",minimumHeight:260,progressiveBlur:.cover,
                                                     artworkIdentity:.init(owner:reader.scope.uuidString,content:"topic:\(item.id)",version:artworkRevision.uuidString)) {
-                                TopicTotalStops(count: item.locationCount, identifier: "topic.totalStops.\(item.id)")
-                                if item.betaFlag == 1 { Text("topic.beta").font(.caption.weight(.semibold)) }
-                                if let address=item.addressName,!address.isEmpty {
-                                    QuestifyImageEntityMetadata(label:"homeFeed.place",value:address,systemImage:"mappin")
-                                }
-                                if let date=item.startDate,!date.isEmpty {
-                                    QuestifyImageEntityMetadata(label:"homeFeed.date",value:date,systemImage:"calendar")
-                                }
-                                VStack(alignment:.leading,spacing:3) {
-                                    Text("topic.startingPrice").font(.caption)
-                                    if let amount=item.minimumAmount,amount>=0 { Text(amount,format:.number.precision(.fractionLength(2))).font(.headline) }
-                                    else { Text("topic.priceUnknown") }
-                                    Text("homeFeed.currencyUnknown").font(.caption)
-                                }
+                                QuestifyCardSummary(meta: QuestifyCardText.metaLine(date: QuestifyCardText.date(item.startDate, locale: locale, displayTimeZone: timeZone), place: item.addressName),
+                                                    price: QuestifyCardText.amount(item.minimumAmount, locale: locale), onArtwork: true)
                             }
-                        }.buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
+                        }.buttonStyle(QuestifyCardButtonStyle()).questifyHidesLinkIndicator().questifyCardListRow()
                         .accessibilityIdentifier("topic.row.\(item.id)")
                     }
                     if loading { ProgressView("topic.loading") }
@@ -72,7 +62,13 @@ struct TopicBrowserView: View {
             .appNavigationTitle("topic.title")
             .toolbar { if let onClose { ToolbarItem(placement:.cancellationAction) { Button("action.close",action:onClose) } } }
             .searchable(text: $keyword, prompt: "topic.search")
-            .task(id: key) { await load(reset: true) }
+            .task(id: key) {
+                // Back resumes the accepted same-reader/query pages. A cancelled initial
+                // read has no loadedKey, and a failed read keeps its issue, so both retry.
+                // Explicit refresh still resets; a changed query or owner never reuses rows.
+                guard loadedKey != key || issue != nil else { return }
+                await load(reset: true)
+            }
             .refreshable { await load(reset: true) }
             .onDisappear { generation += 1; loading = false }
             .accessibilityIdentifier("topic.browser")

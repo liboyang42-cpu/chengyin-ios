@@ -25,7 +25,7 @@ import SwiftUI
             MerchantRegistrationAvailabilitySourceRows(source: source)
             if let replacement {
                 MerchantRegistrationAvailabilityValues(value: replacement)
-                Text("merchant.registrationAvailability.pending").font(.footnote)
+                Label("merchant.registrationAvailability.pending", systemImage: "pencil.circle").font(.footnote)
                 Button("merchant.registrationAvailability.restore") { guard canEdit else { return }; _ = apply(nil) }
                     .disabled(!canEdit).accessibilityIdentifier("merchant.registrationAvailability.restore")
             }
@@ -82,23 +82,23 @@ private struct MerchantRegistrationAvailabilitySourceRows: View {
         row("merchant.registrationAvailability.sourceDaily", source.daily)
     }
     private func row(_ key: String, _ value: MerchantContentValue) -> some View {
-        LabeledContent(LocalizedStringKey(key)) {
+        MerchantJourneyFactRow(LocalizedStringKey(key)) {
             if let text = value.display, !text.isEmpty {
                 Text(verbatim: text).textSelection(.enabled)
                     .accessibilityIdentifier(key + ".value")
             }
             else if value == .null || value.text == "" { Text("merchant.registrationAvailability.notProvided") }
             else { Text("merchant.registrationAvailability.unrecognized") }
-        }.accessibilityElement(children: .contain)
+        }
     }
 }
 private struct MerchantRegistrationAvailabilityValues: View {
     let value: MerchantRegistrationAvailability
     var body: some View {
-        LabeledContent("merchant.registrationAvailability.newStart", value: value.startDay)
+        MerchantJourneyFactRow("merchant.registrationAvailability.newStart") { Text(verbatim: value.startDay).textSelection(.enabled) }
             .accessibilityIdentifier("merchant.registrationAvailability.newStart")
-        LabeledContent("merchant.registrationAvailability.newEnd", value: value.endDay)
-        LabeledContent("merchant.registrationAvailability.newDaily", value: value.dailyTime)
+        MerchantJourneyFactRow("merchant.registrationAvailability.newEnd") { Text(verbatim: value.endDay).textSelection(.enabled) }
+        MerchantJourneyFactRow("merchant.registrationAvailability.newDaily") { Text(verbatim: value.dailyTime).textSelection(.enabled) }
             .accessibilityIdentifier("merchant.registrationAvailability.newDaily")
     }
 }
@@ -106,8 +106,9 @@ struct MerchantRegistrationAvailabilityReview: View {
     let source: MerchantRegistrationAvailabilitySource
     let replacement: MerchantRegistrationAvailability
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("merchant.registrationAvailability.reviewTitle").font(.headline)
+        VStack(alignment: .leading, spacing: Theme.Space.s3) {
+            Label("merchant.registrationAvailability.reviewTitle", systemImage: "calendar.badge.clock").font(.headline)
+                .accessibilityAddTraits(.isHeader)
             MerchantRegistrationAvailabilitySourceRows(source: source)
             MerchantRegistrationAvailabilityValues(value: replacement)
             Text("merchant.registrationAvailability.reviewHint").font(.footnote)
@@ -134,9 +135,10 @@ struct MerchantRegistrationAvailabilityReview: View {
                 Section("merchant.registrationAvailability.dailyStart") { clock(start: true, hour: true); clock(start: true, hour: false) }
                 Section("merchant.registrationAvailability.dailyEnd") { clock(start: false, hour: true); clock(start: false, hour: false) }
                 Text("merchant.registrationAvailability.civilHint").font(.footnote)
-                if !draft.isValid { Text("merchant.registrationAvailability.invalid").foregroundStyle(.red) }
+                if !draft.isValid { Label("merchant.registrationAvailability.invalid", systemImage: "exclamationmark.circle").foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true) }
                 if stale { Text("merchant.registrationAvailability.stale").foregroundStyle(.secondary) }
             }
+            .modifier(MerchantJourneyFormAppearance())
             .appNavigationTitle("merchant.registrationAvailability.choose")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -148,6 +150,8 @@ struct MerchantRegistrationAvailabilityReview: View {
                 }
             }
         }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
     }
     @ViewBuilder private func day(start: Bool) -> some View {
         if let original = draft.pickerDate(start: start) {

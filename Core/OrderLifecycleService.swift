@@ -13,10 +13,12 @@ public struct OrderLifecycleService {
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration; self.transport = transport
     }
-    public func detail(id: Int, token: String) async throws -> OrderLifecycleDetail {
+    public func detail(id: Int, token: String, expectedAccountID: Int? = nil) async throws -> OrderLifecycleDetail {
+        if let expectedAccountID, expectedAccountID <= 0 { throw APIError.invalidRequest }
         guard id > 0 else { throw APIError.invalidRequest }
         let value: OrderLifecycleDetail = try await read("api/registration/info", fields: ["id": String(id)], token: token)
         guard value.id == id else { throw APIError.malformedResponse }
+        if let expectedAccountID, value.memberID != expectedAccountID { throw APIError.malformedResponse }
         return value
     }
     public func couponStatus(historyID: Int, token: String) async throws -> OrderCouponStatus {

@@ -44,11 +44,15 @@ import SwiftUI
     var body: some View {
         List {
             Section {
-                Text("merchantMarketing.dormant").font(.footnote).foregroundStyle(.secondary)
                 Picker("merchantMarketing.section", selection: $selected) {
                     ForEach(MerchantMarketingCoordinator.Surface.allCases) { item in Text(LocalizedStringKey(item.titleKey)).tag(item) }
-                }.accessibilityIdentifier("merchantMarketing.sectionPicker")
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .accessibilityIdentifier("merchantMarketing.sectionPicker")
             }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
             if model.busy { ProgressView("merchantMarketing.loading") }
             if let error = model.failure { failure(error) }
             if let result = model.acknowledgement {
@@ -57,18 +61,32 @@ import SwiftUI
                         .accessibilityIdentifier("merchantMarketing.winners")
                 }
             }
-            if let dashboard = model.dashboard { dashboardSections(dashboard) }
+            if let home = model.home, let access = model.homeAccess {
+                MerchantMarketingHomeSections(home: home, access: access,
+                    onRetry: { refreshTask?.cancel(); refreshTask = Task { await loadSurface() } },
+                    onInsight: { selected = .insight }, onRoute: onSuggestion)
+            }
             if let insight = model.insight { insightSections(insight) }
             if let subscriptions = model.subscriptions { entitlementSections(subscriptions) }
             if let rounds = model.rounds { predictionSections(rounds) }
         }
         .navigationTitle(LocalizedStringKey(selected.titleKey))
-        .toolbar { Button("merchantMarketing.refresh") { refreshTask?.cancel(); refreshTask = Task { await loadSurface() } }.disabled(model.busy) }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { refreshTask?.cancel(); refreshTask = Task { await loadSurface() } } label: {
+                    Label("merchantMarketing.refresh", systemImage: "arrow.clockwise")
+                }.disabled(model.busy)
+            }
+        }
+        .refreshable { await loadSurface() }
         .task(id: loadKey) { await loadSurface() }
         .onChange(of: loadKey) { _, _ in refreshTask?.cancel(); refreshTask = nil; loadedRecommendationOrigin = nil }
         .onDisappear { refreshTask?.cancel(); refreshTask = nil }
-        .sheet(isPresented: Binding(get: { model.review != nil }, set: { if !$0 { model.cancelReview() } })) {
-            if let accepted = model.review { MerchantPredictionReviewView(model: model, accepted: accepted) }
+        .background {
+            if let accepted = model.review {
+                MerchantPredictionReviewPresentationOwner(model: model, accepted: accepted)
+                    .id(accepted.id)
+            }
         }
     }
     private func loadSurface() async {
@@ -81,70 +99,77 @@ import SwiftUI
     }
     private func failure(_ error: MerchantMarketingFailure) -> some View {
         Section {
+            if error == .denied && selected == .dashboard {
+                // Source marketing/index.wxml denied inline error; the owner always has marketing read.
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.denied.title"))
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.denied.body")).font(.footnote).foregroundStyle(.secondary)
+                }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.marketing.denied")
+                Button(MerchantOpsCopy.text("merchantOps.marketing.denied.retry")) { refreshTask?.cancel(); refreshTask = Task { await loadSurface() } }
+                    .accessibilityIdentifier("merchantOps.marketing.denied.retry")
+            }
             Text(LocalizedStringKey(error.key)).accessibilityIdentifier("merchantMarketing.error")
             if let message = error.serverMessage { Text(message).font(.footnote) }
         }
     }
     private func value(_ number: Int?) -> String { number.map(String.init) ?? "—" }
     private func percent(_ number: Double?) -> String { number.map { String(format: "%.1f%%", $0 * 100) } ?? "—" }
-    @ViewBuilder private func dashboardSections(_ dashboard: MerchantMarketingDashboard) -> some View {
-        Section("merchantMarketing.coupons") {
-            LabeledContent("merchantMarketing.active", value: value(dashboard.couponCount))
-            LabeledContent("merchantMarketing.claimed", value: value(dashboard.received))
-            LabeledContent("merchantMarketing.redeemed", value: value(dashboard.verified))
-            if let rate = dashboard.verificationRate { LabeledContent("merchantMarketing.redemptionRate", value: percent(rate)) }
-        }
-        Section("merchantMarketing.content") {
-            LabeledContent("merchantMarketing.topics", value: value(dashboard.topics))
-            LabeledContent("merchantMarketing.exploration", value: value(dashboard.exploration))
-            LabeledContent("merchantMarketing.activities", value: value(dashboard.activities))
-        }
-        if !dashboard.funnel.isEmpty {
-            Section("merchantMarketing.funnel") {
-                ForEach(Array(dashboard.funnel.enumerated()), id: \.offset) { _, step in
-                    VStack(alignment: .leading, spacing: 6) {
-                        LabeledContent(step.step, value: value(step.count))
-                        if let rate = step.rate { Text(percent(rate)); ProgressView(value: min(1, max(0, rate))).accessibilityLabel(step.step).accessibilityValue(percent(rate)) }
-                    }.accessibilityElement(children: .combine)
-                }
-            }
+    // Source ai-insight order: visits/check-ins/redemptions, hours and new vs returning, recent visitors,
+    // recommended topics, recommended partners, business interpretation. The cooperation profile comes last.
+    /// Reuses the existing cooperation-center read route; no new grant or writer.
+    private func cooperationCenterAction(insight: MerchantMarketingInsight) -> (() -> Void)? {
+        guard let origin = loadedRecommendationOrigin, origin == recommendationOrigin,
+              let scope = model.service.scope, !model.busy, model.failure == nil,
+              model.insight == insight else { return nil }
+        return {
+            guard scenePhase == .active, model.service.scope == scope, !model.busy, model.failure == nil,
+                  model.insight == insight, recommendationOrigin == origin,
+                  loadedRecommendationOrigin == origin else { return }
+            onSuggestion(.cooperationCenter(origin))
         }
     }
     @ViewBuilder private func insightSections(_ insight: MerchantMarketingInsight) -> some View {
-        insightProfile(insight)
-        MerchantInsightRecentVisitorsSection(visitors: .init(insight.metadata["recentVisitors"]),
-            isCurrent: !model.busy && model.service.scope != nil && loadedRecommendationOrigin != nil
-                && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight)
         MerchantInsightAttributionSummary(summary: .init(insight.facts),
             isCurrent: !model.busy && model.service.scope != nil && loadedRecommendationOrigin != nil
-                && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight)
+                && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight, facts: insight.facts,
+            onCoopCenter: cooperationCenterAction(insight: insight))
         Section("merchantMarketing.facts") {
             LabeledContent("merchantMarketing.window", value: MerchantInsightAttribution(insight.facts).window ?? "—")
             LabeledContent("merchantMarketing.sample", value: value(insight.facts["sampleMembers"].integer))
             if insight.facts["lowSample"].isTrue { Text("merchantMarketing.lowSample") }
             LabeledContent("merchantMarketing.checkins", value: value(insight.facts["checkin"]["total"].integer))
             LabeledContent("merchantMarketing.redemptionRate", value: percent(insight.facts["checkin"]["redeemRate"].decimal))
-            Text("merchant.insightAttribution.redemptionScope").font(.footnote).foregroundStyle(.secondary)
             LabeledContent("merchantMarketing.repeatRate", value: percent(insight.facts["checkin"]["repeatRate"].decimal))
-            Text("merchant.insightAttribution.repeatScope").font(.footnote).foregroundStyle(.secondary)
-            if MerchantInsightAttribution(insight.facts).window == nil {
-                Text("merchant.insightAttribution.windowUnknown").font(.footnote).foregroundStyle(.secondary)
-            }
             LabeledContent("merchantMarketing.wait", value: value(insight.facts["checkin"]["avgWaitMinutes"].integer))
             LabeledContent("merchantMarketing.members", value: value(insight.facts["crowd"]["members"].integer))
             LabeledContent("merchantMarketing.offers", value: value(insight.facts["supply"]["activeOffers"].integer))
             LabeledContent("merchantMarketing.quotaRate", value: percent(insight.facts["supply"]["quotaUsedRate"].decimal))
             ForEach(Array((insight.facts["checkin"]["hourBuckets"].array ?? []).enumerated()), id: \.offset) { _, bucket in
-                VStack(alignment: .leading) {
-                    LabeledContent("merchantMarketing.hour", value: value(bucket["hour"].integer))
-                    LabeledContent("merchantMarketing.checkins", value: value(bucket["count"].integer))
-                }.accessibilityElement(children: .combine)
+                // Source 到店时段: one row per hour slot with its check-in count.
+                LabeledContent {
+                    Text(verbatim: value(bucket["count"].integer)).monospacedDigit()
+                } label: {
+                    Text(verbatim: bucket["hour"].integer.map { String(format: "%02d:00", $0) } ?? "—")
+                }
             }
             LabeledContent("merchantMarketing.maleRate", value: percent(insight.facts["crowd"]["sexRatio"]["male"].decimal))
             LabeledContent("merchantMarketing.femaleRate", value: percent(insight.facts["crowd"]["sexRatio"]["female"].decimal))
             ForEach(Array((insight.facts["crowd"]["interestTop"].array ?? []).enumerated()), id: \.offset) { _, interest in
                 if let text = interest.text { LabeledContent("merchantMarketing.interest", value: text) }
             }
+        }
+        MerchantInsightRecentVisitorsSection(visitors: .init(insight.metadata["recentVisitors"]),
+            isCurrent: !model.busy && model.service.scope != nil && loadedRecommendationOrigin != nil
+                && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight)
+        Section("merchantMarketing.recommendedTopics") {
+            recommendationRows(insight.recommendedTopics, kind: .topic, insight: insight)
+            if let openCoopCenter = cooperationCenterAction(insight: insight) {
+                Button("merchant.insightCooperationCenter.open", action: openCoopCenter)
+                    .accessibilityIdentifier("merchant.insightCooperationCenter.open")
+            }
+        }
+        Section("merchantMarketing.recommendedPartners") {
+            recommendationRows(insight.recommendedPartners, kind: .partner, insight: insight)
         }
         Section("merchantMarketing.suggestions") {
             Text("merchantMarketing.suggestionNotice").font(.footnote)
@@ -186,22 +211,7 @@ import SwiftUI
                 }
             }
         }
-        Section("merchantMarketing.recommendedTopics") {
-            recommendationRows(insight.recommendedTopics, kind: .topic, insight: insight)
-            if let origin = loadedRecommendationOrigin, origin == recommendationOrigin,
-               let scope = model.service.scope, !model.busy, model.failure == nil {
-                Button("merchant.insightCooperationCenter.open") {
-                    guard scenePhase == .active, model.service.scope == scope, !model.busy, model.failure == nil,
-                          model.insight == insight, recommendationOrigin == origin,
-                          loadedRecommendationOrigin == origin else { return }
-                    onSuggestion(.cooperationCenter(origin))
-                }.accessibilityIdentifier("merchant.insightCooperationCenter.open")
-                Text("merchant.insightCooperationCenter.boundary").font(.footnote).foregroundStyle(.secondary)
-            }
-        }
-        Section("merchantMarketing.recommendedPartners") {
-            recommendationRows(insight.recommendedPartners, kind: .partner, insight: insight)
-        }
+        insightProfile(insight)
     }
     private func recommendationRows(_ rows: [MerchantMarketingValue], kind: MerchantInsightRecommendationRoute.Kind, insight: MerchantMarketingInsight) -> some View {
         let scope = model.service.scope
@@ -238,7 +248,6 @@ import SwiftUI
                 if let quota = commerce.premiumTemplate { quotaRow("merchantMarketing.premium", quota) }
                 if let quota = commerce.cityNode { quotaRow("merchantMarketing.cityNode", quota) }
             }
-            Text("merchantMarketing.iOSCheckoutUnavailable").accessibilityIdentifier("merchantMarketing.checkoutUnavailable")
         }
     }
     private func entitlementTitle(_ type: String) -> String {
@@ -253,7 +262,6 @@ import SwiftUI
         }.accessibilityElement(children: .combine)
     }
     @ViewBuilder private func predictionSections(_ rounds: [MerchantPredictionRound]) -> some View {
-        Section { Text("merchantMarketing.couponWarning").font(.footnote); Text("merchantMarketing.deadlinePolicy").font(.footnote) }
         if rounds.isEmpty { Section { Text("merchantMarketing.emptyPredictions") } }
         ForEach(rounds) { round in
             Section {
@@ -266,10 +274,15 @@ import SwiftUI
                 if let count = round.betCount, count > 0 { LabeledContent("merchantMarketing.bets", value: String(count)) }
                 else if round.betCount == 0 { Text("merchantMarketing.noBets") }
                 ForEach(round.options) { option in
-                    Button { Task { await model.prepare(round, option: option.key) } } label: { Text(option.label) }
-                    .disabled(model.busy || !model.service.permitsSettlement)
-                    .accessibilityIdentifier("merchantMarketing.option.\(option.key)")
-                    .accessibilityHint(Text("merchantMarketing.reviewHint"))
+                    // Options are actions only where settlement is wired; otherwise they are listed as text.
+                    if model.service.permitsSettlement {
+                        Button { Task { await model.prepare(round, option: option.key) } } label: { Text(option.label) }
+                        .disabled(model.busy)
+                        .accessibilityIdentifier("merchantMarketing.option.\(option.key)")
+                        .accessibilityHint(Text("merchantMarketing.reviewHint"))
+                    } else {
+                        Text(option.label).accessibilityIdentifier("merchantMarketing.option.\(option.key)")
+                    }
                 }
             }
         }
@@ -291,12 +304,38 @@ private struct MerchantPredictionReviewView: View {
                     Text("merchantMarketing.couponWarning").font(.headline)
                     Toggle("merchantMarketing.acknowledgeEffects", isOn: $acknowledged).accessibilityIdentifier("merchantMarketing.acknowledgeEffects")
                 }
-                Button("merchantMarketing.confirmSettlement", role: .destructive) { Task { await model.confirm(couponEffectsAcknowledged: acknowledged) } }
-                    .disabled(!acknowledged || model.busy).accessibilityIdentifier("merchantMarketing.confirmSettlement")
+                Button("merchantMarketing.confirmSettlement", role: .destructive) {
+                    let effectsAcknowledged = acknowledged
+                    Task { await model.confirm(reviewID: accepted.id, couponEffectsAcknowledged: effectsAcknowledged) }
+                }
+                    .disabled(!acknowledged || model.busy || model.review?.id != accepted.id).accessibilityIdentifier("merchantMarketing.confirmSettlement")
             }
             .navigationTitle("merchantMarketing.review")
-            .toolbar { Button("merchantMarketing.cancel") { model.cancelReview() }.disabled(model.busy) }
+            .toolbar { Button("merchantMarketing.cancel") { model.cancelReview(id: accepted.id) }.disabled(model.busy) }
             .interactiveDismissDisabled(model.busy)
         }
+    }
+}
+
+@MainActor extension MerchantMarketingCoordinator {
+    func predictionReviewPresentation(for accepted: MerchantPredictionReview?) -> Binding<MerchantPredictionReview?> {
+        Binding(get: {
+            guard let accepted, self.review?.id == accepted.id, self.service.scope == accepted.scope else { return nil }
+            return accepted
+        }, set: { value in
+            if value == nil, let accepted { self.cancelReview(id: accepted.id) }
+        })
+    }
+}
+
+@MainActor private struct MerchantPredictionReviewPresentationOwner: View {
+    @Bindable var model: MerchantMarketingCoordinator
+    let accepted: MerchantPredictionReview
+    var body: some View {
+        Color.clear.frame(width: 0, height: 0)
+            .sheet(item: model.predictionReviewPresentation(for: accepted),
+                   onDismiss: { model.cancelReview(id: accepted.id) }) { review in
+                MerchantPredictionReviewView(model: model, accepted: review)
+            }
     }
 }

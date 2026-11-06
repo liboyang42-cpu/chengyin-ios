@@ -73,6 +73,12 @@ final class PlayerJourneyTests: XCTestCase {
     private func makeService(_ transport: any HTTPTransport, enabled: Bool = false) throws -> PlayerJourneyService {
         try PlayerJourneyService(configuration: APIConfiguration(baseURL: URL(string: "https://example.com")!), transport: transport, readsEnabled: enabled)
     }
+    func testParticipationDateRangeMatchesSourceFormat() {
+        XCTAssertEqual(ParticipationDateText.range(start: "2026-5-1 09:00:00", end: "2026/05/03"), "05.01 - 05.03")
+        XCTAssertEqual(ParticipationDateText.range(start: "2026-12-31", end: nil), "12.31")
+        XCTAssertEqual(ParticipationDateText.range(start: "bad", end: "2026.07.08"), "07.08")
+        XCTAssertNil(ParticipationDateText.range(start: nil, end: "soon"))
+    }
 }
 private extension Data { var utf8String: String { String(decoding: self, as: UTF8.self) } }
 private actor JourneyTestTransport: HTTPTransport {

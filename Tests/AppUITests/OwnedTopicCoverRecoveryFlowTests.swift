@@ -5,8 +5,9 @@ import XCTest
     override func setUpWithError()throws{continueAfterFailure=false}
     override func tearDownWithError()throws{attachFailureScreenshot(self,app:app);app?.terminate();app=nil}
     private func tap(_ id:String,in app:XCUIApplication,fixed:Bool=false){
-        let element=app.buttons[id];XCTAssertTrue(element.waitForExistence(timeout:5),app.debugDescription)
+        let element=app.buttons[id]
         if !fixed{XCTAssertTrue(revealFixtureElement(element,in:app,maximumSwipes:70),app.debugDescription)}
+        XCTAssertTrue(element.waitForExistence(timeout:5),app.debugDescription)
         XCTAssertEqual(app.buttons.matching(identifier:id).count,1);XCTAssertTrue(element.isEnabled && element.isHittable);XCTAssertTrue(app.windows.firstMatch.frame.contains(element.frame));element.tap()
     }
     @discardableResult private func value(_ id:String,_ expected:String?=nil,in app:XCUIApplication)->String{

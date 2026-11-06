@@ -1,0 +1,110 @@
+# C09 message page actions — unapplied attach
+
+Issue: https://github.com/liboyang42-cpu/chengyin-remote-ops/issues/5
+Repo: github.com/liboyang42-cpu/chengyin-ios
+Base: origin/cursor/c09-message-page-actions-e504 `e393b9b39ec1d1988117d9e18f69d5d1e6fa6ca6`
+
+`NativeChannelMessagePageActions` forwards the normal channel message page.
+Send calls `NativeChannelTextCoordinator.sendNew(_:)` once.
+Edit, recall, and pin each call `NativeChannelMessageCoordinator.submit(_:)` once.
+The synchronous throws-to-dictionary port is not the writer.
+The same request is read back with the original journal `restore`.
+A different request, a blank body, or a missing proof stays UNKNOWN and does not clear the journal.
+A sparse submitted receipt with `message_unavailable` and no MessagingMessage is not rejected.
+This file does not fabricate a MessagingMessage, rewrite a request id, or add a receipt store.
+`appear()` does not send. Search stays on `NativeChannelMessageEntry`.
+Do not block `sendNew` or `submit` with a synchronous wrapper. The original methods are already async.
+Do not call `ImmutableReceiptProducer.accept` or `recoverOriginal`.
+
+Do not apply this hunk onto `App/MessagingHistoryView.swift`, `App/AppSession.swift`, `App/AppCompositionRoot.swift`, or `Questify.xcodeproj/project.pbxproj`. Those files stay unchanged. Do not edit journal persist, restore, or settle. The SwiftUI page below is also not applied.
+
+XCTest NOT_RUN where swiftc is absent. Not 100%.
+
+## Original command conformance (not applied)
+
+```
+extension NativeChannelTextCoordinator: NativeChannelOriginalTextCommand {}
+extension NativeChannelMessageCoordinator: NativeChannelOriginalMessageCommand {}
+extension NativeChannelTextJournal: NativeChannelOriginalTextJournal {}
+extension NativeChannelMessageMutationJournal: NativeChannelOriginalMutationJournal {}
+extension NativeChannelMessageCommand: NativeChannelOriginalMutationIdentity {}
+```
+
+`NativeChannelTextCoordinator.sendNew(_:)` and `NativeChannelMessageCoordinator.submit(_:)` stay the original methods.
+`NativeChannelTextJournal.restore()` and `NativeChannelMessageMutationJournal.restore()` stay the original reads.
+Do not add a second journal or a second search chain.
+
+## Page patch (not applied)
+
+Existing page: `App/MessagingHistoryView.swift`. No gradient, glow, or emoji icons. The resting layout is unchanged. Appearance calls `appear()` only. `channelActions` is optional until the existing host supplies the original coordinators. A nil page does not send.
+
+```
+diff --git a/App/MessagingHistoryView.swift b/App/MessagingHistoryView.swift
+--- a/App/MessagingHistoryView.swift
++++ b/App/MessagingHistoryView.swift
+@@ -62,6 +62,7 @@ struct MessagingHistoryView: View {
+     @State private var generation: UInt64 = 0
+     @State private var visibleMessageID: Int?
+     @State private var showingPollComposer = false
++    @State private var channelActions: ChannelPageActions?
+
+     init(conversationID: Int, conversation: MessagingConversation? = nil, reader: any MessagingReading, sender:MessageActionCoordinator?=nil,mediaReader:(any SocialMessageMediaReading)?=nil,expanded:IMExpandedNavigationContext?=nil, onConversationMutationAccepted: @escaping (IMScope) -> Void = { _ in }) {
+@@ -159,6 +160,7 @@ struct MessagingHistoryView: View {
+             // Only a new account epoch or an unfinished first load starts an automatic read.
+             if !currentHistoryReady { await reload() }
+         }
++        .onAppear { channelActions?.appear() }
+         .onDisappear { generation &+= 1; isLoadingEarlier = false }
+     }
+@@ -247,6 +249,28 @@ struct MessagingHistoryView: View {
+             && ObjectIdentifier(reader) == source && reader.isConfigured
+             && history.conversationID == conversationID
+     }
++    func sendChannel(requestID: String?, content: String?) async throws -> NativeChannelOriginalRead {
++        guard let channelActions else { throw NotifyFailure.waitingSource(capability: "native-channel-text.sendNew") }
++        return try await channelActions.send(requestID: requestID, content: content)
++    }
++    func editChannel(command: NativeChannelMessageCommand) async throws -> NativeChannelOriginalRead {
++        guard let channelActions else { throw NotifyFailure.waitingSource(capability: "native-channel-message.submit") }
++        return try await channelActions.edit(command: command)
++    }
++    func recallChannel(command: NativeChannelMessageCommand) async throws -> NativeChannelOriginalRead {
++        guard let channelActions else { throw NotifyFailure.waitingSource(capability: "native-channel-message.submit") }
++        return try await channelActions.recall(command: command)
++    }
++    func pinChannel(command: NativeChannelMessageCommand) async throws -> NativeChannelOriginalRead {
++        guard let channelActions else { throw NotifyFailure.waitingSource(capability: "native-channel-message.submit") }
++        return try await channelActions.pin(command: command)
++    }
+ }
++typealias ChannelPageActions = NativeChannelMessagePageActions<
++    NativeChannelTextCoordinator,
++    NativeChannelMessageCoordinator,
++    NativeChannelTextJournal,
++    NativeChannelMessageMutationJournal>
+```
+
+`channelActions.send(`, `channelActions.edit(`, `channelActions.recall(`, `channelActions.pin(` each run once per page call.
+Send reaches `textCoordinator.sendNew` once. Edit, recall, and pin each reach `messageCoordinator.submit` once.
+`channelActions.appear()` does not send.
+`channelActions?.appear()` does not send when the page is absent.
+
+## PBX ids (D6/dot only, do not apply here)
+
+`python3 tools/generate_project.py` ident = sha256(path)[:24].upper(); build id = sha256("build:"+path)[:24].upper().
+
+```
+Core/NativeChannelMessagePageActions.swift
+  PBXFileReference 0FA89D803B5E5E9AC7B5A858
+  PBXBuildFile     312C10DEC5985439C33E12D8  fileRef = 0FA89D803B5E5E9AC7B5A858
+
+Core/NativeChannelMessageActionEntry.swift
+  PBXFileReference F4C2717817E63BEFC9A4882C
+  PBXBuildFile     5A2996E0489475E9371D4535  fileRef = F4C2717817E63BEFC9A4882C
+
+Tests/CoreTests/NativeChannelMessagePageActionsTests.swift
+  PBXFileReference 5CC3940DF2FCCB13251BCF0A
+  PBXBuildFile     534B1834E420FDCD212E27DD  fileRef = 5CC3940DF2FCCB13251BCF0A
+```
+
+Tests/CoreTests stay SwiftPM-only until D6 registers them. Do not apply this block to project.pbxproj from this branch.

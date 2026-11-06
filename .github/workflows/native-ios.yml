@@ -1,8 +1,7 @@
 name: Current native checks
 on:
-  pull_request:
   push:
-    branches: [main, migration/native-ios]
+    branches: [main, integration/wave2-20261019, codex/ios-main-integration-20261101]
   workflow_dispatch:
     inputs:
       mode:
@@ -21,6 +20,7 @@ jobs:
     timeout-minutes: 10
     outputs:
       ui_matrix: ${{ steps.plan.outputs.ui_matrix }}
+      scope: ${{ steps.plan.outputs.scope }}
     env:
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
@@ -31,23 +31,29 @@ jobs:
       - name: Current source, declarations, and deletion audit
         run: |
           python3 -B tools/current_ci.py check
-          python3 -B -m unittest -v tools.tests.test_current_ci tools.tests.test_current_native
+          python3 -B -m unittest -v tools.tests.test_current_ci tools.tests.test_current_native tools.tests.test_export_current_ui_audit
           python3 -B tools/check_scaffold.py
           git diff --exit-code
       - name: Select changed current groups plus explicit smoke
         id: plan
         env:
           EVENT_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-          MODE: ${{ inputs.mode || 'related' }}
+          MODE: ${{ inputs.mode || (github.ref_name == 'integration/wave2-20261019' && 'related' || 'full') }}
         run: |
           base="$EVENT_BASE"
-          if [ -z "$base" ] || [ "$base" = 0000000000000000000000000000000000000000 ]; then base="$(git rev-parse HEAD^)"; fi
+          if [ -z "$base" ] || [ "$base" = 0000000000000000000000000000000000000000 ] || [ "${GITHUB_REF_NAME:-}" = "integration/wave2-20261019" ]; then base="$(git rev-parse HEAD^)"; fi
           python3 -B tools/current_ci.py plan --base "$base" --mode "$MODE" --output "$RUNNER_TEMP/current-plan/plan.json"
           python3 -B - <<'PY'
           import json, os
+          from tools.export_current_ui_audit import WANTED
           p=json.load(open(os.environ['RUNNER_TEMP']+'/current-plan/plan.json'))
+          wanted={'QuestifyUITests/'+method for method in WANTED}
+          priority=[i for i,shard in enumerate(p['ui_shards']) if wanted.intersection(shard['methods'])]
+          indices=priority+[i for i in range(len(p['ui_shards'])) if i not in priority]
+          assert sorted(indices)==list(range(len(p['ui_shards']))), 'UI scheduling must include every shard exactly once'
           with open(os.environ['GITHUB_OUTPUT'],'a') as f:
-              f.write('ui_matrix='+json.dumps({'index':list(range(len(p['ui_shards'])))},separators=(',',':'))+'\n')
+              f.write('ui_matrix='+json.dumps({'index':indices},separators=(',',':'))+'\n')
+              f.write('scope='+p['scope']+'\n')
           print('Current selected scope:',p['scope'],{k:len(v) for k,v in p['groups'].items()})
           PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -73,18 +79,42 @@ jobs:
       - name: Keep existing complete branch secret scan
         run: |
           test "$(gitleaks version)" = '8.24.3'
-          gitleaks git --redact --exit-code=2 --log-opts="--full-history -m HEAD"
+          scan_code=0
+          gitleaks git --redact --exit-code=2 --log-opts="--full-history -m HEAD" --report-format json --report-path "$RUNNER_TEMP/full-history-gitleaks.json" || scan_code=$?
+          metadata_code=0
+          python3 -B - <<'PY' || metadata_code=$?
+          import json, os
+          from pathlib import Path
+          allowed={'Commit','File','StartLine','EndLine','RuleID','Fingerprint','Entropy','Tags'}
+          report=Path(os.environ['RUNNER_TEMP'])/'full-history-gitleaks.json'
+          if report.is_file():
+              findings=json.loads(report.read_text())
+              assert isinstance(findings,list) and all(isinstance(row,dict) for row in findings), 'Unexpected Gitleaks report shape'
+              metadata=[{key:value for key,value in row.items() if key in allowed} for row in findings]
+              assert all(set(row)<=allowed and not {'Secret','Match'}.intersection(row) for row in metadata), 'Only finding metadata may be published'
+              encoded=json.dumps(metadata,indent=2)+'\n'
+              (report.parent/'full-history-gitleaks-metadata.json').write_text(encoded)
+              print(encoded,end='')
+          PY
+          if [ "$scan_code" -ne 0 ]; then exit "$scan_code"; fi
+          exit "$metadata_code"
+      - name: Preserve only secret-scan finding metadata
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: current-secret-findings-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/full-history-gitleaks-metadata.json
+          if-no-files-found: ignore
+          retention-days: 1
   native:
-    needs: [controls, secrets]
-    outputs:
-      ui_build_artifact: ${{ steps.ui_build_upload.outputs.artifact-id }}
+    needs: [controls]
     runs-on: macos-26
     timeout-minutes: 45
     strategy:
       fail-fast: false
-      max-parallel: 3
+      max-parallel: 20
       matrix:
-        partition: [core, app-unit, ui-build]
+        partition: [core, app-unit]
     env:
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
@@ -100,11 +130,51 @@ jobs:
           path: ${{ runner.temp }}/current-plan
       - name: Compile current products and execute the selected native group
         run: python3 -B tools/current_native.py run --plan "$RUNNER_TEMP/current-plan/plan.json" --role '${{ matrix.partition }}' --start-file "$RUNNER_TEMP/current-start" --output "$RUNNER_TEMP/current-native"
+      - name: Show compiler errors from failed commands
+        if: failure()
+        run: |
+          grep -h -E '(error|fatal error): ' "$RUNNER_TEMP"/current-native/*.stdout | sort | uniq | head -300 || true
       - name: Preserve exact command and result diagnostics
-        if: ${{ always() && (matrix.partition != 'ui-build' || failure()) }}
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ${{ matrix.partition == 'ui-build' && 'current-diagnostics' || 'current-result' }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}
+          name: current-result-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}
+          path: |
+            ${{ runner.temp }}/current-native/*.json
+            ${{ runner.temp }}/current-native/*.xml
+            ${{ runner.temp }}/current-native/*.stdout
+          if-no-files-found: error
+          retention-days: 1
+  ui_build:
+    needs: [controls]
+    outputs:
+      ui_build_artifact: ${{ steps.ui_build_upload.outputs.artifact-id }}
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - name: Record complete job clock
+        run: python3 -c 'import os,time,pathlib; pathlib.Path(os.environ["RUNNER_TEMP"],"current-start").write_text(str(time.monotonic()))'
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: current-plan-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/current-plan
+      - name: Compile current products and execute the selected native group
+        run: python3 -B tools/current_native.py run --plan "$RUNNER_TEMP/current-plan/plan.json" --role 'ui-build' --start-file "$RUNNER_TEMP/current-start" --output "$RUNNER_TEMP/current-native"
+      - name: Show compiler errors from failed commands
+        if: failure()
+        run: |
+          grep -h -E '(error|fatal error): ' "$RUNNER_TEMP"/current-native/*.stdout | sort | uniq | head -300 || true
+      - name: Preserve exact command and result diagnostics
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: current-diagnostics-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-ui-build
           path: |
             ${{ runner.temp }}/current-native/*.json
             ${{ runner.temp }}/current-native/*.xml
@@ -113,7 +183,7 @@ jobs:
           retention-days: 1
       - name: Transfer one same-run UI build
         id: ui_build_upload
-        if: ${{ success() && matrix.partition == 'ui-build' }}
+        if: success()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: current-ui-build-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -123,14 +193,22 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 1
+      - name: Transfer same-run UI build identity for platform checks
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: current-ui-build-metadata-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/current-native/receipt.json
+          if-no-files-found: error
+          retention-days: 1
   ui:
-    needs: [controls, native]
-    if: ${{ always() && needs.controls.result == 'success' && needs.native.outputs.ui_build_artifact != '' }}
+    needs: [controls, ui_build]
+    if: ${{ always() && needs.controls.result == 'success' && needs.ui_build.result == 'success' && needs.ui_build.outputs.ui_build_artifact != '' }}
     runs-on: macos-26
     timeout-minutes: 45
     strategy:
       fail-fast: false
-      max-parallel: 3
+      max-parallel: 20
       matrix: ${{ fromJSON(needs.controls.outputs.ui_matrix) }}
     env:
       PYTHONDONTWRITEBYTECODE: '1'
@@ -151,6 +229,22 @@ jobs:
           path: ${{ runner.temp }}/current-ui-build
       - name: Execute complete assigned UI methods without rebuilding
         run: python3 -B tools/current_native.py run --plan "$RUNNER_TEMP/current-plan/plan.json" --role ui --index '${{ matrix.index }}' --build "$RUNNER_TEMP/current-ui-build" --start-file "$RUNNER_TEMP/current-start" --output "$RUNNER_TEMP/current-native"
+      - name: Export selected same-run synthetic UI images
+        if: success()
+        continue-on-error: true
+        run: python3 -B -m tools.export_current_ui_audit --plan "$RUNNER_TEMP/current-plan/plan.json" --output "$RUNNER_TEMP/current-native"
+      - name: Preserve synthetic UI audit images
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: current-ui-audit-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-ui-${{ matrix.index }}
+          path: ${{ runner.temp }}/current-ui-audit-evidence/
+          if-no-files-found: ignore
+          retention-days: 1
+      - name: Show test and compiler errors from failed commands
+        if: failure()
+        run: |
+          grep -h -A 120 -E '(error|fatal error): ' "$RUNNER_TEMP"/current-native/*.stdout | head -600 || true
       - name: Preserve real per-shard results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -161,20 +255,28 @@ jobs:
             ${{ runner.temp }}/current-native/*.stdout
           if-no-files-found: error
           retention-days: 1
+      - name: Preserve bounded synthetic failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: current-ui-failure-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-ui-${{ matrix.index }}
+          path: ${{ runner.temp }}/current-ui-failure-evidence/
+          if-no-files-found: ignore
+          retention-days: 1
   platforms:
-    needs: [controls, native, ui]
-    if: ${{ inputs.mode == 'full' }}
+    needs: [controls, ui_build]
+    if: ${{ needs.controls.result == 'success' && needs.controls.outputs.scope == 'full-current-regression' && needs.ui_build.result == 'success' && needs.ui_build.outputs.ui_build_artifact != '' }}
     runs-on: macos-26
     timeout-minutes: ${{ matrix.minutes }}
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 20
       matrix:
         include:
           - kind: device
-            minutes: 20
+            minutes: 45
           - kind: us
-            minutes: 10
+            minutes: 20
     env:
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
@@ -188,7 +290,7 @@ jobs:
           path: ${{ runner.temp }}/current-plan
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
-          name: current-result-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-ui-0
+          name: current-ui-build-metadata-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/current-ui-identity
       - name: Bind current platform compile to the same source and Apple toolchain
         run: |
@@ -198,9 +300,11 @@ jobs:
           from tools import current_native as n
           root=Path.cwd(); tmp=Path(os.environ['RUNNER_TEMP']); plan=n.verify_plan(root,tmp/'current-plan/plan.json')
           prior=n.read_json(tmp/'current-ui-identity/receipt.json');n.same_identity(prior,plan)
+          n.require(prior.get('role')=='ui-build' and prior.get('status')=='BUILT' and prior.get('executed_methods')==[],'Platform compile requires a successful same-run UI build')
+          n.require(type(prior.get('build_returncode')) is int and prior['build_returncode']==0,'UI build command did not succeed')
           def run(argv,seconds,stem):
-              code,raw=n.execute(argv,root,seconds,True);n.require(code==0,'Toolchain read failed');return raw
-          n.require(n.toolchain(run)==prior['toolchain'],'Full platform build changed toolchain')
+              code,raw=n.execute(argv,root,seconds,True);n.require(type(code) is int and code==0,'Toolchain read failed');return raw
+          n.require(n.toolchain(run)==prior.get('toolchain'),'Full platform build changed toolchain')
           PYCODE
       - name: Compile unsigned device app and protected storage bundle
         if: matrix.kind == 'device'
@@ -222,7 +326,7 @@ jobs:
       - name: Confirm platform checks left source unchanged
         run: python3 -B tools/current_ci.py check && git diff --exit-code
   current-checks:
-    needs: [controls, secrets, native, ui, platforms]
+    needs: [controls, secrets, native, ui_build, ui, platforms]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 10

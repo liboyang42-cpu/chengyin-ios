@@ -22,6 +22,13 @@ final class ClubManagementContractTests: XCTestCase {
         XCTAssertFalse(owner.allows(.remove, memberID: 1)); XCTAssertFalse(admin.allows(.remove, memberID: 2))
         XCTAssertFalse(owner.allows(.remove, memberID: 99))
     }
+    func testRequestTimeTextMatchesMiniProgramFormatting() throws {
+        func row(_ json: String) throws -> ClubManagementRequest { try JSONDecoder().decode(ClubManagementRequest.self, from: Data(json.utf8)) }
+        XCTAssertEqual(try row(#"{"memberId":3,"joinTime":"2026-10-19T08:05:41.123"}"#).requestTimeText, "2026-10-19 08:05")
+        XCTAssertEqual(try row(#"{"memberId":3,"joinTime":"2026-10-19 08:05"}"#).requestTimeText, "2026-10-19 08:05")
+        XCTAssertNil(try row(#"{"memberId":3}"#).requestTimeText)
+        XCTAssertNil(try row(#"{"memberId":3,"joinTime":"  "}"#).requestTimeText)
+    }
     func testUnknownAndDuplicateTargetsFailClosed() throws {
         for value in [0, -1] {
             XCTAssertThrowsError(try JSONDecoder().decode(ClubManagementRequest.self, from: Data("{\"memberId\":\(value)}".utf8)))

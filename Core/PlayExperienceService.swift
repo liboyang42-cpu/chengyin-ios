@@ -4,15 +4,21 @@ import FoundationNetworking
 #endif
 
 public enum PlayExperienceCapability: Hashable {
-    case directorCommands, reads, runPersistence, classicCompletion, hints, leader, advanced, playerCommands, circle, preference, tags, mediaUpload, thoughtClaims, journeyChecks, journeyEggCollection, journeyAsks
+    case directorCommands, reads, runPersistence, classicCompletion, hints, leader, advanced, playerCommands, circle, preference, tags, mediaUpload, thoughtClaims, journeyChecks, journeyEggCollection, journeyAsks, journeyOpening
 }
 public enum PlayCompletionEvidence: Codable, Equatable {
     case answer(String)
     case scan(String)
     /// Provider must return GCJ-02 for the source CN arrive contract. No conversion guess.
-    case location(longitude: Double, latitude: Double, coordinateSystem: String)
+    case location(longitude: Double, latitude: Double, coordinateSystem: String, accuracyMeters: Double? = nil, measuredAt: Date? = nil)
     case photo(uploadedURL: String)
     case sensor(type: String, payload: [String: PlayWireValue])
+    /// Only for a new command. Recovery encodes the immutable original evidence.
+    func validateNewLocationMeasurement(now: Date = Date()) throws {
+        if case .location(_, _, _, let accuracy, let time) = self {
+            try PlayLocationMeasurement.validate(accuracyMeters: accuracy, measuredAt: time, now: now)
+        }
+    }
     var path: String {
         switch self { case .answer: return "answer"; case .scan: return "checkin"; case .location: return "arrive"; case .photo: return "photo"; case .sensor: return "sensor-result" }
     }
@@ -26,6 +32,14 @@ public struct PlayExperienceService {
     private let readLifetime: PlayInteractionLifetime?
     public init(configuration: APIConfiguration, transport: any HTTPTransport, enabled: Set<PlayExperienceCapability> = [], readLifetime: PlayInteractionLifetime? = nil) {
         self.configuration = configuration; self.transport = transport; self.enabled = enabled; self.readLifetime = readLifetime
+    }
+    /// Only an actual bounded reply can prove authentication loss. Malformed or
+    /// over-limit envelopes remain ordinary unknown errors, never guessed 401s.
+    public static func isAuthenticationFailure(_ reply: (Data, Int)) -> Bool {
+        if reply.1 == 401 { return true }
+        guard reply.0.count <= 512 * 1024,
+              let envelope = try? JSONDecoder().decode(PlayWireValue.self, from: reply.0) else { return false }
+        return envelope["code"].tolerantInteger == 401
     }
     @MainActor public var readLifetimeID: String? { readLifetime?.identity }
     @MainActor public var hasCurrentReadLifetime: Bool { readLifetime?.isCurrent ?? true }
@@ -51,8 +65,20 @@ public struct PlayExperienceService {
     /// Raw payload entry remains useful for sealed in-process fixture recording only.
     /// Network-capable transports require the coordinator's one-shot durable attempt.
     public func complete(scope: PlaySessionScope, nodeID: Int, evidence: PlayCompletionEvidence, advance: PlayRouteAdvance?, token: String) async throws -> PlayWireValue {
+        try evidence.validateNewLocationMeasurement()
         let request = try completionRequest(scope: scope, nodeID: nodeID, evidence: evidence, advance: advance, token: token, boundary: UUID().uuidString)
         return try await send(request, capability: .classicCompletion)
+    }
+    /// Prefab's journal must be written only after all known pre-send checks.
+    /// Freshness and synchronous persistence form one preparation step; the exact
+    /// request is sent next without aging the already-journaled evidence again.
+    @MainActor func completePreparingJournal(scope: PlaySessionScope, nodeID: Int, evidence: PlayCompletionEvidence,
+        token: String, measurementNow: () -> Date = Date.init, persist: () throws -> Void) async throws -> PlayWireValue {
+        let request = try completionRequest(scope: scope, nodeID: nodeID, evidence: evidence, advance: nil, token: token, boundary: UUID().uuidString)
+        return try await send(request, capability: .classicCompletion, beforeTransport: {
+            try evidence.validateNewLocationMeasurement(now: measurementNow())
+            try persist()
+        })
     }
     func completionRequest(scope: PlaySessionScope, nodeID: Int, evidence: PlayCompletionEvidence, advance: PlayRouteAdvance?, token: String, boundary: String) throws -> URLRequest {
         guard nodeID > 0 else { throw APIError.invalidRequest }
@@ -66,10 +92,16 @@ public struct PlayExperienceService {
             guard !code.isEmpty else { throw APIError.invalidRequest }
             // Source checkin resolves node from code; never invent a nodeId argument.
             fields.removeValue(forKey: "nodeId"); fields["code"] = code
-        case .location(let longitude, let latitude, let coordinateSystem):
+        case .location(let longitude, let latitude, let coordinateSystem, let accuracyMeters, let measuredAt):
             guard coordinateSystem == "GCJ02", longitude.isFinite, latitude.isFinite,
                   abs(longitude) <= 180, abs(latitude) <= 90 else { throw APIError.invalidRequest }
+            // Encoding a durable retry must not refresh or age out its evidence.
+            // Freshness is checked before creating a new command, not on replay.
+            try PlayLocationMeasurement.validate(accuracyMeters: accuracyMeters, measuredAt: measuredAt, now: nil)
             fields["longitude"] = String(longitude); fields["latitude"] = String(latitude)
+            // Frozen BK-GPS defines only accuracy on the wire. Keep sample time in the
+            // local evidence/journal; do not invent a backend timestamp parameter.
+            if let accuracyMeters { fields["accuracy"] = String(accuracyMeters) }
         case .photo(let url):
             guard Self.validHTTPS(url) else { throw APIError.invalidRequest }
             fields["picUrl"] = url
@@ -202,7 +234,7 @@ public struct PlayExperienceService {
         } else { request.httpMethod = postWithoutBody ? "POST" : "GET" }
         return request
     }
-    @MainActor private func send(_ request: URLRequest, capability: PlayExperienceCapability, attempt: PlayPreparedDispatch? = nil) async throws -> PlayWireValue {
+    @MainActor private func send(_ request: URLRequest, capability: PlayExperienceCapability, attempt: PlayPreparedDispatch? = nil, beforeTransport: () throws -> Void = {}) async throws -> PlayWireValue {
         try checkReadLifetime()
         guard enabled.contains(capability) else { throw PlayExperienceError.disabled }
         guard let url = request.url, var route = URLComponents(url: url, resolvingAgainstBaseURL: false) else { throw APIError.invalidRequest }
@@ -213,14 +245,14 @@ public struct PlayExperienceService {
         let journeyRoutes: [(String, PlayExperienceCapability)] = [
             ("check/roll", .journeyChecks), ("check/reroll", .journeyChecks),
             ("check/settle", .journeyChecks), ("egg/collect", .journeyEggCollection),
-            ("journey/ask", .journeyAsks)
+            ("journey/ask", .journeyAsks), ("journey/opening/complete", .journeyOpening)
         ]
         let journeyCapability = journeyRoutes.first {
             configuration.baseURL.appendingPathComponent("api/play/" + $0.0) == route.url
         }?.1
         if let journeyCapability {
             guard capability == journeyCapability, request.httpMethod == "POST" else { throw PlayExperienceError.persistenceUnavailable }
-        } else if [.journeyChecks, .journeyEggCollection, .journeyAsks].contains(capability) {
+        } else if [.journeyChecks, .journeyEggCollection, .journeyAsks, .journeyOpening].contains(capability) {
             throw PlayExperienceError.persistenceUnavailable
         }
         let protected = ["answer", "checkin", "arrive", "photo", "sensor-result", "run-session/save", "run-session/clear"].contains { configuration.baseURL.appendingPathComponent("api/play/" + $0) == route.url }
@@ -236,6 +268,7 @@ public struct PlayExperienceService {
         let data: Data, status: Int
         do {
             try checkReadLifetime()
+            try beforeTransport()
             (data, status) = try await transport.send(request)
         } catch {
             // A stale response/error cannot expire or mutate the new context.
@@ -252,5 +285,27 @@ public struct PlayExperienceService {
         guard let code else { throw PlayExperienceError.malformed }
         guard code == 200 else { throw PlayExperienceError.rejected(code, envelope?["msg"].text) }
         return envelope?["data"] ?? .null
+    }
+}
+
+extension PlayExperienceService {
+    @MainActor func sharedPlanRequest(activityID: Int, token: String, command: PlaySharedPlanCommand? = nil,
+        receipt: Bool = false, finalCheck: () throws -> Void) async throws -> PlayWireValue {
+        guard activityID > 0, !receipt || command != nil else { throw APIError.invalidRequest }
+        let kind = receipt ? "receipt" : command == nil ? "view" : "command"
+        var parts = URLComponents(url: configuration.baseURL.appendingPathComponent("api/game/session/" + kind), resolvingAgainstBaseURL: false)!
+        if let command { try command.validate(); guard command.activityID == activityID else { throw APIError.invalidRequest } }
+        if kind != "command" {
+            parts.queryItems = [.init(name: "activityId", value: String(activityID)), .init(name: "perspective", value: "PLAYER")]
+            if let command { parts.queryItems?.append(.init(name: "requestId", value: command.requestID)) }
+        }
+        var request = URLRequest(url: parts.url!); request.httpMethod = kind == "command" ? "POST" : "GET"
+        request.cachePolicy = .reloadIgnoringLocalCacheData; request.timeoutInterval = 20
+        request.setValue(token, forHTTPHeaderField: "Authorization"); request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if kind == "command", let command {
+            let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]; request.httpBody = try encoder.encode(command.wire)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
+        return try await send(request, capability: kind == "command" ? .playerCommands : .reads, beforeTransport: finalCheck)
     }
 }

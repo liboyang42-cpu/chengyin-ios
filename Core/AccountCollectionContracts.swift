@@ -43,6 +43,30 @@ public struct AccountCollectionCoupon: Decodable, Equatable, Identifiable {
         startTime = try c.decodeIfPresent(String.self, forKey: .startTime)
         endTime = try c.decodeIfPresent(String.self, forKey: .endTime)
     }
+    /// Presentation only: an unused coupon may have a later business-calendar start day.
+    /// This never decides whether the server will issue or accept a redemption code.
+    public func futureStartDay(relativeTo now: Date) -> String? {
+        guard status == .unused, now.timeIntervalSinceReferenceDate.isFinite,
+              let startTime else { return nil }
+        let source = startTime.trimmingCharacters(in: .whitespacesAndNewlines)
+        let bytes = Array(source.utf8)
+        guard bytes.count == 10 || bytes.count == 19 else { return nil }
+        if bytes.count == 19 {
+            guard (bytes[10] == 32 || bytes[10] == 84), bytes[13] == 58, bytes[16] == 58,
+                  [11,12,14,15,17,18].allSatisfy({ (48...57).contains(bytes[$0]) }) else { return nil }
+            let hour = Int(bytes[11] - 48) * 10 + Int(bytes[12] - 48)
+            let minute = Int(bytes[14] - 48) * 10 + Int(bytes[15] - 48)
+            let second = Int(bytes[17] - 48) * 10 + Int(bytes[18] - 48)
+            guard hour < 24, minute < 60, second < 60 else { return nil }
+        }
+        guard let day = Self.calendarDay(source) else { return nil }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 8 * 3600)!
+        let parts = calendar.dateComponents([.year, .month, .day], from: now)
+        guard let year = parts.year, (1...9999).contains(year), let month = parts.month, let date = parts.day else { return nil }
+        let today = String(format: "%04d.%02d.%02d", year, month, date)
+        return day > today ? day : nil
+    }
     /// The API supplies a China-calendar date. Preserve its day rather than converting to
     /// the device time zone. Invalid dates remain unknown; never compute expiry locally.
     public static func calendarDay(_ value: String?) -> String? {

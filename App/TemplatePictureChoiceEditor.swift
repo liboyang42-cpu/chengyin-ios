@@ -75,7 +75,6 @@ import Combine
     var body: some View {
         Form {
             Section {
-                Text("templatePictures.instructions").font(.callout)
                 if editor.needsReload {
                     Text("templatePictures.changed").font(.caption)
                     Button("templatePictures.reload") { editor.reload() }.disabled(!editor.canReload).accessibilityIdentifier("creator.pictures.reload")
@@ -91,7 +90,6 @@ import Combine
                     TextField("creator.field.imageUrl", text: editor.text(row.id, field: .imageURL), axis: .vertical)
                         .textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
                         .accessibilityIdentifier("creator.pictures.imageURL.\(index)")
-                    Text("templatePictures.addressHint").font(.caption).foregroundStyle(.secondary)
                     Button(action: editor.chooseAction(row.id)) {
                         Label(LocalizedStringKey(row.isCorrect ? "templatePictures.selected" : "templatePictures.select"), systemImage: row.isCorrect ? "largecircle.fill.circle" : "circle")
                     }.accessibilityAddTraits(row.isCorrect ? [.isSelected] : [])
@@ -110,7 +108,7 @@ import Combine
             }
             if !editor.issues.isEmpty {
                 Section("templateAuthor.validationTitle") {
-                    ForEach(Array(editor.issues.enumerated()), id: \.offset) { _, issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)); Text(verbatim: issue.path).font(.caption) } }
+                    ForEach(Array(editor.issues.enumerated()), id: \.offset) { _, issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(.red) } }
                 }
             }
         }.navigationTitle("templatePictures.title").onAppear { editor.reload() }.onDisappear { editor.retire() }

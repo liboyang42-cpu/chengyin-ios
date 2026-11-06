@@ -185,6 +185,22 @@ import FoundationNetworking
         await submissions.refresh(); team.acceptFreshRead()
         XCTAssertEqual(team.state, .unconfirmed); XCTAssertEqual(transport.requests.count, 1)
     }
+    func testSlowEarlierRefreshCannotOverwriteNewerTeamStatus() async throws {
+        let (_, transport, model, submissions, team) = try setup()
+        await submissions.open(); team.acceptFreshRead()
+        let started = expectation(description: "earlier refresh suspended")
+        transport.response = try raw(.array([row("SUBMITTED")]), revision: 3)
+        transport.suspend = true; transport.onRead = { started.fulfill() }
+        let slow = Task { await model.load(); team.acceptFreshRead() }
+        await fulfillment(of: [started], timeout: 2)
+        transport.onRead = nil; transport.suspend = false
+        transport.response = try raw(.array([row("COMPLETED")]), revision: 4)
+        await model.load(); team.acceptFreshRead()
+        XCTAssertEqual(try members(team.state).first?.status, .completed)
+        transport.resume(); await slow.value
+        XCTAssertEqual(try members(team.state).first?.status, .completed)
+        XCTAssertEqual(model.projection?.revision, 4); XCTAssertEqual(transport.requests.count, 3)
+    }
 }
 
 @MainActor private final class TeamReadOwner {

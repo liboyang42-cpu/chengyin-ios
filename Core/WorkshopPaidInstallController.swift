@@ -5,6 +5,7 @@ import Observation
 @MainActor public final class WorkshopPaidInstallAppearance {
     private var started = false
     private(set) var closed = false
+    fileprivate var suspended = false
     fileprivate var action: WorkshopPaidInstallAction?
     public init() {}
     fileprivate func begin() -> Bool { guard !started, !closed else { return false }; started = true; return true }
@@ -14,7 +15,7 @@ import Observation
     weak var appearance: WorkshopPaidInstallAppearance?
     private var revoked = false, entered = false
     init(_ appearance: WorkshopPaidInstallAppearance) { self.appearance = appearance }
-    var live: Bool { !revoked && appearance?.closed == false && appearance?.action === self }
+    var live: Bool { !revoked && appearance?.closed == false && appearance?.suspended == false && appearance?.action === self }
     func revoke() { revoked = true }
     func claim() -> Bool { guard live, !entered else { return false }; entered = true; return true }
 }
@@ -37,6 +38,10 @@ import Observation
     public private(set) var outcome: WorkshopPaidInstallOutcome?
     public private(set) var issue: WorkshopPaidInstallIssue?
     public private(set) var targetIssue: WorkshopPaidInstallIssue?
+    public private(set) var loadingPage = false
+    public private(set) var pageIssue: WorkshopPaidInstallIssue?
+    private var consumedHistoryCursors: Set<String> = []
+    private var consumedTargetCursors: Set<Int64> = []
     private let service: any WorkshopPaidInstallServing
     private let lease: ContentDraftSessionLease
     private let store: WorkshopPaidInstallPendingStore
@@ -48,13 +53,15 @@ import Observation
     public func invalidate() {
         guard phase != .invalidated else { return }
         appearance?.revoke(); appearance = nil; lifetime?.revoke(); lifetime = nil; lease.revoke()
+        loadingPage = false; pageIssue = nil
+        consumedHistoryCursors = []; consumedTargetCursors = []
         targets = []; history = []; target = nil; region = nil; confirmation = nil; pending = nil; outcome = nil
         nextTargetCursor = nil; nextHistoryCursor = nil; phase = .invalidated; issue = .staleSession
         // Do not delete the original owner-scoped durable pending record on identity replacement.
     }
     private func current(_ displayed: WorkshopPaidInstallAppearance) -> Bool {
         guard lease.isCurrent else { invalidate(); return false }
-        return phase != .invalidated && appearance === displayed && !displayed.closed
+        return phase != .invalidated && appearance === displayed && !displayed.closed && !displayed.suspended
     }
     public func appear(_ displayed: WorkshopPaidInstallAppearance) -> Action? {
         guard lease.isCurrent, phase != .invalidated, displayed.begin() else { return nil }
@@ -64,9 +71,29 @@ import Observation
     public func close(_ displayed: WorkshopPaidInstallAppearance) {
         displayed.revoke(); guard appearance === displayed else { return }
         lifetime?.revoke(); lifetime = nil; appearance = nil
+        loadingPage = false; pageIssue = nil
+        consumedHistoryCursors = []; consumedTargetCursors = []
         target = nil; region = nil; confirmation = nil; targets = []; history = []; nextTargetCursor = nil; nextHistoryCursor = nil
         if phase != .invalidated { phase = .idle }; issue = nil; targetIssue = nil
         // A submitted operation may already be committed. Back never clears pending or reports failure.
+    }
+    /// Background retires only presentation work. A dispatched or queued confirmed
+    /// command keeps its durable original UUID; no status is inferred from cancellation.
+    public func suspend(_ displayed: WorkshopPaidInstallAppearance) {
+        guard appearance === displayed, !displayed.closed, phase != .invalidated else { return }
+        displayed.suspended = true; displayed.action?.revoke(); displayed.action = nil
+        lifetime?.revoke(); lifetime = nil
+        confirmation = nil; target = nil; region = nil
+        loadingPage = false; pageIssue = nil
+        phase = .ready
+    }
+    /// Revalidate the existing owner/config and recover its original status before
+    /// collection reads. This never offers a submit or reconstructs a command.
+    public func resume(_ displayed: WorkshopPaidInstallAppearance) -> Action? {
+        guard appearance === displayed, !displayed.closed, displayed.suspended,
+              phase != .invalidated else { return nil }
+        displayed.suspended = false
+        return offerLoad(displayed)
     }
     private func offer(_ displayed: WorkshopPaidInstallAppearance) -> (WorkshopPaidInstallAction, WorkshopPaidInstallLifetime)? {
         guard current(displayed), phase != .submitting else { return nil }
@@ -79,8 +106,13 @@ import Observation
         lifetime = life; return (action, life)
     }
     public func offerLoad(_ displayed: WorkshopPaidInstallAppearance, beforeTarget: Int64? = nil, beforeHistory: String? = nil) -> Action? {
-        guard beforeTarget == nil || beforeTarget == nextTargetCursor, beforeHistory == nil || beforeHistory == nextHistoryCursor,
-              let (action, life) = offer(displayed) else { return nil }
+        guard beforeTarget == nil || beforeHistory == nil else { return nil }
+        if beforeTarget != nil || beforeHistory != nil {
+            return offerPage(displayed, beforeTarget: beforeTarget, beforeHistory: beforeHistory)
+        }
+        guard let (action, life) = offer(displayed) else { return nil }
+        loadingPage = false; pageIssue = nil
+        consumedHistoryCursors = []; consumedTargetCursors = []
         confirmation = nil; target = nil; region = nil; phase = .loading
         return { [weak self] in
             guard let self, action.claim(), self.current(displayed) else { return }
@@ -88,22 +120,96 @@ import Observation
             do {
                 self.pending = try self.store.load()
                 guard self.pending?.belongs(to: self.item) != false else { throw WorkshopPaidInstallIssue.storageUnavailable }
-                let history = try await self.service.history(licenseId: self.item.licenseId, before: beforeHistory, lifetime: life)
-                try life.check(); guard history.items.allSatisfy({ $0.command?.belongs(to: self.item) == true }) else { throw WorkshopPaidInstallIssue.malformed }
-                self.history = history.items; self.nextHistoryCursor = history.nextBeforeCommandKey
+                // Recover the durable original UUID before optional collection reads. A failed
+                // history page must not prevent discovering an already committed installation.
+                let recoveringOriginalRequest = self.pending != nil
                 if let pending = self.pending {
                     let status = try await self.service.status(command: pending, lifetime: life); try life.check(); try self.accept(status, expected: pending)
+                }
+                do {
+                    let history = try await self.service.history(licenseId: self.item.licenseId, before: beforeHistory, lifetime: life)
+                    try life.check(); guard history.items.allSatisfy({ $0.command?.belongs(to: self.item) == true }) else { throw WorkshopPaidInstallIssue.malformed }
+                    self.history = history.items; self.nextHistoryCursor = history.nextBeforeCommandKey
+                } catch {
+                    try life.check()
+                    let issue = (error as? WorkshopPaidInstallIssue) ?? .unavailable
+                    if !recoveringOriginalRequest || issue == .unauthorized || issue == .staleSession || issue == .disabled { throw issue }
+                    // Keep the exact status result usable and preserve nonterminal pending bytes.
+                    // A history failure is not a failed install and cannot authorize a retry write.
+                    self.issue = issue
                 }
                 if self.item.status == .active {
                     do {
                         let targets = try await self.service.targets(licenseId: self.item.licenseId, before: beforeTarget, lifetime: life); try life.check()
                         self.targets = targets.items; self.nextTargetCursor = targets.nextBeforeDraftId
-                    } catch { try life.check(); self.targets = []; self.nextTargetCursor = nil; self.targetIssue = (error as? WorkshopPaidInstallIssue) ?? .unavailable }
+                    } catch {
+                        try life.check()
+                        let issue = (error as? WorkshopPaidInstallIssue) ?? .unavailable
+                        if issue == .unauthorized || issue == .staleSession || issue == .disabled { throw issue }
+                        self.targets = []; self.nextTargetCursor = nil; self.targetIssue = issue
+                    }
                 }
                 try life.check(); self.phase = self.outcome?.state == .installed ? .installed : .ready
             } catch {
                 guard action.live, self.current(displayed) else { return }
-                self.issue = (error as? WorkshopPaidInstallIssue) ?? .unavailable; self.phase = .failed
+                let issue = (error as? WorkshopPaidInstallIssue) ?? .unavailable
+                if issue == .unauthorized || issue == .staleSession || issue == .disabled {
+                    self.invalidate(); self.issue = issue
+                } else { self.issue = issue; self.phase = .failed }
+            }
+        }
+    }
+    /// Each continuation reads only its own collection. Keep earlier receipts available on
+    /// transient failure and retain the exact cursor for an explicit retry.
+    private func offerPage(_ displayed: WorkshopPaidInstallAppearance, beforeTarget: Int64?, beforeHistory: String?) -> Action? {
+        guard phase == .ready || phase == .installed,
+              beforeTarget == nil || beforeTarget == nextTargetCursor,
+              beforeHistory == nil || beforeHistory == nextHistoryCursor,
+              let (action, life) = offer(displayed) else { return nil }
+        confirmation = nil; loadingPage = true; pageIssue = nil; phase = .loading
+        return { [weak self] in
+            guard let self, action.claim(), self.current(displayed) else { return }
+            defer {
+                // A retired callback cannot clear the busy state of a replacement request.
+                if action.live, self.current(displayed) {
+                    self.loadingPage = false
+                    self.phase = self.outcome?.state == .installed ? .installed : .ready
+                }
+            }
+            do {
+                if let cursor = beforeHistory {
+                    let page = try await self.service.history(licenseId: self.item.licenseId, before: cursor, lifetime: life)
+                    try life.check()
+                    guard page.items.allSatisfy({ $0.command?.belongs(to: self.item) == true }),
+                          page.nextBeforeCommandKey != cursor,
+                          page.nextBeforeCommandKey.map({ !self.consumedHistoryCursors.contains($0) }) != false else { throw WorkshopPaidInstallIssue.malformed }
+                    var merged = self.history
+                    for receipt in page.items {
+                        if let existing = merged.first(where: { $0.id == receipt.id }) {
+                            guard existing == receipt else { throw WorkshopPaidInstallIssue.malformed }
+                        } else { merged.append(receipt) }
+                    }
+                    self.history = merged; self.nextHistoryCursor = page.nextBeforeCommandKey
+                    self.consumedHistoryCursors.insert(cursor)
+                } else if let cursor = beforeTarget {
+                    let page = try await self.service.targets(licenseId: self.item.licenseId, before: cursor, lifetime: life)
+                    try life.check()
+                    guard page.nextBeforeDraftId.map({ $0 < cursor && !self.consumedTargetCursors.contains($0) }) != false else { throw WorkshopPaidInstallIssue.malformed }
+                    var merged = self.targets
+                    for target in page.items {
+                        if let existing = merged.first(where: { $0.id == target.id }) {
+                            guard existing == target else { throw WorkshopPaidInstallIssue.malformed }
+                        } else { merged.append(target) }
+                    }
+                    self.targets = merged; self.nextTargetCursor = page.nextBeforeDraftId
+                    self.consumedTargetCursors.insert(cursor)
+                }
+            } catch {
+                guard action.live, self.current(displayed) else { return }
+                let issue = (error as? WorkshopPaidInstallIssue) ?? .unavailable
+                if issue == .unauthorized || issue == .staleSession || issue == .disabled {
+                    self.invalidate()
+                } else { self.pageIssue = issue }
             }
         }
     }
@@ -153,17 +259,31 @@ import Observation
             do { let value = try await self.service.submit(consent); try life.check(); try self.accept(value, expected: confirmation); self.phase = .installed }
             catch {
                 guard action.live, self.current(displayed) else { return }
-                self.issue = (error as? WorkshopPaidInstallIssue) ?? .outcomeUnknown; self.phase = .ready
+                self.handleCurrentFailure(error, fallback: .outcomeUnknown)
             }
         }
     }
     public func offerStatus(_ displayed: WorkshopPaidInstallAppearance) -> Action? {
-        guard let pending, let (action, life) = offer(displayed) else { return nil }
+        guard !loadingPage, let pending, let (action, life) = offer(displayed) else { return nil }
+        phase = .loading; pageIssue = nil
         return { [weak self] in
             guard let self, action.claim(), self.current(displayed) else { return }
             self.phase = .loading; self.issue = nil
             do { let value = try await self.service.status(command: pending, lifetime: life); try life.check(); try self.accept(value, expected: pending); self.phase = value.state == .installed ? .installed : .ready }
-            catch { guard action.live, self.current(displayed) else { return }; self.issue = (error as? WorkshopPaidInstallIssue) ?? .unavailable; self.phase = .ready }
+            catch { guard action.live, self.current(displayed) else { return }; self.handleCurrentFailure(error, fallback: .unavailable) }
+        }
+    }
+    private func handleCurrentFailure(_ error: Error, fallback: WorkshopPaidInstallIssue) {
+        let failure = (error as? WorkshopPaidInstallIssue) ?? fallback
+        if failure == .unauthorized || failure == .staleSession || failure == .disabled {
+            // Same retirement rule as load/paging. A current rejection must not
+            // leave protected history or queued actions usable. invalidate()
+            // deliberately keeps the durable original request for later recovery.
+            invalidate()
+            issue = failure
+        } else {
+            issue = failure
+            phase = .ready
         }
     }
     private func accept(_ value: WorkshopPaidInstallOutcome, expected: WorkshopPaidInstallCommand) throws {
@@ -180,3 +300,4 @@ import Observation
         return try? WorkshopPaidInstalledTextReference(item: item, receipt: receipt)
     }
 }
+

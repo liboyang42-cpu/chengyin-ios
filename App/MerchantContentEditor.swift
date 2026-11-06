@@ -8,6 +8,9 @@ import SwiftUI
     let service: any MerchantContentServing
     let query: MerchantContentQuery
     let kind: Kind
+    let placeSearch: (any PublishingPlaceSearching)?
+    @Environment(\.scenePhase) private var addressScenePhase
+    @StateObject private var addressChoice = MerchantCityAddressChoice()
     @StateObject private var model: MerchantContentViewModel
     @StateObject private var cityTemplateHandoff = MerchantCityTemplateHandoffModel()
     @State private var text: [String: String] = [:]
@@ -15,6 +18,10 @@ import SwiftUI
     @State private var availabilityReplacement: MerchantRegistrationAvailability?
     @State private var availabilityEditor: MerchantRegistrationAvailabilityPicker.Session?
     @State private var templateID = 0
+    /// Source merchantapply 可配合日期 range (create only); nil until the merchant chooses it.
+    @State private var applyDays: ClosedRange<Date>?
+    @State private var applyStart = Date()
+    @State private var applyEnd = Date()
     @State private var pauseFallback: MerchantStationPauseChoice?
     @State private var approve = true
     private struct AddressConfirmation: Equatable {
@@ -30,8 +37,8 @@ import SwiftUI
     @State private var placementTemplateReturnReadback = false
     @State private var placementTemplateProtectedReadback: Date?
     @Environment(\.dismiss) private var dismiss
-    init(service: any MerchantContentServing, query: MerchantContentQuery, kind: Kind) {
-        self.service = service; self.query = query; self.kind = kind
+    init(service: any MerchantContentServing, query: MerchantContentQuery, kind: Kind, placeSearch: (any PublishingPlaceSearching)? = nil) {
+        self.service = service; self.query = query; self.kind = kind; self.placeSearch = placeSearch
         _model = StateObject(wrappedValue: .init(service: service, query: query))
     }
     private var c: MerchantContentCoordinator { model.coordinator }
@@ -54,7 +61,7 @@ import SwiftUI
         let currentAvailabilitySource = c.snapshot.map { MerchantRegistrationAvailabilitySource($0.value) }
         let renderedScope = service.scope
         Form {
-            Section { MerchantContentBoundary(); MerchantContentStatus(model: model, allowsReload: !dirty, reload: {
+            Section { MerchantContentStatus(model: model, allowsReload: !dirty, reload: {
                 guard service.scope == renderedScope, !dirty, !c.busy, !c.locked else { return }
                 addressGeneration = UUID()
                 await model.load()
@@ -91,7 +98,6 @@ import SwiftUI
                             .disabled(c.busy || c.locked || c.receipt != nil)
                             .accessibilityIdentifier("merchant.content.review")
                     } else { Text("merchant.content.completeFields").foregroundStyle(.secondary) }
-                    Text("merchant.content.mediaBoundary").font(.footnote)
                 }
             } else if c.busy { ProgressView("merchant.loading") }
         }
@@ -101,6 +107,20 @@ import SwiftUI
             replacement: availabilityReplacement, canEdit: canEditAvailability,
             apply: { applyAvailability($0, expected: currentAvailabilityContext, source: currentAvailabilitySource) }))
         .modifier(MerchantCityTemplateHandoffPresentation(model: cityTemplateHandoff, binding: placementTemplateBinding))
+        .background {
+            if case .placement = kind {
+                if let attachment = addressChoice.attachment {
+                    MerchantCityAddressChoiceLifetime(owner: addressChoice, attachment: attachment).id(attachment)
+                }
+                if let original = addressChoice.item {
+                    MerchantCityAddressChoicePresentation(owner: addressChoice, original: original,
+                        current: { addressChoiceSource }, apply: applyChosenAddress).id(original.id)
+                }
+            }
+        }
+        .onAppear { if case .placement = kind { addressChoice.appear(active: addressScenePhase == .active) } }
+        .onChange(of: addressScenePhase) { _, phase in addressChoice.sceneChanged(active: phase == .active) }
+        .onChange(of: service.scope) { _, _ in addressChoice.invalidate() }
         .appNavigationTitle(key: "merchant.content." + query.key)
         .task(id: service.scope) { addressGeneration = UUID(); addressConfirmation = nil; placementTemplateReturnReadback = false; placementTemplateProtectedReadback = nil; text = [:]; availabilityReplacement = nil; pauseFallback = nil; dirty = false; addressGeneration = UUID(); await model.load(); if c.isCurrent, let s = c.snapshot { seed(s) } }
         .navigationBarBackButtonHidden(dirty)
@@ -144,6 +164,20 @@ import SwiftUI
             templateID = id; dirty = true; model.cancel(); return true
         })
     }
+    private var addressChoiceSource: MerchantCityAddressChoice.Source? {
+        guard case .placement = kind, service.isAuthenticated, c.isCurrent, !c.busy, !c.locked,
+              c.review == nil, c.receipt == nil, let snapshot = c.snapshot,
+              let merchantID = snapshot.access.merchantID else { return nil }
+        return .init(scope: service.scope, observedAt: snapshot.observedAt, merchantID: merchantID,
+            templateID: templateID, addressGeneration: addressGeneration, fields: text.mapValues { Data($0.utf8) },
+            addressConfirmed: addressConfirmation == addressContext(snapshot))
+    }
+    private func applyChosenAddress(_ original: MerchantCityAddressChoice.Source, _ place: PublishingPlace) -> Bool {
+        guard addressChoiceSource == original, let snapshot = c.snapshot else { return false }
+        text = MerchantCityAddressChoice.replacingAddress(in: text, with: place)
+        addressGeneration = UUID(); addressConfirmation = addressContext(snapshot)
+        dirty = true; model.cancel(); return true
+    }
     private func binding(_ name: String) -> Binding<String> { Binding(get: { text[name] ?? "" }, set: {
         if Self.addressFields.contains(name), text[name]?.utf8.elementsEqual($0.utf8) != true { addressGeneration = UUID(); addressConfirmation = nil }
         text[name] = $0; dirty = true; model.cancel()
@@ -166,7 +200,15 @@ import SwiftUI
             Section("merchant.content.registrationContent") {
                 ForEach(["addressName", "address", "longitude", "latitude", "activityDesc", "picUrl", "limitNum"], id: \.self) { field($0) }
                 if case .registrationCreate = kind { field("cooperateDate") }
-                if case .registrationCreate = kind { Text("merchant.content.registrationPreservation").font(.footnote) }
+            }
+            if case .registrationCreate = kind { applyDateSection }
+            if case .registrationEdit = kind, let block = MerchantApplyXcx.editBlock(status: s.value["status"].integer, auditStatus: s.value["auditStatus"].integer,
+                                                                                     topicStartDay: s.value["topicStartDate"].text, today: MerchantApplyXcx.chinaToday()) {
+                // Source merchantapply edit-block notice; the server still decides on submit.
+                Section {
+                    Text(LocalizedStringKey("merchantApplyXcx.editBlock." + String(describing: block))).foregroundStyle(.orange)
+                        .accessibilityIdentifier("merchantApply.editBlock")
+                } header: { Text("merchantApplyXcx.editBlockTitle") }
             }
             if case .registrationEdit(let id) = kind {
                 MerchantRegistrationAvailabilityPicker(context: .init(scope: s.scope, registrationID: id, observedAt: s.observedAt),
@@ -178,10 +220,20 @@ import SwiftUI
                 }
             }
         case .chapterNode:
-            Section { templates(s); ForEach(["name", "description", "address", "longitude", "latitude", "imgUrl", "businessTime"], id: \.self) { field($0) }; Text("merchant.content.nodeReviewWarning").font(.footnote); Text("merchant.content.xpUnavailable").font(.footnote) }
+            Section { templates(s); ForEach(["name", "description", "address", "longitude", "latitude", "imgUrl", "businessTime"], id: \.self) { field($0) }; Text("merchant.content.nodeReviewWarning").font(.footnote).foregroundStyle(.secondary) }
         case .placement:
             let renderedAddress = addressContext(s)
             Section { MerchantCityQuotaSummary(quota: .init(catalog: s.value["catalog"])) }
+            Section {
+                let original = addressChoiceSource
+                let choose: () -> Void = original.map {
+                    addressChoice.openAction($0, provider: placeSearch, current: { addressChoiceSource })
+                } ?? {}
+                Button("publishModes.choosePlace", action: choose).disabled(original == nil || placeSearch == nil)
+                    .accessibilityIdentifier("merchant.cityAddress.choose")
+                if placeSearch == nil { Text("publishModes.mapUnavailable") }
+            }
+
             Section { templates(s); ForEach(["name", "address", "latitude", "longitude", "tags", "coverImg", "cityCode"], id: \.self) { field($0) }
                 Toggle("merchant.content.confirmAddress", isOn: Binding(get: { addressConfirmation == renderedAddress && addressContext(s) == renderedAddress }, set: {
                     guard c.isCurrent, !c.busy, !c.locked, c.review == nil, c.receipt == nil,
@@ -300,7 +352,32 @@ import SwiftUI
     private func registrationDraft() -> MerchantRegistrationContentDraft {
         var draft = MerchantRegistrationContentDraft(detail: .object(text.mapValues { .string($0) }))
         if case .registrationEdit = kind { draft.availabilityReplacement = availabilityReplacement }
+        if case .registrationCreate = kind, let days = applyDays {
+            draft.createStartDay = MerchantApplyXcx.chinaToday(days.lowerBound); draft.createEndDay = MerchantApplyXcx.chinaToday(days.upperBound)
+        }
         return draft
+    }
+    /// Source 可配合的时间 group: date range from today, same-day allowed; plus the first missing item hint.
+    @ViewBuilder private var applyDateSection: some View {
+        Section {
+            if applyDays == nil {
+                Button("merchantApplyXcx.pickDates") { applyStart = Date(); applyEnd = Date(); applyDays = applyStart...applyEnd; dirty = true }
+                    .accessibilityIdentifier("merchantApply.pickDates")
+            } else {
+                DatePicker("merchantApplyXcx.startDay", selection: $applyStart, in: Calendar.current.startOfDay(for: Date())..., displayedComponents: .date)
+                DatePicker("merchantApplyXcx.endDay", selection: $applyEnd, in: applyStart..., displayedComponents: .date)
+            }
+            Text("merchantApplyXcx.locationPurpose").font(.caption).foregroundStyle(.secondary)
+            Text("merchantApplyXcx.photosHint").font(.caption).foregroundStyle(.secondary)
+            if let missing = MerchantApplyXcx.firstMissing(address: text["address"] ?? "", startDay: registrationDraft().createStartDay,
+                                                           endDay: registrationDraft().createEndDay, description: text["activityDesc"] ?? "",
+                                                           photoCount: (text["picUrl"] ?? "").split(separator: ",").count) {
+                Text(LocalizedStringKey("merchantApplyXcx.missing." + String(describing: missing))).font(.footnote).foregroundStyle(.orange)
+                    .accessibilityIdentifier("merchantApply.firstMissing")
+            }
+        } header: { Text("merchantApplyXcx.timeGroup") } footer: { Text("merchantApplyXcx.notAWin") }
+        .onChange(of: applyStart) { _, start in if applyEnd < start { applyEnd = start }; if applyDays != nil { applyDays = start...max(start, applyEnd); dirty = true } }
+        .onChange(of: applyEnd) { _, end in if applyDays != nil { applyDays = applyStart...max(applyStart, end); dirty = true } }
     }
     private func command(_ s: MerchantContentSnapshot) throws -> MerchantContentCommand {
         func value(_ key: String) -> String { text[key] ?? "" }

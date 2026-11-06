@@ -1,0 +1,53 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "ticketWallet.p2.notice.cancelled": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "This ticket was cancelled" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "票已取消" } }
+      }
+    },
+    "ticketWallet.p2.notice.expired": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "This ticket has expired" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "票已过期" } }
+      }
+    },
+    "ticketWallet.p2.notice.unknown": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Ticket status needs confirmation" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "票状态待确认" } }
+      }
+    },
+    "ticketWallet.p2.notice.scheduleSync": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Session details are still syncing" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "场次信息待同步" } }
+      }
+    },
+    "profile.inviteHistoryP2.summary %lld": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "%lld invited in total" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "累计邀请 %lld 人" } }
+      }
+    },
+    "profile.complaintP2.loadFailed.title": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Eligible activities didn’t load" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "可投诉活动没能加载出来" } }
+      }
+    },
+    "profile.complaintP2.loadFailed.generic": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Couldn’t load eligible activities. Please try again." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "可投诉活动加载失败，请重试" } }
+      }
+    },
+    "profile.complaintP2.loadFailed.signIn": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Your sign-in has expired. Please open this page again." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "登录状态已失效，请重新进入" } }
+      }
+    }
+  }
+}

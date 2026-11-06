@@ -168,3 +168,109 @@ import XCTest
     var context: ClubSessionQuickStartContext { .init(club: reader.club, reader: reader, access: access, viewerRevision: revision) }
     func topics() throws -> ClubSessionQuickStartTopics { try .init(context: context, snapshot: access.snapshot()) }
 }
+
+@MainActor final class ClubQuickStartCreationReturnTests: XCTestCase {
+    func testHiddenBeforeOwnerReadStartsNoRequest() async throws {
+        let fixture = QuickStartFixture(), model = ClubSessionQuickStartModel()
+        model.bind(fixture.context); let permit = try XCTUnwrap(model.activate(fixture.context))
+        let target = await model.read(permit, selecting: 91, reader: fixture.reader, access: fixture.access,
+                                     viewerRevision: { fixture.revision }, isCurrent: { false })
+        XCTAssertNil(target); XCTAssertEqual(fixture.reader.reads, 0); XCTAssertEqual(fixture.access.resources, [])
+    }
+    func testHiddenWhileOwnerSuspendsCannotStartTopicsWithoutLeave() async throws {
+        let fixture = QuickStartFixture(), model = ClubSessionQuickStartModel()
+        model.bind(fixture.context); let permit = try XCTUnwrap(model.activate(fixture.context))
+        fixture.reader.held = true; var visible = true
+        let entered = expectation(description: "held owner"); fixture.reader.entered = { entered.fulfill() }
+        let task = Task { await model.read(permit, selecting: 91, reader: fixture.reader, access: fixture.access,
+                                          viewerRevision: { fixture.revision }, isCurrent: { visible }) }
+        await fulfillment(of: [entered], timeout: 1); visible = false
+        fixture.reader.pending[0].resume(returning: fixture.reader.club)
+        let result = await task.value
+        XCTAssertNil(result); XCTAssertEqual(fixture.access.resources, []); XCTAssertNil(model.target)
+    }
+    func testInactiveDuringTopicsCannotPublishFormWithoutLeave() async throws {
+        let fixture = QuickStartFixture(), model = ClubSessionQuickStartModel()
+        model.bind(fixture.context); let permit = try XCTUnwrap(model.activate(fixture.context))
+        fixture.access.held = true; var active = true
+        let entered = expectation(description: "held topics"); fixture.access.entered = { entered.fulfill() }
+        let task = Task { await model.read(permit, selecting: 91, reader: fixture.reader, access: fixture.access,
+                                          viewerRevision: { fixture.revision }, isCurrent: { active }) }
+        await fulfillment(of: [entered], timeout: 1); active = false
+        fixture.access.pending[0].resume(returning: try fixture.access.snapshot())
+        let result = await task.value
+        XCTAssertNil(result); XCTAssertNil(model.target); XCTAssertNil(model.accepted(fixture.context,
+            reader: fixture.reader, access: fixture.access, viewerRevision: fixture.revision))
+    }
+    func testFreshQuickStartSelectionUsesSameCreationOwnerWithoutGrantOrSending() async throws {
+        let fixture = QuickStartFixture(), model = ClubSessionQuickStartModel(), owner = ClubSeriesCreationReturn()
+        model.bind(fixture.context); let permit = try XCTUnwrap(model.activate(fixture.context))
+        let loaded = await model.read(permit, selecting: 92, reader: fixture.reader, access: fixture.access,
+                                      viewerRevision: { fixture.revision }, isCurrent: { true })
+        let target = try XCTUnwrap(loaded), source = try XCTUnwrap(ClubSeriesCreationReturn.Source.quickStart(target, access: fixture.access))
+        owner.open(source, visible: true, active: true)
+        let item = try XCTUnwrap(owner.item)
+        XCTAssertEqual(item.route.operation, .createSeries); XCTAssertEqual(item.route.scope, .init(clubID: 81, topicID: 92))
+        XCTAssertEqual(item.route.seed, target.seed); XCTAssertEqual(target.topic.originClubID, 82)
+        XCTAssertTrue(model.isCurrent(target, context: fixture.context, reader: fixture.reader, access: fixture.access, viewerRevision: fixture.revision))
+        XCTAssertEqual(fixture.reader.reads, 1); XCTAssertEqual(fixture.access.resources, [.eventTopics]); XCTAssertEqual(fixture.access.sends, 0)
+    }
+    func testRetiredQuickStartTargetCannotSupplyReopenedSource() async throws {
+        let fixture = QuickStartFixture(), model = ClubSessionQuickStartModel(), owner = ClubSeriesCreationReturn()
+        model.bind(fixture.context); let permit = try XCTUnwrap(model.activate(fixture.context))
+        let loaded = await model.read(permit, selecting: 91, reader: fixture.reader, access: fixture.access,
+                                      viewerRevision: { fixture.revision })
+        let target = try XCTUnwrap(loaded), source = try XCTUnwrap(ClubSeriesCreationReturn.Source.quickStart(target, access: fixture.access))
+        owner.open(source, visible: true, active: true)
+        let item = try XCTUnwrap(owner.item)
+        model.leave(fixture.context)
+        let current = model.isCurrent(target, context: fixture.context, reader: fixture.reader, access: fixture.access, viewerRevision: fixture.revision)
+        owner.invalidateForm(item, source: current ? source : nil, active: true)
+        XCTAssertNil(owner.item); XCTAssertNil(owner.destination); XCTAssertEqual(fixture.access.sends, 0)
+    }
+
+    @MainActor private final class CreationAccess: ClubGovernanceAccess {
+        let base = QuickStartAccess()
+        var identity: ClubReadIdentity? { base.identity }
+        var isConfigured: Bool { base.isConfigured }
+        var storageNamespace: String { base.storageNamespace }
+        var authorizationGeneration: UUID? { base.authorizationGeneration }
+        let allowsOfflineWrites = true
+        var sends = 0
+        func read(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue]) async throws -> ClubGovernanceSnapshot {
+            if operation == .members {
+                let proof = try base.snapshot(operation: operation, scope: scope)
+                return .init(operation: operation, scope: scope, permissions: proof.permissions,
+                             value: .array([.object(["memberId": .integer(41)])]))
+            }
+            return try base.snapshot(operation: operation, scope: scope)
+        }
+        func send(_ review: ClubGovernanceReview) async throws -> ClubGovernanceValue {
+            sends += 1
+            return .object(["id": .integer(404), "clubId": .integer(81), "topicId": .integer(92),
+                            "createdByMemberId": .integer(701), "requestId": review.command.fields["requestId"] ?? .null])
+        }
+    }
+    func testFreshQuickStartThroughRealCoordinatorMatchesCreateAndDefersUntilVisible() async throws {
+        let reader = QuickStartReader(), access = CreationAccess(), model = ClubSessionQuickStartModel()
+        let context = ClubSessionQuickStartContext(club: reader.club, reader: reader, access: access, viewerRevision: 7)
+        model.bind(context); let permit = try XCTUnwrap(model.activate(context))
+        let selected = await model.read(permit, selecting: 92, reader: reader, access: access, viewerRevision: { 7 })
+        let target = try XCTUnwrap(selected), source = try XCTUnwrap(ClubSeriesCreationReturn.Source.quickStart(target, access: access))
+        let owner = ClubSeriesCreationReturn(); owner.open(source, visible: true, active: true)
+        let item = try XCTUnwrap(owner.item)
+        var draft = ClubGovernanceFormDraft(operation: .createSeries, scope: item.route.scope,
+                                            seed: ["defaultLeadMemberId": .integer(41)])
+        draft.text["startDate"] = "2099-01-01"
+        let coordinator = ClubGovernanceCoordinator(access: access), review = try await coordinator.prepare(draft.command())
+        XCTAssertTrue(owner.begin(review, state: coordinator.state, item: item, source: source, active: true))
+        let value = try await coordinator.confirm(review)
+        owner.acknowledge(review, value: value, state: coordinator.state, item: item, source: source, active: true)
+        owner.dismissed(item, source: source, active: true)
+        XCTAssertNil(owner.consume(source: source, visible: false, active: true))
+        let destination = try XCTUnwrap(owner.consume(source: source, visible: true, active: true))
+        XCTAssertEqual(destination.receipt.scope, .init(clubID: 81, topicID: 92, seriesID: 404))
+        XCTAssertTrue(owner.destinationIsCurrent(destination, context: context.topicsContext, access: access))
+        XCTAssertTrue(coordinator.isLocked(review.command, identity: review.identity)); XCTAssertEqual(access.sends, 1)
+    }
+}

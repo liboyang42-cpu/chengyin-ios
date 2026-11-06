@@ -57,13 +57,18 @@ public struct RoamPlace: Decodable, Equatable, Identifiable {
     public let radiusM: Int?
     public let address: String?
     public let description: String?
+    /// A String-origin field for merchant display; legacy description decoding remains unchanged.
+    public let merchantDescriptionText: String?
+    /// Original /roam/pois display fields; absent/malformed values do not invent categories/artwork.
+    public let tags: [String]
+    public let coverImage: String?
     public let xp: Int?
     public let couponTemplateId: Int?
     public let found: Bool?
     public let pendingRedeem: Bool?
     public var readStatus: RoamPlaceReadStatus { .init(found: found, pendingRedeem: pendingRedeem) }
     public var isSupported: Bool { id > 0 && (type == 1 || type == 2) }
-    enum CodingKeys: String, CodingKey { case id, name, lat, lng, type, radiusM, address, description, xp, couponTemplateId, found, pendingRedeem }
+    enum CodingKeys: String, CodingKey { case id, name, lat, lng, type, radiusM, address, description, xp, couponTemplateId, found, pendingRedeem, tags, coverImg }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decodeIfPresent(Int.self, forKey: .id) ?? 0
@@ -72,6 +77,11 @@ public struct RoamPlace: Decodable, Equatable, Identifiable {
         type = try c.decodeIfPresent(Int.self, forKey: .type) ?? 1
         radiusM = try c.decodeIfPresent(Int.self, forKey: .radiusM)
         address = try c.roamText(.address); description = try c.roamText(.description)
+        merchantDescriptionText = type == 2 ? (try? c.decode(String.self, forKey: .description)) : nil
+        let rawTags = (try? c.decode(String.self, forKey: .tags))?.trimmingCharacters(in: .whitespacesAndNewlines)
+        tags = rawTags == "null" ? [] : (rawTags ?? "").components(separatedBy: CharacterSet(charactersIn: ",，、;；|").union(.whitespacesAndNewlines)).filter { !$0.isEmpty }
+        let cover = (try? c.decode(String.self, forKey: .coverImg))?.trimmingCharacters(in: .whitespacesAndNewlines)
+        coverImage = cover?.isEmpty == false && cover != "null" ? cover : nil
         xp = try c.decodeIfPresent(Int.self, forKey: .xp)
         couponTemplateId = try c.decodeIfPresent(Int.self, forKey: .couponTemplateId)
         // Numeric/string truthiness is not part of this Boolean response contract.
@@ -197,10 +207,12 @@ public struct RoamNodeDetail: Decodable, Equatable, Identifiable {
     public let favorited: Bool
     public let canInteract: Bool?
     public let needRedeem: Bool
+    /// Present when completing the node grants a merchant coupon (mini-program 完成领券). Display only.
+    public let couponId: Int?
     public var isPublished: Bool { status == 1 }
     enum CodingKeys: String, CodingKey {
         case poiId, name, description, lat, lng, radiusM, nodeLevel, tags, status, merchantId
-        case merchantName, merchantAddress, templateTitle, validationMethod, completed, favorited, canInteract, needRedeem
+        case merchantName, merchantAddress, templateTitle, validationMethod, completed, favorited, canInteract, needRedeem, couponId
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -219,6 +231,7 @@ public struct RoamNodeDetail: Decodable, Equatable, Identifiable {
         favorited = (try? c.decode(Bool.self, forKey: .favorited)) == true
         canInteract = try c.decodeIfPresent(Bool.self, forKey: .canInteract)
         needRedeem = try c.decodeIfPresent(Bool.self, forKey: .needRedeem) ?? false
+        couponId = c.roamInteger(.couponId).flatMap { $0 > 0 ? $0 : nil }
     }
 }
 
@@ -240,7 +253,8 @@ public struct RoamExploreDay: Decodable, Equatable, Identifiable {
     }
 }
 
-public enum RoamReadFailure: Error, Equatable { case searchAreaRequired, nodeNotFound }
+/// `nodeUnavailable`: the city node answered 410 (据点未开放或已下线). It is not retryable.
+public enum RoamReadFailure: Error, Equatable { case searchAreaRequired, nodeNotFound, nodeUnavailable }
 
 struct RoamRows<T: Decodable>: Decodable {
     let values: [T]

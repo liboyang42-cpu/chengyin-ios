@@ -30,6 +30,10 @@ final class NativeSettingsReuseFlowTests: XCTestCase {
         tap("跟随系统")
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 10))
         XCTAssertEqual(app.staticTexts["region.market.value"].label, "US")
+        // Signed out: no identity applications or sign-out row (mini-program shows them only with an account).
+        XCTAssertFalse(app.buttons["settings.becomeClubHost"].exists)
+        XCTAssertFalse(app.buttons["settings.becomeMerchant"].exists)
+        XCTAssertFalse(app.buttons["settings.signOut"].exists)
         tap("Done"); app.terminate()
         app.launchArguments = ["--uitesting-market", "US", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         app.launch(); tap("welcome.settings")

@@ -34,18 +34,114 @@ import XCTest
             XCTAssertTrue(title.waitForExistence(timeout: 5), app.debugDescription)
             XCTAssertFalse(app.buttons["templateAuthor.shelf.refresh"].isHittable)
             app.navigationBars.buttons.firstMatch.tap()
-            XCTAssertTrue(app.buttons["templateAuthor.shelf.refresh"].waitForExistence(timeout: 5))
+            let refresh = app.buttons["templateAuthor.shelf.refresh"]
+            XCTAssertTrue(refresh.waitForExistence(timeout: 5))
+            let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isEnabled == true"), object: refresh)
+            XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 5), .completed)
             reveal(app.buttons["templateAuthor.shelf.library.901"], in: app)
             XCTAssertTrue(app.buttons["templateAuthor.shelf.library.901"].isEnabled)
             app.buttons["templateAuthor.fixture.reopen"].tap()
         }
     }
+    func testSearchSubmissionDetailReturnAndClearUseOrdinaryShelfControls() {
+        let app = app(); defer { attachFailureScreenshot(self, app: app); app.terminate() }
+        let field = app.textFields["templateAuthor.shelf.keyword"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        let detail = app.buttons["memberTemplate.mine.901"]
+        reveal(detail, in: app)
+        reveal(field, in: app, towardTop: true)
+        field.tap(); field.typeText("Synthetic")
+        // Pending input must not label the previous query's rows as fresh results.
+        XCTAssertFalse(detail.exists)
+        field.typeText("\n")
+        reveal(detail, in: app); detail.tap()
+        XCTAssertTrue(app.staticTexts["Synthetic owned detail"].waitForExistence(timeout: 5))
+        app.navigationBars.buttons.firstMatch.tap()
+        let refresh = app.buttons["templateAuthor.shelf.refresh"]
+        XCTAssertTrue(refresh.waitForExistence(timeout: 5))
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isEnabled == true"), object: refresh)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 5), .completed)
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        XCTAssertEqual(field.value as? String, "Synthetic")
+        let clear = app.buttons["templateAuthor.shelf.clearSearch"]
+        reveal(clear, in: app, towardTop: true); clear.tap()
+        reveal(detail, in: app)
+        XCTAssertFalse(clear.exists)
+    }
+    func testKeyboardClearingUnsubmittedQueryRestoresShelfWithoutClearButton() {
+        let app = app(); defer { attachFailureScreenshot(self, app: app); app.terminate() }
+        let field = app.textFields["templateAuthor.shelf.keyword"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        let detail = app.buttons["memberTemplate.mine.901"]
+        reveal(detail, in: app)
+        reveal(field, in: app, towardTop: true)
+        field.tap(); field.typeText("Synthetic\n")
+        reveal(detail, in: app)
+        reveal(field, in: app, towardTop: true)
+        field.tap(); field.typeText("B")
+        XCTAssertFalse(detail.exists)
+        XCTAssertFalse(app.buttons["templateAuthor.shelf.library.901"].exists)
+        XCTAssertFalse(app.buttons["templateAuthor.shelf.delete.901"].exists)
+        XCTAssertFalse(app.buttons["templateAuthor.shelf.loadMore"].exists)
+        let clear = app.buttons["templateAuthor.shelf.clearSearch"]
+        XCTAssertTrue(clear.exists)
+        // Deleting only the unsubmitted character must show A's rows again, not start a clear.
+        field.typeText(XCUIKeyboardKey.delete.rawValue)
+        reveal(detail, in: app)
+        XCTAssertTrue(clear.exists)
+        reveal(field, in: app, towardTop: true)
+        field.tap(); field.typeText("B")
+        XCTAssertFalse(detail.exists)
+        field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: "SyntheticB".count))
+        XCTAssertFalse(clear.exists)
+        reveal(detail, in: app)
+        let library = app.buttons["templateAuthor.shelf.library.901"]
+        reveal(library, in: app)
+        XCTAssertTrue(library.isEnabled)
+    }
+    func testExplicitClearOfUnsubmittedDraftRefreshesUnfilteredShelf() {
+        let app = app(); defer { attachFailureScreenshot(self, app: app); app.terminate() }
+        let library = app.buttons["templateAuthor.shelf.library.901"]
+        reveal(library, in: app); library.tap()
+        let confirm = app.buttons["templateAuthor.shelf.confirm"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5)); confirm.tap()
+        let status = app.staticTexts["templateAuthor.shelf.status"]
+        reveal(status, in: app)
+        XCTAssertEqual(status.label, "Simulation completed. No template was saved to a server or published.")
+        let field = app.textFields["templateAuthor.shelf.keyword"]
+        reveal(field, in: app, towardTop: true); field.tap(); field.typeText("draft")
+        XCTAssertFalse(library.exists)
+        let clear = app.buttons["templateAuthor.shelf.clearSearch"]
+        reveal(clear, in: app, towardTop: true); clear.tap()
+        reveal(library, in: app)
+        XCTAssertTrue(library.isEnabled)
+        XCTAssertFalse(clear.exists)
+        // A real refresh clears the old completion status; merely unhiding rows does not.
+        // The one-row fixture places status after Delete. Visit the list bottom so
+        // lazy/offscreen List elements cannot make this absence assertion pass.
+        let delete = app.buttons["templateAuthor.shelf.delete.901"]
+        reveal(delete, in: app)
+        delete.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2)))
+        XCTAssertFalse(status.exists)
+    }
+    func testChineseClearSearchLabelAndUnsubmittedQueryHidePriorActions() {
+        let app = app(language: "zh-Hans")
+        defer { attachFailureScreenshot(self, app: app); app.terminate() }
+        let field = app.textFields["templateAuthor.shelf.keyword"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        reveal(app.buttons["memberTemplate.mine.901"], in: app)
+        reveal(field, in: app, towardTop: true); field.tap(); field.typeText("abc")
+        XCTAssertFalse(app.buttons["templateAuthor.shelf.library.901"].exists)
+        XCTAssertFalse(app.buttons["templateAuthor.shelf.delete.901"].exists)
+        XCTAssertFalse(app.buttons["templateAuthor.shelf.loadMore"].exists)
+        XCTAssertEqual(app.buttons["templateAuthor.shelf.clearSearch"].label, "清除搜索")
+    }
     func testLibraryReviewShowsIdentityAndCancellationDoesNotSubmit() {
         let app = app(); defer { attachFailureScreenshot(self, app: app); app.terminate() }; let button = app.buttons["templateAuthor.shelf.library.901"]
-        XCTAssertTrue(button.waitForExistence(timeout: 3)); button.tap()
-        let identity = app.descendants(matching: .any)["templateAuthor.shelf.identity"].firstMatch
-        XCTAssertTrue(identity.waitForExistence(timeout: 5), app.debugDescription)
-        XCTAssertEqual(identity.value as? String, "901")
+        reveal(button, in: app); XCTAssertTrue(button.waitForExistence(timeout: 3)); button.tap()
+        let question = app.staticTexts["templateAuthor.shelf.question"]
+        XCTAssertTrue(question.waitForExistence(timeout: 5), app.debugDescription)
         app.buttons["templateAuthor.shelf.cancel"].tap()
         XCTAssertFalse(app.buttons["templateAuthor.shelf.confirm"].exists)
         XCTAssertTrue(button.isEnabled)
@@ -53,18 +149,21 @@ import XCTest
     func testDeleteRequiresSeparateReviewAndSimulationIsLabelled() {
         let app = app(); defer { attachFailureScreenshot(self, app: app); app.terminate() }; let button = app.buttons["templateAuthor.shelf.delete.901"]
         reveal(button, in: app); XCTAssertTrue(button.waitForExistence(timeout: 3)); XCTAssertTrue(button.isEnabled); button.tap()
-        XCTAssertTrue(app.staticTexts["Delete this exact template from your own shelf? This may not be reversible."].exists)
-        app.buttons["templateAuthor.shelf.confirm"].tap()
+        XCTAssertTrue(app.staticTexts["templateOwnShelf.delete.title"].waitForExistence(timeout: 5))
+        let confirm = app.buttons["templateAuthor.shelf.confirm"]
+        reveal(confirm, in: app); confirm.tap()
         let status = app.staticTexts["templateAuthor.shelf.status"]
         reveal(status, in: app)
         XCTAssertEqual(status.label, "Simulation completed. No template was saved to a server or published.")
     }
     func testUnknownLocksBothActionsAcrossReopen() {
         let app = app(["--template-author-unknown"]); defer { attachFailureScreenshot(self, app: app); app.terminate() }; let button = app.buttons["templateAuthor.shelf.delete.901"]
-        reveal(button, in: app); XCTAssertTrue(button.waitForExistence(timeout: 3)); XCTAssertTrue(button.isEnabled); button.tap(); app.buttons["templateAuthor.shelf.confirm"].tap()
+        reveal(button, in: app); XCTAssertTrue(button.waitForExistence(timeout: 3)); XCTAssertTrue(button.isEnabled); button.tap()
+        let confirm = app.buttons["templateAuthor.shelf.confirm"]
+        reveal(confirm, in: app); confirm.tap()
         let status = app.staticTexts["templateAuthor.shelf.status"]
         reveal(status, in: app)
-        XCTAssertEqual(status.label, "This change is unresolved. Further shelf changes are locked; refreshing alone cannot confirm an unknown request.")
+        XCTAssertEqual(status.label, "We couldn’t confirm whether your last change went through. Changes are paused until it’s resolved.")
         app.buttons["templateAuthor.fixture.reopen"].tap()
         reveal(button, in: app, requiresHittable: false); XCTAssertTrue(button.waitForExistence(timeout: 3)); XCTAssertFalse(button.isEnabled)
         let library = app.buttons["templateAuthor.shelf.library.901"]
@@ -98,5 +197,33 @@ import XCTest
         XCTAssertEqual(cancel.label, "取消"); cancel.tap()
         XCTAssertFalse(app.buttons["templateAuthor.shelf.confirm"].exists)
         XCTAssertTrue(button.isEnabled)
+    }
+    func testDeleteReviewShowsSourceDangerCopyAndCancelDoesNotSubmit() {
+        let app = app(); defer { attachFailureScreenshot(self, app: app); app.terminate() }
+        let button = app.buttons["templateAuthor.shelf.delete.901"]
+        reveal(button, in: app)
+        XCTAssertTrue(button.waitForExistence(timeout: 3)); button.tap()
+        let question = app.staticTexts["templateOwnShelf.delete.title"]
+        XCTAssertTrue(question.waitForExistence(timeout: 5))
+        attachFixtureScreenshot(self, app: app, name: "Owned template deletion confirmation")
+        app.buttons["templateAuthor.shelf.cancel"].tap()
+        XCTAssertFalse(app.buttons["templateAuthor.shelf.confirm"].exists)
+        XCTAssertTrue(button.isEnabled)
+        button.tap()
+        let confirm = app.buttons["templateAuthor.shelf.confirm"]
+        reveal(confirm, in: app)
+        XCTAssertTrue(confirm.waitForExistence(timeout: 3))
+    }
+    func testOwnedCardShowsZeroDurationAndNoMarketplacePublishButton() {
+        let app = app(); defer { attachFailureScreenshot(self, app: app); app.terminate() }
+        let duration = app.staticTexts["templateOwnShelf.card.duration.901"]
+        reveal(duration, in: app)
+        XCTAssertEqual(duration.label, "0 min")
+        attachFixtureScreenshot(self, app: app, name: "Owned template card with known zero duration")
+        XCTAssertFalse(app.buttons["templateOwnShelf.market.plan.901"].exists)
+        XCTAssertFalse(app.buttons["templateOwnShelf.market.held.901"].exists)
+        let library = app.buttons["templateAuthor.shelf.library.901"]
+        reveal(library, in: app)
+        XCTAssertTrue(library.isEnabled)
     }
 }

@@ -1,19 +1,30 @@
 import SwiftUI
 
 @MainActor struct ClubActivityListContent: View {
-    let overview: ClubActivityOverview
+    let rows: [ClubActivityRow]
     let canOpen: Bool
     let open: (ClubActivityRow) -> Void
     var report: ((ClubActivityRow) -> AnyView)? = nil
+    init(overview: ClubActivityOverview, canOpen: Bool, open: @escaping (ClubActivityRow) -> Void,
+         report: ((ClubActivityRow) -> AnyView)? = nil) {
+        self.init(rows: overview.rows, canOpen: canOpen, open: open, report: report)
+    }
+    /// Display rows do not imply a governance snapshot or any mutation authority.
+    init(rows: [ClubActivityRow], canOpen: Bool, open: @escaping (ClubActivityRow) -> Void,
+         report: ((ClubActivityRow) -> AnyView)? = nil) {
+        self.rows = rows; self.canOpen = canOpen; self.open = open; self.report = report
+    }
+    private var currentRows: [ClubActivityRow] { rows.filter { $0.status != .ended } }
+    private var endedRows: [ClubActivityRow] { rows.filter { $0.status == .ended } }
     var body: some View {
         Section("club.activityList.current") {
             Text("club.activityList.timeZone").font(.caption).foregroundStyle(.secondary)
-            if overview.rows.isEmpty { Text("club.calendar.noEvents").accessibilityIdentifier("club.calendar.empty") }
-            else if overview.current.isEmpty { Text("club.activityList.noCurrent").accessibilityIdentifier("club.activityList.current.empty") }
-            ForEach(overview.current) { row in item(row) }
+            if rows.isEmpty { Text("club.calendar.noEvents").accessibilityIdentifier("club.calendar.empty") }
+            else if currentRows.isEmpty { Text("club.activityList.noCurrent").accessibilityIdentifier("club.activityList.current.empty") }
+            ForEach(currentRows) { row in item(row) }
         }
-        if !overview.ended.isEmpty {
-            Section("club.activityList.ended") { ForEach(overview.ended) { row in item(row) } }
+        if !endedRows.isEmpty {
+            Section("club.activityList.ended") { ForEach(endedRows) { row in item(row) } }
         }
     }
     @ViewBuilder private func item(_ row: ClubActivityRow) -> some View {

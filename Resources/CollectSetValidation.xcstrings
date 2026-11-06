@@ -1,0 +1,150 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "version": "1.0",
+  "strings": {
+    "collectSet.validation.titleRequired": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写套组名称。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a set name."
+          }
+        }
+      }
+    },
+    "collectSet.validation.titleTooLong": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名称超过原规则的120个UTF-16单位；请缩短，内容不会自动截断。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The name exceeds the original limit of 120 UTF-16 units. Shorten it; text is not truncated automatically."
+          }
+        }
+      }
+    },
+    "collectSet.validation.nodesRequired": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请至少选择一个点位。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select at least one node."
+          }
+        }
+      }
+    },
+    "collectSet.validation.tooManyNodes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每组最多选择200个点位；请取消多余选择。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each set allows at most 200 nodes. Deselect the extras."
+          }
+        }
+      }
+    },
+    "collectSet.validation.duplicateNodes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点位选择重复，请重新核对。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The node selection contains duplicates. Review it again."
+          }
+        }
+      }
+    },
+    "collectSet.validation.missingNodes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分点位已不在当前草稿中，请返回原编辑器核对。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some nodes are no longer in the current draft. Check them in the original editor."
+          }
+        }
+      }
+    },
+    "collectSet.validation.invalidKey": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原套组标识无效，请返回原编辑器核对；不会自动改写。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original set identifier is invalid. Check it in the original editor; it will not be rewritten automatically."
+          }
+        }
+      }
+    },
+    "collectSet.validation.originalContract": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原草稿的套组、点位标识、组数或大小不符合保存合同，请返回原编辑器核对；未写入修改。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft’s sets, node identifiers, group count or size do not meet the original save contract. Check the original editor. No changes have been written."
+          }
+        }
+      }
+    },
+    "collectSet.validation.selectionCount": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选择 %lld / 200 个点位"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected %lld / 200 nodes"
+          }
+        }
+      }
+    }
+  }
+}

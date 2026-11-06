@@ -6,13 +6,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try this configuration locally"
+            "value": "Try it"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本地试玩当前配置"
+            "value": "试玩"
           }
         }
       }

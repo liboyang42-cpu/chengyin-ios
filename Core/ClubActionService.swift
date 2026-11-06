@@ -13,11 +13,12 @@ public struct ClubActionService {
         self.configuration = configuration; self.transport = transport
         reader = ClubService(configuration: configuration, transport: transport)
     }
+    func accepts(_ approval: ClubOrdinaryAdmissionApproval) -> Bool { approval.baseURL == configuration.baseURL }
     func detail(id: Int, token: String) async throws -> ClubRecord {
         try await reader.detail(id: id, token: token)
     }
     // Session writer is the public dispatch boundary and revalidates a fresh detail.
-    func perform(_ action: ClubAction, clubID: Int, token: String, joinMessage: String = "") async throws -> ClubActionReceipt {
+    func perform(_ action: ClubAction, clubID: Int, token: String, joinMessage: String = "", original: ClubOrdinaryAdmissionPending? = nil) async throws -> ClubActionReceipt {
         var request: URLRequest
         do {
             guard clubID > 0, AuthRequestBuilder.isValidToken(token), ClubApplicationMessage.isValid(joinMessage, for: action) else { throw APIError.invalidRequest }
@@ -31,6 +32,15 @@ public struct ClubActionService {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             var fields: [String: Any] = ["id": clubID]
             if action == .apply { fields["joinMessage"] = joinMessage }
+            if let original {
+                guard original.clubID == clubID, original.action == action, original.hasOriginalReceipt else { throw APIError.invalidRequest }
+                let reviewed = ClubOrdinaryAdmissionPending(accountID: original.accountID, clubID: clubID,
+                    requestID: original.requestID, action: action, hasOriginalReceipt: true, message: joinMessage)
+                guard original == reviewed else { throw APIError.invalidRequest }
+                request.setValue(original.requestID.uuidString.lowercased(), forHTTPHeaderField: "X-Club-Admission-Request-Id")
+                request.setValue(action.rawValue, forHTTPHeaderField: "X-Club-Admission-Action")
+                request.setValue(original.payloadSHA256, forHTTPHeaderField: "X-Club-Admission-Payload-SHA256")
+            }
             request.httpBody = try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])
         } catch { throw ClubActionWriteError.notSent(.invalidRequest) }
         guard !Task.isCancelled else { throw ClubActionWriteError.cancelledBeforeDispatch }
@@ -48,8 +58,29 @@ public struct ClubActionService {
         guard (200..<300).contains(status) else { throw ClubActionWriteError.outcomeUnknown(.response(failure)) }
         guard let envelope, let code = envelope.code else { throw ClubActionWriteError.outcomeUnknown(.malformedResponse) }
         guard code == 200 else { throw ClubActionWriteError.rejected(failure) }
+        if let original {
+            guard let fact = try? JSONDecoder().decode(OriginalEnvelope.self, from: data).data,
+                  fact.matches(original), fact.state == "APPLIED" else { throw ClubActionWriteError.outcomeUnknown(.malformedResponse) }
+            return ClubActionReceipt(state: fact.membershipState, message: envelope.msg)
+        }
         return ClubActionReceipt(state: envelope.data?.state, message: envelope.msg)
     }
+    func recover(_ pending: ClubOrdinaryAdmissionPending, token: String) async throws -> ClubOrdinaryAdmissionOriginalReceipt {
+        guard pending.hasOriginalReceipt else { throw APIError.notConfigured }
+        var request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/club/admission/receipt"), fields: [:], token: token)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["clubId": pending.clubID, "requestId": pending.requestID.uuidString.lowercased(), "action": pending.action.rawValue, "payloadSHA256": pending.payloadSHA256])
+        try Task.checkCancellation()
+        let (data, status) = try await transport.send(request)
+        try Task.checkCancellation()
+        let response = try? JSONDecoder().decode(Response.self, from: data)
+        if status == 401 || response?.code == 401 { throw ClubReadFailure.unauthorized(message: response?.msg) }
+        guard (200..<300).contains(status), response?.code == 200,
+              let fact = try? JSONDecoder().decode(OriginalEnvelope.self, from: data).data, fact.matches(pending) else { throw APIError.malformedResponse }
+        return fact
+    }
+    private struct OriginalEnvelope: Decodable { let data: ClubOrdinaryAdmissionOriginalReceipt }
     private struct Response: Decodable {
         let code: Int?, msg: String?, data: Payload?
         enum CodingKeys: String, CodingKey { case code, msg, data }

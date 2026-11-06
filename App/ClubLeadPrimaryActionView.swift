@@ -132,7 +132,9 @@ import SwiftUI
                     .environment(\.clubOwnerRefundCoordinator, governance.ownerRefund)
                     .environment(\.clubOpsTimeFactory, governance.opsTimeFactory)
                     .environment(\.clubCustomerTopics, governance.customerTopics)
-                    .environment(\.clubStoryTemplates, governance.storyTemplates))
+                    .environment(\.clubStoryTemplates, governance.storyTemplates)
+                    .environment(\.clubTerminalSessions, governance.terminalSessions)
+                    .environment(\.clubOwnerFunds, governance.ownerFunds))
             }
         })
     }

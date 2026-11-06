@@ -19,7 +19,7 @@ enum ProfileTextField: String, CaseIterable {
         case .caseIntroduction: return draft.caseIntroduction ?? ""
         case .contactQR: return "" // Contact QR uses the action-only editor; never expose a raw URL input.
         case .preferences: return "" // Selection actions use a dedicated editor, never free-form IDs.
-        case .casePictures: return "" // All-image removal has an action-only editor.
+        case .casePictures: return "" // Source-index removal has an action-only editor.
         }
     }
 }
@@ -44,12 +44,14 @@ struct ProfileTextFieldEdit: Identifiable {
 struct ProfileTextFieldEditor: View {
     let edit: ProfileTextFieldEdit
     let caseImageReader: (any RetainedPublicImageReading)?
+    let nicknameReader: (any ProfileNicknameAvailabilityReading)?
     let cancel: () -> Void
     let confirm: (String) -> Void
     @State private var text: String
     @FocusState private var focused: Bool
-    init(edit: ProfileTextFieldEdit, caseImageReader: (any RetainedPublicImageReading)? = nil, cancel: @escaping () -> Void, confirm: @escaping (String) -> Void) {
+    init(edit: ProfileTextFieldEdit, caseImageReader: (any RetainedPublicImageReading)? = nil, nicknameReader: (any ProfileNicknameAvailabilityReading)? = nil, cancel: @escaping () -> Void, confirm: @escaping (String) -> Void) {
         self.edit = edit; self.caseImageReader = caseImageReader; self.cancel = cancel; self.confirm = confirm
+        self.nicknameReader = nicknameReader
         _text = State(initialValue: edit.originalText)
     }
     var body: some View {
@@ -65,6 +67,15 @@ struct ProfileTextFieldEditor: View {
                     TextField(LocalizedStringKey(edit.field.titleKey), text: $text)
                         .textContentType(.nickname).focused($focused)
                         .accessibilityIdentifier("profile.edit.name")
+                    ProfileFieldLimitCounter(text: text)
+                    ProfileNicknameSheetSection(edit: edit, text: $text, reader: nicknameReader)
+                        .id(nicknameReader?.sourceRevision)
+                } else if edit.field == .introduction {
+                    TextField(LocalizedStringKey(edit.field.titleKey), text: $text,
+                              prompt: Text("member.profile.introductionPrompt", tableName: "MemberProfile"), axis: .vertical)
+                        .lineLimit(3...8).focused($focused)
+                        .accessibilityIdentifier("profile.edit.introduction")
+                    ProfileFieldLimitCounter(text: text)
                 } else if edit.field == .caseIntroduction, edit.snapshot.caseIntroduction == nil {
                     Text("profile.case.descriptionUnavailable")
                         .accessibilityIdentifier("profile.case.descriptionUnavailable")
@@ -78,7 +89,7 @@ struct ProfileTextFieldEditor: View {
                 if edit.draft.removesCasePictures {
                     Text("profile.caseRemoval.staged").accessibilityIdentifier("profile.caseRemoval.stagedInDescription")
                 } else {
-                    ProfileCasePortfolioSection(casePics: edit.snapshot.casePics, scope: edit.id, reader: caseImageReader)
+                    ProfileCasePortfolioSection(casePics: edit.draft.casePictureSubset.flatMap { $0.matches(source: edit.snapshot.casePics) ? $0.wireValue : nil } ?? edit.snapshot.casePics, scope: edit.id, reader: caseImageReader)
                 }
             }
         }
@@ -94,7 +105,20 @@ struct ProfileTextFieldEditor: View {
                     .disabled(edit.field == .contactQR || (edit.field == .caseIntroduction && edit.snapshot.caseIntroduction == nil))
                     .disabled(edit.field == .preferences)
                     .disabled(edit.field == .casePictures)
+                    .disabled((edit.field == .name || edit.field == .introduction) && ProfileFieldLimit.exceeds(text))
             }
         }
+    }
+}
+
+/// N/140, as the source field counter.
+struct ProfileFieldLimitCounter: View {
+    let text: String
+    var body: some View {
+        Text(verbatim: "\(ProfileFieldLimit.count(text))/\(ProfileFieldLimit.maxUTF16)")
+            .font(.caption.monospacedDigit())
+            .foregroundStyle(ProfileFieldLimit.exceeds(text) ? Color.red : Color.secondary)
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .accessibilityIdentifier("profile.edit.limit")
     }
 }

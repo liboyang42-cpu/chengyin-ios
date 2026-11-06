@@ -1,7 +1,7 @@
 {
   "merchant.operations.title": {
-    "en": "Store operations",
-    "zh-Hans": "门店经营"
+    "en": "Brand center",
+    "zh-Hans": "品牌中心"
   },
   "merchant.operations.profile": {
     "en": "Store profile",
@@ -24,8 +24,8 @@
     "zh-Hans": "承接设置"
   },
   "merchant.operations.character": {
-    "en": "Store character",
-    "zh-Hans": "门店形象"
+    "en": "AI store character",
+    "zh-Hans": "AI 店铺角色"
   },
   "merchant.operations.assets": {
     "en": "Voice and 3D resources",
@@ -104,7 +104,7 @@
     "zh-Hans": "从本地草稿移除"
   },
   "merchant.operations.addExampleImage": {
-    "en": "Add synthetic image placeholder",
+    "en": "Add example image placeholder",
     "zh-Hans": "添加示例图片占位"
   },
   "merchant.operations.storyBody": {
@@ -324,8 +324,8 @@
     "zh-Hans": "声音资源"
   },
   "merchant.operations.voice.unset": {
-    "en": "Not configured",
-    "zh-Hans": "未配置"
+    "en": "Not set",
+    "zh-Hans": "未设置"
   },
   "merchant.operations.voice.generating": {
     "en": "Generating",
@@ -352,8 +352,8 @@
     "zh-Hans": "生成失败"
   },
   "merchant.operations.providerAvailable": {
-    "en": "Provider reports availability",
-    "zh-Hans": "服务端报告可用"
+    "en": "Available",
+    "zh-Hans": "可用"
   },
   "merchant.operations.providerUnavailable": {
     "en": "Provider unavailable",
@@ -372,8 +372,8 @@
     "zh-Hans": "暂无可展示图片"
   },
   "merchant.operations.syntheticArtwork": {
-    "en": "Synthetic placeholder; no remote image",
-    "zh-Hans": "示例占位，不读取远程图片"
+    "en": "Example placeholder image",
+    "zh-Hans": "示例占位图"
   },
   "merchant.operations.discardTitle": {
     "en": "Discard local changes?",
@@ -392,8 +392,8 @@
     "zh-Hans": "这些修改尚未发送到门店。"
   },
   "merchant.operations.exampleBoundary": {
-    "en": "Synthetic offline examples. Edits never change a real store, review decision, order, or provider resource.",
-    "zh-Hans": "离线示例数据。编辑不会改变真实门店、审核结果、订单或供应商资源。"
+    "en": "Example content. Edits won't change any real store, review result, order or resource.",
+    "zh-Hans": "示例内容。编辑不会改变真实门店、审核结果、订单或资源。"
   },
   "merchant.operations.liveDisabled": {
     "en": "Live saving is unavailable. These forms only prepare local drafts.",
@@ -424,16 +424,16 @@
     "zh-Hans": "示例结果未确认，保存已锁定；再次读取不能证明之前的操作失败。"
   },
   "merchant.operations.conflict": {
-    "en": "The source changed while you were reviewing. Reload before preparing another draft.",
-    "zh-Hans": "检查草稿期间来源已变更，请重新读取后再编辑。"
+    "en": "This content changed while you were reviewing. Reload before making another draft.",
+    "zh-Hans": "查看期间内容已更新，请刷新后再编辑。"
   },
   "merchant.operations.confirmExampleBody": {
     "en": "Save this frozen draft only to the offline example for this session?",
     "zh-Hans": "是否仅将这份草稿保存到本次会话的离线示例？"
   },
   "merchant.operations.reviewNoApproval": {
-    "en": "A saved draft does not mean content approval, public visibility, or activation.",
-    "zh-Hans": "草稿保存不代表内容审核通过、公开可见或业务生效。"
+    "en": "Saving a draft doesn't mean it's approved, public or live.",
+    "zh-Hans": "保存草稿不代表内容已通过审核、公开可见或已生效。"
   },
   "merchant.operations.profileWhitelist": {
     "en": "This editor includes name, introduction, merchandise, derivative benefits, website, preferences and the existing logo. Contact and eligibility fields are not edited here.",
@@ -452,28 +452,28 @@
     "zh-Hans": "最多 9 张图片，移除操作只修改本地草稿。"
   },
   "merchant.operations.uploadDisabled": {
-    "en": "Image selection, permissions and real uploads are not enabled. Existing references are preserved.",
-    "zh-Hans": "尚未开放图片选择、权限申请和真实上传，原有图片引用会保留。"
+    "en": "Image selection and upload aren't available right now. Existing images are kept.",
+    "zh-Hans": "图片选择与上传暂不可用，原有图片会保留。"
   },
   "merchant.operations.storyHint": {
-    "en": "Story body only, up to 300 UTF-16 units. The existing hidden title is preserved; the source save uses two separate operations.",
-    "zh-Hans": "仅编辑故事正文，最多 300 个 UTF-16 单元。保留原有隐藏标题，来源保存涉及两个独立操作。"
+    "en": "Edit the story text only, up to 300 characters. The existing title stays the same.",
+    "zh-Hans": "仅编辑故事正文，最多 300 字。原有标题保持不变。"
   },
   "merchant.operations.coopPreserved": {
-    "en": "Activity types and cooperation availability are hidden source fields and will be preserved.",
-    "zh-Hans": "适合活动类型与合作开放状态为隐藏来源字段，会原样保留。"
+    "en": "Activity types and cooperation settings stay as they are.",
+    "zh-Hans": "适合的活动类型与合作开放状态将保持不变。"
   },
   "merchant.operations.characterReviewHint": {
     "en": "This is the private store character. Its review state is independent from public visibility, voice and 3D generation.",
     "zh-Hans": "这是门店私有形象配置，其审核状态与公开展示、声音及 3D 生成分别独立。"
   },
   "merchant.operations.templateOwnerOnly": {
-    "en": "Private template answers are read from the owner-only detail endpoint.",
-    "zh-Hans": "模板答案仅从所有者专用详情接口读取。"
+    "en": "Template answers are visible to the owner only.",
+    "zh-Hans": "模板答案仅所有者可见。"
   },
   "merchant.operations.templateOmissions": {
-    "en": "Blank optional fields are omitted by the source contract; blanking one does not request deletion of its saved value.",
-    "zh-Hans": "来源契约会省略空的可选字段；清空输入不代表删除已存值。"
+    "en": "Clearing an optional field won't delete its saved value.",
+    "zh-Hans": "清空选填项不会删除已保存的内容。"
   },
   "merchant.operations.templatePageLimit": {
     "en": "The source reads page 1 with up to 100 templates. This is not a complete or paginated inventory.",
@@ -484,20 +484,20 @@
     "zh-Hans": "此处尚未开放据点认领、投放、撤回、上下架和核销操作。"
   },
   "merchant.operations.quotaExhausted": {
-    "en": "The reported location limit has been reached.",
-    "zh-Hans": "服务端报告的据点配额已用完。"
+    "en": "You've reached your location limit.",
+    "zh-Hans": "据点数量已达上限。"
   },
   "merchant.operations.resourcesBoundary": {
-    "en": "Source-reported resources only. No recording, cloning, generation, playback, download or automatic polling.",
-    "zh-Hans": "仅展示来源报告的资源状态，不录音、克隆、生成、播放、下载或自动轮询。"
+    "en": "Shows resource status only. Recording, voice cloning, generation, playback and download aren't available here, and status doesn't refresh automatically.",
+    "zh-Hans": "仅展示资源状态，不支持录音、声音克隆、生成、播放或下载，也不会自动刷新。"
   },
   "merchant.operations.voiceDisabled": {
-    "en": "Voice consent, microphone access, sample upload and revocation are not enabled.",
-    "zh-Hans": "声音授权、麦克风权限、样本上传及撤销尚未开放。"
+    "en": "Voice consent, recording, sample upload and withdrawal aren't available right now.",
+    "zh-Hans": "声音授权、录音、样本上传及撤销暂不可用。"
   },
   "merchant.operations.avatarDisabled": {
-    "en": "Image upload, 3D generation and model downloads are not enabled.",
-    "zh-Hans": "图片上传、3D 生成及模型下载尚未开放。"
+    "en": "Image upload, 3D generation and model downloads aren't available right now.",
+    "zh-Hans": "图片上传、3D 生成及模型下载暂不可用。"
   },
   "merchant.operations.galleryLimit": {
     "en": "Keep at most 9 gallery images.",
@@ -528,8 +528,8 @@
     "zh-Hans": "形象名称不能超过 20 个 UTF-16 单元。"
   },
   "merchant.operations.characterAvatarRequired": {
-    "en": "An existing uploaded character avatar is required. Uploading is not enabled.",
-    "zh-Hans": "需要已有的已上传形象头像，当前尚未开放上传。"
+    "en": "A previously uploaded character avatar is required. Uploading isn't available right now.",
+    "zh-Hans": "需要已上传的形象头像，上传暂不可用。"
   },
   "merchant.operations.greetingLimit": {
     "en": "Keep the greeting within 60 UTF-16 units.",
@@ -576,8 +576,8 @@
     "zh-Hans": "请将正确答案指向已填写的 A–D 选项。"
   },
   "merchant.operations.reloadSource": {
-    "en": "Reload source",
-    "zh-Hans": "重新读取来源"
+    "en": "Reload",
+    "zh-Hans": "重新加载"
   },
   "merchant.operations.discardReload": {
     "en": "Discard and reload",
@@ -612,8 +612,8 @@
     "zh-Hans": "衍生权益不能超过 100 个 UTF-16 字符单位。"
   },
   "merchant.operations.profileReadback": {
-    "en": "The save was acknowledged. Showing the latest profile returned by the service.",
-    "zh-Hans": "保存已收到确认，当前展示服务端重新读取的最新资料。"
+    "en": "Saved. Showing your latest profile.",
+    "zh-Hans": "已保存，当前显示最新资料。"
   },
   "merchant.operations.profileReadbackFailed": {
     "en": "The save was acknowledged, but the latest profile could not be read. Retry only reloads current data; it will not send the edit again.",
@@ -672,8 +672,8 @@
     "zh-Hans": "仅修改营业中或已打烊的展示状态。保存前请确认，不改变报名或访问规则。"
   },
   "merchant.operations.statusReadback": {
-    "en": "The change was acknowledged. The current business status has been read back from the server.",
-    "zh-Hans": "修改已确认，已从服务器重新读取当前营业状态。"
+    "en": "Saved. Showing your current business status.",
+    "zh-Hans": "已保存，当前显示最新营业状态。"
   },
   "merchant.operations.statusReadbackFailed": {
     "en": "The change was acknowledged, but the current business status could not be refreshed. Reload to check it; do not repeat the save.",

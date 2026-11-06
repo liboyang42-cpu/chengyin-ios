@@ -190,7 +190,7 @@ extension EnvironmentValues {
         guard let context, let reasonCode else { return }
         do { review = try context.coordinator.prepare(snapshot: snapshot, reasonCode: reasonCode, description: description, access: context.access); message = nil }
         catch {
-            message = failureKey(error)
+            recordFailure(error)
             if error as? SquareReportFailure == .stale {
                 review = nil; self.reasonCode = nil; self.snapshot = nil
                 let identity = context.access.identity
@@ -215,7 +215,7 @@ extension EnvironmentValues {
                     do {
                         let value = try await context.coordinator.recover(target: target, expectedIdentity: identity, access: context.access)
                         guard ticket == generation, !Task.isCancelled else { return }; receipt = value
-                    } catch { if ticket == generation, !Task.isCancelled { message = failureKey(error) } }
+                    } catch { if ticket == generation, !Task.isCancelled { recordFailure(error) } }
                 }
                 return
             }
@@ -223,7 +223,7 @@ extension EnvironmentValues {
         do {
             let value = try await context.coordinator.reload(target: target, access: context.access)
             guard ticket == generation, !Task.isCancelled else { return }; snapshot = value
-        } catch { if ticket == generation, !Task.isCancelled { snapshot = nil; message = failureKey(error) } }
+        } catch { if ticket == generation, !Task.isCancelled { snapshot = nil; recordFailure(error) } }
     }
     private func submit(_ item: SquareReportReview) async {
         guard !busy, let context else { return }
@@ -236,7 +236,7 @@ extension EnvironmentValues {
         } catch {
             guard ticket == generation, context.access.identity == item.snapshot.identity else { return }
             review = nil; locked = context.coordinator.isLocked(target: target, identity: item.snapshot.identity)
-            message = failureKey(error)
+            recordFailure(error)
             if error as? SquareReportFailure == .stale {
                 reasonCode = nil; snapshot = nil; await load()
                 guard !Task.isCancelled, context.access.identity == item.snapshot.identity else { return }
@@ -251,7 +251,14 @@ extension EnvironmentValues {
         do {
             let updated = try await context.coordinator.refresh(value, target: target, expectedIdentity: identity, access: context.access)
             guard ticket == generation else { return }; receipt = updated; message = nil
-        } catch { if ticket == generation { message = failureKey(error) } }
+        } catch { if ticket == generation { recordFailure(error) } }
+    }
+    private func recordFailure(_ error: Error) {
+        message = failureKey(error)
+        if SquareReportReadPrivacy.hidesPrivateState(after: error) {
+            receipt = nil; snapshot = nil; review = nil; reasonCode = nil; showsReasons = false
+            // Preserve local text, original request and locked state. No write is retried.
+        }
     }
     private func failureKey(_ error: Error) -> String {
         switch error as? SquareReportFailure {

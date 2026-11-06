@@ -3,7 +3,7 @@ import SwiftUI
 
 @MainActor final class OfficialFixtureReader: OfficialEventReading {
     enum Scenario: String {
-        case content, empty, failure, retry, guest, unauthorized, noPermission, unconfigured, unavailable, paused, ended, unknown
+        case content, empty, failure, retry, guest, unauthorized, noPermission, unconfigured, unavailable, paused, ended, unknown, legacy
         case warningKnown, warningUnknown, warningAbsent, warningFalse, warningMalformed
     }
     let scenario: Scenario
@@ -47,6 +47,9 @@ import SwiftUI
         var json = OfficialEventSyntheticFixtures.eventJSON.replacingOccurrences(of: "\"id\":71", with: "\"id\":\(id)")
         if scenario == .paused { json = json.replacingOccurrences(of: "\"paused\":false", with: "\"paused\":true,\"pausedReason\":\"Synthetic pause reason\"") }
         if scenario == .ended { json = json.replacingOccurrences(of: "\"status\":3", with: "\"status\":5") }
+        if scenario == .legacy {
+            json = json.replacingOccurrences(of: "\"contractVersion\":2", with: #""contractVersion":1,"contentJson":"{\"tasks\":[\"Synthetic legacy task\",{\"name\":\"Synthetic legacy card\"}]}""#)
+        }
         if scenario == .unknown { json = "{\"id\":\(id),\"title\":\"Synthetic incomplete facts\"}" }
         return try decode(OfficialEvent.self, json)
     }

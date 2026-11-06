@@ -37,7 +37,7 @@ class ClubEnrollmentContractChecks(unittest.TestCase):
         self.assertIn('expanded.insert(focusTopicID)', code)
     def test_real_destinations_and_topic_focus_are_wired(self):
         ui = self.text('App/ClubEnrollmentView.swift')
-        for fragment in ['SocialPublicProfileView(memberID: memberID', 'operation: .checkin', 'registrationID: registrant.id', 'returningFromCheckin = true', 'await reader.refresh()', '.onDisappear { reader.suspend() }']:
+        for fragment in ['SocialPublicProfileView(memberID: memberID', 'operation: .checkin', 'registrationID: item.source.registrant.id', 'if kind == .checkin { pendingReturn = UUID() }', 'await reader.refresh()', '.onDisappear { reader.suspend() }']:
             self.assertIn(fragment, ui)
         routes = self.text('App/ClubGovernanceViews.swift')
         self.assertIn('enrollmentLink(focusTopicID: scope.topicID)', routes)
@@ -65,5 +65,47 @@ class ClubEnrollmentContractChecks(unittest.TestCase):
         self.assertEqual((fixture['clubId'], fixture['topicId']), (81, 91))
         self.assertIsInstance(fixture['canRefund'], bool)
         self.assertGreater(fixture['omsTicketList'][0]['id'], 0)
+
+    def test_reader_captures_authorization_and_rechecks_each_read(self):
+        code = self.text('Core/ClubEnrollmentReader.swift')
+        for part in ['access.authorizationGeneration == authorization', 'access.storageNamespace == namespace', 'access.journalRealm == realm', 'ObjectIdentifier(access) == ObjectIdentifier(candidate)', 'guard isCurrentAccess else', 'isCurrentAccess && generation == revision']:
+            self.assertIn(part, code)
+        self.assertEqual(code.count('options: [:], check: {'), 2)
+        self.assertIn('self.current(expected, revision)', code)
+        self.assertIn('self.detailGenerations[topicID] == detailRevision', code)
+    def test_page_identity_rebuilds_reader_for_changed_authority(self):
+        ui = self.text('App/ClubEnrollmentView.swift')
+        for part in ['.id(context)', 'accessID = ObjectIdentifier(access)', 'authorization = access.authorizationGeneration', 'namespace = access.storageNamespace', 'profileRevision = profile?.reader.presentationRevision', 'squareScope = profile?.squareReader.scope', 'host == liveHost', 'reader.isCurrentAccess']:
+            self.assertIn(part, ui)
+    def test_exact_row_mints_concrete_route_and_same_account_profile(self):
+        ui = self.text('App/ClubEnrollmentView.swift')
+        for part in ['reader.usesAccess(access)', 'roster.clubID == host.clubID, roster.topicID == topicID', 'reader.expanded.contains(topicID)', 'filter({ $0.id == registrant.id }).count == 1', 'contains(registrant)', 'profileIdentity?.accountID == identity?.accountID', 'profileIdentity?.epoch == identity?.epoch', 'if let item = navigation.item', '.id(item.id)', 'owner.binding(item, source: source)']:
+            self.assertIn(part, ui)
+    def test_whole_page_owner_and_visible_read_guards(self):
+        ui = self.text('App/ClubEnrollmentView.swift')
+        for part in ['@StateObject private var navigation', 'navigation.depart(attachment)', 'func hide() { visible = false }', 'guard attachment == expected', 'guard visible, active', 'host == liveHost && navigation.visible && scenePhase == .active', 'Task { if canRead { await reader.toggle', 'Task { if canRead { await reader.loadDetail', 'await refreshVisible()', 'controller.isBeingDismissed || controller.isMovingFromParent']:
+            self.assertIn(part, ui)
+        reader = self.text('Core/ClubEnrollmentReader.swift')
+        suspension = reader.split('public func suspend()', 1)[1].split('private func clear()', 1)[0]
+        self.assertNotIn('presentationRevision', suspension)
+    def test_return_consumes_specific_checkin_once_and_supports_either_visibility_order(self):
+        ui = self.text('App/ClubEnrollmentView.swift')
+        for part in ['guard !isPresented, current(expected, source: source)', 'let kind = expected.kind; retire()', 'if kind == .checkin { pendingReturn = UUID() }', 'if completed { pendingReturn = nil }', '.onAppear { navigation.appear(); Task { await activateAndReturn() } }', '.onChange(of: owner.isPresented)', '.onDisappear { didClose() }']:
+            self.assertIn(part, ui)
+    def test_fixture_reuses_dynamic_parent_identity_without_relaxing_product_gate(self):
+        ui = self.text('App/ClubGovernanceFixtureHost.swift')
+        enrollment = ui.split('ClubEnrollmentView(clubID:', 1)[1].split('ClubGovernanceHomeEntries', 1)[0]
+        self.assertNotIn('SocialAccountFixtureReader(.content)', enrollment)
+        for part in ['.environment(\\.clubEnrollmentProfile, store.leaderboardProfile)', 'return .init(reader: profileReader, squareReader: squareReader)', 'profileReader.identity = .init(accountID: replacement.accountID, epoch: replacement.epoch)', 'access.identity = replacement']:
+            self.assertIn(part, ui)
+
+    def test_incomplete_background_return_retains_exact_pending_ticket(self):
+        ui = self.text('App/ClubEnrollmentView.swift')
+        core = self.text('Core/ClubEnrollmentReader.swift')
+        for part in ['navigation.pauseReturnRead(); reader.suspend()', 'func pauseReturnRead() { returnRead = nil }', 'returnRead == ticket, attachment == ticket.attachment, pendingReturn == ticket.request', 'await navigation.refreshReturn(using: reader', 'reader.completedRefreshRevision > completed', 'if navigation.hasPendingReturn { await readReturnedRoster() }']:
+            self.assertIn(part, ui)
+        self.assertIn('guard current(expected, revision), detailFailures.isEmpty else { return }', core)
+        self.assertIn('completedRefreshRevision &+= 1', core)
+        self.assertLess(core.index('await loadDetail(topicID: id)'), core.index('completedRefreshRevision &+= 1'))
 
 if __name__ == '__main__': unittest.main()

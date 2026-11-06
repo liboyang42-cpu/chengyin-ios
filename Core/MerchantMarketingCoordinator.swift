@@ -10,7 +10,9 @@ import Observation
     public let service: MerchantMarketingService
     public private(set) var surface: Surface = .dashboard
     public private(set) var busy = false
-    public private(set) var dashboard: MerchantMarketingDashboard?
+    /// Source marketing/index.js aggregate (`marketing-home?windowDays=30`) with the access it was read under.
+    public private(set) var home: MerchantMarketingHome?
+    public private(set) var homeAccess: MerchantMarketingAccess?
     public private(set) var insight: MerchantMarketingInsight?
     public private(set) var subscriptions: [MerchantMarketingEntitlement]?
     public private(set) var commerce: MerchantMarketingCommerce?
@@ -29,7 +31,7 @@ import Observation
     /// Host MUST invoke on session/token/epoch/profile changes, including while a sheet is visible.
     public func sessionChanged() {
         generation = UUID(); observedScope = service.scope; busy = false
-        dashboard = nil; insight = nil; subscriptions = nil; commerce = nil; rounds = nil
+        home = nil; homeAccess = nil; insight = nil; subscriptions = nil; commerce = nil; rounds = nil
         review = nil; acknowledgement = nil; failure = nil; commerceFailure = nil; service.discardReview()
     }
     private func valid(_ ticket: UUID, _ scope: MerchantMarketingScope?) -> Bool {
@@ -38,14 +40,16 @@ import Observation
     }
     private func normalize(_ error: Error) -> MerchantMarketingFailure { (error as? MerchantMarketingFailure) ?? .malformed }
     public func load(_ next: Surface) async {
+        // A cancelled queued view load must not retire a newer read or clear its results.
+        guard !Task.isCancelled else { return }
         if observedScope != service.scope { sessionChanged() }
         generation = UUID(); let ticket = generation, scope = service.scope
         surface = next; busy = true; failure = nil; commerceFailure = nil; acknowledgement = nil; review = nil
-        dashboard = nil; insight = nil; subscriptions = nil; commerce = nil; rounds = nil; service.discardReview()
+        home = nil; homeAccess = nil; insight = nil; subscriptions = nil; commerce = nil; rounds = nil; service.discardReview()
         do {
             switch next {
             case .dashboard:
-                let value = try await service.dashboard(); guard valid(ticket, scope) else { return }; dashboard = value
+                let (access, value) = try await service.home(); guard valid(ticket, scope) else { return }; homeAccess = access; home = value
             case .insight:
                 let value = try await service.insight(); guard valid(ticket, scope) else { return }; insight = value
             case .subscriptions:
@@ -66,8 +70,16 @@ import Observation
         guard valid(ticket, scope) else { return }; busy = false
     }
     public func cancelReview() { guard !busy else { return }; review = nil; service.discardReview() }
+    public func cancelReview(id: UUID) {
+        guard review?.id == id else { return }
+        cancelReview()
+    }
     public func confirm(couponEffectsAcknowledged: Bool) async {
-        guard !busy, let accepted = review else { return }
+        guard let id = review?.id else { return }
+        await confirm(reviewID: id, couponEffectsAcknowledged: couponEffectsAcknowledged)
+    }
+    public func confirm(reviewID: UUID, couponEffectsAcknowledged: Bool) async {
+        guard !busy, let accepted = review, accepted.id == reviewID else { return }
         let ticket = generation, scope = service.scope; busy = true; failure = nil
         do {
             let result = try await service.settle(accepted, acknowledgedCouponEffects: couponEffectsAcknowledged)

@@ -19,7 +19,8 @@ public struct SocialAccountService {
     }
     public func information(id: Int, token: String? = nil) async throws -> SocialInformation {
         guard id > 0 else { throw APIError.invalidRequest }
-        let value: SocialInformation = try await read("api/common/infomation_detail", fields: ["id": String(id)], token: token)
+        let result: InformationDetail = try await read("api/common/infomation_detail", fields: ["id": String(id)], token: token, missingData: InformationDetail(value: .removed))
+        let value = result.value
         guard value.isRemoved || value.id == id else { throw APIError.malformedResponse }; return value
     }
     public func invitations(page: Int, token: String) async throws -> SocialInvitePage {
@@ -39,9 +40,14 @@ public struct SocialAccountService {
         }
         catch is CancellationError { throw CancellationError() }
         catch APIError.unauthorized { throw APIError.unauthorized }
-        catch { try Task.checkCancellation(); return .init(page: invites, rewardScan: nil) }
+        catch {
+            try Task.checkCancellation()
+            // An explicit permission denial is not an ordinary unavailable reward scan.
+            if ProfileInviteHistoryIssueKind(error) == .denied { throw error }
+            return .init(page: invites, rewardScan: nil)
+        }
     }
-    private func read<T: Decodable>(_ path: String, fields: [String: String] = [:], token: String? = nil, body: Bool = true) async throws -> T {
+    private func read<T: Decodable>(_ path: String, fields: [String: String] = [:], token: String? = nil, body: Bool = true, missingData: T? = nil) async throws -> T {
         if let token, !AuthRequestBuilder.isValidToken(token) { throw APIError.invalidRequest }
         try Task.checkCancellation()
         let request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: fields, token: token, includesBody: body)
@@ -52,8 +58,20 @@ public struct SocialAccountService {
         guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
         guard let code = envelope?["code"].integer else { throw APIError.malformedResponse }
         guard code == 200 else { throw SocialAccountFailure.rejected(code: code, message: envelope?["msg"].text) }
+        // Only the original detail producer omits data for success(null). Other reads stay strict.
+        if let missingData, let object = envelope?.object, object["data"] == nil { return missingData }
         do { return try JSONDecoder().decode(Payload<T>.self, from: data).data }
         catch { throw APIError.malformedResponse }
+    }
+    private struct InformationDetail: Decodable {
+        let value: SocialInformation
+        init(value: SocialInformation) { self.value = value }
+        init(from decoder: Decoder) throws {
+            let raw = try SocialValue(from: decoder)
+            if raw.isNull || raw.object?.isEmpty == true { value = .removed; return }
+            value = try SocialInformation(from: decoder)
+            guard value.id > 0 else { throw APIError.malformedResponse }
+        }
     }
     private struct Payload<T: Decodable>: Decodable { let data: T }
     private struct Rows<T: Decodable>: Decodable {

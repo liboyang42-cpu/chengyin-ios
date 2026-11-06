@@ -1,0 +1,230 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "strings": {
+    "roam.receivedMetadata.open": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收到的章"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received stamps"
+          }
+        }
+      }
+    },
+    "roam.receivedMetadata.title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收到的章"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received stamps"
+          }
+        }
+      }
+    },
+    "roam.receivedMetadata.detail": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收到的邮票"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received stamp"
+          }
+        }
+      }
+    },
+    "roam.receivedMetadata.boundary": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅显示收到的邮票元数据。图片未授权，不读取相册，不发起交换或创建。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shows received-stamp metadata only. Images are not authorized. No photo-library access, exchange, or creation."
+          }
+        }
+      }
+    },
+    "roam.receivedMetadata.anonymous": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过交换收到，作者匿名。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received through an exchange. The author is anonymous."
+          }
+        }
+      }
+    },
+    "roam.receivedMetadata.total": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端邮票总数"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server stamp total"
+          }
+        }
+      }
+    },
+    "roam.receivedMetadata.empty": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有收到交换的城市签"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No exchanged stamps received yet"
+          }
+        }
+      }
+    },
+    "roam.receivedMetadata.changed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看会话或授权已变化，请返回重新打开。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The viewing session or permission changed. Go back and reopen."
+          }
+        }
+      }
+    },
+    "roam.receivedMetadata.retired": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次读取已结束。重新读取会建立新的只读页面。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This read has ended. Reopen to start a fresh read-only page."
+          }
+        }
+      }
+    },
+    "roam.receivedMetadata.reopen": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read again"
+          }
+        }
+      }
+    },
+    "roam.receivedMetadata.kind": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "类型"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kind"
+          }
+        }
+      }
+    },
+    "roam.receivedMetadata.freePhoto": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自由拍"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free photo"
+          }
+        }
+      }
+    },
+    "roam.receivedMetadata.cancelledStamp": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "盖销票"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelled stamp"
+          }
+        }
+      }
+    },
+    "roam.receivedMetadata.end": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收到的邮票都在这里了"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All received stamps are shown."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

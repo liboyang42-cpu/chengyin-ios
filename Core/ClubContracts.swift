@@ -20,11 +20,18 @@ public struct ClubRecord: Decodable, Equatable, Identifiable {
     public let isJoined: Bool
     public let isOwner: Bool
     public let viewerIsAdmin: Bool
+    /// Explicit source failure to load viewer membership; absent legacy field stays compatible.
+    public let viewerIdentityUnavailable: Bool
     public let level: Int
     public let joinPolicy: Int
+    /// Raw source fact for dedicated public-read eligibility; absence is unknown.
+    public let explicitJoinPolicy: Int?
     public let joinPolicySupported: Bool
     /// Nil is unknown/absent, not pending. Unknown numeric states are retained.
     public let myJoinStatus: Int?
+    public let welcomeNote: String?
+    public let memberPostAllowed: Bool?
+    public let prioritySignupEnabled: Bool?
 
     public var canSeeMembers: Bool { isOwner || isJoined }
     public var canGovern: Bool { isOwner || viewerIsAdmin }
@@ -34,7 +41,8 @@ public struct ClubRecord: Decodable, Equatable, Identifiable {
     enum CodingKeys: String, CodingKey {
         case id, name, logo, cover, description, clubTypes, clubType, address, city, style
         case leaderName, keywords, activityPrefs, memberCount, isJoined, isOwner, viewerIsAdmin
-        case level, joinPolicy, joinPolicySupported, myJoinStatus
+        case level, joinPolicy, joinPolicySupported, myJoinStatus, viewerIdentityUnavailable
+        case welcomeNote, memberPostAllowed, prioritySignupEnabled
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -60,11 +68,20 @@ public struct ClubRecord: Decodable, Equatable, Identifiable {
         isJoined = try c.decodeIfPresent(Bool.self, forKey: .isJoined) ?? false
         isOwner = try c.decodeIfPresent(Bool.self, forKey: .isOwner) ?? false
         viewerIsAdmin = try c.decodeIfPresent(Bool.self, forKey: .viewerIsAdmin) ?? false
+        viewerIdentityUnavailable = try c.decodeIfPresent(Bool.self, forKey: .viewerIdentityUnavailable) ?? false
         level = try c.decodeIfPresent(Int.self, forKey: .level) ?? 0
         // The source normalizes every value except 1 to public join policy 0.
-        joinPolicy = try c.decodeIfPresent(Int.self, forKey: .joinPolicy) == 1 ? 1 : 0
+        explicitJoinPolicy = try c.decodeIfPresent(Int.self, forKey: .joinPolicy)
+        joinPolicy = explicitJoinPolicy == 1 ? 1 : 0
         joinPolicySupported = try c.decodeIfPresent(Bool.self, forKey: .joinPolicySupported) ?? false
         myJoinStatus = try c.decodeIfPresent(Int.self, forKey: .myJoinStatus)
+        welcomeNote = try c.decodeIfPresent(String.self, forKey: .welcomeNote)
+        func setting(_ key: CodingKeys) throws -> Bool? {
+            guard let value = try c.decodeIfPresent(Int.self, forKey: key), [0, 1].contains(value) else { return nil }
+            return value == 1
+        }
+        memberPostAllowed = try setting(.memberPostAllowed)
+        prioritySignupEnabled = try setting(.prioritySignupEnabled)
     }
 }
 

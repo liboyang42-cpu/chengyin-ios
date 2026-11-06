@@ -62,6 +62,7 @@ struct ProjectStoryVariableHostIdentity: Hashable {
 }
 
 @MainActor struct ProjectStoryVariablePicker: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ObservedObject private var model: ProjectEditModel
     @StateObject private var controller: ProjectStoryVariableController
     init(model: ProjectEditModel, chapterID: String, blockID: String) {
@@ -93,20 +94,25 @@ struct ProjectStoryVariableHostIdentity: Hashable {
                 Section {
                     ForEach(original.capture.snapshot.variables) { variable in
                         Button { controller.select(variable.key, in: original) } label: {
-                            HStack {
-                                VStack(alignment: .leading) { Text(verbatim: variable.token); Text(verbatim: variable.label).font(.caption) }
-                                Spacer()
-                                if controller.selectedKey?.utf8.elementsEqual(variable.key.utf8) == true { Image(systemName: "checkmark") }
-                            }
-                        }.disabled(!original.capture.snapshot.canAppend(variable.key)).accessibilityIdentifier("projectStoryVariable.choice." + variable.key)
+                            let rowLayout = dynamicTypeSize.isAccessibilitySize
+                                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
+                                : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 12))
+                            rowLayout {
+                                Text(verbatim: variable.token).font(.body.weight(.semibold)).foregroundStyle(.primary)
+                                Text(verbatim: variable.label).font(.body).foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                if controller.selectedKey?.utf8.elementsEqual(variable.key.utf8) == true { Image(systemName: "checkmark").accessibilityHidden(true) }
+                            }.frame(minHeight: 44).padding(.vertical, 6)
+                        }.accessibilityAddTraits(controller.selectedKey?.utf8.elementsEqual(variable.key.utf8) == true ? .isSelected : [])
+                            .disabled(!original.capture.snapshot.canAppend(variable.key)).accessibilityIdentifier("projectStoryVariable.choice." + variable.key)
                     }
                 }
                 Section {
-                    Text("projectStoryVariable.scope", tableName: "ProjectStoryVariableInsertion").font(.caption)
                     Text("projectStoryVariable.limit", tableName: "ProjectStoryVariableInsertion").font(.caption)
                 }
             }
-            .navigationTitle(Text("projectStoryVariable.title", tableName: "ProjectStoryVariableInsertion"))
+            .listStyle(.insetGrouped).environment(\.defaultMinListRowHeight, 44)
+            .navigationBarTitleDisplayMode(.inline).navigationTitle(Text("projectStoryVariable.title", tableName: "ProjectStoryVariableInsertion"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { controller.close(original) } }
                 ToolbarItem(placement: .confirmationAction) {

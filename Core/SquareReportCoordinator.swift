@@ -24,7 +24,11 @@ import Foundation
     private func receiptKey(target: SquareReportTarget, identity: SquareGovernanceIdentity) -> String {
         "\(identity.namespace.utf8.count):\(identity.namespace):\(identity.accountID):\(target.lockKey)"
     }
-    public func isLocked(target: SquareReportTarget, identity: SquareGovernanceIdentity) -> Bool { journal.contains(target.lockKey, identity: identity) }
+    public func isLocked(target: SquareReportTarget, identity: SquareGovernanceIdentity) -> Bool {
+        if journal.contains(target.lockKey, identity: identity) { return true }
+        do { return try caseStore.original(target: target, identity: identity) != nil }
+        catch { return true } // Corrupt original evidence must not create a fresh dispatch slot.
+    }
     public func receipt(target: SquareReportTarget, identity: SquareGovernanceIdentity) -> SquareReportReceipt? {
         receipts[receiptKey(target: target, identity: identity)]
     }
@@ -73,6 +77,8 @@ import Foundation
         // not create another request ID after an unconfirmed write.
         guard journal.claim(fresh.target.lockKey, identity: fresh.identity) else { throw SquareReportFailure.locked }
         consumed.insert(review.id)
+        // The existing lock remains if durable proof storage fails. Never dispatch without readback.
+        try caseStore.reserveOriginal(review)
         let result = try await service.submit(review, token: token) { try self.check(fresh.identity, access: access) }
         receipts[receiptKey(target: fresh.target, identity: fresh.identity)] = result
         caseStore.record(result.id, target: fresh.target, identity: fresh.identity)
@@ -80,23 +86,50 @@ import Foundation
     }
     public func recover(target: SquareReportTarget, expectedIdentity: SquareGovernanceIdentity,
                         access: any SquareReportAccess) async throws -> SquareReportReceipt? {
-        try check(expectedIdentity, access: access)
-        guard let id = try caseStore.reference(target: target, identity: expectedIdentity), let token = access.token else { return nil }
-        let result = try await service.receipt(id: id, token: token) { try self.check(expectedIdentity, access: access) }
-        guard result.id == id, result.targetType == target.type, result.targetID == target.id else { throw SquareReportFailure.malformed }
-        receipts[receiptKey(target: target, identity: expectedIdentity)] = result
-        return result
+        do {
+            try check(expectedIdentity, access: access)
+            guard let token = access.token else { throw SquareReportFailure.signedOut }
+            if let original = try caseStore.original(target: target, identity: expectedIdentity) {
+                guard let result = try await service.original(original, token: token, check: { try self.check(expectedIdentity, access: access) }) else { return nil }
+                try check(expectedIdentity, access: access)
+                if let acknowledged = try caseStore.reference(target: target, identity: expectedIdentity), acknowledged != result.id {
+                    throw SquareReportFailure.unknown
+                }
+                receipts[receiptKey(target: target, identity: expectedIdentity)] = result
+                caseStore.record(result.id, target: target, identity: expectedIdentity)
+                return result
+            }
+            // Legacy acknowledged case references retain their original read path. A legacy lock
+            // with neither reference nor original intent stays unknown, with no fabricated request ID.
+            guard let id = try caseStore.reference(target: target, identity: expectedIdentity) else { return nil }
+            let result = try await service.receipt(id: id, token: token) { try self.check(expectedIdentity, access: access) }
+            guard result.id == id, result.targetType == target.type, result.targetID == target.id else { throw SquareReportFailure.malformed }
+            receipts[receiptKey(target: target, identity: expectedIdentity)] = result
+            return result
+        } catch {
+            if SquareReportReadPrivacy.hidesPrivateState(after: error) {
+                receipts.removeValue(forKey: receiptKey(target: target, identity: expectedIdentity))
+            }
+            throw error
+        }
     }
     public func refresh(_ receipt: SquareReportReceipt, target: SquareReportTarget, expectedIdentity: SquareGovernanceIdentity,
                         access: any SquareReportAccess) async throws -> SquareReportReceipt {
-        try check(expectedIdentity, access: access)
-        guard receipt.targetType == target.type, receipt.targetID == target.id, let token = access.token else { throw SquareReportFailure.invalid }
-        let value = try await service.receipt(id: receipt.id, token: token) { try self.check(expectedIdentity, access: access) }
-        guard value.id == receipt.id, value.targetType == receipt.targetType, value.targetID == receipt.targetID,
-              value.reasonCode == receipt.reasonCode, value.policyVersion == receipt.policyVersion,
-              value.description == receipt.description else { throw SquareReportFailure.malformed }
-        receipts[receiptKey(target: target, identity: expectedIdentity)] = value
-        // Readback never removes the dispatch lock, even when the case is decided.
-        return value
+        do {
+            try check(expectedIdentity, access: access)
+            guard receipt.targetType == target.type, receipt.targetID == target.id, let token = access.token else { throw SquareReportFailure.invalid }
+            let value = try await service.receipt(id: receipt.id, token: token) { try self.check(expectedIdentity, access: access) }
+            guard value.id == receipt.id, value.targetType == receipt.targetType, value.targetID == receipt.targetID,
+                  value.reasonCode == receipt.reasonCode, value.policyVersion == receipt.policyVersion,
+                  value.description == receipt.description else { throw SquareReportFailure.malformed }
+            receipts[receiptKey(target: target, identity: expectedIdentity)] = value
+            // Readback never removes the dispatch lock, even when the case is decided.
+            return value
+        } catch {
+            if SquareReportReadPrivacy.hidesPrivateState(after: error) {
+                receipts.removeValue(forKey: receiptKey(target: target, identity: expectedIdentity))
+            }
+            throw error
+        }
     }
 }

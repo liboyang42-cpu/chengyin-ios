@@ -78,6 +78,8 @@ public enum ClubOccurrenceClock {
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
         let text = formatter.string(from: date); return text.isEmpty ? nil : text
     }
+    /// The same parse as `display`, for callers that format the instant themselves.
+    public static func instant(_ value: ClubGovernanceValue) -> Date? { date(value) }
     private static func date(_ value: ClubGovernanceValue) -> Date? {
         switch value {
         case .integer(let number): return epoch(Double(number), numeric: true)

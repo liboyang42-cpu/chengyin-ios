@@ -7,9 +7,9 @@ Isolated source-backed package, 2026-10-02. Source: Flutter `a63e9e91c82a3282e8d
 - Marketing aggregate: one marketing-home request after fresh `merchant:marketing:read`; coupon totals, content totals and server funnel. Missing values stay unknown, and zero claimed coupons has no redemption rate.
 - Shop insight: mandatory deterministic `facts`; separate generated advice, nullable rates, low-sample notice, window, check-ins/hour buckets, audience counts/interests, supply, server metadata, AI degradation, recommended topics/partners. Navigation is a typed three-case client allowlist; arbitrary model routes never reach the host. Canonical partner `memberId` remains in retained metadata; no guessed profile link is constructed.
 - Active subscriptions and commerce capabilities: empty is no active entitlement; null/missing endDate is permanent; quota is read from server, not computed into a grant. All source payload/metadata is retained for commerce and insight.
-- Prediction inbox: fresh active merchant/project authority, direct-array response, per-round server deadline and participation copy, option selection, immutable review and coupon-effects acknowledgement. Confirm rechecks exact access and round before dispatch. Request uses string nodeId, playDay, settledOption. A valid nonnegative winners count is the only successful acknowledgement.
-- Account/token/epoch/namespace response fences; persistent namespace/account/merchant/node/day replay locks exclude ephemeral epoch and secrets. Atomic exclusive intent is recorded before dispatch. Success remains locked, unknown/timeout/malformed/5xx remains locked, definite 4xx rejection (except timeout) can be reviewed again. No automatic mutation retry and no invented receipt endpoint. Display refresh never clears a lock.
-- Native SwiftUI forms/lists, VoiceOver labels/identifiers, Dynamic Type friendly vertical content, bilingual resource fragment, debug synthetic fixture host, 35 authored core tests and 7 authored UI tests.
+- Prediction inbox: fresh active merchant/project authority, direct-array response, natural-calendar days-left display and participation copy (not an exact deadline), option selection, immutable review and coupon-effects acknowledgement. Confirm rechecks exact access and round before dispatch. The dormant settlement adapter sends form-encoded nodeId, playDay and settledOption. A matching settledOption, integer totalBets/winners/couponsGranted with 0 ≤ couponsGranted ≤ winners ≤ totalBets, and Boolean rewardConfigured are all required for an acknowledgement. Counts do not prove that every reward was delivered.
+- Account/token/epoch/namespace response fences; persistent namespace/account/merchant/node/day replay locks exclude ephemeral epoch and secrets. Exclusive intent is recorded before dispatch; this is not a claim of fsync or power-loss durability. Success and every potentially dispatched non-success remain locked, including 4xx, timeout, malformed responses and 5xx. Generic rejection never proves that a retry is safe. No automatic mutation retry and no invented receipt endpoint. Display refresh never clears a lock.
+- Native SwiftUI forms/lists, VoiceOver labels/identifiers, Dynamic Type friendly vertical content, bilingual resource fragment, debug synthetic fixture host, authored core, composition and UI tests; the current patch has not run them.
 
 ## Explicit exclusions
 
@@ -26,8 +26,8 @@ No CRM/marketing-consent management, coupon authoring/distribution, CouponManage
 | `/api/ai/merchant/insight` | POST, no body, merchant resolved from session | merchant_api.dart 580–592; merchant_insight.dart |
 | `/api/merchant/subscription` | POST JSON `{}`; data array | merchant_api.dart 1256–1280, 1453–1458 |
 | `/api/merchant/commerce/capabilities` | POST JSON `{}`; data object | merchant_api.dart 1548–1561; merchant_subscription_page.dart 139–182, 298–338 |
-| `/api/merchant/predict/inbox` | POST JSON `{}`; data array itself | merchant_predict_api.dart 31–56 |
-| `/api/merchant/predict/settle` | POST JSON string nodeId/playDay/settledOption | merchant_predict_api.dart 58–84, 131–163 |
+| `/api/merchant/predict/inbox` | POST, no body; data array itself | pinned backend ApiPredictSettleController; canonical native read adapter |
+| `/api/merchant/predict/settle` | POST application/x-www-form-urlencoded nodeId/playDay/settledOption | backend 57b22916e05e0c7eccccb75f68a46a4576ab5bf8, ApiPredictSettleController.java 52–100; PlayPredictServiceImpl.java 89–154 |
 
 Permissions are not interchangeable: marketing read is `merchant:marketing:read`; prediction access is active plus `merchant:project:manage`, never inbox size or role inference. Insight/subscription/capability endpoints use authenticated session identity as in source, without inventing client merchant payloads. Commerce server error messages are preserved so login/onboarding failures remain distinguishable; the host owns any existing login/onboarding destination.
 
@@ -55,3 +55,15 @@ After integration, pass `--flutter-root` and `--syntax-script` if their location
 `validation.json` and `parser.txt` record the final results. Supplementary Tree-sitter parses all eight authored Swift files without recovery. Apple compiler/typechecking, Swift tests, iOS simulator/UI tests, screenshots, VoiceOver, Dynamic Type and CN/US builds are **NOT_RUN** because this executor has no Apple toolchain. Run the repository's documented `swift test`, unsigned simulator build and selected UI fixture suite on an approved Apple runner before merge/release acceptance.
 
 Additional acceptance: validate the exact backend host/profile, permission revocation, interruption while review/submission is in flight, relaunch after unknown, English/Chinese maximum Dynamic Type, VoiceOver order, no purchase affordance, real server winners and coupon effects under separately authorized acceptance. No live gates should be enabled as part of source integration.
+
+## 2026-10-19 normal read-only review connection
+
+The normal prediction inbox reuses its existing access/inbox-only approval. Selecting an option prepares a fresh immutable review after rereading permission and the complete canonical inbox row, including topicId. The screen has no publication/settlement control. Its service has settlement false, insight false and no lock store; the root transport still admits only the two read routes. The legacy marketing/direct-create screen remains untouched.
+
+The review is retired on disappearance, backgrounding, parent snapshot invalidation or account/role/viewer/grant changes. Generation and captured-session checks precede dispatch, response acceptance and unauthorized callbacks. Its short ephemeral namespace exists only for this read-only presentation and must never be reused as a production replay-lock namespace.
+
+The existing dormant writer now consumes each issued review before suspension, rechecks full access and round, sends percent-encoded form fields and requires the complete matching receipt. It retains the existing stable lock namespace contract and never removes a lock on a dispatched rejection. Existing persisted locks are unchanged.
+
+This does not complete production answer publication. The pinned backend rereads current template/reward configuration and provides neither frozen configuration version, operation ID nor authoritative settlement-history receipt lookup. UI copy discloses potential XP/coupon effects, one-time publication and this configuration limitation. Inbox disappearance is not proof of success; rewardConfigured and couponsGranted do not prove every reward was delivered. No real settlement or reward was performed.
+
+For this patch: static inspection only; Swift compilation, Swift unit tests and real App/UI tests NOT_RUN. Earlier validation/parser artifacts are historical and are not acceptance evidence for this patch. No CI was triggered or rerun.

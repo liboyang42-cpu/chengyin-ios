@@ -1,100 +1,228 @@
 import SwiftUI
 
+@MainActor final class CoopInvitationReadModel: ObservableObject {
+    struct Permit: Equatable { let id: UUID; let session: CoopFlowSession?; let kind: CoopFlowTargetKind }
+    let reader: any CoopFlowReading
+    let operationScope: String?
+    @Published private(set) var kind: CoopFlowTargetKind = .merchant
+    @Published private(set) var topics: [CoopFlowOwnedTopic] = []
+    @Published private(set) var candidates: [CoopFlowTargetCandidate] = []
+    @Published private(set) var topicID: Int?
+    @Published private(set) var selected: Set<String> = []
+    @Published private(set) var topicsFailed = false
+    @Published private(set) var targetsFailed = false
+    @Published private(set) var topicsBusy = false
+    @Published private(set) var targetsBusy = false
+    @Published private(set) var hasMore = true
+    private var topicsReady = false, targetsReady = false
+    private var page = 1, failedPage: Int?
+    @Published private var visible = false
+    @Published private var active = false
+    private var generation = UUID(), topicRun: UUID?, targetRun: UUID?
+    private var session: CoopFlowSession?
+    init(reader: any CoopFlowReading, operationScope: String?) { self.reader = reader; self.operationScope = operationScope; session = reader.session }
+    var permit: Permit { .init(id: generation, session: session, kind: kind) }
+    var isCurrent: Bool { visible && active && session != nil && session == reader.session }
+    var busy: Bool { topicsBusy || targetsBusy }
+    var topic: CoopFlowOwnedTopic? { isCurrent ? topics.first { $0.id == topicID } : nil }
+    private func accepts(_ value: Permit) -> Bool { isCurrent && value == permit && !Task.isCancelled }
+    func appear(active: Bool) -> Permit {
+        if session != reader.session { reset() }
+        visible = true; self.active = active; return permit
+    }
+    func disappear() { visible = false; invalidateRuns() }
+    func sceneChanged(active: Bool) { self.active = active; if !active { invalidateRuns() } }
+    func identityChanged() { reset() }
+    private func invalidateRuns() { generation = UUID(); topicRun = nil; targetRun = nil; topicsBusy = false; targetsBusy = false }
+    private func reset() {
+        invalidateRuns(); session = reader.session; topics = []; candidates = []; topicID = nil; selected = []
+        topicsReady = false; targetsReady = false; topicsFailed = false; targetsFailed = false; page = 1; failedPage = nil; hasMore = true
+    }
+    func changeKind(_ value: CoopFlowTargetKind, permit old: Permit) -> Permit? {
+        guard accepts(old), !busy, value != kind else { return nil }
+        kind = value; reset(); return permit
+    }
+    func chooseTopic(_ id: Int?, permit value: Permit) {
+        guard accepts(value), !topicsBusy, id == nil || topics.contains(where: { $0.id == id }) else { return }
+        topicID = id
+    }
+    func toggle(_ id: String, permit value: Permit) {
+        guard accepts(value), targetsReady, !targetsBusy, candidates.contains(where: { $0.id == id }) else { return }
+        if selected.contains(id) { selected.remove(id) } else { selected.insert(id) }
+    }
+    func contexts(permit value: Permit) -> [CoopFlowInvitationContext]? {
+        guard accepts(value), topicsReady, targetsReady, !busy, let topic, topic.inviteWindowOpen == true, !selected.isEmpty else { return nil }
+        let result = candidates.filter { selected.contains($0.id) }.compactMap {
+            CoopFlowInvitationContext(candidate: $0, topic: topic, scope: operationScope, session: session)
+        }
+        return result.count == selected.count ? result : nil
+    }
+    func loadInitial(_ value: Permit) async {
+        guard accepts(value) else { return }
+        if !topicsReady { await readTopics(value, requested: 1, append: false) }
+        guard accepts(value) else { return }
+        if !targetsReady { await retryTargets(value) }
+    }
+    func retryTopics(_ value: Permit) async {
+        let requested = failedPage ?? 1
+        await readTopics(value, requested: requested, append: requested > 1)
+    }
+    func more(_ value: Permit) async {
+        guard topicsReady, hasMore, !topicsFailed else { return }
+        await readTopics(value, requested: page, append: true)
+    }
+    private func refuses(_ error: Error) -> Bool {
+        if let e = error as? CoopFlowFailure {
+            switch e { case .permission, .disabled, .stale: return true; case .server(let code, _): return code == 401 || code == 403; default: break }
+        }
+        if let e = error as? APIError {
+            switch e { case .unauthorized, .notConfigured: return true; case .httpStatus(let code): return code == 401 || code == 403; default: break }
+        }
+        return false
+    }
+    private func readTopics(_ value: Permit, requested: Int, append: Bool) async {
+        guard accepts(value), !topicsBusy, requested > 0 else { return }
+        let run = UUID(); topicRun = run; topicsBusy = true; topicsFailed = false
+        defer { if topicRun == run { topicRun = nil; topicsBusy = false } }
+        do {
+            let result = try await reader.read(.ownedTopics(kind: value.kind, scope: operationScope, page: requested), isCurrent: { [weak self] in
+                guard let self else { return false }; return self.accepts(value) && self.topicRun == run
+            })
+            guard accepts(value), topicRun == run else { return }
+            guard let rows = result["rows"].rows else { throw CoopFlowFailure.malformed }
+            let parsed = rows.compactMap(CoopFlowOwnedTopic.init)
+            guard parsed.count == rows.count, Set(parsed.map(\.id)).count == parsed.count else { throw CoopFlowFailure.malformed }
+            var seen = Set((append ? topics : []).map(\.id))
+            topics = (append ? topics : []) + parsed.filter { seen.insert($0.id).inserted }
+            if let id = topicID, !topics.contains(where: { $0.id == id }) { topicID = nil }
+            topicsReady = true; failedPage = nil; hasMore = rows.count == 20; page = requested + 1
+        } catch {
+            guard accepts(value), topicRun == run else { return }
+            topicsFailed = true; failedPage = requested
+            if refuses(error) { topics = []; topicID = nil; topicsReady = false; hasMore = true; page = 1; failedPage = 1 }
+        }
+    }
+    func retryTargets(_ value: Permit) async {
+        guard accepts(value), !targetsBusy else { return }
+        let run = UUID(); targetRun = run; targetsBusy = true; targetsFailed = false
+        defer { if targetRun == run { targetRun = nil; targetsBusy = false } }
+        do {
+            let result = try await reader.read(value.kind == .merchant ? .merchants(name: nil) : .clubs(name: nil), isCurrent: { [weak self] in
+                guard let self else { return false }; return self.accepts(value) && self.targetRun == run
+            })
+            guard accepts(value), targetRun == run else { return }
+            guard let rows = result.rows else { throw CoopFlowFailure.malformed }
+            let parsed = rows.compactMap { CoopFlowTargetCandidate(kind: value.kind, row: $0) }
+            guard parsed.count == rows.count, Set(parsed.map(\.id)).count == parsed.count else { throw CoopFlowFailure.malformed }
+            candidates = parsed; selected.formIntersection(Set(parsed.map(\.id))); targetsReady = true
+        } catch {
+            guard accepts(value), targetRun == run else { return }
+            targetsFailed = true
+            if refuses(error) { candidates = []; selected = []; targetsReady = false }
+        }
+    }
+}
+
 @MainActor struct CoopFlowNewInvitationView: View {
     let reader: any CoopFlowReading
     let operationScope: String?
-    @State private var kind: CoopFlowTargetKind = .merchant
-    @State private var topics: [CoopFlowOwnedTopic] = []
-    @State private var candidates: [CoopFlowTargetCandidate] = []
-    @State private var topicID: Int?
+    private struct Identity: Hashable { let reader: ObjectIdentifier; let scope: String? }
+    var body: some View {
+        CoopInvitationReadContent(reader: reader, operationScope: operationScope)
+            .id(Identity(reader: ObjectIdentifier(reader), scope: operationScope))
+    }
+}
+@MainActor private struct CoopInvitationReadContent: View {
+    let reader: any CoopFlowReading
+    let operationScope: String?
+    @StateObject private var model: CoopInvitationReadModel
     @State private var search = ""
-    @State private var page = 1
-    @State private var hasMore = true
-    @State private var busy = false
-    @State private var topicsFailed = false
-    @State private var targetsFailed = false
-    @State private var generation = 0
-    @State private var loadedSession: CoopFlowSession?
-    @State private var selected: Set<String> = []
     @State private var editing: [CoopFlowInvitationContext] = []
     @State private var showEditor = false
-    private var topic: CoopFlowOwnedTopic? { topics.first { $0.id == topicID } }
-    private var filtered: [CoopFlowTargetCandidate] { search.isEmpty ? candidates : candidates.filter { $0.name.localizedCaseInsensitiveContains(search) } }
+    @Environment(\.cooperationNearbyDestination) private var nearbyDestination
+    @Environment(\.scenePhase) private var scenePhase
+    init(reader: any CoopFlowReading, operationScope: String?) {
+        self.reader = reader; self.operationScope = operationScope
+        _model = StateObject(wrappedValue: .init(reader: reader, operationScope: operationScope))
+    }
+    private var filtered: [CoopFlowTargetCandidate] {
+        guard model.isCurrent else { return [] }
+        return search.isEmpty ? model.candidates : model.candidates.filter { $0.name.localizedCaseInsensitiveContains(search) }
+    }
     var body: some View {
+        let permit = model.permit
         Form {
-            Picker("context.coop.kind", selection: $kind) {
-                Text("context.coop.merchant").tag(CoopFlowTargetKind.merchant)
-                Text("coopflow.invite.club").tag(CoopFlowTargetKind.club)
-            }.disabled(busy)
             Section("context.coop.topic") {
-                if topicsFailed { Button("action.retry") { Task { await load(reset: true) } } }
-                Picker("context.coop.topic", selection: $topicID) {
+                if model.topicsFailed { Button("action.retry") { Task { await model.retryTopics(permit) } }.disabled(model.topicsBusy) }
+                Picker("context.coop.topic", selection: Binding(get: { model.isCurrent ? model.topicID : nil }, set: { model.chooseTopic($0, permit: permit) })) {
                     Text("context.coop.chooseTopic").tag(Optional<Int>.none)
-                    ForEach(topics) { row in
-                        Text(verbatim: [row.name, row.startDate, row.address, "#\(row.id)"].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")).tag(Optional(row.id))
+                    ForEach(model.isCurrent ? model.topics : []) { row in
+                        Text(verbatim: [row.name, row.startDate, row.address].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")).tag(Optional(row.id))
                     }
-                }
-                if topic != nil, topic?.inviteWindowOpen != true { Text("context.coop.closed") }
-                if hasMore, !topics.isEmpty { Button("context.picker.more") { Task { await load(reset: false) } }.disabled(busy) }
+                }.disabled(model.topicsBusy)
+                if model.topic != nil, model.topic?.inviteWindowOpen != true { Text("context.coop.closed") }
+                if model.hasMore, !model.topics.isEmpty { Button("context.picker.more") { Task { await model.more(permit) } }.disabled(model.topicsBusy || model.topicsFailed) }
             }
+            // Source order: ① 关联主题, ③ 邀请对象 (club / merchant switch inside it); terms follow in the editor.
             Section("context.coop.targets") {
+                Picker("context.coop.kind", selection: Binding(get: { model.kind }, set: { value in
+                    guard let next = model.changeKind(value, permit: permit) else { return }
+                    editing = []; showEditor = false; search = ""
+                    Task { await model.loadInitial(next) }
+                })) {
+                    Text("coopflow.invite.club").tag(CoopFlowTargetKind.club)
+                    Text("context.coop.merchant").tag(CoopFlowTargetKind.merchant)
+                }
+                .pickerStyle(.segmented)
+                .disabled(model.busy)
+                if model.kind == .merchant, nearbyDestination != nil {
+                    // Source: "附近商家 · 含未入驻商家可电话联系" opens pages/coop/nearby for the chosen topic.
+                    NavigationLink { CoopFlowNearbyGate(reader: reader) } label: { Text("cooperation.invite.nearby") }
+                        .accessibilityIdentifier("cooperation.invite.nearby")
+                }
                 TextField("context.coop.search", text: $search).accessibilityIdentifier("context.coop.search")
-                if busy { ProgressView("cooperation.loading") }
-                if targetsFailed { Button("action.retry") { Task { await load(reset: true) } } }
-                if !busy, !targetsFailed, filtered.isEmpty { Text("context.picker.empty") }
+                if model.busy { ProgressView("cooperation.loading") }
+                if model.targetsFailed { Button("action.retry") { Task { await model.retryTargets(permit) } }.disabled(model.targetsBusy) }
+                if !model.busy, !model.targetsFailed, filtered.isEmpty { Text("context.picker.empty") }
                 ForEach(filtered) { candidate in
-                    Button {
-                        if selected.contains(candidate.id) { selected.remove(candidate.id) } else { selected.insert(candidate.id) }
-                    } label: {
-                        HStack { Text(verbatim: candidate.name); Spacer(); if selected.contains(candidate.id) { Image(systemName: "checkmark") } }
-                    }.disabled(busy || loadedSession != reader.session)
-                        .accessibilityAddTraits(selected.contains(candidate.id) ? .isSelected : [])
+                    Button { model.toggle(candidate.id, permit: permit) } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(verbatim: candidate.name)
+                                CoopInviteTargetMeta(candidate: candidate).font(.caption).foregroundStyle(.secondary)
+                            }
+                            Spacer(); if model.selected.contains(candidate.id) { Image(systemName: "checkmark") }
+                        }
+                    }.disabled(model.targetsBusy || !model.isCurrent)
+                        .accessibilityAddTraits(model.selected.contains(candidate.id) ? .isSelected : [])
                         .accessibilityIdentifier("context.coop.target.\(candidate.id)")
                 }
             }
-            if !selected.isEmpty {
-                LabeledContent("context.coop.selected", value: String(selected.count))
+            if !model.selected.isEmpty, model.isCurrent {
+                LabeledContent("context.coop.selected", value: String(model.selected.count))
                 Button("context.coop.continue") {
-                    guard loadedSession == reader.session, let topic else { return }
-                    let values = candidates.filter { selected.contains($0.id) }.compactMap {
-                        CoopFlowInvitationContext(candidate: $0, topic: topic, scope: operationScope, session: loadedSession)
-                    }
-                    guard values.count == selected.count else { return }
-                    editing = values; showEditor = true
-                }.disabled(topic?.inviteWindowOpen != true || busy || loadedSession != reader.session)
+                    guard let contexts = model.contexts(permit: permit) else { return }
+                    editing = contexts; showEditor = true
+                }
+                .buttonStyle(.questifyPrimary).frame(maxWidth: .infinity).listRowBackground(Color.clear)
+                .disabled(model.contexts(permit: permit) == nil)
             }
             CoopFlowSafetyNotice()
         }.navigationTitle("context.coop.new").scrollDismissesKeyboard(.interactively)
-            .task(id: "\(reader.session?.accountID ?? 0):\(reader.session?.epoch ?? 0)") { await load(reset: true) }
-            .onChange(of: kind) { _, _ in editing = []; showEditor = false; Task { await load(reset: true) } }
-            .onChange(of: reader.session) { _, _ in generation += 1; topics = []; candidates = []; selected = []; topicID = nil; editing = []; showEditor = false; search = "" }
-            .onDisappear { generation += 1; busy = false }
+            .onAppear {
+                let value = model.appear(active: scenePhase == .active)
+                Task { await model.loadInitial(value) }
+            }
+            .onChange(of: reader.session) { _, _ in
+                model.identityChanged(); editing = []; showEditor = false; search = ""
+                let value = model.permit; Task { await model.loadInitial(value) }
+            }
+            .onChange(of: scenePhase) { _, phase in
+                model.sceneChanged(active: phase == .active)
+                if phase == .active { let value = model.permit; Task { await model.loadInitial(value) } }
+            }
+            .onDisappear { model.disappear() }
             .sheet(isPresented: $showEditor) { NavigationStack { CoopFlowBatchInviteEditor(reader: reader, contexts: editing) } }
-    }
-    private func load(reset: Bool) async {
-        generation += 1; let request = generation, expected = reader.session, requestedKind = kind
-        if reset { topics = []; candidates = []; selected = []; topicID = nil; page = 1; hasMore = true; loadedSession = nil }
-        guard expected != nil else { return }
-        busy = true; topicsFailed = false; targetsFailed = false
-        defer { if request == generation { busy = false } }
-        do {
-            let value = try await reader.read(.ownedTopics(kind: requestedKind, scope: operationScope, page: page))
-            guard request == generation, expected == reader.session, requestedKind == kind, !Task.isCancelled else { return }
-            guard let rows = value["rows"].rows else { throw CoopFlowFailure.malformed }
-            let parsed = rows.compactMap(CoopFlowOwnedTopic.init)
-            guard parsed.count == rows.count else { throw CoopFlowFailure.malformed }
-            var seen = Set(topics.map(\.id)); topics += parsed.filter { seen.insert($0.id).inserted }
-            hasMore = rows.count == 20; page += 1
-        } catch { if request == generation, expected == reader.session { topicsFailed = true } }
-        guard reset else { return }
-        do {
-            let value = try await reader.read(requestedKind == .merchant ? .merchants(name: nil) : .clubs(name: nil))
-            guard request == generation, expected == reader.session, requestedKind == kind, !Task.isCancelled else { return }
-            guard let rows = value.rows else { throw CoopFlowFailure.malformed }
-            let parsed = rows.compactMap { CoopFlowTargetCandidate(kind: requestedKind, row: $0) }
-            guard parsed.count == rows.count, Set(parsed.map(\.id)).count == parsed.count else { throw CoopFlowFailure.malformed }
-            candidates = parsed; loadedSession = expected
-        } catch { if request == generation, expected == reader.session { targetsFailed = true } }
     }
 }
 
@@ -172,15 +300,36 @@ import SwiftUI
             guard let value = Decimal(string: fee, locale: Locale(identifier: "en_US_POSIX")), value > 0 else { return nil }
             compensation = .fixed(value)
         } else { compensation = .traffic }
-        return try? contexts.map { try $0.invitation(message: message, compensation: compensation, currentSession: reader.session) }
+        return try? contexts.map { try $0.invitation(message: outgoingMessage, compensation: compensation, currentSession: reader.session) }
     }
     private var dirty: Bool { !message.isEmpty || fixed || !fee.isEmpty }
+    private var isClub: Bool { contexts.first?.kind == .club }
+    @Environment(\.locale) private var locale
+    /// Source sends a default note when the inviter writes none.
+    private var outgoingMessage: String {
+        let trimmed = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? appLocalized(isClub ? "cooperation.invite.defaultMessage.club" : "cooperation.invite.defaultMessage.merchant", locale: locale) : message
+    }
     var body: some View {
         Form {
             Section("context.coop.targets") { ForEach(contexts) { Text(verbatim: $0.recipientName) } }
-            TextField("coopflow.field.message", text: $message, axis: .vertical).lineLimit(3...8).focused($typing)
-            Toggle("coopflow.fixed", isOn: $fixed)
-            if fixed { TextField("coopflow.field.fixedFee", text: $fee).keyboardType(.decimalPad).focused($typing); Text("coopflow.currency") }
+            TextField("cooperation.invite.messagePlaceholder", text: $message, axis: .vertical).lineLimit(3...8).focused($typing)
+                .onChange(of: message) { _, value in if value.count > 100 { message = String(value.prefix(100)) } }
+            Text(verbatim: "\(message.count) / 100").font(.caption).foregroundStyle(.secondary)
+            Picker("cooperation.invite.terms", selection: $fixed) {
+                Text("cooperation.invite.terms.traffic").tag(false)
+                Text(LocalizedStringKey(isClub ? "cooperation.invite.fee.club" : "cooperation.invite.fee.merchant")).tag(true)
+            }.pickerStyle(.inline).accessibilityIdentifier("cooperation.invite.terms")
+            if fixed {
+                LabeledContent {
+                    HStack(spacing: 4) {
+                        Text(verbatim: "¥")
+                        TextField(text: $fee, prompt: Text(verbatim: "0.00")) { Text("coopflow.field.fixedFee") }.keyboardType(.decimalPad).focused($typing)
+                        Text(LocalizedStringKey(isClub ? "cooperation.invite.feeUnit.club" : "cooperation.invite.feeUnit.merchant")).font(.footnote).foregroundStyle(.secondary)
+                    }
+                } label: { Text("coopflow.field.fixedFee") }
+                Text("coopflow.currency")
+            }
             if let drafts {
                 NavigationLink("coopflow.reviewAction") {
                     List {
@@ -204,5 +353,17 @@ import SwiftUI
                 Button("action.cancel", role: .cancel) { }
             }
             .onChange(of: reader.session) { _, _ in message = ""; fee = ""; fixed = false; dismiss() }
+    }
+}
+
+/// Source invite target meta: "{n} 位成员 · {city}" / "成员数待确认", or merchant "{types|address|开放承接}".
+struct CoopInviteTargetMeta: View {
+    let candidate: CoopFlowTargetCandidate
+    var body: some View {
+        if candidate.kind == .club {
+            let members = candidate.memberCount.map { Text("cooperation.invite.members \($0)") } ?? Text("cooperation.invite.membersUnknown")
+            if let city = candidate.city { members + Text(verbatim: " · " + city) } else { members }
+        } else if let meta = candidate.merchantMeta { Text(verbatim: meta) }
+        else { Text("cooperation.invite.openToHost") }
     }
 }

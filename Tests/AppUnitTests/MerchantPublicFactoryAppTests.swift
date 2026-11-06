@@ -14,6 +14,194 @@ import XCTest
         func write(_ record: OperationPendingRecord) throws {}
         func clear(_ record: OperationPendingRecord) throws {}
     }
+    private final class Vault: AppTokenStorage {
+        var value: String?
+        func read() throws -> String? { value }
+        func write(_ token: String) throws { value = token }
+        func clear() throws { value = nil }
+    }
+    private final class NormalWire: HTTPTransport {
+        var requests: [URLRequest] = []
+        var role = "player", status = 200, hold = false
+        var onHeld: (() -> Void)?
+        var pending: CheckedContinuation<(Data, Int), Error>?
+        let body = Data(#"{"code":200,"data":{"id":31,"memberId":77}}"#.utf8)
+        func resume(status: Int) { let p = pending; pending = nil; p?.resume(returning: (body, status)) }
+        func send(_ request: URLRequest) async throws -> (Data, Int) {
+            requests.append(request)
+            switch request.url!.lastPathComponent {
+            case "phone": return (Data(#"{"code":200,"token":"synthetic-7","data":{"id":7,"role":"player"}}"#.utf8), 200)
+            case "userInfo": return (Data("{\"code\":200,\"appUser\":{\"userId\":7,\"role\":\"\(role)\"}}".utf8), 200)
+            default:
+                if hold { return try await withCheckedThrowingContinuation { pending = $0; onHeld?() } }
+                return (body, status)
+            }
+        }
+    }
+    private func deployment(reads: Set<ReviewedAppDeployment.ReadGrant> = []) throws -> ReviewedAppDeployment {
+        try .init(market: .china, baseURL: "https://merchant-public.example/native",
+            approvedBaseURLs: [.china: ["https://merchant-public.example/native"]],
+            verifiedCapabilities: [.domesticChinaPhone], bundleIdentifier: "test.merchant.public", realm: "synthetic", reads: reads)
+    }
+    private func normal(_ wire: NormalWire, approved: Bool? = true, wrongAccount: Bool = false) throws -> AppSession {
+        let suite = "merchant-public-" + UUID().uuidString, defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
+        let vault = Vault()
+        return AppCompositionRoot(deployment: .reviewed(try deployment(reads: [.homeAndSearch])),
+            storage: .init(defaults: defaults, tokenStore: { _ in vault }), makeTransport: { wire },
+            sessionDependencies: { context in
+                guard let approved else { return .dormant }
+                return .init(merchantPublicApproval: try? .init(market: context.market, baseURL: context.baseURL,
+                    namespace: context.session.namespace, accountID: wrongAccount ? 8 : context.session.accountID,
+                    publicHomeRead: approved))
+            }).makeSession()
+    }
+    private func login(_ session: AppSession) async {
+        session.authChannels.cancel()
+        await session.authChannels.loginWithPhone(phone: "10000000000", code: "123456")
+        XCTAssertEqual(session.account?.id, 7)
+    }
+    private func request(_ deployment: ReviewedAppDeployment, fields: [String: Int] = ["id": 31]) throws -> URLRequest {
+        let api = try XCTUnwrap(deployment.regional.apiConfiguration)
+        var r = URLRequest(url: api.baseURL.appendingPathComponent("api/merchant/public-home"))
+        r.httpMethod = "POST"; r.httpShouldHandleCookies = false
+        r.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        r.httpBody = try JSONSerialization.data(withJSONObject: fields)
+        return r
+    }
+    private func scoped(_ transport: CompositionHTTPTransport, deployment: ReviewedAppDeployment,
+                        identity: CompositionHTTPTransport.SessionIdentity, approved: Bool = true) throws -> CompositionHTTPTransport {
+        let api = try XCTUnwrap(deployment.regional.apiConfiguration)
+        let context = try MerchantPublicHostContext(market: .china, baseURL: api.baseURL,
+            namespace: deployment.storageScope.service, accountID: identity.accountID,
+            epoch: identity.epoch, role: identity.role, token: identity.token)
+        let approval = try MerchantPublicProductionApproval(market: .china, baseURL: api.baseURL,
+            namespace: deployment.storageScope.service, accountID: identity.accountID, publicHomeRead: approved)
+        return transport.scopedForPublicMerchantHome(approval: approval, context: context)
+    }
+    func testNormalSignedInCompositionHonorsExplicitPublicHomeReadWithoutSendingToken() async throws {
+        let wire = NormalWire(), session = try normal(wire); await login(session)
+        wire.requests = []
+        let reader = session.publicMerchantHomeContext.reader
+        XCTAssertTrue(reader.isConfigured)
+        let owner = try await reader.home(.ownerMemberID(PublicMerchantOwnerID(77)!))
+        let row = try await reader.home(.legacyMerchantRowID(PublicMerchantRowID(31)!))
+        XCTAssertEqual(owner.memberId, 77); XCTAssertEqual(row.id, 31)
+        XCTAssertEqual(wire.requests.count, 2)
+        XCTAssertTrue(wire.requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == nil && !$0.httpShouldHandleCookies })
+        XCTAssertEqual(session.account?.id, 7)
+    }
+    func testMissingFalseAndWrongAccountApprovalsRemainClosedDespiteGenericReadGrant() async throws {
+        let flags: [Bool?] = [nil, false, true]
+        for flag in flags {
+            let wire = NormalWire(), session = try normal(wire, approved: flag, wrongAccount: flag == true)
+            await login(session); wire.requests = []
+            do { _ = try await session.publicMerchantHomeContext.reader.home(.legacyMerchantRowID(PublicMerchantRowID(31)!)); XCTFail() } catch {}
+            XCTAssertTrue(wire.requests.isEmpty)
+        }
+    }
+    func testUnscopedRootStillRejectsPublicHomeAndApprovedCloneCannotReadUnrelatedPath() async throws {
+        let wire = NormalWire(), d = try deployment(), root = CompositionHTTPTransport(deployment: d, underlying: wire)
+        let viewer = CompositionHTTPTransport.SessionIdentity(epoch: 1, accountID: 7, role: "player", token: "synthetic-7")
+        root.current = { viewer }; let r = try request(d)
+        do { _ = try await root.send(r); XCTFail() } catch {}
+        let child = try scoped(root, deployment: d, identity: viewer)
+        for path in ["api/merchant/info", "api/ai/npc/merchant-chat", "api/user/info", "api/merchant/list"] {
+            var other = r; other.url = d.regional.apiConfiguration!.baseURL.appendingPathComponent(path)
+            do { _ = try await child.send(other); XCTFail(path) } catch {}
+        }
+        XCTAssertTrue(wire.requests.isEmpty)
+    }
+    func testPublicHomeEnvelopeRejectsMalformedFieldsCookiesTokensAndNoncanonicalBodies() async throws {
+        let wire = NormalWire(), d = try deployment(), root = CompositionHTTPTransport(deployment: d, underlying: wire)
+        let viewer = CompositionHTTPTransport.SessionIdentity(epoch: 1, accountID: 7, role: "player", token: "synthetic-7")
+        root.current = { viewer }; let child = try scoped(root, deployment: d, identity: viewer)
+        let valid = try request(d)
+        for body in [#"{"id":0}"#, #"{"id":-1}"#, #"{"id":"31"}"#, #"{"id":true}"#, #"{"id":31.0}"#,
+                     #"{"id":31,"id":31}"#, #"{"id":31,"memberId":77}"#, #"{"id":31,"extra":1}"#, #"{"id":9223372036854775808}"#] {
+            var r = valid; r.httpBody = Data(body.utf8)
+            do { _ = try await child.send(r); XCTFail(body) } catch {}
+        }
+        for header in ["Authorization", "Proxy-Authorization", "Cookie"] {
+            var r = valid; r.setValue("synthetic", forHTTPHeaderField: header)
+            do { _ = try await child.send(r); XCTFail(header) } catch {}
+        }
+        for suffix in ["/", "?id=31", "#fragment"] {
+            var r = valid; r.url = URL(string: valid.url!.absoluteString + suffix)
+            do { _ = try await child.send(r); XCTFail(suffix) } catch {}
+        }
+        var cookie = valid; cookie.httpShouldHandleCookies = true
+        do { _ = try await child.send(cookie); XCTFail() } catch {}
+        var streamed = valid; streamed.httpBodyStream = InputStream(data: Data("{}".utf8))
+        do { _ = try await child.send(streamed); XCTFail() } catch {}
+        for method in ["GET", "PUT", "DELETE"] {
+            var r = valid; r.httpMethod = method
+            do { _ = try await child.send(r); XCTFail(method) } catch {}
+        }
+        XCTAssertTrue(wire.requests.isEmpty)
+    }
+    func testPublicHomeScopeRequiresExactApprovalDeploymentNamespaceAndAccount() async throws {
+        let wire = NormalWire(), d = try deployment(), root = CompositionHTTPTransport(deployment: d, underlying: wire)
+        let viewer = CompositionHTTPTransport.SessionIdentity(epoch: 1, accountID: 7, role: "player", token: "synthetic-7")
+        root.current = { viewer }
+        let base = d.regional.apiConfiguration!.baseURL
+        for kind in ["disabled", "namespace", "account", "deployment"] {
+            let url = kind == "deployment" ? URL(string: "https://other.example/native")! : base
+            let namespace = kind == "namespace" ? "other" : d.storageScope.service
+            let account = kind == "account" ? 8 : 7
+            let context = try MerchantPublicHostContext(market: .china, baseURL: url, namespace: namespace,
+                accountID: account, epoch: 1, role: "player", token: "synthetic-7")
+            let approval = try MerchantPublicProductionApproval(market: .china, baseURL: url, namespace: namespace,
+                accountID: account, publicHomeRead: kind != "disabled")
+            let child = root.scopedForPublicMerchantHome(approval: approval, context: context)
+            do { _ = try await child.send(request(d)); XCTFail(kind) } catch {}
+        }
+        XCTAssertTrue(wire.requests.isEmpty)
+    }
+    func testPublicHomeScopeSurvivesUnderlyingReplacementButNotViewerRevision() async throws {
+        let wire = NormalWire(), d = try deployment(), root = CompositionHTTPTransport(deployment: d, underlying: NormalWire())
+        var viewer = CompositionHTTPTransport.SessionIdentity(epoch: 1, accountID: 7, role: "player", token: "synthetic-7")
+        root.current = { viewer }
+        let child = try scoped(root, deployment: d, identity: viewer).replacingUnderlying(wire)
+        _ = try await child.send(request(d)); XCTAssertEqual(wire.requests.count, 1)
+        viewer = .init(epoch: 1, accountID: 7, role: "player", token: "synthetic-7", viewerRevision: 1)
+        do { _ = try await child.send(request(d)); XCTFail() } catch {}
+        XCTAssertEqual(wire.requests.count, 1)
+    }
+    func testPublicHomeLateSuccessAnd401RejectChangedViewer() async throws {
+        for kind in ["account", "viewer"] { for status in [200, 401] {
+            let wire = NormalWire(), d = try deployment(), root = CompositionHTTPTransport(deployment: d, underlying: wire)
+            var viewer = CompositionHTTPTransport.SessionIdentity(epoch: 1, accountID: 7, role: "player", token: "synthetic-7")
+            root.current = { viewer }; let child = try scoped(root, deployment: d, identity: viewer)
+            let started = expectation(description: "public home held"); wire.hold = true; wire.onHeld = { started.fulfill() }
+            let r = try request(d), task = Task { try await child.send(r) }
+            await fulfillment(of: [started], timeout: 2)
+            viewer = kind == "account"
+                ? .init(epoch: 2, accountID: 8, role: "player", token: "synthetic-8")
+                : .init(epoch: 1, accountID: 7, role: "player", token: "synthetic-7", viewerRevision: 2)
+            wire.resume(status: status)
+            do { _ = try await task.value; XCTFail() } catch { XCTAssertTrue(error is CancellationError) }
+        } }
+    }
+    func testRoleOnlyABARefreshRebuildsNormalFactoryWithoutReusingOldScope() async throws {
+        let wire = NormalWire(), session = try normal(wire); await login(session)
+        let old = session.publicMerchantHomeContext.reader
+        wire.role = "merchant"; await session.refreshOwnAccount()
+        wire.role = "player"; await session.refreshOwnAccount()
+        let fresh = session.publicMerchantHomeContext.reader
+        XCTAssertNotEqual(old.scope, fresh.scope); XCTAssertFalse(old.isConfigured)
+        wire.requests = []
+        do { _ = try await old.home(.legacyMerchantRowID(PublicMerchantRowID(31)!)); XCTFail() } catch {}
+        XCTAssertTrue(wire.requests.isEmpty)
+        _ = try await fresh.home(.legacyMerchantRowID(PublicMerchantRowID(31)!))
+        XCTAssertEqual(wire.requests.count, 1)
+    }
+    func testPublicHome401RemainsReadFailureWithoutSigningOutCurrentViewer() async throws {
+        let wire = NormalWire(), session = try normal(wire); await login(session)
+        wire.status = 401
+        do { _ = try await session.publicMerchantHomeContext.reader.home(.legacyMerchantRowID(PublicMerchantRowID(31)!)); XCTFail() } catch {}
+        XCTAssertEqual(session.account?.id, 7)
+    }
     func testNormalDormantDependenciesAndAppHomeRemainUnconfigured() async throws {
         let d = NativeRuntimeDependencies.dormant, wire = Wire()
         XCTAssertNil(d.merchantPublicApproval); XCTAssertFalse(d.merchantNPCGrants.chatAllowed)

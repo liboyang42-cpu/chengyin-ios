@@ -47,14 +47,20 @@ public struct ProfileSelfMedalsContext: Hashable {
             guard current() else { return }
             let wall = try await profileReader.profileBadges()
             guard current() else { return }
-            guard let rows = wall.medals else { issue = .partial; return }
+            guard let rows = wall.medals else {
+                if wall.medalReadRestriction != nil { medals = nil }
+                issue = .partial; return
+            }
             medals = rows // An authoritative empty array replaces previously loaded rows.
         } catch is CancellationError { }
         catch {
             guard current() else { return }
             if error as? APIError == .unauthorized || (error as? ProfileReadFailure)?.isUnauthorized == true {
                 medals = nil; issue = .signIn
-            } else { issue = .readFailed }
+            } else {
+                if ProfileMedalReadRestriction.classify(error) != nil { medals = nil }
+                issue = .readFailed
+            }
         }
     }
 }

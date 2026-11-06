@@ -10,7 +10,7 @@ ROWS = {
     'request': ('Describe the template', '描述模板玩法'),
     'shopName': ('Shop or template name', '店名或模板名称'),
     'prompt': ('Describe the activity or riddle you want', '描述想生成的玩法或谜题'),
-    'disabled': ('AI generation is not enabled for this account and deployment. You can keep editing the template manually.', '当前账号和环境尚未启用 AI 生成，你仍可手动编辑模板。'),
+    'disabled': ('AI generation isn\'t available right now. You can keep editing the template yourself.', 'AI 生成暂不可用，你仍可手动编辑模板。'),
     'working': ('Preparing suggestions…', '正在准备建议…'),
     'generate': ('Generate suggestions', '生成建议'),
     'retry': ('Try again', '重试'),

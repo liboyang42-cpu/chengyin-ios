@@ -163,32 +163,32 @@
     },
     "workshopPaidInstalledText.provenance": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "来源与版本"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source and version"
+            "value": "Version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本"
           }
         }
       }
     },
     "workshopPaidInstalledText.unchangedCopy": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前显示安装时的原始副本，尚无本地修改。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is the original installed copy. There are no local edits."
+            "value": "The original installed copy, unedited."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装时的原始副本，尚未修改。"
           }
         }
       }
@@ -547,16 +547,16 @@
     },
     "workshopPaidInstalledText.adaptationAllowed": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "冻结条款允许本地适配；当前页面仍仅审阅，尚未接入专业目标写入。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Frozen terms allow local adaptation. This page remains review-only; professional target writing is not connected."
+            "value": "The terms allow adaptation. Editing it here isn't available yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条款允许改编，暂不能在此编辑。"
           }
         }
       }
@@ -579,16 +579,16 @@
     },
     "workshopPaidInstalledText.materializationRequired": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "应用到专业作品前，还需服务器目标绑定、内容归属与来源权益保护。安装副本编号不是专业玩法模板编号，此处不能保存或发布。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Applying this to a professional project requires server target binding, content ownership and source-rights protection. The installed copy ID is not a professional template ID. Save and publish are unavailable here."
+            "value": "It can't be used in a project or published from here yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不能在此用于作品或发布。"
           }
         }
       }

@@ -1,0 +1,22 @@
+// Copy to Config/Local.xcconfig (gitignored) and fill in the placeholders.
+// Never commit Config/Local.xcconfig, and never put secrets in build settings.
+// Base.xcconfig uses this file for common build metadata and the generic profile only.
+// China/US profiles deliberately clear its endpoint and realm. Put those two inputs in
+// Local.China.xcconfig or Local.UnitedStates.xcconfig instead.
+// Explicit environment profiles use Local.<Market>.<Environment>.xcconfig, for example
+// Local.China.Staging.xcconfig. All Local.*.xcconfig files are gitignored.
+// Each environment must supply its own endpoint and realm; production never inherits staging.
+// Copy only the relevant non-secret assignments, not this whole file, into each local file.
+
+// Apple Developer Team ID used for automatic signing.
+// DEVELOPMENT_TEAM = <YOUR_APPLE_TEAM_ID>
+
+// Production bundle identifier registered in App Store Connect.
+// PRODUCT_BUNDLE_IDENTIFIER = <YOUR_PRODUCTION_BUNDLE_ID>
+
+// Approved public HTTPS API base URL, preserving the gateway prefix.
+// xcconfig treats // as a comment, so write the scheme as https:/$()/<host>/<prefix>.
+// QUESTIFY_API_BASE_URL = https:/$()/<YOUR_APPROVED_API_HOST>/<GATEWAY_PREFIX>
+
+// Explicit deployment identity for isolated local session persistence.
+// QUESTIFY_SESSION_REALM = <YOUR_SESSION_REALM>

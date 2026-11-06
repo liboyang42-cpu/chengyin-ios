@@ -22,6 +22,9 @@ public struct ShopNPCTransmissionIntent: Equatable {
     public private(set) var failure: ShopNPCFailure?
     public private(set) var serviceNotice: String?
     public private(set) var pendingIsTerminalServiceResponse = false
+    /// The server retained an unresolved request and explicitly denied retry.
+    /// This is neither a completed result nor a missing transport response.
+    public private(set) var pendingIsNonRetryableProcessing = false
     private var serverRetryAt: Date?
     public private(set) var busy = false
     public private(set) var active = true
@@ -42,7 +45,8 @@ public struct ShopNPCTransmissionIntent: Equatable {
         return Int(min(86_400, max(0, ceil(remaining))))
     }
     public var canConfirmPending: Bool {
-        guard active, !isSuspended, scope.valid, !busy, !pendingIsTerminalServiceResponse, let pending, pending.scope == scope,
+        guard active, !isSuspended, scope.valid, !busy, !pendingIsTerminalServiceResponse, !pendingIsNonRetryableProcessing,
+              let pending, pending.scope == scope,
               serverRetrySecondsRemaining == 0 else { return false }
         switch pending.content { case .text: return grants.textAllowed; case .voice: return grants.voiceAllowed }
     }
@@ -57,6 +61,7 @@ public struct ShopNPCTransmissionIntent: Equatable {
         epoch &+= 1; transmissionIntent = nil; transmission?.cancel(); transmission = nil
         active = false; isSuspended = false; busy = false; pending = nil; messages = []; failure = nil; lastSend = nil
         serviceNotice = nil; serverRetryAt = nil; pendingIsTerminalServiceResponse = false
+        pendingIsNonRetryableProcessing = false
     }
     /// Cancels local waiting only. The server may already have accepted the original request.
     /// Keep its exact review, content and request ID until explicit retry or discard.
@@ -90,6 +95,7 @@ public struct ShopNPCTransmissionIntent: Equatable {
         guard active, !isSuspended, !busy else { return }
         transmissionIntent = nil; pending = nil; failure = nil
         serviceNotice = nil; serverRetryAt = nil; pendingIsTerminalServiceResponse = false
+        pendingIsNonRetryableProcessing = false
     }
     public func reviewText(_ value: String) throws {
         try check(voice: false)
@@ -98,6 +104,7 @@ public struct ShopNPCTransmissionIntent: Equatable {
         guard !text.isEmpty else { throw ShopNPCFailure.invalid }
         pending = .init(id: UUID(), scope: scope, content: .text(text), replacing: nil); failure = nil
         serviceNotice = nil; serverRetryAt = nil; pendingIsTerminalServiceResponse = false
+        pendingIsNonRetryableProcessing = false
     }
     /// Explicit regeneration is a new model request; failures retain original answer and ID.
     public func canRegenerate(answerID: UUID) -> Bool {
@@ -114,19 +121,21 @@ public struct ShopNPCTransmissionIntent: Equatable {
         guard let question = regenerationQuestion(answerID: answerID) else { throw ShopNPCFailure.invalid }
         pending = .init(id: UUID(), scope: scope, content: .text(question.text), replacing: answerID); failure = nil
         serviceNotice = nil; serverRetryAt = nil; pendingIsTerminalServiceResponse = false
+        pendingIsNonRetryableProcessing = false
     }
     public func reviewVoice(_ clip: ShopNPCVoiceClip) throws {
         try check(voice: true)
         guard pending == nil else { throw ShopNPCFailure.busy }
         pending = .init(id: UUID(), scope: scope, content: .voice(clip), replacing: nil); failure = nil
         serviceNotice = nil; serverRetryAt = nil; pendingIsTerminalServiceResponse = false
+        pendingIsNonRetryableProcessing = false
     }
     /// Capture only at the user's explicit button action, before starting an async Task.
     public func prepareTransmission(reviewID: UUID) throws -> ShopNPCTransmissionIntent {
         guard let review = pending, review.id == reviewID, review.scope == scope else { throw ShopNPCFailure.invalid }
         let voice: Bool = { if case .voice = review.content { return true }; return false }()
         try check(voice: voice)
-        guard !pendingIsTerminalServiceResponse else { throw failure ?? .invalid }
+        guard !pendingIsTerminalServiceResponse, !pendingIsNonRetryableProcessing else { throw failure ?? .invalid }
         guard serverRetrySecondsRemaining == 0 else { throw ShopNPCFailure.rateLimited }
         let intent = ShopNPCTransmissionIntent(nonce: UUID(), generation: epoch, reviewID: reviewID)
         transmissionIntent = intent
@@ -147,7 +156,7 @@ public struct ShopNPCTransmissionIntent: Equatable {
         let voice: Bool = { if case .voice = review.content { return true }; return false }()
         do { try check(voice: voice) } catch { failure = error as? ShopNPCFailure ?? .invalid; return }
         guard review.scope == scope else { failure = .stale; pending = nil; return }
-        guard !pendingIsTerminalServiceResponse else { return }
+        guard !pendingIsTerminalServiceResponse, !pendingIsNonRetryableProcessing else { return }
         guard serverRetrySecondsRemaining == 0 else { failure = .rateLimited; return }
         if let lastSend, now().timeIntervalSince(lastSend) < 1 { failure = .rateLimited; return }
         lastSend = now(); busy = true; failure = nil; serviceNotice = nil
@@ -167,21 +176,25 @@ public struct ShopNPCTransmissionIntent: Equatable {
             try Task.checkCancellation()
             guard !task.isCancelled else { throw CancellationError() }
             guard reply.requestID == review.id else { throw ShopNPCFailure.malformed }
-            if reply.needsRetry {
+            if reply.outcome == .processing || reply.needsRetry {
                 transmission = nil; busy = false; pendingIsTerminalServiceResponse = false
-                serverRetryAt = now().addingTimeInterval(TimeInterval(reply.retryAfterSeconds ?? 0))
+                pendingIsNonRetryableProcessing = !reply.needsRetry
+                serverRetryAt = reply.needsRetry ? now().addingTimeInterval(TimeInterval(reply.retryAfterSeconds ?? 0)) : nil
                 serviceNotice = reply.text.isEmpty ? nil : reply.text
-                failure = reply.outcome == .processing ? .replyProcessing : .replyRetryable
+                failure = pendingIsNonRetryableProcessing ? .replyUnresolved :
+                    (reply.outcome == .processing ? .replyProcessing : .replyRetryable)
                 return // Same reviewed payload and request ID; no question/answer is added.
             }
             if reply.outcome != .succeeded {
                 transmission = nil; busy = false; serverRetryAt = nil; pendingIsTerminalServiceResponse = true
+                pendingIsNonRetryableProcessing = false
                 serviceNotice = reply.text.isEmpty ? nil : reply.text
                 failure = reply.outcome == .rejected ? .replyRejected : .replyFailed
                 return // Keep the original text/voice review until explicit discard, without offering an unauthorized retry.
             }
             transmission = nil; busy = false; pending = nil; failure = nil
             serviceNotice = nil; serverRetryAt = nil; pendingIsTerminalServiceResponse = false
+            pendingIsNonRetryableProcessing = false
             if let replacing = review.replacing {
                 guard !reply.text.isEmpty, let index = messages.firstIndex(where: { $0.id == replacing }) else { failure = .malformed; return }
                 messages[index].text = reply.text

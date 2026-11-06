@@ -85,6 +85,11 @@ public struct WalletCommerceService {
         let e = try JSONDecoder().decode(WithdrawalEnvelope.self, from: bytes)
         return WalletPage(rows: e.rows, total: e.total, page: nil, pageSize: nil)
     }
+    /// Same bodyless request as withdrawals(token:); the source controller ignores the
+    /// mini-program's pageNum/pageSize, so the response is identical. Mapping: WithdrawalHistory.swift.
+    public func withdrawalHistory(token: String) async throws -> WithdrawalHistoryPage {
+        try WithdrawalHistoryPage.decode(envelope: await send(path: "api/withdrawal/list", fields: [:], token: token, body: false))
+    }
     private static func validProduct(_ product: WalletProduct) -> Bool {
         product.id > 0 && (product.price.map { $0.value >= 0 } ?? true) &&
         (product.stock.map { $0 >= 0 } ?? true) && (product.skuList ?? []).allSatisfy {

@@ -57,7 +57,11 @@ import UniformTypeIdentifiers
                     guard scenePhase == .active, let permit,
                           let replacement = model.state.choose(chip, permit: permit, current: context, generating: generating) else { return }
                     idea = replacement
-                } label: { Text(verbatim: chip.text).multilineTextAlignment(.leading) }
+                } label: {
+                    Text(verbatim: chip.text).multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
+                }
                 .buttonStyle(.bordered)
                 .disabled(permit == nil || scenePhase != .active)
                 .accessibilityIdentifier("club.aiFeedback.idea." + chip.rawValue)
@@ -111,9 +115,12 @@ import UniformTypeIdentifiers
         let permit = model.state.permit(value, generating: generating)
         if !promoCopy.isEmpty {
             Section {
-                Button("club.aiFeedback.copy") {
+                Button {
                     guard let permit else { return }
                     model.copy(permit, current: current, generating: { generating }, write: ClubAIDesignFeedbackModel.writeClipboard)
+                } label: {
+                    Text("club.aiFeedback.copy").fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
                 }
                 .disabled(permit == nil || current() == nil || model.state.phase == .copying)
                 .accessibilityIdentifier("club.aiFeedback.copy")

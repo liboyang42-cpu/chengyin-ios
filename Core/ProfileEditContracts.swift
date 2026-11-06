@@ -82,28 +82,31 @@ public struct ProfileEditDraft: Equatable {
     public var removesContactQR: Bool
     /// Clear all existing work-image references; no replacement or upload capability.
     public var removesCasePictures: Bool
+    /// A source-bound ordered subset, never an arbitrary URL replacement.
+    public var casePictureSubset: ProfileCasePictureSubset?
     /// Nil preserves the complete wire string. An explicit empty selection clears preferences.
     public var routePreferenceIDs: [Int]?
     public private(set) var avatarReplacement: ProfileAvatarReplacement?
-    public init(name: String = "", introduction: String = "", routePreferenceIDs: [Int]? = nil, avatarReplacement: ProfileAvatarReplacement? = nil, caseIntroduction: String? = nil, removesContactQR: Bool = false, removesCasePictures: Bool = false) {
+    public init(name: String = "", introduction: String = "", routePreferenceIDs: [Int]? = nil, avatarReplacement: ProfileAvatarReplacement? = nil, caseIntroduction: String? = nil, removesContactQR: Bool = false, removesCasePictures: Bool = false, casePictureSubset: ProfileCasePictureSubset? = nil) {
         self.name = name; self.introduction = introduction; self.routePreferenceIDs = routePreferenceIDs
         self.avatarReplacement = avatarReplacement; self.caseIntroduction = caseIntroduction
-        self.removesContactQR = removesContactQR; self.removesCasePictures = removesCasePictures
+        self.removesContactQR = removesContactQR; self.removesCasePictures = removesCasePictures; self.casePictureSubset = casePictureSubset
     }
     public func stagingAvatar(_ value: ProfileAvatarReplacement) -> Self {
-        .init(name: name, introduction: introduction, routePreferenceIDs: routePreferenceIDs, avatarReplacement: value, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR, removesCasePictures: removesCasePictures)
+        .init(name: name, introduction: introduction, routePreferenceIDs: routePreferenceIDs, avatarReplacement: value, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR, removesCasePictures: removesCasePictures, casePictureSubset: casePictureSubset)
     }
-    public var normalized: Self { .init(name: name.trimmingCharacters(in: .whitespacesAndNewlines), introduction: introduction.trimmingCharacters(in: .whitespacesAndNewlines), routePreferenceIDs: routePreferenceIDs, avatarReplacement: avatarReplacement, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR, removesCasePictures: removesCasePictures) }
+    public var normalized: Self { .init(name: name.trimmingCharacters(in: .whitespacesAndNewlines), introduction: introduction.trimmingCharacters(in: .whitespacesAndNewlines), routePreferenceIDs: routePreferenceIDs, avatarReplacement: avatarReplacement, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR, removesCasePictures: removesCasePictures, casePictureSubset: casePictureSubset) }
     public func hasChanges(comparedTo snapshot: ProfileEditSnapshot) -> Bool {
-        var ordinary = normalized; ordinary.caseIntroduction = nil; ordinary.removesContactQR = false; ordinary.removesCasePictures = false
+        var ordinary = normalized; ordinary.caseIntroduction = nil; ordinary.removesContactQR = false; ordinary.removesCasePictures = false; ordinary.casePictureSubset = nil
         let caseChanged = caseIntroduction.map { !ProfileCasePortfolio.sameText($0, snapshot.caseIntroduction) } ?? false
         let contactQRChanged = removesContactQR && !snapshot.wechat.isEmpty
-        let picturesChanged = removesCasePictures && ProfileCasePortfolio(casePics: snapshot.casePics).imageCount > 0
+        let picturesChanged = (removesCasePictures && ProfileCasePortfolio(casePics: snapshot.casePics).imageCount > 0)
+            || casePictureSubset?.hasChanges == true
         return ordinary != snapshot.draft.normalized || caseChanged || contactQRChanged || picturesChanged
     }
     public var isValid: Bool {
         let ids = routePreferenceIDs ?? []
-        return !normalized.name.isEmpty && ids.allSatisfy { $0 > 0 } && Set(ids).count == ids.count
+        return !(removesCasePictures && casePictureSubset != nil) && !normalized.name.isEmpty && ids.allSatisfy { $0 > 0 } && Set(ids).count == ids.count
     }
 }
 public struct ProfileEditPayload: Encodable, Equatable {
@@ -114,6 +117,8 @@ public struct ProfileEditPayload: Encodable, Equatable {
     /// Review metadata only; deliberately excluded from CodingKeys.
     public let removesContactQR: Bool
     public let removesCasePictures: Bool
+    public let casePictureSubset: ProfileCasePictureSubset?
+    public var changesCasePictures: Bool { removesCasePictures || casePictureSubset != nil }
     public let casePics: String
     public let caseIntroduction: String?
     public let tagIds: String
@@ -126,6 +131,8 @@ public struct ProfileEditPayload: Encodable, Equatable {
     }
     public init(draft: ProfileEditDraft, preserving snapshot: ProfileEditSnapshot) throws {
         guard draft.isValid, draft.caseIntroduction == nil || snapshot.caseIntroduction != nil else { throw APIError.invalidRequest }
+        guard draft.casePictureSubset?.matches(source: snapshot.casePics) != false else { throw APIError.invalidRequest }
+        casePictureSubset = draft.casePictureSubset?.hasChanges == true ? draft.casePictureSubset : nil
         caseIntroduction = draft.caseIntroduction
         preferenceIDs = draft.routePreferenceIDs
         removesContactQR = draft.removesContactQR && !snapshot.wechat.isEmpty
@@ -137,10 +144,11 @@ public struct ProfileEditPayload: Encodable, Equatable {
         avatarReplacement = draft.avatarReplacement
         avatar = draft.avatarReplacement?.reference ?? snapshot.avatar
         wechat = removesContactQR ? "" : snapshot.wechat
-        casePics = removesCasePictures ? "" : snapshot.casePics
+        casePics = removesCasePictures ? "" : (casePictureSubset?.wireValue ?? snapshot.casePics)
         tagIds = draft.routePreferenceIDs.map { $0.map(String.init).joined(separator: ",") } ?? snapshot.tagIds
     }
     public func matches(_ snapshot: ProfileEditSnapshot) -> Bool {
+        if changesCasePictures && !casePics.utf8.elementsEqual(snapshot.casePics.utf8) { return false }
         if let caseIntroduction, !ProfileCasePortfolio.sameText(caseIntroduction, snapshot.caseIntroduction) { return false }
         if avatarReplacement != nil {
             guard zip([name, introduction, avatar, wechat, casePics, tagIds],

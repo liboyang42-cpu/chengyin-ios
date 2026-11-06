@@ -4,9 +4,17 @@ public struct GrowthCenterReadSession: Equatable {
     public let accountID: Int
     public let epoch: UInt64
     fileprivate let token: String
-    public init(accountID: Int, epoch: UInt64, token: String) throws {
+    public let approvalRevision: UUID?
+    public let viewerRevision: UInt64
+    public init(accountID: Int, epoch: UInt64, token: String, approvalRevision: UUID? = nil, viewerRevision: UInt64 = 0) throws {
         guard accountID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         self.accountID = accountID; self.epoch = epoch; self.token = token
+        self.approvalRevision = approvalRevision; self.viewerRevision = viewerRevision
+    }
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.accountID == rhs.accountID && lhs.epoch == rhs.epoch &&
+            lhs.approvalRevision == rhs.approvalRevision && lhs.viewerRevision == rhs.viewerRevision &&
+            lhs.token.utf8.elementsEqual(rhs.token.utf8)
     }
 }
 @MainActor public protocol GrowthCenterReading: AnyObject {
