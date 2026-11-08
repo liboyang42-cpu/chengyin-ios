@@ -1,0 +1,2 @@
+# Backend route tables (STATIC, not yet run against a live server)
+Derived by reading the backend code of the private `chengyin` repo, branch `claude/be-v2-fixes` (compiles; unit tests green). Routes stay UNKNOWN for the App until the coordinator posts a runtime-verified list (Cursor curl matrix on a throwaway instance). Examples are SYNTHETIC. Capability names in `ug-capability-registry.md` still need owner ratification. Production serves none of the new routes yet. One route moved: `GET /api/play/help/quota` (was the G39 hint view).
