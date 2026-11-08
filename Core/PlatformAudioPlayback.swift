@@ -43,6 +43,13 @@ public enum PlatformAudioEvent: Sendable { case playing, ended, failed, interrup
     }
     /// Must follow explicit review of this exact URL/origin and session/region scope.
     public func approveSelectedMedia() { if state != .disposed { consentedSource = source } }
+    /// Bind approval to the exact source and scope displayed during review.
+    @discardableResult public func approveReviewedMedia(_ expected: PlatformMediaSource?) -> Bool {
+        guard state != .disposed, enabled, let expected,
+              source == expected, policy.allows(expected.url) else { return false }
+        consentedSource = expected
+        return true
+    }
     public func toggle() {
         guard state != .disposed, enabled, let source, consentedSource == source, policy.allows(source.url) else { return }
         if state == .loading { return }
@@ -56,7 +63,7 @@ public enum PlatformAudioEvent: Sendable { case playing, ended, failed, interrup
             case .playing: self.state = .playing
             case .ended: self.invalidate(); self.state = .ended
             case .failed: self.invalidate(); self.state = .failed
-            case .interrupted: self.invalidate(); self.state = .idle
+            case .interrupted: self.suspend()
             }
         }
     }

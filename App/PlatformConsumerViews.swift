@@ -6,25 +6,32 @@ import SwiftUI
     let source: PlatformMediaSource?
     @Environment(\.scenePhase) private var scenePhase
     @State private var review = false
+    @State private var reviewedSource: PlatformMediaSource?
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Label("platform.audio.title", systemImage: "speaker.wave.2")
             Text(LocalizedStringKey("platform.audio." + String(describing: model.state))).accessibilityIdentifier("platform.audio.state")
             if model.state == .loading { ProgressView("platform.audio.loading") }
             Button(model.state == .playing ? "platform.audio.pause" : "platform.audio.play") {
-                if model.state == .playing || model.state == .paused { model.toggle() } else { review = true }
+                if model.state == .playing || model.state == .paused { model.toggle() }
+                else { reviewedSource = model.source; review = true }
             }.disabled(model.state == .gated || model.state == .disposed || model.state == .loading)
                 .accessibilityIdentifier("platform.audio.toggle")
             Text("platform.audio.boundary").font(.footnote)
         }
         .confirmationDialog("platform.audio.review", isPresented: $review, titleVisibility: .visible) {
-            Button("platform.audio.allow") { model.approveSelectedMedia(); model.toggle() }
+            Button("platform.audio.allow") {
+                guard scenePhase == .active, source == reviewedSource,
+                      model.approveReviewedMedia(reviewedSource) else { return }
+                reviewedSource = nil
+                model.toggle()
+            }
             Button("platform.cancel", role: .cancel) {}
-        } message: { Text(verbatim: source?.url.host ?? "") }
+        } message: { Text(verbatim: reviewedSource?.url.host ?? "") }
         .onAppear { model.select(source) }
-        .onChange(of: source) { _, next in review = false; model.select(next) }
-        .onChange(of: scenePhase) { _, next in if next != .active { review = false; model.suspend() } }
-        .onDisappear { review = false; model.dispose() }
+        .onChange(of: source) { _, next in review = false; reviewedSource = nil; model.select(next) }
+        .onChange(of: scenePhase) { _, next in if next != .active { review = false; reviewedSource = nil; model.suspend() } }
+        .onDisappear { review = false; reviewedSource = nil; model.dispose() }
     }
 }
 @MainActor struct PlatformExternalMapButton: View {
