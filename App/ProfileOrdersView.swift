@@ -74,7 +74,7 @@ struct ProfileOrderDetailView: View {
     @State private var ticketEntryVisible = false
     @State private var ticketPresentationID = UUID()
     var body: some View {
-        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", load: { try await reader.profileOrder(id: id) }) { order in
+        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", requestID: id, load: { try await reader.profileOrder(id: id) }) { order in
             List {
                 Section("profile.orders.summary") {
                     if let title = order.title, !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {

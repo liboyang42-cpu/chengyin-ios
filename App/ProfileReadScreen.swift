@@ -6,19 +6,24 @@ import SwiftUI
 struct ProfileReadScreen<Value, Content: View>: View {
     let reader: any ProfileReading
     let accessibilityPrefix: String
+    let requestID: Int?
     let load: () async throws -> Value
     let content: (Value) -> Content
-    @State private var value: Value?
-    @State private var isLoading = true
-    @State private var issue: ProfileLoadIssue?
-    @State private var generation: UInt64 = 0
+    @State private var model = ProfileReadPresentation<Value>()
+    private var readKey: ProfileReadPresentationOwner {
+        .init(reader: reader, identity: reader.identity, configured: reader.isConfigured,
+              surface: accessibilityPrefix, requestID: requestID)
+    }
+    private var snapshot: ProfileReadPresentation<Value>.Snapshot { model.snapshot(for: readKey) }
+    private var issue: ProfileLoadIssue? { snapshot.error.map(ProfileLoadIssue.init) }
     @State private var loadOwner = ManualMapReadTaskOwner()
 
-    init(reader: any ProfileReading, accessibilityPrefix: String,
+    init(reader: any ProfileReading, accessibilityPrefix: String, requestID: Int? = nil,
          load: @escaping () async throws -> Value,
          @ViewBuilder content: @escaping (Value) -> Content) {
         self.reader = reader
         self.accessibilityPrefix = accessibilityPrefix
+        self.requestID = requestID
         self.load = load
         self.content = content
     }
@@ -31,7 +36,7 @@ struct ProfileReadScreen<Value, Content: View>: View {
             } else if !reader.isConfigured {
                 ContentUnavailableView("profile.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
                     .accessibilityIdentifier(accessibilityPrefix + ".unavailable")
-            } else if isLoading {
+            } else if !snapshot.started || snapshot.isLoading {
                 ProgressView("profile.loading").accessibilityIdentifier(accessibilityPrefix + ".loading")
             } else if let issue {
                 ContentUnavailableView {
@@ -47,42 +52,36 @@ struct ProfileReadScreen<Value, Content: View>: View {
                             .accessibilityIdentifier(accessibilityPrefix + ".retry")
                     }
                 }
-            } else if let value {
+            } else if let value = snapshot.value {
                 content(value)
+            } else {
+                Button("action.retry") { loadOwner.start { await reload() } }
+                    .accessibilityIdentifier(accessibilityPrefix + ".retry")
             }
         }
         .refreshable { await loadOwner.run { await reload() } }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("profile.refresh", systemImage: "arrow.clockwise") { loadOwner.start { await reload() } }
-                    .disabled(isLoading || !reader.isConfigured || reader.identity == nil)
+                    .disabled(snapshot.isLoading || !snapshot.started || !reader.isConfigured || reader.identity == nil)
                     .accessibilityIdentifier(accessibilityPrefix + ".refresh")
             }
         }
-        .task(id: reader.identity) { loadOwner.activate(); await loadOwner.run { await reload() } }
+        .task(id: readKey) {
+            guard !Task.isCancelled else { return }
+            loadOwner.activate(); model.activate(owner: readKey, source: reader)
+            await loadOwner.run { await reload() }
+        }
         .onDisappear {
             // Keep the immutable list snapshot while its NavigationLink destination is
             // pushed. Removing that link here can unexpectedly pop native navigation.
             // Account replacement destroys the root; a new appearance refreshes the data.
-            loadOwner.deactivate(); generation &+= 1
+            loadOwner.deactivate(); model.suspend()
         }
     }
     private func reload() async {
-        generation &+= 1
-        let request = generation
-        value = nil; issue = nil; isLoading = true
-        guard reader.isConfigured, reader.identity != nil else { isLoading = false; return }
-        defer { if generation == request { isLoading = false } }
-        do {
-            let result = try await load()
-            guard generation == request, !Task.isCancelled else { return }
-            value = result
-        } catch is CancellationError {
-            // Navigation/session changes discard the result; they are not networking errors.
-        } catch {
-            guard generation == request, !Task.isCancelled else { return }
-            issue = ProfileLoadIssue(error)
-        }
+        let captured = readKey
+        await model.load(owner: captured, currentOwner: { readKey }) { try await load() }
     }
 }
 
