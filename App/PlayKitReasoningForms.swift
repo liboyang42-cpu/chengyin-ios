@@ -50,15 +50,20 @@ extension PlayKitScreen {
     @ViewBuilder private var sortRows: some View {
         Text("playkit.sort.instructions").font(.footnote)
         ForEach(Array(order.enumerated()), id: \.element) { index, id in
+            let label = items.first { $0.id == id }?.label ?? id
             HStack {
                 Text(verbatim: String(index + 1)).monospacedDigit()
-                Text(verbatim: items.first { $0.id == id }?.label ?? id).frame(maxWidth: .infinity, alignment: .leading)
-                Button { move(index, -1) } label: { Image(systemName: "arrow.up") }.accessibilityLabel(Text("playkit.sort.up")).disabled(!enabled || index == 0)
-                Button { move(index, 1) } label: { Image(systemName: "arrow.down") }.accessibilityLabel(Text("playkit.sort.down")).disabled(!enabled || index == order.count - 1)
+                Text(verbatim: label).frame(maxWidth: .infinity, alignment: .leading)
+                Button { move(id, -1) } label: { Image(systemName: "arrow.up") }
+                    .accessibilityLabel(Text("playkit.sort.up") + Text(verbatim: ": " + label))
+                    .disabled(!enabled || index == 0)
+                Button { move(id, 1) } label: { Image(systemName: "arrow.down") }
+                    .accessibilityLabel(Text("playkit.sort.down") + Text(verbatim: ": " + label))
+                    .disabled(!enabled || index == order.count - 1)
             }.padding().background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
                 .accessibilityElement(children: .contain)
-                .accessibilityAction(named: Text("playkit.sort.up")) { move(index, -1) }
-                .accessibilityAction(named: Text("playkit.sort.down")) { move(index, 1) }
+                .accessibilityAction(named: Text("playkit.sort.up")) { move(id, -1) }
+                .accessibilityAction(named: Text("playkit.sort.down")) { move(id, 1) }
         }
     }
     @ViewBuilder private var matchRows: some View {
@@ -91,9 +96,8 @@ extension PlayKitScreen {
         }
         LabeledContent("playkit.classify.remaining") { Text(verbatim: String(max(0, items.count - placement.count))) }
     }
-    private func move(_ index: Int, _ delta: Int) {
-        let destination = index + delta
-        guard enabled, index != destination, order.indices.contains(index), order.indices.contains(destination) else { return }
-        let value = order.remove(at: index); order.insert(value, at: destination); onDirty()
+    private func move(_ itemID: String, _ delta: Int) {
+        guard enabled, let next = PlayKitSortMovement.moving(itemID, by: delta, in: order) else { return }
+        order = next; onDirty()
     }
 }

@@ -20,7 +20,7 @@ class ReasoningFeedbackLifecycleChecks(unittest.TestCase):
     def test_all_edit_paths_are_guarded_and_invalidate_only_on_actual_changes(self):
         form = (ROOT / 'App/PlayKitReasoningForms.swift').read_text()
         self.assertEqual(form.count('guard enabled, value != (placement[item.id] ?? "") else { return }'), 2)
-        self.assertIn('guard enabled, index != destination, order.indices.contains(index)', form)
+        self.assertIn('guard enabled, let next = PlayKitSortMovement.moving(itemID, by: delta, in: order)', form)
         self.assertEqual(form.count('onDirty()'), 3)
         self.assertIn('.disabled(!enabled || !valid)', form)
         self.assertIn('placement = placement.filter { $0.key == item.id || $0.value != value }', form)

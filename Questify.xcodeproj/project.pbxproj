@@ -5,6 +5,16 @@
 	};
 	"objectVersion" = 56;
 	"objects" = {
+		"A28F1972CEAA44D5B1C01A12" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/PlayKitSortMovement.swift";
+			"sourceTree" = "<group>";
+		};
+		"B28F1972CEAA44D5B1C01A12" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "A28F1972CEAA44D5B1C01A12";
+		};
 		"FF2394CDEEA6659695C0880C" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -16188,6 +16198,7 @@
 		"19F479106CE8C3BA8C106518" = {
 			"isa" = "PBXGroup";
 			"children" = (
+				"A28F1972CEAA44D5B1C01A12",
 				"630D1CFA5FEBD33A996B0FD1",
 				"1C05F0EA73C477B9583A1D92",
 				"58A4F97176EC2F047E8C1785",
@@ -18415,6 +18426,7 @@
 			"isa" = "PBXSourcesBuildPhase";
 			"buildActionMask" = 2147483647;
 			"files" = (
+				"B28F1972CEAA44D5B1C01A12",
 				"F24AD3F36FD050591D646093",
 				"30B1D308D233AC486091C54C",
 				"6F4AAFB84C944399F748A616",
