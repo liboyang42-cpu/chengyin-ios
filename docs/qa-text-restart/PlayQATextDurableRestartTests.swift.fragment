@@ -1,0 +1,102 @@
+import XCTest
+@testable import QuestifyCore
+
+/// Uses the actual unchanged encrypted-slot engine and the existing synthetic
+/// actor stores. Apple OS storage acceptance remains a separate requirement.
+@MainActor final class PlayQATextDurableRestartTests: XCTestCase {
+    typealias Anchors = ContentDraftDurableJournalTests.Anchors
+    typealias Blobs = ContentDraftDurableJournalTests.Blobs
+    private func context(account: Int = 7, role: String = "player", epoch: UInt64 = 1, topic: Int = 71) throws -> PlayQATextRestartContext {
+        try .init(configuration: .init(baseURL: URL(string: "https://example.com")!),
+                  session: .init(accountID: account, epoch: epoch, namespace: "synthetic-restart", token: "NEVER-PERSIST-SYNTHETIC-TOKEN", role: role),
+                  scope: .activity(41), activityID: 41, topicID: topic, nodeID: 701)
+    }
+    private func record(_ context: PlayQATextRestartContext, key: String = "original-frozen-key") throws -> PlayQATextRestartRecord {
+        try .init(pending: .init(sessionID: 601, version: 8, key: key, action: "SUBMIT_QA", payload: ["input": .string("NEVER-PERSIST-PRIVATE-ANSWER")]),
+                  qa: .object(["mode": .string("TYPE")]), context: context)
+    }
+    private func fails(_ operation: () async throws -> Void, file: StaticString = #filePath, line: UInt = #line) async {
+        do { try await operation(); XCTFail("Expected fail-closed journal", file: file, line: line) }
+        catch { XCTAssertEqual(error as? PlayExperienceError, .persistenceUnavailable, file: file, line: line) }
+    }
+    func testReopenRetainsExactRedactedIdentityAndEncryptsMetadata() async throws {
+        let a = Anchors(), b = Blobs(), context = try context(), value = try record(context)
+        let one = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
+        let saved = try await one.reserve(value)
+        let fresh = try PlayQATextDurableRestartJournal(context: self.context(epoch: 88), anchors: a, ciphertexts: b)
+        let read = try await fresh.read(), restored = try XCTUnwrap(read)
+        XCTAssertEqual(restored.value, value); XCTAssertEqual(restored.generation, saved.generation)
+        for bytes in await b.snapshots() {
+            for secret in ["original-frozen-key", "NEVER-PERSIST-SYNTHETIC-TOKEN", "NEVER-PERSIST-PRIVATE-ANSWER"] {
+                XCTAssertNil(bytes.range(of: Data(secret.utf8)))
+            }
+        }
+        for anchor in await a.snapshots() {
+            XCTAssertNil(anchor.bytes.range(of: Data("original-frozen-key".utf8)))
+            XCTAssertNil(anchor.bytes.range(of: Data("NEVER-PERSIST-SYNTHETIC-TOKEN".utf8)))
+        }
+        XCTAssertNil(restored.persistedBytes.range(of: Data("NEVER-PERSIST-PRIVATE-ANSWER".utf8)))
+    }
+    func testExistingIdentityAndStaleClearCannotAuthorizeAnotherDispatch() async throws {
+        let a = Anchors(), b = Blobs(), context = try context()
+        let one = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
+        let two = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
+        let first = try await one.reserve(record(context))
+        await fails { _ = try await two.reserve(self.record(context)) }
+        await fails { _ = try await two.reserve(self.record(context, key: "new-key")) }
+        try await one.clear(first)
+        let next = try await two.reserve(record(context, key: "new-key"))
+        await fails { try await one.clear(first) }
+        let current = try await two.read(); XCTAssertEqual(current, next)
+    }
+    func testRoleOrExpectedTopicChangeHitsOldLockInsteadOfFreshSlot() async throws {
+        let a = Anchors(), b = Blobs(), context = try context()
+        let one = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
+        _ = try await one.reserve(record(context))
+        for changed in [try self.context(role: "merchant"), try self.context(topic: 72)] {
+            XCTAssertEqual(changed.storageBinding, context.storageBinding)
+            let other = try PlayQATextDurableRestartJournal(context: changed, anchors: a, ciphertexts: b)
+            await fails { _ = try await other.read() }
+            await fails { _ = try await other.reserve(self.record(changed)) }
+        }
+        let kept = try await one.read(); XCTAssertEqual(kept?.value.context, context)
+    }
+    func testAnchorPresenceAndCiphertextLossNeverLooksFresh() async throws {
+        for loss in 0..<3 {
+            let a = Anchors(), b = Blobs(), context = try context()
+            let one = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
+            _ = try await one.reserve(record(context))
+            if loss == 0 { await a.loseAnchors() }
+            if loss == 1 { await b.losePresence() }
+            if loss == 2 { await b.corrupt() }
+            let reopened = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
+            await fails { _ = try await reopened.read() }
+            await fails { _ = try await reopened.reserve(self.record(context, key: "replacement")) }
+        }
+    }
+    func testInterruptedReservationRetainsBarrierAfterReopen() async throws {
+        for partial in [false, true] {
+            let a = Anchors(), b = Blobs(), context = try context()
+            await b.configure(failInsert: !partial, partial: partial)
+            let one = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
+            await fails { _ = try await one.reserve(self.record(context)) }
+            await b.configure()
+            let reopened = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
+            await fails { _ = try await reopened.read() }
+            await fails { _ = try await reopened.reserve(self.record(context, key: "replacement")) }
+        }
+    }
+    func testInterruptedClearFinishesTombstoneAndOldGenerationCannotClearNewRecord() async throws {
+        let a = Anchors(), b = Blobs(), context = try context()
+        let one = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
+        let old = try await one.reserve(record(context))
+        await b.configure(failRemove: true); await fails { try await one.clear(old) }
+        await b.configure()
+        let reopened = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
+        let empty = try await reopened.read(); XCTAssertNil(empty)
+        let new = try await reopened.reserve(record(context, key: "new-key"))
+        await fails { try await one.clear(old) }
+        let kept = try await reopened.read(); XCTAssertEqual(kept, new)
+        let anchors = await a.snapshots(); XCTAssertEqual(anchors.count, 1)
+    }
+}

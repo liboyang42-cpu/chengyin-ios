@@ -1,0 +1,34 @@
+{
+  "Core/PlayDurableRecovery.swift": {
+    "before_sha256": "39f742f576a426608552983eac349857f516f10c29239a92f164b9be406a2149",
+    "after_sha256": "f8d8a3f5fa4d825755e1f7d42e763eb88f2472d1305ff67eb79aaefa81c5fbb7"
+  },
+  "Core/PlayAdvancedRuntime.swift": {
+    "before_sha256": "3e36e099f56a68dda48433c8e486183d7295005f56801cf9dc60f7a4b1a2c84d",
+    "after_sha256": "3d485834d564bc6695f64f4880c3873210e56bd27fcccaa86a13b96db066a157"
+  },
+  "App/AppSession.swift": {
+    "before_sha256": "c6f8d068a61b418a8e1462f69fa78515bf22a4073b0eb2d4389bc2b82386874f",
+    "after_sha256": "ca761ce5df019d1df9d11dc5e1e8fa6adb7982b51302c9537d57b079b1226401"
+  },
+  "App/PlayAdvancedView.swift": {
+    "before_sha256": "afc4eecb88aecfbee65e69a7353512b6f0758e709d706e67ac09f286e77c1401",
+    "after_sha256": "8b21bb1dda45bce4b2c98a258afb9b20b1b5063b6419b147728262aa7b9b2d16"
+  },
+  "Questify.xcodeproj/project.pbxproj": {
+    "before_sha256": "9d1aac32f6514fc5fd449e1f3cd05568677c1122de436e45bda29626e9dce904",
+    "after_sha256": "b97bfaa8b19e6ff1845fefb3584b8bef4ef0d5157a67fee40e05aec1afd4f9e5"
+  },
+  "App/PlayQATextRestartSystemFactory.swift": {
+    "before_sha256": null,
+    "after_sha256": "b574864337bf892f45f6ff8a358a73e8f9968b67100b8820f135c24a42ea8133"
+  },
+  "Tests/CoreTests/PlayQATextDurableRestartTests.swift": {
+    "before_sha256": null,
+    "after_sha256": "cb1f28574dd5bf5429651d2182bd90a2ba497f834c72871af15ced95a94101f7"
+  },
+  "Tests/CoreTests/PlayQATextRestartCoordinatorTests.swift": {
+    "before_sha256": null,
+    "after_sha256": "c817798cbb6dc098cac612a9db7d883d7efb19bd756281bc689bde8d23ea5418"
+  }
+}

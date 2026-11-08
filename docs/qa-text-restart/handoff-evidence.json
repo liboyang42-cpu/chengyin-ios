@@ -1,0 +1,19 @@
+{
+  "shared_checkout_unchanged": true,
+  "apple_type_compilation": false,
+  "runtime_appunit_execution": false,
+  "system_storage_acceptance": false,
+  "live_backend": false,
+  "encrypted_engine_unchanged": true,
+  "fragment_matches_patched_shared_source": true,
+  "scaffold_exit_code": 0,
+  "swift_syntax_exit_code": 0,
+  "patched_shared_hashes": {
+    "Core/PlayAdvancedRuntime.swift": "3d485834d564bc6695f64f4880c3873210e56bd27fcccaa86a13b96db066a157",
+    "Core/PlayDurableRecovery.swift": "f8d8a3f5fa4d825755e1f7d42e763eb88f2472d1305ff67eb79aaefa81c5fbb7",
+    "App/AppSession.swift": "ca761ce5df019d1df9d11dc5e1e8fa6adb7982b51302c9537d57b079b1226401",
+    "App/PlayAdvancedView.swift": "8b21bb1dda45bce4b2c98a258afb9b20b1b5063b6419b147728262aa7b9b2d16",
+    "App/PlayKitScreen.swift": "62d8ed5281565830e19253518e9f5b485025ab4cc973b9c2bec2cd1613bee17b",
+    "Questify.xcodeproj/project.pbxproj": "b97bfaa8b19e6ff1845fefb3584b8bef4ef0d5157a67fee40e05aec1afd4f9e5"
+  }
+}

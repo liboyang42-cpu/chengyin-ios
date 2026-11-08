@@ -1,0 +1,43 @@
+Test Case 'PlayQATextActionReceiptTests.testAccountWithdrawalOrUnauthorizedCannotDiscloseReceipt' passed (0.001 seconds)
+Test Case 'PlayQATextActionReceiptTests.testInnerIdentityMismatchCannotClearUnknown' passed (0.001 seconds)
+Test Case 'PlayQATextActionReceiptTests.testInvalidOriginalRequestNeverBuildsAReadQuery' passed (0.0 seconds)
+Test Case 'PlayQATextActionReceiptTests.testMatchedReceiptPreservesServerFailureAndWholeView' passed (0.0 seconds)
+Test Case 'PlayQATextActionReceiptTests.testNoOtherQAOrChallengeTypeIsClaimed' passed (0.0 seconds)
+Test Case 'PlayQATextActionReceiptTests.testNonAdvancingOrMalformedViewIsRejected' passed (0.0 seconds)
+Test Case 'PlayQATextActionReceiptTests.testOnlyOriginalOrdinaryTextSegmentSelectsReceiptIntegration' passed (0.0 seconds)
+Test Case 'PlayQATextActionReceiptTests.testOuterSessionMustBeExactCanonicalString' passed (0.0 seconds)
+Test Case 'PlayQATextActionReceiptTests.testQueryContainsOnlyOriginalIdentityAndPreservesOriginalRequest' passed (0.0 seconds)
+Test Case 'PlayQATextActionReceiptTests.testReceiptKeyMustMatchOriginalBytes' passed (0.0 seconds)
+Test Case 'PlayQATextActionReceiptTests.testReceiptNotFoundConflictAndTransportFailureStayUnknown' passed (0.0 seconds)
+Test Suite 'PlayQATextActionReceiptTests' passed at 2026-11-08 11:36:05.366
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.004 (0.004) seconds
+Test Case 'PlayQATextDurableRestartTests.testAnchorPresenceAndCiphertextLossNeverLooksFresh' passed (0.005 seconds)
+Test Case 'PlayQATextDurableRestartTests.testExistingIdentityAndStaleClearCannotAuthorizeAnotherDispatch' passed (0.003 seconds)
+Test Case 'PlayQATextDurableRestartTests.testInterruptedClearFinishesTombstoneAndOldGenerationCannotClearNewRecord' passed (0.003 seconds)
+Test Case 'PlayQATextDurableRestartTests.testInterruptedReservationRetainsBarrierAfterReopen' passed (0.002 seconds)
+Test Case 'PlayQATextDurableRestartTests.testReopenRetainsExactRedactedIdentityAndEncryptsMetadata' passed (0.002 seconds)
+Test Case 'PlayQATextDurableRestartTests.testRoleOrExpectedTopicChangeHitsOldLockInsteadOfFreshSlot' passed (0.002 seconds)
+Test Suite 'PlayQATextDurableRestartTests' passed at 2026-11-08 11:36:05.384
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.018 (0.018) seconds
+Test Case 'PlayQATextRestartRecoveryTests.test401KeepsOriginalRecordAndWithdrawsReadResult' passed (0.102 seconds)
+Test Case 'PlayQATextRestartRecoveryTests.test404409AndMalformedReadKeepOriginalRecordAndUnknown' passed (0.001 seconds)
+Test Case 'PlayQATextRestartRecoveryTests.testAccountSwitchBeforeAndDuringReadCannotExposeOrClearOriginalRecord' passed (0.002 seconds)
+Test Case 'PlayQATextRestartRecoveryTests.testEpochABADuringReceiptReadDoesNotClearOrInstallOldResponse' passed (0.001 seconds)
+Test Case 'PlayQATextRestartRecoveryTests.testEpochChangeAfterEmptyLoadCannotReserveAndAfterReceiptHidesView' passed (0.001 seconds)
+Test Case 'PlayQATextRestartRecoveryTests.testEpochMayChangeAcrossRestartButRealmAccountRoleAndScopeStayBound' passed (0.001 seconds)
+Test Case 'PlayQATextRestartRecoveryTests.testFailedStorageLoadAndReserveBlockNewActionWithoutReceiptRead' passed (0.0 seconds)
+Test Case 'PlayQATextRestartRecoveryTests.testFreshLoadDoesNoNetworkAndReservationPrecedesAnyRead' passed (0.002 seconds)
+Test Case 'PlayQATextRestartRecoveryTests.testMatchedReceiptCannotUnlockWhenDurableClearFails' passed (0.002 seconds)
+Test Case 'PlayQATextRestartRecoveryTests.testOriginalAwaitedReplyCanClearOnlyItsExactReservationAndCapturedOwner' passed (0.001 seconds)
+Test Case 'PlayQATextRestartRecoveryTests.testOtherModesCannotReserveAQAIdentity' passed (0.101 seconds)
+Test Case 'PlayQATextRestartRecoveryTests.testRecordRoundTripContainsOriginalIdentityButNoAnswerOrToken' passed (0.001 seconds)
+Test Case 'PlayQATextRestartRecoveryTests.testRestartLoadsOriginalKeyAndOnlyExplicitReconciliationReadsReceipt' passed (0.102 seconds)
+Test Case 'PlayQATextRestartRecoveryTests.testServerRecordedFailureCanBeFollowedByANewReviewedAttemptAfterClear' passed (0.001 seconds)
+Test Case 'PlayQATextRestartRecoveryTests.testUnknownFileSchemaOrChangedOriginalNodeFailsClosed' passed (0.002 seconds)
+Test Case 'PlayQATextRestartRecoveryTests.testWrongReceiptIdentityNeverClearsOriginalDurableRecord' passed (0.001 seconds)
+Test Suite 'PlayQATextRestartRecoveryTests' passed at 2026-11-08 11:36:05.707
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.323 (0.323) seconds
+Test Suite 'debug.xctest' passed at 2026-11-08 11:36:05.707
+	 Executed 33 tests, with 0 failures (0 unexpected) in 0.345 (0.345) seconds
+Test Suite 'All tests' passed at 2026-11-08 11:36:05.707
+	 Executed 33 tests, with 0 failures (0 unexpected) in 0.345 (0.345) seconds

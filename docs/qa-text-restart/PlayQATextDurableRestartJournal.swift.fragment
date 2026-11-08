@@ -1,0 +1,45 @@
+/// QA uses a separate encrypted slot and a redacted receipt identity. The private
+/// PlayEncryptedSlot below remains unchanged; no generic completion is encoded.
+@MainActor public final class PlayQATextDurableRestartJournal: PlayQATextRestartJournal {
+    public let context: PlayQATextRestartContext
+    private let slot: PlayEncryptedSlot
+    public init(context: PlayQATextRestartContext, anchors: any ContentDraftAnchorStore,
+                ciphertexts: any ContentDraftCiphertextStore) throws {
+        self.context = context
+        slot = try PlayEncryptedSlot(binding: context.storageBinding, anchors: anchors, ciphertexts: ciphertexts)
+    }
+    private func decode(_ raw: PlayEncryptedSnapshot) throws -> PlayQATextRestartSnapshot? {
+        guard let bytes = raw.data else { return nil }
+        guard bytes.count <= 16_384, let generation = raw.generation, generation.count == 32 else { throw PlayExperienceError.persistenceUnavailable }
+        let value = try PropertyListDecoder().decode(PlayQATextRestartRecord.self, from: bytes)
+        try value.validate(context: context)
+        return .init(value: value, generation: generation, persistedBytes: bytes)
+    }
+    public func read() async throws -> PlayQATextRestartSnapshot? {
+        do { return try decode(await slot.read()) }
+        catch { throw PlayExperienceError.persistenceUnavailable }
+    }
+    public func reserve(_ record: PlayQATextRestartRecord) async throws -> PlayQATextRestartSnapshot {
+        do {
+            try record.validate(context: context)
+            let old = try await slot.read()
+            // Even the same identity means unresolved. Never authorize a second
+            // action from an old reservation after a process interruption.
+            guard old.data == nil else { throw PlayExperienceError.persistenceUnavailable }
+            let encoder = PropertyListEncoder(); encoder.outputFormat = .binary
+            let bytes = try encoder.encode(record)
+            guard bytes.count <= 16_384 else { throw PlayExperienceError.persistenceUnavailable }
+            let next = try await slot.write(bytes, replacing: old)
+            guard let result = try decode(next) else { throw PlayExperienceError.persistenceUnavailable }
+            return result
+        } catch { throw PlayExperienceError.persistenceUnavailable }
+    }
+    public func clear(_ snapshot: PlayQATextRestartSnapshot) async throws {
+        do {
+            try snapshot.value.validate(context: context)
+            guard snapshot.generation.count == 32, snapshot.persistedBytes.count <= 16_384,
+                  try PropertyListDecoder().decode(PlayQATextRestartRecord.self, from: snapshot.persistedBytes) == snapshot.value else { throw PlayExperienceError.persistenceUnavailable }
+            _ = try await slot.write(nil, replacing: .init(data: snapshot.persistedBytes, generation: snapshot.generation))
+        } catch { throw PlayExperienceError.persistenceUnavailable }
+    }
+}

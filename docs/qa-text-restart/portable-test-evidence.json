@@ -1,0 +1,159 @@
+{
+  "scope": "actual receipt identity, restart state machine and encrypted-slot handoff; synthetic stores/reader",
+  "crypto": {
+    "upstream": "https://github.com/apple/swift-crypto",
+    "tag": "3.9.1",
+    "commit": "06dc63c6d8da54ee11ceb268cde1fa68161afc96",
+    "backend": "Swift Crypto on Linux, re-exported as CryptoKit; Apple implementation not exercised"
+  },
+  "declarations": [
+    {
+      "path": "Core/APIConfiguration.swift",
+      "marker": "public enum APIError:",
+      "source_sha256": "91ca963c919f3c7da6c3efa67a505dc5999d629e603c1d995323325bf99fcf33",
+      "fragment_sha256": "a1d5be23c692888bb6caa2ebbab597f710c1397ef38779b3e45b695d9fef16ed"
+    },
+    {
+      "path": "Core/APIConfiguration.swift",
+      "marker": "public struct APIConfiguration",
+      "source_sha256": "91ca963c919f3c7da6c3efa67a505dc5999d629e603c1d995323325bf99fcf33",
+      "fragment_sha256": "9cdc303402a7fba2be0d93274fcd7a2838267a3aa6428639d1bff3fc81363f3a"
+    },
+    {
+      "path": "Core/APIConfiguration.swift",
+      "marker": "public enum AuthEndpoint:",
+      "source_sha256": "91ca963c919f3c7da6c3efa67a505dc5999d629e603c1d995323325bf99fcf33",
+      "fragment_sha256": "62d15469f0348b95129e70cb719795e395f34bdd77a6f286270295cc07162b30"
+    },
+    {
+      "path": "Core/PlayExperienceContracts.swift",
+      "marker": "public indirect enum PlayWireValue:",
+      "source_sha256": "cb006184051c63488cc1bd041471bf23c22d41b591200b2bdc5bd654a0804aca",
+      "fragment_sha256": "61dc8612df7c57c15a433199ca6acab6cb3966e4e7a82fd1002f6a8d1cf8ccd7"
+    },
+    {
+      "path": "Core/PlayExperienceContracts.swift",
+      "marker": "public struct PlayExperienceSession:",
+      "source_sha256": "cb006184051c63488cc1bd041471bf23c22d41b591200b2bdc5bd654a0804aca",
+      "fragment_sha256": "e9952dbecae38a842f8019cb4fa3dc7d7349b50ca4c58652dfb592cf6054fbcf"
+    },
+    {
+      "path": "Core/PlayExperienceContracts.swift",
+      "marker": "extension PlayExperienceSession",
+      "source_sha256": "cb006184051c63488cc1bd041471bf23c22d41b591200b2bdc5bd654a0804aca",
+      "fragment_sha256": "e560325f940e25121a2c0293228fa2859a3f1b4701cf3e020e18b835f884d2d7"
+    },
+    {
+      "path": "Core/PlayExperienceContracts.swift",
+      "marker": "public enum PlayExperienceError:",
+      "source_sha256": "cb006184051c63488cc1bd041471bf23c22d41b591200b2bdc5bd654a0804aca",
+      "fragment_sha256": "868879490013ca73f5b10ddf797a0915651e790d461f0e41191e5f50dc14a038"
+    },
+    {
+      "path": "Core/PlayAdvancedRuntime.swift",
+      "marker": "public struct PlayAdvancedPending:",
+      "source_sha256": "11b241e78538ff77b403c9776f47d2adbbe3351a591869c8a33c144f51b22f27",
+      "fragment_sha256": "ad4803ce6cff81ef6b807e725c62cbf24daf353122739db477e68bfd9174d98e"
+    },
+    {
+      "path": "Core/PlayRecoveryStorage.swift",
+      "marker": "public struct PlayRecoveryOwner:",
+      "source_sha256": "8b56f03bccbd2e0702a444504af4f11c9d8c77f6330f1ef583bfa0cd270e904f",
+      "fragment_sha256": "e63baa575a999e75e5f77e6182bca3284d1814593946b13a667dcf8f5a596a3f"
+    },
+    {
+      "path": "Core/PlayContracts.swift",
+      "marker": "public enum PlaySessionScope:",
+      "source_sha256": "a9ccbba91f3d9179403087b2bd37290b6a7cc8cf514aaf2da517d0edc74022be",
+      "fragment_sha256": "b79b993b1c5551d91777c2bf69acf44ec74a6271b24be98f1fe93270afe5e2fc"
+    },
+    {
+      "path": "Core/PlayRunLifecycle.swift",
+      "marker": "public enum PlayRunStorageKey",
+      "source_sha256": "fd5144560b009b427bccc44b54f471cd4177a3751a2fdf3dd851b3c25d523208",
+      "fragment_sha256": "6b6f48caf8fa3e760666ea066842420f9b8faf5a431bff7bc8af6f772f86ddee"
+    },
+    {
+      "path": "Core/VersionedContentDraftContracts.swift",
+      "marker": "public enum ContentDraftIssue:",
+      "source_sha256": "8657741500148ab0296333ca8902d309236e42c2a10e3f603aa9f242dfbdf75c",
+      "fragment_sha256": "39e20df6fff37edc91e56c7b673462e546c4e70dcdedc7012d6d339c92c8602a"
+    },
+    {
+      "path": "Core/ContentDraftDurableJournal.swift",
+      "marker": "public struct ContentDraftAnchorItem:",
+      "source_sha256": "514ecdc6a049525a4ff5afa2ecc739493dd559f66780bac3ab930815062bc946",
+      "fragment_sha256": "a166807ddf096d8dd5e1331a559b3269f94e2a8ad7bc0711d67b1f63438b0468"
+    },
+    {
+      "path": "Core/ContentDraftDurableJournal.swift",
+      "marker": "public protocol ContentDraftAnchorStore:",
+      "source_sha256": "514ecdc6a049525a4ff5afa2ecc739493dd559f66780bac3ab930815062bc946",
+      "fragment_sha256": "bf9be78de7333c81c1c7c99fad260dc93c5f9f0dbb81be35019b2a272ccfb118"
+    },
+    {
+      "path": "Core/ContentDraftDurableJournal.swift",
+      "marker": "public protocol ContentDraftCiphertextStore:",
+      "source_sha256": "514ecdc6a049525a4ff5afa2ecc739493dd559f66780bac3ab930815062bc946",
+      "fragment_sha256": "78817389e236d95c175d0d111d353b3a65ba9c0eeb97fbad251f67e094a6a227"
+    }
+  ],
+  "encrypted_engine_sha256": "64652ec2fad256ca2af581e00e7f1b66cc5c8f6a6bbc5a9f4d641ff4dbf1290f",
+  "adapter_fragment_sha256": "22e235c182351fe600724b9f7e11d5aa879a1affb76b6764cda180de21d20cdb",
+  "existing_storage_fixture_sha256": "8a430e4c0fc50a01b2366a9689fcfa6324e096ad954d96faf997352c0700355c",
+  "exit_code": 0,
+  "resolved_dependencies": {
+    "pins": [
+      {
+        "identity": "swift-asn1",
+        "kind": "remoteSourceControl",
+        "location": "https://github.com/apple/swift-asn1.git",
+        "state": {
+          "revision": "9f542610331815e29cc3821d3b6f488db8715517",
+          "version": "1.6.0"
+        }
+      }
+    ],
+    "version": 2
+  },
+  "apple_compile": false,
+  "system_storage_exercised": false,
+  "real_backend_contacted": false,
+  "executed_test_count": 33,
+  "passed_tests": [
+    "PlayQATextActionReceiptTests.testAccountWithdrawalOrUnauthorizedCannotDiscloseReceipt",
+    "PlayQATextActionReceiptTests.testInnerIdentityMismatchCannotClearUnknown",
+    "PlayQATextActionReceiptTests.testInvalidOriginalRequestNeverBuildsAReadQuery",
+    "PlayQATextActionReceiptTests.testMatchedReceiptPreservesServerFailureAndWholeView",
+    "PlayQATextActionReceiptTests.testNoOtherQAOrChallengeTypeIsClaimed",
+    "PlayQATextActionReceiptTests.testNonAdvancingOrMalformedViewIsRejected",
+    "PlayQATextActionReceiptTests.testOnlyOriginalOrdinaryTextSegmentSelectsReceiptIntegration",
+    "PlayQATextActionReceiptTests.testOuterSessionMustBeExactCanonicalString",
+    "PlayQATextActionReceiptTests.testQueryContainsOnlyOriginalIdentityAndPreservesOriginalRequest",
+    "PlayQATextActionReceiptTests.testReceiptKeyMustMatchOriginalBytes",
+    "PlayQATextActionReceiptTests.testReceiptNotFoundConflictAndTransportFailureStayUnknown",
+    "PlayQATextDurableRestartTests.testAnchorPresenceAndCiphertextLossNeverLooksFresh",
+    "PlayQATextDurableRestartTests.testExistingIdentityAndStaleClearCannotAuthorizeAnotherDispatch",
+    "PlayQATextDurableRestartTests.testInterruptedClearFinishesTombstoneAndOldGenerationCannotClearNewRecord",
+    "PlayQATextDurableRestartTests.testInterruptedReservationRetainsBarrierAfterReopen",
+    "PlayQATextDurableRestartTests.testReopenRetainsExactRedactedIdentityAndEncryptsMetadata",
+    "PlayQATextDurableRestartTests.testRoleOrExpectedTopicChangeHitsOldLockInsteadOfFreshSlot",
+    "PlayQATextRestartRecoveryTests.test401KeepsOriginalRecordAndWithdrawsReadResult",
+    "PlayQATextRestartRecoveryTests.test404409AndMalformedReadKeepOriginalRecordAndUnknown",
+    "PlayQATextRestartRecoveryTests.testAccountSwitchBeforeAndDuringReadCannotExposeOrClearOriginalRecord",
+    "PlayQATextRestartRecoveryTests.testEpochABADuringReceiptReadDoesNotClearOrInstallOldResponse",
+    "PlayQATextRestartRecoveryTests.testEpochChangeAfterEmptyLoadCannotReserveAndAfterReceiptHidesView",
+    "PlayQATextRestartRecoveryTests.testEpochMayChangeAcrossRestartButRealmAccountRoleAndScopeStayBound",
+    "PlayQATextRestartRecoveryTests.testFailedStorageLoadAndReserveBlockNewActionWithoutReceiptRead",
+    "PlayQATextRestartRecoveryTests.testFreshLoadDoesNoNetworkAndReservationPrecedesAnyRead",
+    "PlayQATextRestartRecoveryTests.testMatchedReceiptCannotUnlockWhenDurableClearFails",
+    "PlayQATextRestartRecoveryTests.testOriginalAwaitedReplyCanClearOnlyItsExactReservationAndCapturedOwner",
+    "PlayQATextRestartRecoveryTests.testOtherModesCannotReserveAQAIdentity",
+    "PlayQATextRestartRecoveryTests.testRecordRoundTripContainsOriginalIdentityButNoAnswerOrToken",
+    "PlayQATextRestartRecoveryTests.testRestartLoadsOriginalKeyAndOnlyExplicitReconciliationReadsReceipt",
+    "PlayQATextRestartRecoveryTests.testServerRecordedFailureCanBeFollowedByANewReviewedAttemptAfterClear",
+    "PlayQATextRestartRecoveryTests.testUnknownFileSchemaOrChangedOriginalNodeFailsClosed",
+    "PlayQATextRestartRecoveryTests.testWrongReceiptIdentityNeverClearsOriginalDurableRecord"
+  ],
+  "complete_log_sha256": "b115809599e66f37bfa9cc9a2db65986ae2de9dbfd123d13ad082051cb3877d6"
+}

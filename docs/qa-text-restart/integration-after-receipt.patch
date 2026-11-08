@@ -1,0 +1,571 @@
+--- a/Core/PlayDurableRecovery.swift
++++ b/Core/PlayDurableRecovery.swift
+@@ -105,6 +105,52 @@
+         return .init(value: value, generation: written.generation, persistedBytes: written.data)
+     }
+ }
++/// QA uses a separate encrypted slot and a redacted receipt identity. The private
++/// PlayEncryptedSlot below remains unchanged; no generic completion is encoded.
++@MainActor public final class PlayQATextDurableRestartJournal: PlayQATextRestartJournal {
++    public let context: PlayQATextRestartContext
++    private let slot: PlayEncryptedSlot
++    public init(context: PlayQATextRestartContext, anchors: any ContentDraftAnchorStore,
++                ciphertexts: any ContentDraftCiphertextStore) throws {
++        self.context = context
++        slot = try PlayEncryptedSlot(binding: context.storageBinding, anchors: anchors, ciphertexts: ciphertexts)
++    }
++    private func decode(_ raw: PlayEncryptedSnapshot) throws -> PlayQATextRestartSnapshot? {
++        guard let bytes = raw.data else { return nil }
++        guard bytes.count <= 16_384, let generation = raw.generation, generation.count == 32 else { throw PlayExperienceError.persistenceUnavailable }
++        let value = try PropertyListDecoder().decode(PlayQATextRestartRecord.self, from: bytes)
++        try value.validate(context: context)
++        return .init(value: value, generation: generation, persistedBytes: bytes)
++    }
++    public func read() async throws -> PlayQATextRestartSnapshot? {
++        do { return try decode(await slot.read()) }
++        catch { throw PlayExperienceError.persistenceUnavailable }
++    }
++    public func reserve(_ record: PlayQATextRestartRecord) async throws -> PlayQATextRestartSnapshot {
++        do {
++            try record.validate(context: context)
++            let old = try await slot.read()
++            // Even the same identity means unresolved. Never authorize a second
++            // action from an old reservation after a process interruption.
++            guard old.data == nil else { throw PlayExperienceError.persistenceUnavailable }
++            let encoder = PropertyListEncoder(); encoder.outputFormat = .binary
++            let bytes = try encoder.encode(record)
++            guard bytes.count <= 16_384 else { throw PlayExperienceError.persistenceUnavailable }
++            let next = try await slot.write(bytes, replacing: old)
++            guard let result = try decode(next) else { throw PlayExperienceError.persistenceUnavailable }
++            return result
++        } catch { throw PlayExperienceError.persistenceUnavailable }
++    }
++    public func clear(_ snapshot: PlayQATextRestartSnapshot) async throws {
++        do {
++            try snapshot.value.validate(context: context)
++            guard snapshot.generation.count == 32, snapshot.persistedBytes.count <= 16_384,
++                  try PropertyListDecoder().decode(PlayQATextRestartRecord.self, from: snapshot.persistedBytes) == snapshot.value else { throw PlayExperienceError.persistenceUnavailable }
++            _ = try await slot.write(nil, replacing: .init(data: snapshot.persistedBytes, generation: snapshot.generation))
++        } catch { throw PlayExperienceError.persistenceUnavailable }
++    }
++}
++
+ private struct PlayEncryptedSnapshot: Equatable {
+     let data: Data?
+     let generation: Data?
+--- a/Core/PlayAdvancedRuntime.swift
++++ b/Core/PlayAdvancedRuntime.swift
+@@ -190,18 +190,43 @@
+     public func clearObjectCardReceipt() { cardLifetime &+= 1; cardReceipts.clear() }
+     let activityID: Int; let topicID: Int; let nodeID: Int
+     let service: PlayExperienceService
++    private let qaTextRestart: PlayQATextRestartRecovery?
+     let currentSession: () -> PlayExperienceSession?
+     private var owner: PlayExperienceSession?
+     private var generation: UInt64 = 0
+     public private(set) var startOutcomeUnknown = false
+-    public init(activityID: Int, topicID: Int, nodeID: Int, service: PlayExperienceService, currentSession: @escaping () -> PlayExperienceSession?) {
++    public init(activityID: Int, topicID: Int, nodeID: Int, service: PlayExperienceService, qaTextRestart: PlayQATextRestartRecovery? = nil, currentSession: @escaping () -> PlayExperienceSession?) {
++        self.qaTextRestart = qaTextRestart
+         self.activityID = activityID; self.topicID = topicID; self.nodeID = nodeID; self.service = service; self.currentSession = { service.hasCurrentReadLifetime ? currentSession() : nil }
+     }
+     public var readLifetimeID: String? { service.readLifetimeID }
+     public var hasCurrentReadLifetime: Bool { service.hasCurrentReadLifetime }
+-    public var blocksReadRebinding: Bool { startOutcomeUnknown || pending != nil || ["loading", "submitting", "unknown", "retryable"].contains(phase) }
++    public var blocksReadRebinding: Bool { startOutcomeUnknown || pending != nil || (qaTextRestart?.snapshot != nil) || ["loading", "submitting", "unknown", "retryable"].contains(phase) }
++    var hasDurableQATextRestart: Bool {
++        qaTextRestart?.snapshot != nil || qaTextRestart?.phase == "unavailable"
++    }
++    /// Local journal load only. It never starts a server session or reads a
++    /// receipt automatically, and finishes before the ordinary start is offered.
++    public func restoreQATextRecovery() async {
++        guard let qaTextRestart, state == nil, pending == nil, phase == "idle",
++              let session = currentSession() else { return }
++        owner = session; phase = "loading"
++        await qaTextRestart.load()
++        guard currentSession() == session else { phase = "stale"; return }
++        if !qaTextRestart.blocksNewAction && qaTextRestart.snapshot == nil { issue = nil; phase = "idle" }
++        else { issue = qaTextRestart.phase == "unavailable" ? .persistenceUnavailable : nil; phase = "unknown" }
++    }
+     public func start() async {
+         guard !startOutcomeUnknown, state == nil, ["idle", "rejected", "disabled"].contains(phase), let session = currentSession() else { return }
++        // Load the node's QA-only journal before any replacement advanced start.
++        // A restored identity does not contain an answer and cannot become pending.
++        if let qaTextRestart {
++            owner = session; phase = "loading"
++            await qaTextRestart.load()
++            guard currentSession() == session else { phase = "stale"; return }
++            if qaTextRestart.snapshot != nil { phase = "unknown"; return }
++            guard !qaTextRestart.blocksNewAction else { issue = .persistenceUnavailable; phase = "unknown"; return }
++        }
+         generation &+= 1; let generation = generation; owner = session; phase = "loading"
+         startOutcomeUnknown = true
+         do {
+@@ -216,7 +241,7 @@
+         }
+     }
+     public var isCurrent: Bool { owner != nil && owner == currentSession() }
+-    public var canInteract: Bool { isCurrent && phase == "ready" && pending == nil && state?.status == "RUNNING" }
++    public var canInteract: Bool { isCurrent && phase == "ready" && pending == nil && qaTextRestart?.blocksNewAction != true && state?.status == "RUNNING" }
+     public func review(kind: String, action: String, detail: [String: PlayWireValue] = [:]) throws -> PlayKitActionReview {
+         guard canInteract, let state, let owner else { throw PlayExperienceError.staleSession }
+         guard state.playKit[kind].object != nil || state.config[kind]["enabled"].bool == true else { throw PlayExperienceError.unsupported }
+@@ -238,6 +263,13 @@
+         pendingRequestedCard = review.kind == "photoCheck" && state.playKit["photoCheck"]["mode"].text == "CARD"
+         pending = PlayAdvancedPending(sessionID: review.sessionID, version: review.version,
+             key: review.id.uuidString, action: review.action, payload: review.payload)
++        if review.kind == "qa", PlayQATextActionReceipt.matchesTextMode(state.playKit["qa"]),
++           let qaTextRestart, let pending {
++            phase = "submitting"
++            do { _ = try await qaTextRestart.reserve(pending, qa: state.playKit["qa"]) }
++            catch { issue = .persistenceUnavailable; phase = isCurrent ? "unknown" : "stale"; return false }
++            guard isCurrent else { self.state = nil; phase = "stale"; return false }
++        }
+         await sendPending()
+         return pending == nil && phase == "ready" && self.state?.sessionID == review.sessionID && (self.state?.version ?? -1) > review.version
+     }
+@@ -264,13 +296,61 @@
+         let generation = generation; let cardLifetime = cardLifetime; phase = "submitting"
+         do {
+             let result = try await service.advancedAction(pending, token: session.token)
++            if let qaTextRestart, qaTextRestart.snapshot != nil {
++                try validate(result, session: session, generation: generation)
++                // Only the directly awaited original POST response may use this
++                // acknowledgment bridge. Generic state reads never clear it.
++                let identity = try PlayQATextReceiptRequest(pending, activityID: activityID, topicID: topicID, nodeID: nodeID)
++                try await qaTextRestart.acknowledgeOriginalReply(identity, owner: session)
++                try validate(result, session: session, generation: generation)
++            }
+             try accept(result, session: session, generation: generation)
+             if self.cardLifetime == cardLifetime { cardReceipts.accept(result, owner: session, pending: pending, requestedCard: pendingRequestedCard) }
+             self.pending = nil; pendingRequestedCard = false
+         } catch { failure(error, session: session, generation: generation) }
+     }
+     var hasQATextReceiptPending: Bool {
+-        PlayQATextActionReceipt.owns(pending) && PlayQATextActionReceipt.matchesTextMode(state?.playKit["qa"] ?? .null)
++        if let qaTextRestart, qaTextRestart.snapshot != nil || qaTextRestart.blocksNewAction && qaTextRestart.phase != "unloaded" { return true }
++        return PlayQATextActionReceipt.owns(pending) && PlayQATextActionReceipt.matchesTextMode(state?.playKit["qa"] ?? .null)
++    }
++    private func recoverQATextRestart(session: PlayExperienceSession, generation: UInt64) async {
++        guard let qaTextRestart else { return }
++        let originalPending = pending
++        phase = "loading"
++        if qaTextRestart.phase == "unavailable" { await qaTextRestart.load() }
++        guard currentSession() == session, self.generation == generation else { state = nil; phase = "stale"; return }
++        if qaTextRestart.phase == "empty" {
++            // Successful storage read found no unresolved identity. Do not start
++            // a replacement session automatically; expose the existing start UI.
++            if let originalPending {
++                // A retrying local read may finish an already committed clear
++                // tombstone. Memory still has the original request identity;
++                // verify its receipt again rather than infer a question result.
++                await recoverQATextReceipt(originalPending, session: session); return
++            }
++            issue = nil; phase = "idle"; return
++        }
++        await qaTextRestart.reconcile()
++        guard currentSession() == session, self.generation == generation else { state = nil; phase = "stale"; return }
++        guard let view = qaTextRestart.resolvedView else {
++            phase = qaTextRestart.phase == "stale" ? "stale" : "unknown"
++            issue = qaTextRestart.phase == "unavailable" ? .persistenceUnavailable : .unknownResult
++            if phase == "stale" { state = nil; clearObjectCardReceipt(); clearAdvancedLeaderboard() }
++            return
++        }
++        do {
++            let result = try PlayAdvancedState(view)
++            try validate(result, session: session, generation: generation)
++            guard pending == originalPending else { throw PlayExperienceError.staleSession }
++            if (state?.version ?? -1) <= result.version { try accept(result, session: session, generation: generation) }
++            else { issue = nil; phase = "ready" }
++            pending = nil
++        } catch {
++            // A server receipt may have committed the encrypted clear, but an
++            // invalidated display still cannot install the old owner's result.
++            issue = .unknownResult; phase = isCurrent ? "unknown" : "stale"
++            if !isCurrent { state = nil }
++        }
+     }
+     private func recoverQATextReceipt(_ pending: PlayAdvancedPending, session: PlayExperienceSession) async {
+         let generation = generation; phase = "loading"
+@@ -295,6 +375,13 @@
+         }
+     }
+     public func recover() async {
++        if let qaTextRestart, hasQATextReceiptPending,
++           ["unknown", "retryable"].contains(phase), let session = owner, session == currentSession() {
++            // Restored metadata is separate from PlayAdvancedPending: never
++            // fabricate input to satisfy an action API after a process restart.
++            _ = qaTextRestart
++            await recoverQATextRestart(session: session, generation: generation); return
++        }
+         let textReceipt = hasQATextReceiptPending
+         guard let pending, let session = owner, session == currentSession(),
+               phase == "unknown" || (textReceipt && phase == "retryable") else { return }
+@@ -340,6 +427,12 @@
+         guard self.generation == generation else { return }
+         guard currentSession() == session else { clearAdvancedLeaderboard(); self.state = nil; clearObjectCardReceipt(); phase = "stale"; return }
+         issue = error as? PlayExperienceError ?? .unknownResult
++        if qaTextRestart?.snapshot != nil {
++            phase = PlayQATextActionReceipt.failurePhase(error, ownerIsCurrent: true)
++            if phase == "stale" { state = nil }
++            clearObjectCardReceipt(); clearAdvancedLeaderboard()
++            return
++        }
+         if case PlayExperienceError.rejected = error { pending = nil; clearObjectCardReceipt(); phase = "rejected"; clearAdvancedLeaderboard() }
+         else if case PlayExperienceError.disabled = error { clearAdvancedLeaderboard(); pending = nil; clearObjectCardReceipt(); phase = "disabled" }
+         else if case PlayExperienceError.unauthorized = error { clearAdvancedLeaderboard(); clearObjectCardReceipt(); phase = "stale" }
+--- a/App/AppSession.swift
++++ b/App/AppSession.swift
+@@ -860,11 +860,37 @@
+     func playAdvanced(scope: PlaySessionScope, nodeID: Int, topicID: Int?, lifetime: PlayInteractionLifetime? = nil) -> PlayAdvancedCoordinator? {
+         guard let lifetime, lifetime.isCurrent, scope.isValid, nodeID > 0, let topicID, topicID > 0, let api = dormantPlayRuntimeService() else { return nil }
+         let key = playRuntimeKey(scope, suffix: "advanced:\(nodeID)")
+-        if let retained = retainedPlayAdvanced[key], retained.readLifetimeID == lifetime.identity || retained.blocksReadRebinding { return retained }
++        if let retained = retainedPlayAdvanced[key] {
++            if retained.readLifetimeID == lifetime.identity { return retained }
++            // A fresh approved read lifetime may restore the encrypted redacted
++            // QA identity into a new reader. It never inherits answer payloads or
++            // action authority from the retired coordinator. Other locks retain
++            // the existing no-rebinding behavior, including unknown start.
++            if retained.blocksReadRebinding && !(retained.hasDurableQATextRestart && !retained.hasCurrentReadLifetime) { return retained }
++        }
+         let activityID: Int
+         switch scope { case .activity(let id): activityID = id; case .topic(let id): guard id == topicID else { return nil }; activityID = 0 }
+-        let model = PlayAdvancedCoordinator(activityID: activityID, topicID: topicID, nodeID: nodeID, service: api.bound(to: lifetime),
+-            currentSession: { [weak self] in self?.currentPlayRuntimeSession })
++        guard let regional = regionalConfiguration, let storageScope,
++              let configuration = regional.apiConfiguration else { return nil }
++        // This selector includes the actual native role. The old generic runtime
++        // selector defaults to player and cannot bind a role-sensitive journal.
++        let current: () -> PlayExperienceSession? = { [weak self] in
++            guard let self, !self.committingAuthenticatedSession,
++                  self.storageScope?.service.utf8.elementsEqual(storageScope.service.utf8) == true,
++                  self.regionalConfiguration?.apiConfiguration?.baseURL.absoluteString.utf8.elementsEqual(configuration.baseURL.absoluteString.utf8) == true,
++                  let account = self.account, let token = self.token,
++                  PlayRecoveryAccountRole(rawValue: account.effectiveRole) != nil else { return nil }
++            return try? .init(accountID: account.id, epoch: self.gate.currentStamp, namespace: storageScope.service, token: token, role: account.effectiveRole)
++        }
++        guard let captured = current(),
++              let journal = try? PlayQATextRestartSystemFactory.make(session: captured, scope: scope,
++                activityID: activityID, topicID: topicID, nodeID: nodeID,
++                regionalConfiguration: regional, storageScope: storageScope), current() == captured else { return nil }
++        let bound = api.bound(to: lifetime)
++        let restart = PlayQATextRestartRecovery(journal: journal, reader: bound,
++            currentSession: { bound.hasCurrentReadLifetime ? current() : nil })
++        let model = PlayAdvancedCoordinator(activityID: activityID, topicID: topicID, nodeID: nodeID, service: bound,
++            qaTextRestart: restart, currentSession: current)
+         retainedPlayAdvanced[key] = model; return model
+     }
+     func playPreference(scope: PlaySessionScope, nodeID: Int, lifetime: PlayInteractionLifetime? = nil) -> PlayPreferenceCoordinator? {
+--- a/App/PlayAdvancedView.swift
++++ b/App/PlayAdvancedView.swift
+@@ -25,6 +25,7 @@
+                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+                 if model.state == nil && ["idle", "rejected", "disabled"].contains(model.phase) { Button("playx.advanced.start") { Task { await model.start() } } }
+                 if model.state != nil && model.pending == nil { Button("playx.refresh") { Task { await model.refreshAuthoritative() } } }
++                if model.hasQATextReceiptPending && model.pending == nil { Text("playkit.pendingBoundary").font(.footnote) }
+                 if model.hasQATextReceiptPending {
+                     if ["unknown", "retryable"].contains(model.phase) {
+                         Button("playx.reconcile") { Task { await model.recover() } }.disabled(!model.isCurrent)
+@@ -84,6 +85,7 @@
+                 }
+             }
+         }.privacySensitive().navigationTitle("playx.advanced").accessibilityIdentifier("playx.advanced.view")
++        .task { await model.restoreQATextRecovery() }
+         .onAppear { teamSurfaceVisible = true; model.beginTeamSurface(id: teamSurfaceID) }
+         .task(id: model.state?.version) { await model.loadAdvancedLeaderboard(surfaceID: teamSurfaceID) }
+         .onDisappear { teamSurfaceVisible = false; model.endTeamSurface(id: teamSurfaceID) }
+--- a/Questify.xcodeproj/project.pbxproj
++++ b/Questify.xcodeproj/project.pbxproj
+@@ -5,6 +5,46 @@
+ 	};
+ 	"objectVersion" = 56;
+ 	"objects" = {
++		"8AE3748C82E426FE7B0F7C92" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "App/PlayQATextRestartSystemFactory.swift";
++			"sourceTree" = "<group>";
++		};
++		"F112C5B5A9486AD4E98C0A7A" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "8AE3748C82E426FE7B0F7C92";
++		};
++		"D59FBC4884F955ACE5753DE4" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/PlayQATextRestartRecovery.swift";
++			"sourceTree" = "<group>";
++		};
++		"C50F9494B33C260DF1308B22" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "D59FBC4884F955ACE5753DE4";
++		};
++		"9B4639F5BFC3FFC9289E2B81" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/PlayQATextRestartJournal.swift";
++			"sourceTree" = "<group>";
++		};
++		"36E50A9C568C57E1ED895488" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "9B4639F5BFC3FFC9289E2B81";
++		};
++		"D810E7E5546748D278450E20" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/PlayQATextReceiptRequest.swift";
++			"sourceTree" = "<group>";
++		};
++		"8C7FFB904D0ADD5D5EC0B41F" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "D810E7E5546748D278450E20";
++		};
+ 		"F9EA4F292468B89F7E32CC8E" = {
+ 			"isa" = "PBXFileReference";
+ 			"lastKnownFileType" = "sourcecode.swift";
+@@ -16268,6 +16308,10 @@
+ 		"19F479106CE8C3BA8C106518" = {
+ 			"isa" = "PBXGroup";
+ 			"children" = (
++				"8AE3748C82E426FE7B0F7C92",
++				"D59FBC4884F955ACE5753DE4",
++				"9B4639F5BFC3FFC9289E2B81",
++				"D810E7E5546748D278450E20",
+ 				"F9EA4F292468B89F7E32CC8E",
+ 				"44D484600FA4915AFC5350D2",
+ 				"CB448795F2BD50BEB406745E",
+@@ -18503,6 +18547,10 @@
+ 			"isa" = "PBXSourcesBuildPhase";
+ 			"buildActionMask" = 2147483647;
+ 			"files" = (
++				"F112C5B5A9486AD4E98C0A7A",
++				"C50F9494B33C260DF1308B22",
++				"36E50A9C568C57E1ED895488",
++				"8C7FFB904D0ADD5D5EC0B41F",
+ 				"FA6037832AF17F2455F24B35",
+ 				"1A4930D01E2D8E07EF982400",
+ 				"F24AD3F36FD050591D646093",
+--- /dev/null
++++ b/App/PlayQATextRestartSystemFactory.swift
+@@ -0,0 +1,27 @@
++#if canImport(Security) && canImport(Darwin)
++import Foundation
++
++/// Fixed QA-only OS roots; reuses the existing reviewed storage primitives.
++/// Construction performs no I/O or network grant. No caller-supplied filesystem
++/// path, blind Keychain upsert, plaintext file or generic completion journal.
++@MainActor enum PlayQATextRestartSystemFactory {
++    static func make(session: PlayExperienceSession, scope: PlaySessionScope,
++                     activityID: Int, topicID: Int, nodeID: Int,
++                     regionalConfiguration: RegionalConfiguration,
++                     storageScope: RegionalSessionStorageScope) throws -> PlayQATextDurableRestartJournal {
++        guard PlayRecoveryAccountRole(rawValue: session.role) != nil, scope.isValid,
++              storageScope.matches(configuration: regionalConfiguration),
++              session.namespace.utf8.elementsEqual(storageScope.service.utf8),
++              let configuration = regionalConfiguration.apiConfiguration else { throw PlayExperienceError.persistenceUnavailable }
++        let context = try PlayQATextRestartContext(configuration: configuration, session: session, scope: scope,
++            activityID: activityID, topicID: topicID, nodeID: nodeID)
++        let root = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true).resolvingSymlinksInPath()
++            .appendingPathComponent("Library", isDirectory: true)
++            .appendingPathComponent("Application Support", isDirectory: true)
++            .appendingPathComponent("PlayQATextReceipt-v1", isDirectory: true)
++        return try .init(context: context,
++            anchors: ContentDraftSystemAnchors(service: "questify.play.qa-text.receipt.v1"),
++            ciphertexts: ContentDraftSystemCiphertexts(root: root, createApplicationSupport: true))
++    }
++}
++#endif
+--- /dev/null
++++ b/Tests/CoreTests/PlayQATextDurableRestartTests.swift
+@@ -0,0 +1,102 @@
++import XCTest
++@testable import QuestifyCore
++
++/// Uses the actual unchanged encrypted-slot engine and the existing synthetic
++/// actor stores. Apple OS storage acceptance remains a separate requirement.
++@MainActor final class PlayQATextDurableRestartTests: XCTestCase {
++    typealias Anchors = ContentDraftDurableJournalTests.Anchors
++    typealias Blobs = ContentDraftDurableJournalTests.Blobs
++    private func context(account: Int = 7, role: String = "player", epoch: UInt64 = 1, topic: Int = 71) throws -> PlayQATextRestartContext {
++        try .init(configuration: .init(baseURL: URL(string: "https://example.com")!),
++                  session: .init(accountID: account, epoch: epoch, namespace: "synthetic-restart", token: "NEVER-PERSIST-SYNTHETIC-TOKEN", role: role),
++                  scope: .activity(41), activityID: 41, topicID: topic, nodeID: 701)
++    }
++    private func record(_ context: PlayQATextRestartContext, key: String = "original-frozen-key") throws -> PlayQATextRestartRecord {
++        try .init(pending: .init(sessionID: 601, version: 8, key: key, action: "SUBMIT_QA", payload: ["input": .string("NEVER-PERSIST-PRIVATE-ANSWER")]),
++                  qa: .object(["mode": .string("TYPE")]), context: context)
++    }
++    private func fails(_ operation: () async throws -> Void, file: StaticString = #filePath, line: UInt = #line) async {
++        do { try await operation(); XCTFail("Expected fail-closed journal", file: file, line: line) }
++        catch { XCTAssertEqual(error as? PlayExperienceError, .persistenceUnavailable, file: file, line: line) }
++    }
++    func testReopenRetainsExactRedactedIdentityAndEncryptsMetadata() async throws {
++        let a = Anchors(), b = Blobs(), context = try context(), value = try record(context)
++        let one = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
++        let saved = try await one.reserve(value)
++        let fresh = try PlayQATextDurableRestartJournal(context: self.context(epoch: 88), anchors: a, ciphertexts: b)
++        let read = try await fresh.read(), restored = try XCTUnwrap(read)
++        XCTAssertEqual(restored.value, value); XCTAssertEqual(restored.generation, saved.generation)
++        for bytes in await b.snapshots() {
++            for secret in ["original-frozen-key", "NEVER-PERSIST-SYNTHETIC-TOKEN", "NEVER-PERSIST-PRIVATE-ANSWER"] {
++                XCTAssertNil(bytes.range(of: Data(secret.utf8)))
++            }
++        }
++        for anchor in await a.snapshots() {
++            XCTAssertNil(anchor.bytes.range(of: Data("original-frozen-key".utf8)))
++            XCTAssertNil(anchor.bytes.range(of: Data("NEVER-PERSIST-SYNTHETIC-TOKEN".utf8)))
++        }
++        XCTAssertNil(restored.persistedBytes.range(of: Data("NEVER-PERSIST-PRIVATE-ANSWER".utf8)))
++    }
++    func testExistingIdentityAndStaleClearCannotAuthorizeAnotherDispatch() async throws {
++        let a = Anchors(), b = Blobs(), context = try context()
++        let one = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
++        let two = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
++        let first = try await one.reserve(record(context))
++        await fails { _ = try await two.reserve(self.record(context)) }
++        await fails { _ = try await two.reserve(self.record(context, key: "new-key")) }
++        try await one.clear(first)
++        let next = try await two.reserve(record(context, key: "new-key"))
++        await fails { try await one.clear(first) }
++        let current = try await two.read(); XCTAssertEqual(current, next)
++    }
++    func testRoleOrExpectedTopicChangeHitsOldLockInsteadOfFreshSlot() async throws {
++        let a = Anchors(), b = Blobs(), context = try context()
++        let one = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
++        _ = try await one.reserve(record(context))
++        for changed in [try self.context(role: "merchant"), try self.context(topic: 72)] {
++            XCTAssertEqual(changed.storageBinding, context.storageBinding)
++            let other = try PlayQATextDurableRestartJournal(context: changed, anchors: a, ciphertexts: b)
++            await fails { _ = try await other.read() }
++            await fails { _ = try await other.reserve(self.record(changed)) }
++        }
++        let kept = try await one.read(); XCTAssertEqual(kept?.value.context, context)
++    }
++    func testAnchorPresenceAndCiphertextLossNeverLooksFresh() async throws {
++        for loss in 0..<3 {
++            let a = Anchors(), b = Blobs(), context = try context()
++            let one = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
++            _ = try await one.reserve(record(context))
++            if loss == 0 { await a.loseAnchors() }
++            if loss == 1 { await b.losePresence() }
++            if loss == 2 { await b.corrupt() }
++            let reopened = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
++            await fails { _ = try await reopened.read() }
++            await fails { _ = try await reopened.reserve(self.record(context, key: "replacement")) }
++        }
++    }
++    func testInterruptedReservationRetainsBarrierAfterReopen() async throws {
++        for partial in [false, true] {
++            let a = Anchors(), b = Blobs(), context = try context()
++            await b.configure(failInsert: !partial, partial: partial)
++            let one = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
++            await fails { _ = try await one.reserve(self.record(context)) }
++            await b.configure()
++            let reopened = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
++            await fails { _ = try await reopened.read() }
++            await fails { _ = try await reopened.reserve(self.record(context, key: "replacement")) }
++        }
++    }
++    func testInterruptedClearFinishesTombstoneAndOldGenerationCannotClearNewRecord() async throws {
++        let a = Anchors(), b = Blobs(), context = try context()
++        let one = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
++        let old = try await one.reserve(record(context))
++        await b.configure(failRemove: true); await fails { try await one.clear(old) }
++        await b.configure()
++        let reopened = try PlayQATextDurableRestartJournal(context: context, anchors: a, ciphertexts: b)
++        let empty = try await reopened.read(); XCTAssertNil(empty)
++        let new = try await reopened.reserve(record(context, key: "new-key"))
++        await fails { try await one.clear(old) }
++        let kept = try await reopened.read(); XCTAssertEqual(kept, new)
++        let anchors = await a.snapshots(); XCTAssertEqual(anchors.count, 1)
++    }
++}
+--- /dev/null
++++ b/Tests/CoreTests/PlayQATextRestartCoordinatorTests.swift
+@@ -0,0 +1,85 @@
++import XCTest
++@testable import QuestifyCore
++
++/// Full real-coordinator integration checks for an Apple host after the handoff
++/// is applied. NOT part of the isolated Linux slice run.
++@MainActor final class PlayQATextRestartCoordinatorTests: XCTestCase {
++    typealias Anchors = ContentDraftDurableJournalTests.Anchors
++    typealias Blobs = ContentDraftDurableJournalTests.Blobs
++    private func session(epoch: UInt64 = 1) throws -> PlayExperienceSession {
++        try .init(accountID: 7, epoch: epoch, namespace: "synthetic-restart", token: "synthetic-session-token")
++    }
++    private func context(_ session: PlayExperienceSession) throws -> PlayQATextRestartContext {
++        try .init(configuration: .init(baseURL: URL(string: "https://example.com")!), session: session,
++                  scope: .activity(41), activityID: 41, topicID: 71, nodeID: 701)
++    }
++    private func view(sessionID: Int, version: Int) -> PlayWireValue {
++        .object(["sessionId": .int(sessionID), "activityId": .int(41), "topicId": .int(71), "nodeId": .int(701),
++                 "version": .int(version), "status": .string("RUNNING"),
++                 "playKit": .object(["qa": .object(["mode": .string("TYPE"), "passed": .bool(false), "finished": .bool(false), "attempts": .int(version - 1)])])])
++    }
++    private func reply(_ data: PlayWireValue, code: Int = 200) throws -> Data {
++        try JSONEncoder().encode(PlayWireValue.object(["code": .int(code), "data": data]))
++    }
++    private func receipt(sessionID: Int, key: String, version: Int) -> PlayWireValue {
++        .object(["sessionId": .string(String(sessionID)), "idempotencyKey": .string(key), "view": view(sessionID: sessionID, version: version)])
++    }
++    private func model(_ wire: PlayRecoveryRecordingTransport, _ journal: PlayQATextDurableRestartJournal,
++                       current: @escaping () -> PlayExperienceSession?) throws -> PlayAdvancedCoordinator {
++        let service = PlayExperienceService(configuration: try .init(baseURL: URL(string: "https://example.com")!), transport: wire, enabled: [.reads, .advanced])
++        let restart = PlayQATextRestartRecovery(journal: journal, reader: service, currentSession: current)
++        return .init(activityID: 41, topicID: 71, nodeID: 701, service: service, qaTextRestart: restart, currentSession: current)
++    }
++    func testColdStartLoadsOriginalIdentityWithoutPOSTAnd404CannotMintReplacementSession() async throws {
++        let a = Anchors(), b = Blobs(), current = try session(epoch: 9)
++        let journal = try PlayQATextDurableRestartJournal(context: context(current), anchors: a, ciphertexts: b)
++        let original = PlayAdvancedPending(sessionID: 601, version: 8, key: "original-frozen-key", action: "SUBMIT_QA", payload: ["input": .string("private answer")])
++        _ = try await journal.reserve(.init(pending: original, qa: .object(["mode": .string("TYPE")]), context: context(current)))
++        let wire = PlayRecoveryRecordingTransport(), model = try model(wire, journal, current: { current })
++        await model.restoreQATextRecovery()
++        XCTAssertEqual(model.phase, "unknown"); XCTAssertNil(model.state); XCTAssertNil(model.pending)
++        XCTAssertTrue(wire.requests.isEmpty)
++        wire.responses["/api/play/advanced/receipt"] = .reply(try reply(.null, code: 404), 200)
++        await model.start(); XCTAssertTrue(wire.requests.isEmpty)
++        await model.recover(); await model.retryExact(); await model.start()
++        XCTAssertEqual(model.phase, "unknown"); XCTAssertNil(model.pending)
++        XCTAssertEqual(wire.requests.count, 2)
++        XCTAssertTrue(wire.requests.allSatisfy { $0.httpMethod == "GET" && $0.url?.path == "/api/play/advanced/receipt" })
++        let still = try await journal.read(); XCTAssertEqual(still?.value.request.sessionID, 601)
++        for request in wire.requests {
++            let items = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.queryItems ?? []
++            XCTAssertEqual(items.first { $0.name == "idempotencyKey" }?.value, original.key)
++        }
++    }
++    func testOriginalUnknownAnswerRestartsReadsReceiptAndAllowsNextReviewedAttempt() async throws {
++        let a = Anchors(), b = Blobs(), wire = PlayRecoveryRecordingTransport()
++        var current = try session()
++        let firstJournal = try PlayQATextDurableRestartJournal(context: context(current), anchors: a, ciphertexts: b)
++        let first = try model(wire, firstJournal, current: { current })
++        wire.responses["/api/play/advanced/start"] = .reply(try reply(view(sessionID: 601, version: 1)), 200)
++        wire.responses["/api/play/advanced/action"] = .failure(.unknownResult)
++        await first.restoreQATextRecovery(); await first.start()
++        let firstReview = try first.review(kind: "qa", action: "SUBMIT_QA", detail: ["input": .string("first private answer")])
++        _ = await first.submit(firstReview)
++        XCTAssertEqual(first.phase, "unknown")
++        let stored = try await firstJournal.read(), bytes = try XCTUnwrap(stored).persistedBytes
++        XCTAssertNil(bytes.range(of: Data("first private answer".utf8)))
++        current = try session(epoch: 2)
++        let restartedJournal = try PlayQATextDurableRestartJournal(context: context(current), anchors: a, ciphertexts: b)
++        let restarted = try model(wire, restartedJournal, current: { current })
++        await restarted.restoreQATextRecovery(); await restarted.start()
++        XCTAssertNil(restarted.pending); XCTAssertEqual(wire.requests.count, 2)
++        wire.responses["/api/play/advanced/receipt"] = .reply(try reply(receipt(sessionID: 601, key: firstReview.id.uuidString, version: 2)), 200)
++        await restarted.recover()
++        XCTAssertEqual(restarted.phase, "ready"); XCTAssertTrue(restarted.canInteract)
++        XCTAssertEqual(restarted.state?.playKit["qa"]["passed"].bool, false)
++        let second = try restarted.review(kind: "qa", action: "SUBMIT_QA", detail: ["input": .string("second private answer")])
++        XCTAssertNotEqual(second.id, firstReview.id)
++        wire.responses["/api/play/advanced/action"] = .reply(try reply(view(sessionID: 601, version: 3)), 200)
++        wire.responses["/api/play/advanced/receipt"] = .reply(try reply(receipt(sessionID: 601, key: second.id.uuidString, version: 3)), 200)
++        let acknowledged = await restarted.submit(second)
++        XCTAssertTrue(acknowledged); XCTAssertNil(restarted.pending); XCTAssertTrue(restarted.canInteract)
++        XCTAssertEqual(wire.requests.filter { $0.httpMethod == "POST" }.count, 3, "One original start and two distinct reviewed answers")
++        let empty = try await restartedJournal.read(); XCTAssertNil(empty)
++    }
++}

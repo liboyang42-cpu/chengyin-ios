@@ -4,6 +4,7 @@ import Foundation
 /// identity evidence only: the server view remains the sole verdict source.
 public struct PlayQATextActionReceipt: Equatable {
     public let view: PlayWireValue
+    public let request: PlayQATextReceiptRequest
 
     /// Payload signature alone does not identify a mode. The coordinator must
     /// additionally bind its original server QA segment using matchesTextMode.
@@ -29,17 +30,20 @@ public struct PlayQATextActionReceipt: Equatable {
 
     public init(_ raw: PlayWireValue, pending: PlayAdvancedPending,
                 activityID: Int, topicID: Int, nodeID: Int) throws {
-        _ = try Self.query(for: pending)
+        try self.init(raw, request: .init(pending, activityID: activityID, topicID: topicID, nodeID: nodeID))
+    }
+
+    public init(_ raw: PlayWireValue, request: PlayQATextReceiptRequest) throws {
+        try request.validate()
         let view = raw["view"]
-        guard activityID >= 0, topicID > 0, nodeID > 0,
-              raw["sessionId"].text == String(pending.sessionID),
-              let key = raw["idempotencyKey"].text, key.utf8.elementsEqual(pending.key.utf8),
-              view["sessionId"].integer == pending.sessionID,
-              view["activityId"].integer == activityID,
-              view["topicId"].integer == topicID, view["nodeId"].integer == nodeID,
-              let version = view["version"].integer, version > pending.version,
+        guard raw["sessionId"].text == String(request.sessionID),
+              let key = raw["idempotencyKey"].text, key.utf8.elementsEqual(request.key.utf8),
+              view["sessionId"].integer == request.sessionID,
+              view["activityId"].integer == request.activityID,
+              view["topicId"].integer == request.topicID, view["nodeId"].integer == request.nodeID,
+              let version = view["version"].integer, version > request.version,
               let status = view["status"].text, !status.isEmpty else { throw PlayExperienceError.malformed }
-        self.view = view
+        self.view = view; self.request = request
     }
 
     /// Receipt 404/409, disabled capability, malformed data, cancellation and lost

@@ -50,6 +50,7 @@ def main():
                 'fragment_sha256': hashlib.sha256(fragment.encode()).hexdigest()})
         (sources / 'ExactProductionDependencies.swift').write_text('import Foundation\n' + '\n'.join(extracted) + '\n')
         shutil.copyfile(root / 'Core/PlayQATextActionReceipt.swift', sources / 'PlayQATextActionReceipt.swift')
+        shutil.copyfile(root / 'Core/PlayQATextReceiptRequest.swift', sources / 'PlayQATextReceiptRequest.swift')
         shutil.copyfile(root / 'Tests/CoreTests/PlayQATextActionReceiptTests.swift', tests / 'PlayQATextActionReceiptTests.swift')
         (package / 'Package.swift').write_text('''// swift-tools-version: 5.9
 import PackageDescription

@@ -1,0 +1,85 @@
+import XCTest
+@testable import QuestifyCore
+
+/// Full real-coordinator integration checks for an Apple host after the handoff
+/// is applied. NOT part of the isolated Linux slice run.
+@MainActor final class PlayQATextRestartCoordinatorTests: XCTestCase {
+    typealias Anchors = ContentDraftDurableJournalTests.Anchors
+    typealias Blobs = ContentDraftDurableJournalTests.Blobs
+    private func session(epoch: UInt64 = 1) throws -> PlayExperienceSession {
+        try .init(accountID: 7, epoch: epoch, namespace: "synthetic-restart", token: "synthetic-session-token")
+    }
+    private func context(_ session: PlayExperienceSession) throws -> PlayQATextRestartContext {
+        try .init(configuration: .init(baseURL: URL(string: "https://example.com")!), session: session,
+                  scope: .activity(41), activityID: 41, topicID: 71, nodeID: 701)
+    }
+    private func view(sessionID: Int, version: Int) -> PlayWireValue {
+        .object(["sessionId": .int(sessionID), "activityId": .int(41), "topicId": .int(71), "nodeId": .int(701),
+                 "version": .int(version), "status": .string("RUNNING"),
+                 "playKit": .object(["qa": .object(["mode": .string("TYPE"), "passed": .bool(false), "finished": .bool(false), "attempts": .int(version - 1)])])])
+    }
+    private func reply(_ data: PlayWireValue, code: Int = 200) throws -> Data {
+        try JSONEncoder().encode(PlayWireValue.object(["code": .int(code), "data": data]))
+    }
+    private func receipt(sessionID: Int, key: String, version: Int) -> PlayWireValue {
+        .object(["sessionId": .string(String(sessionID)), "idempotencyKey": .string(key), "view": view(sessionID: sessionID, version: version)])
+    }
+    private func model(_ wire: PlayRecoveryRecordingTransport, _ journal: PlayQATextDurableRestartJournal,
+                       current: @escaping () -> PlayExperienceSession?) throws -> PlayAdvancedCoordinator {
+        let service = PlayExperienceService(configuration: try .init(baseURL: URL(string: "https://example.com")!), transport: wire, enabled: [.reads, .advanced])
+        let restart = PlayQATextRestartRecovery(journal: journal, reader: service, currentSession: current)
+        return .init(activityID: 41, topicID: 71, nodeID: 701, service: service, qaTextRestart: restart, currentSession: current)
+    }
+    func testColdStartLoadsOriginalIdentityWithoutPOSTAnd404CannotMintReplacementSession() async throws {
+        let a = Anchors(), b = Blobs(), current = try session(epoch: 9)
+        let journal = try PlayQATextDurableRestartJournal(context: context(current), anchors: a, ciphertexts: b)
+        let original = PlayAdvancedPending(sessionID: 601, version: 8, key: "original-frozen-key", action: "SUBMIT_QA", payload: ["input": .string("private answer")])
+        _ = try await journal.reserve(.init(pending: original, qa: .object(["mode": .string("TYPE")]), context: context(current)))
+        let wire = PlayRecoveryRecordingTransport(), model = try model(wire, journal, current: { current })
+        await model.restoreQATextRecovery()
+        XCTAssertEqual(model.phase, "unknown"); XCTAssertNil(model.state); XCTAssertNil(model.pending)
+        XCTAssertTrue(wire.requests.isEmpty)
+        wire.responses["/api/play/advanced/receipt"] = .reply(try reply(.null, code: 404), 200)
+        await model.start(); XCTAssertTrue(wire.requests.isEmpty)
+        await model.recover(); await model.retryExact(); await model.start()
+        XCTAssertEqual(model.phase, "unknown"); XCTAssertNil(model.pending)
+        XCTAssertEqual(wire.requests.count, 2)
+        XCTAssertTrue(wire.requests.allSatisfy { $0.httpMethod == "GET" && $0.url?.path == "/api/play/advanced/receipt" })
+        let still = try await journal.read(); XCTAssertEqual(still?.value.request.sessionID, 601)
+        for request in wire.requests {
+            let items = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.queryItems ?? []
+            XCTAssertEqual(items.first { $0.name == "idempotencyKey" }?.value, original.key)
+        }
+    }
+    func testOriginalUnknownAnswerRestartsReadsReceiptAndAllowsNextReviewedAttempt() async throws {
+        let a = Anchors(), b = Blobs(), wire = PlayRecoveryRecordingTransport()
+        var current = try session()
+        let firstJournal = try PlayQATextDurableRestartJournal(context: context(current), anchors: a, ciphertexts: b)
+        let first = try model(wire, firstJournal, current: { current })
+        wire.responses["/api/play/advanced/start"] = .reply(try reply(view(sessionID: 601, version: 1)), 200)
+        wire.responses["/api/play/advanced/action"] = .failure(.unknownResult)
+        await first.restoreQATextRecovery(); await first.start()
+        let firstReview = try first.review(kind: "qa", action: "SUBMIT_QA", detail: ["input": .string("first private answer")])
+        _ = await first.submit(firstReview)
+        XCTAssertEqual(first.phase, "unknown")
+        let stored = try await firstJournal.read(), bytes = try XCTUnwrap(stored).persistedBytes
+        XCTAssertNil(bytes.range(of: Data("first private answer".utf8)))
+        current = try session(epoch: 2)
+        let restartedJournal = try PlayQATextDurableRestartJournal(context: context(current), anchors: a, ciphertexts: b)
+        let restarted = try model(wire, restartedJournal, current: { current })
+        await restarted.restoreQATextRecovery(); await restarted.start()
+        XCTAssertNil(restarted.pending); XCTAssertEqual(wire.requests.count, 2)
+        wire.responses["/api/play/advanced/receipt"] = .reply(try reply(receipt(sessionID: 601, key: firstReview.id.uuidString, version: 2)), 200)
+        await restarted.recover()
+        XCTAssertEqual(restarted.phase, "ready"); XCTAssertTrue(restarted.canInteract)
+        XCTAssertEqual(restarted.state?.playKit["qa"]["passed"].bool, false)
+        let second = try restarted.review(kind: "qa", action: "SUBMIT_QA", detail: ["input": .string("second private answer")])
+        XCTAssertNotEqual(second.id, firstReview.id)
+        wire.responses["/api/play/advanced/action"] = .reply(try reply(view(sessionID: 601, version: 3)), 200)
+        wire.responses["/api/play/advanced/receipt"] = .reply(try reply(receipt(sessionID: 601, key: second.id.uuidString, version: 3)), 200)
+        let acknowledged = await restarted.submit(second)
+        XCTAssertTrue(acknowledged); XCTAssertNil(restarted.pending); XCTAssertTrue(restarted.canInteract)
+        XCTAssertEqual(wire.requests.filter { $0.httpMethod == "POST" }.count, 3, "One original start and two distinct reviewed answers")
+        let empty = try await restartedJournal.read(); XCTAssertNil(empty)
+    }
+}

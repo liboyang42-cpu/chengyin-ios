@@ -5,8 +5,15 @@ extension PlayExperienceService {
     /// GET only, under the existing read lifetime and authentication gates.
     public func qaTextReceipt(_ pending: PlayAdvancedPending, activityID: Int,
                               topicID: Int, nodeID: Int, token: String) async throws -> PlayQATextActionReceipt {
-        let query = try PlayQATextActionReceipt.query(for: pending)
-        let raw = try await request("api/play/advanced/receipt", query: query, capability: .reads, token: token)
-        return try PlayQATextActionReceipt(raw, pending: pending, activityID: activityID, topicID: topicID, nodeID: nodeID)
+        let identity = try PlayQATextReceiptRequest(pending, activityID: activityID, topicID: topicID, nodeID: nodeID)
+        return try await qaTextReceipt(identity, token: token)
+    }
+    /// Relaunch recovery needs only redacted metadata, never a fabricated answer
+    /// payload or a replacement session. Shares the exact original GET decoder.
+    @MainActor public func qaTextReceipt(_ identity: PlayQATextReceiptRequest, token: String) async throws -> PlayQATextActionReceipt {
+        let raw = try await request("api/play/advanced/receipt", query: identity.query, capability: .reads, token: token)
+        return try PlayQATextActionReceipt(raw, request: identity)
     }
 }
+
+extension PlayExperienceService: PlayQATextReceiptReading {}

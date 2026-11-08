@@ -1,0 +1,87 @@
+{
+  "base": "68626f0c31162a0108df9eaf3d658c9f09cb83fd",
+  "public_main": "3971086a1feb3dc765a44153542c1d52eb9e4775",
+  "branch": "codex/qa-restart-receipt-20261108",
+  "shared_checkout_sha256": {
+    "Core/PlayAdvancedRuntime.swift": "11b241e78538ff77b403c9776f47d2adbbe3351a591869c8a33c144f51b22f27",
+    "Core/PlayDurableRecovery.swift": "39f742f576a426608552983eac349857f516f10c29239a92f164b9be406a2149",
+    "App/AppSession.swift": "c6f8d068a61b418a8e1462f69fa78515bf22a4073b0eb2d4389bc2b82386874f",
+    "App/PlayAdvancedView.swift": "e10631f36f5e8089d9166bf51eca42000d599902301048aa2a3ffc6c14b8152d",
+    "App/PlayKitScreen.swift": "cf8f1490a73fd150500f8e2c6758efd9be03cdf94bb39cb7a6d17fc2b4ad9d37",
+    "Questify.xcodeproj/project.pbxproj": "7efea78999ec9daf1c3c335e503f08ff604b99d081d853de529b7fd2e7b3e29f"
+  },
+  "files": {
+    "Core/PlayQATextActionReceipt.swift": {
+      "before_sha256": "cf72ecaf21bef052178544c76d0c42efd518eaa2bae4aa3a8ffc0a436ff29761",
+      "after_sha256": "5289f78c1417f5476035f8a8d11bd11d3759b58b769cf72a9825ae08abf1d59d"
+    },
+    "Core/PlayQATextReceiptRequest.swift": {
+      "before_sha256": null,
+      "after_sha256": "951418dd06632cfc137c5c017f40c284958ac82eb287eb44b03b1db443f1c2ae"
+    },
+    "Core/PlayQATextReceiptService.swift": {
+      "before_sha256": "0dbb20861a7495adfddbdb94d71c1d9cd3da7022519a214d784ec744ec37f65e",
+      "after_sha256": "f60f4965b37f587b97a8e2f0cb1155755094bc0a594c2f39b3fa0db53c0f60ad"
+    },
+    "Core/PlayQATextRestartJournal.swift": {
+      "before_sha256": null,
+      "after_sha256": "167e15f9650041c2cb69c84a6fb849cdb715b6d293969972d8eeb895789f4dbf"
+    },
+    "Core/PlayQATextRestartRecovery.swift": {
+      "before_sha256": null,
+      "after_sha256": "713645acad3ca89952e6b24f453d66ad4f60ffc05e54d8091ec77245dad2f083"
+    },
+    "Tests/CoreTests/PlayQATextRestartRecoveryTests.swift": {
+      "before_sha256": null,
+      "after_sha256": "64051ad1b3345bce3e586f635fda2c7977bc479007f0adaae8ff33411535b38b"
+    },
+    "docs/qa-text-restart/PlayQATextDurableRestartJournal.swift.fragment": {
+      "before_sha256": null,
+      "after_sha256": "22e235c182351fe600724b9f7e11d5aa879a1affb76b6764cda180de21d20cdb"
+    },
+    "docs/qa-text-restart/PlayQATextDurableRestartTests.swift.fragment": {
+      "before_sha256": null,
+      "after_sha256": "cb1f28574dd5bf5429651d2182bd90a2ba497f834c72871af15ced95a94101f7"
+    },
+    "docs/qa-text-restart/PlayQATextRestartCoordinatorTests.swift.fragment": {
+      "before_sha256": null,
+      "after_sha256": "c817798cbb6dc098cac612a9db7d883d7efb19bd756281bc689bde8d23ea5418"
+    },
+    "docs/qa-text-restart/handoff-evidence.json": {
+      "before_sha256": null,
+      "after_sha256": "f830115e0639554738e0a0102dce3fa8cc74ddd011eb4314df0df99829cb1da6"
+    },
+    "docs/qa-text-restart/integration-after-receipt.patch": {
+      "before_sha256": null,
+      "after_sha256": "8b4ce8c4982c0db95afc7c78b460680a6411eb7a67c56419d8a058ac94f2ea27"
+    },
+    "docs/qa-text-restart/integration-preimages.json": {
+      "before_sha256": null,
+      "after_sha256": "0d46b7dcb298aa062f4704b8746790d5cd38dbba8cacefe2abca4bda41a54f3f"
+    },
+    "docs/qa-text-restart/portable-test-evidence.json": {
+      "before_sha256": null,
+      "after_sha256": "63cb052d5d6f8b6dea6e589decb5c4cf300b24dba9fbe5ea9cb5fa15266e1480"
+    },
+    "docs/qa-text-restart/test-results.txt": {
+      "before_sha256": null,
+      "after_sha256": "9144f40139f73cea86364d9cdcf5588b5ce88f229aaca5453d10ac8628eae0a6"
+    },
+    "docs/qa-text-restart/verification.md": {
+      "before_sha256": null,
+      "after_sha256": "eb011855de33ac5ca4da4c7c30efe3c0961dbeb569e1c08b424b6bd48dee5bfc"
+    },
+    "tools/test_qa_text_receipt_candidate.py": {
+      "before_sha256": "cd77e75843478bbf2f614b9fef383ae77eb0618d0684e0a76096b6e8eba63756",
+      "after_sha256": "994ce5ef096409f505fcc3ecde27072baa70a8e38f3751e1bcd2e34f59dc41e2"
+    },
+    "tools/test_qa_text_restart_candidate.py": {
+      "before_sha256": null,
+      "after_sha256": "d3125431b42921a6c5175b0481d0dd31e335d85005f484d6dc914b196a8bbbf5"
+    },
+    "tools/verify_qa_text_restart_handoff.py": {
+      "before_sha256": null,
+      "after_sha256": "475135e24457b730c9cd10c1538e43b2e24098400117a89d3c58ec69d59f8c8d"
+    }
+  }
+}
