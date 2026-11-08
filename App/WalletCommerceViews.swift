@@ -126,50 +126,77 @@ private struct WalletFormatting {
     private var format: WalletFormatting { .init(locale: locale) }
     let reader: WalletCommerceReader
     let kind: WalletLedgerKind
-    @StateObject private var model = WalletPagerScreen()
+    @State private var model = WalletPointsLedgerPresentation()
     @State private var direction = "all"
     private var points: Bool { kind == .points || kind == .assetPoints }
     private var income: Bool { if case .income = kind { return true }; return false }
+    private var owner: WalletPointsLedgerPresentation.Owner { .init(reader: reader, kind: kind) }
+    private var snapshot: WalletPointsLedgerPresentation.Snapshot { model.snapshot(for: owner) }
+    private func rowDirection(_ row: WalletLedgerRow) -> WalletDirection {
+        points ? WalletPointsLedgerEntry(row: row).direction : income ? row.incomeDirection : row.assetDirection
+    }
     private var filtered: [WalletLedgerRow] {
-        model.pager.rows.filter { row in
-            direction == "all" || (income ? row.incomeDirection : row.assetDirection).rawValue == direction
-        }
+        snapshot.rows.filter { direction == "all" || rowDirection($0).rawValue == direction }
     }
     var body: some View {
         List {
             Picker("wallet.direction", selection: $direction) {
                 Text("wallet.all").tag("all"); Text("wallet.inflow").tag("income"); Text("wallet.outflow").tag("expense")
-            }.pickerStyle(.menu)
-            if points { Text("wallet.loadedFilter"); NavigationLink("wallet.tasks") { WalletPointsTasksView(reader: reader) } }
-            if model.pager.loadedScope == reader.scope {
-                if points { LabeledContent("wallet.pointsBalance", value: format.points(model.pager.rows.first?.afterPoints)) }
-                if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed { Text("wallet.empty") }
+                Text("wallet.direction.unknown").tag("unknown")
+            }.pickerStyle(.menu).accessibilityIdentifier("wallet.ledger.direction")
+            if points {
+                Text("pointsLedger.rowFacts", tableName: "WalletPointsLedger")
+                    .accessibilityIdentifier("wallet.ledger.rowFacts")
+                Text("wallet.loadedFilter")
+                NavigationLink("wallet.tasks") { WalletPointsTasksView(reader: reader) }
+            }
+            if snapshot.loaded {
+                if filtered.isEmpty && !snapshot.isLoading && snapshot.failure == nil {
+                    if snapshot.rows.isEmpty { Text("wallet.empty") }
+                    else { Text("pointsLedger.filterEmpty", tableName: "WalletPointsLedger") }
+                }
                 ForEach(filtered) { row in
+                    let entry = WalletPointsLedgerEntry(row: row)
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
+                        if points {
+                            if let reason = entry.reason { Text(verbatim: reason) }
+                            else { Text("pointsLedger.reasonUnknown", tableName: "WalletPointsLedger") }
+                        } else { Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale)) }
                         if income { Text(LocalizedStringKey(row.incomeEventKey)) }
-                        Text(LocalizedStringKey("wallet.direction." + (income ? row.incomeDirection : row.assetDirection).rawValue))
+                        Text(LocalizedStringKey("wallet.direction." + rowDirection(row).rawValue))
                         HStack {
-                            Text(verbatim: row.signedText(points: points, income: income) ?? appLocalized("wallet.unknown", locale: locale))
+                            Text(verbatim: (points ? entry.signedChange : row.signedText(points: false, income: income)) ?? appLocalized("wallet.unknown", locale: locale))
                             if points { Text("wallet.pointsUnit") }
                             else { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
                         }
-                        if !points, let balance = row.afterBalance { LabeledContent("wallet.balanceAfter", value: format.amount(balance, currency: row.currency)) }
-                        if let date = row.createTime { Text(verbatim: date).font(.caption) }
+                        if points {
+                            LabeledContent {
+                                Text(verbatim: format.points(entry.afterPoints))
+                            } label: { Text("pointsLedger.afterPoints", tableName: "WalletPointsLedger") }
+                            if let time = entry.recordedTime { Text(verbatim: time).font(.caption) }
+                            else { Text("pointsLedger.timeUnknown", tableName: "WalletPointsLedger").font(.caption) }
+                        } else {
+                            if let balance = row.afterBalance { LabeledContent("wallet.balanceAfter", value: format.amount(balance, currency: row.currency)) }
+                            if let date = row.createTime { Text(verbatim: date).font(.caption) }
+                        }
                     }.accessibilityElement(children: .combine).accessibilityIdentifier("wallet.ledger.\(row.id)")
                 }
             }
-            if model.pager.failed || !reader.isConfigured || reader.scope == nil {
-                WalletIssueView(reader: reader) { Task { await model.load(reader, kind: kind) } }
+            if snapshot.failure != nil || !reader.isConfigured || reader.scope == nil {
+                WalletIssueView(reader: reader, requiresLogin: snapshot.failure == .login,
+                                unavailable: snapshot.failure == .unavailable) { Task { await load() } }
             }
-            if model.pager.isLoading { ProgressView("wallet.loading") }
-            else if model.pager.hasMore && reader.isConfigured && reader.scope != nil {
-                Button("wallet.loadMore") { Task { await model.load(reader, kind: kind) } }.frame(minHeight: 44)
+            if snapshot.isLoading { ProgressView("wallet.loading") }
+            else if snapshot.failure == nil && snapshot.loaded && snapshot.hasMore && reader.isConfigured && reader.scope != nil {
+                Button("wallet.loadMore") { Task { await load() } }.frame(minHeight: 44)
             }
         }.appNavigationTitle(key: points ? "wallet.pointsLedger" : "wallet.balanceLedger")
-            .task(id: reader.scope) { model.reset(); await model.load(reader, kind: kind) }
+            .task(id: owner) { direction = "all"; await load(refresh: true) }
             .onDisappear { model.cancel() }
-            .refreshable { model.reset(); await model.load(reader, kind: kind) }
+            .refreshable { await load(refresh: true) }
+    }
+    private func load(refresh: Bool = false) async {
+        await model.load(reader: reader, kind: kind, refresh: refresh)
     }
 }
 @MainActor struct WalletIncomeView: View {
