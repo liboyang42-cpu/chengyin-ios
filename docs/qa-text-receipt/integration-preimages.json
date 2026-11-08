@@ -1,0 +1,18 @@
+{
+  "Core/PlayAdvancedRuntime.swift": {
+    "before_sha256": "11b241e78538ff77b403c9776f47d2adbbe3351a591869c8a33c144f51b22f27",
+    "after_sha256": "3e36e099f56a68dda48433c8e486183d7295005f56801cf9dc60f7a4b1a2c84d"
+  },
+  "App/PlayAdvancedView.swift": {
+    "before_sha256": "e10631f36f5e8089d9166bf51eca42000d599902301048aa2a3ffc6c14b8152d",
+    "after_sha256": "afc4eecb88aecfbee65e69a7353512b6f0758e709d706e67ac09f286e77c1401"
+  },
+  "App/PlayKitScreen.swift": {
+    "before_sha256": "cf8f1490a73fd150500f8e2c6758efd9be03cdf94bb39cb7a6d17fc2b4ad9d37",
+    "after_sha256": "62d8ed5281565830e19253518e9f5b485025ab4cc973b9c2bec2cd1613bee17b"
+  },
+  "Questify.xcodeproj/project.pbxproj": {
+    "before_sha256": "7efea78999ec9daf1c3c335e503f08ff604b99d081d853de529b7fd2e7b3e29f",
+    "after_sha256": "9d1aac32f6514fc5fd449e1f3cd05568677c1122de436e45bda29626e9dce904"
+  }
+}

@@ -1,0 +1,157 @@
+--- a/Core/PlayAdvancedRuntime.swift
++++ b/Core/PlayAdvancedRuntime.swift
+@@ -269,8 +269,36 @@
+             self.pending = nil; pendingRequestedCard = false
+         } catch { failure(error, session: session, generation: generation) }
+     }
++    var hasQATextReceiptPending: Bool {
++        PlayQATextActionReceipt.owns(pending) && PlayQATextActionReceipt.matchesTextMode(state?.playKit["qa"] ?? .null)
++    }
++    private func recoverQATextReceipt(_ pending: PlayAdvancedPending, session: PlayExperienceSession) async {
++        let generation = generation; phase = "loading"
++        do {
++            let receipt = try await service.qaTextReceipt(pending, activityID: activityID, topicID: topicID, nodeID: nodeID, token: session.token)
++            let result = try PlayAdvancedState(receipt.view)
++            try validate(result, session: session, generation: generation)
++            guard self.pending == pending else { throw PlayExperienceError.staleSession }
++            // A historical matched receipt resolves this request, but must never
++            // roll a newer authoritative state back to an older version.
++            if (state?.version ?? -1) <= result.version {
++                try accept(result, session: session, generation: generation)
++            } else { phase = "ready"; issue = nil }
++            self.pending = nil
++        } catch {
++            guard self.generation == generation, self.pending == pending else { return }
++            phase = PlayQATextActionReceipt.failurePhase(error, ownerIsCurrent: currentSession() == session)
++            issue = phase == "stale" ? .staleSession : .unknownResult
++            if phase == "stale" { state = nil; clearObjectCardReceipt(); clearAdvancedLeaderboard() }
++            // Receipt 404/409 is absence of proof. Retain the original pending
++            // identity and payload; never use generic rejection cleanup here.
++        }
++    }
+     public func recover() async {
+-        guard let pending, let session = owner, session == currentSession(), phase == "unknown" else { return }
++        let textReceipt = hasQATextReceiptPending
++        guard let pending, let session = owner, session == currentSession(),
++              phase == "unknown" || (textReceipt && phase == "retryable") else { return }
++        if textReceipt { await recoverQATextReceipt(pending, session: session); return }
+         let generation = generation; phase = "loading"
+         do {
+             let result = try await service.advancedState(sessionID: pending.sessionID, token: session.token)
+@@ -283,7 +311,10 @@
+             phase = "retryable"
+         } catch { failure(error, session: session, generation: generation) }
+     }
+-    public func retryExact() async { guard phase == "retryable" else { return }; await sendPending() }
++    public func retryExact() async {
++        if hasQATextReceiptPending { await recover(); return }
++        guard phase == "retryable" else { return }; await sendPending()
++    }
+     public func refreshAuthoritative() async {
+         if pending != nil { if phase == "unknown" { await recover() }; return }
+         guard phase != "submitting", let state, let session = owner, session == currentSession() else { return }
+--- a/App/PlayAdvancedView.swift
++++ b/App/PlayAdvancedView.swift
+@@ -25,8 +25,14 @@
+                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+                 if model.state == nil && ["idle", "rejected", "disabled"].contains(model.phase) { Button("playx.advanced.start") { Task { await model.start() } } }
+                 if model.state != nil && model.pending == nil { Button("playx.refresh") { Task { await model.refreshAuthoritative() } } }
+-                if model.phase == "unknown" { Button("playx.reconcile") { Task { await model.recover() } } }
+-                if model.phase == "retryable" { Button("playx.retryExact") { Task { await model.retryExact() } } }
++                if model.hasQATextReceiptPending {
++                    if ["unknown", "retryable"].contains(model.phase) {
++                        Button("playx.reconcile") { Task { await model.recover() } }.disabled(!model.isCurrent)
++                    }
++                } else {
++                    if model.phase == "unknown" { Button("playx.reconcile") { Task { await model.recover() } } }
++                    if model.phase == "retryable" { Button("playx.retryExact") { Task { await model.retryExact() } } }
++                }
+             }
+             if model.state == nil, nativePlatform?.acceptance.localRemindersEnabled == true {
+                 Section { NativeTimeWindowHostView(advanced: model, segment: .null) }
+--- a/App/PlayKitScreen.swift
++++ b/App/PlayKitScreen.swift
+@@ -195,8 +195,15 @@
+     @ViewBuilder private var recovery: some View {
+         if model.phase == "submitting" || model.phase == "loading" { ProgressView("playkit.sending") }
+         if model.pending != nil { Text("playkit.pendingBoundary").font(.footnote) }
+-        if model.phase == "unknown" { Button("playkit.reconcile") { Task { await model.recover() } }.accessibilityIdentifier("playkit." + kind.rawValue + ".reconcile") }
+-        if model.phase == "retryable" { Button("playkit.retryExact") { Task { await model.retryExact() } }.accessibilityIdentifier("playkit." + kind.rawValue + ".retryExact") }
++        if model.hasQATextReceiptPending {
++            if ["unknown", "retryable"].contains(model.phase) {
++                Button("playkit.reconcile") { Task { await model.recover() } }
++                    .disabled(!model.isCurrent).accessibilityIdentifier("playkit.qa.reconcile")
++            }
++        } else {
++            if model.phase == "unknown" { Button("playkit.reconcile") { Task { await model.recover() } }.accessibilityIdentifier("playkit." + kind.rawValue + ".reconcile") }
++            if model.phase == "retryable" { Button("playkit.retryExact") { Task { await model.retryExact() } }.accessibilityIdentifier("playkit." + kind.rawValue + ".retryExact") }
++        }
+         if model.pending == nil && model.isCurrent && model.phase != "submitting" {
+             Button("playkit.refresh") { Task { await model.refreshAuthoritative() } }.accessibilityIdentifier("playkit." + kind.rawValue + ".refresh")
+         }
+--- a/Questify.xcodeproj/project.pbxproj
++++ b/Questify.xcodeproj/project.pbxproj
+@@ -5,6 +5,36 @@
+ 	};
+ 	"objectVersion" = 56;
+ 	"objects" = {
++		"F9EA4F292468B89F7E32CC8E" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Tests/AppUnitTests/PlayQATextReceiptRecoveryTests.swift";
++			"sourceTree" = "<group>";
++		};
++		"CCAC40DEDA1B9E2686BFB6C6" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "F9EA4F292468B89F7E32CC8E";
++		};
++		"44D484600FA4915AFC5350D2" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/PlayQATextReceiptService.swift";
++			"sourceTree" = "<group>";
++		};
++		"FA6037832AF17F2455F24B35" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "44D484600FA4915AFC5350D2";
++		};
++		"CB448795F2BD50BEB406745E" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/PlayQATextActionReceipt.swift";
++			"sourceTree" = "<group>";
++		};
++		"1A4930D01E2D8E07EF982400" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "CB448795F2BD50BEB406745E";
++		};
+ 		"9A0314576819DECBD2614EA4" = {
+ 			"isa" = "PBXFileReference";
+ 			"lastKnownFileType" = "sourcecode.swift";
+@@ -16238,6 +16268,9 @@
+ 		"19F479106CE8C3BA8C106518" = {
+ 			"isa" = "PBXGroup";
+ 			"children" = (
++				"F9EA4F292468B89F7E32CC8E",
++				"44D484600FA4915AFC5350D2",
++				"CB448795F2BD50BEB406745E",
+ 				"630D1CFA5FEBD33A996B0FD1",
+ 				"1C05F0EA73C477B9583A1D92",
+ 				"58A4F97176EC2F047E8C1785",
+@@ -18470,6 +18503,8 @@
+ 			"isa" = "PBXSourcesBuildPhase";
+ 			"buildActionMask" = 2147483647;
+ 			"files" = (
++				"FA6037832AF17F2455F24B35",
++				"1A4930D01E2D8E07EF982400",
+ 				"F24AD3F36FD050591D646093",
+ 				"30B1D308D233AC486091C54C",
+ 				"6F4AAFB84C944399F748A616",
+@@ -25803,6 +25838,7 @@
+ 			"isa" = "PBXSourcesBuildPhase";
+ 			"buildActionMask" = 2147483647;
+ 			"files" = (
++				"CCAC40DEDA1B9E2686BFB6C6",
+ 				"19EC95F64576113ABFA6995C",
+ 				"347E85455BBF6CC9554E794C",
+ 				"A11ED0B2DB9D772EBD8F9407",

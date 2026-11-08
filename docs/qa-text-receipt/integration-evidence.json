@@ -1,0 +1,10 @@
+{
+  "checkout_shared_files_unchanged": true,
+  "patch_applied_in_disposable_copy": true,
+  "apple_type_compilation": "not run",
+  "appunit_execution": "not run",
+  "real_backend": "not contacted",
+  "pbx_registration_only": true,
+  "scaffold_exit_code": 0,
+  "syntax_parse_exit_code": 0
+}

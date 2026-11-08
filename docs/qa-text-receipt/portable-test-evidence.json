@@ -1,0 +1,30 @@
+{
+  "scope": "production receipt identity decoder and failure policy; no coordinator/service/App execution",
+  "declarations": [
+    {
+      "path": "Core/APIConfiguration.swift",
+      "marker": "public enum APIError:",
+      "source_sha256": "91ca963c919f3c7da6c3efa67a505dc5999d629e603c1d995323325bf99fcf33",
+      "fragment_sha256": "a1d5be23c692888bb6caa2ebbab597f710c1397ef38779b3e45b695d9fef16ed"
+    },
+    {
+      "path": "Core/PlayExperienceContracts.swift",
+      "marker": "public indirect enum PlayWireValue:",
+      "source_sha256": "cb006184051c63488cc1bd041471bf23c22d41b591200b2bdc5bd654a0804aca",
+      "fragment_sha256": "61dc8612df7c57c15a433199ca6acab6cb3966e4e7a82fd1002f6a8d1cf8ccd7"
+    },
+    {
+      "path": "Core/PlayExperienceContracts.swift",
+      "marker": "public enum PlayExperienceError:",
+      "source_sha256": "cb006184051c63488cc1bd041471bf23c22d41b591200b2bdc5bd654a0804aca",
+      "fragment_sha256": "868879490013ca73f5b10ddf797a0915651e790d461f0e41191e5f50dc14a038"
+    },
+    {
+      "path": "Core/PlayAdvancedRuntime.swift",
+      "marker": "public struct PlayAdvancedPending:",
+      "source_sha256": "11b241e78538ff77b403c9776f47d2adbbe3351a591869c8a33c144f51b22f27",
+      "fragment_sha256": "ad4803ce6cff81ef6b807e725c62cbf24daf353122739db477e68bfd9174d98e"
+    }
+  ],
+  "exit_code": 0
+}

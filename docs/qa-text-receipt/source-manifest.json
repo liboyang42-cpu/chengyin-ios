@@ -1,0 +1,18 @@
+{
+  "base": "9c11addfc82c8ce7c7989247aac4046216b140b5",
+  "public_main": "3971086a1feb3dc765a44153542c1d52eb9e4775",
+  "branch": "codex/qa-receipt-recovery-20261108",
+  "files": {
+    "Core/PlayQATextActionReceipt.swift": "cf72ecaf21bef052178544c76d0c42efd518eaa2bae4aa3a8ffc0a436ff29761",
+    "Core/PlayQATextReceiptService.swift": "0dbb20861a7495adfddbdb94d71c1d9cd3da7022519a214d784ec744ec37f65e",
+    "Tests/CoreTests/PlayQATextActionReceiptTests.swift": "3f75ff702a57c9c5692f4c50869c81812ab55d04c85c0367355d3b1f1072c52a",
+    "Tests/AppUnitTests/PlayQATextReceiptRecoveryTests.swift": "6cdab4af3431f541f478f01a4c0480af761603268459df25498191598603a248",
+    "tools/test_qa_text_receipt_candidate.py": "cd77e75843478bbf2f614b9fef383ae77eb0618d0684e0a76096b6e8eba63756",
+    "tools/verify_qa_text_receipt_integration.py": "a5f3eac4c003c9326d574f6fddc85686011d25f59c1c10a74966e9e68028ba73",
+    "docs/qa-text-receipt/integration.patch": "44083353a92f9ef6049dc4515de19b545d48432011701d4ee8e692de247394eb",
+    "docs/qa-text-receipt/integration-preimages.json": "4407a24363c6574c75c6adf4d2a9a78a24ce5b58cb815a7dc7cf5587ef8888dd",
+    "docs/qa-text-receipt/verification.md": "cb35e84a983f1737e78001872142e19f7f2513621e2a56b820ed4ab1b1d6dc82",
+    "docs/qa-text-receipt/portable-test-evidence.json": "0febf049c348e8cbbeaf6973b6103f709809ce0158ffab5d86ef666ec1fa64c7",
+    "docs/qa-text-receipt/integration-evidence.json": "8289749c2d168dee41c53c1b1d641db5e49cb71484610f63050350e7c90a3cf0"
+  }
+}
