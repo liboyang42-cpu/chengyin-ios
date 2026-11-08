@@ -94,8 +94,15 @@ public struct OwnedOrderReadSession: Equatable {
     private let current: () -> OwnedOrderReadSession?
     private let signedInIdentity: () -> ProfileReadIdentity?
     private let onUnauthorized: (OwnedOrderReadSession) -> Void
-    public var identity: ProfileReadIdentity? { current()?.identity ?? signedInIdentity() }
-    public var isConfigured: Bool { service != nil && current() != nil }
+    public var identity: ProfileReadIdentity? {
+        guard let signed = validSignedInIdentity else { return nil }
+        guard let selected = current(), Self.matches(signed: signed, selected: selected) else { return signed }
+        return selected.identity
+    }
+    public var isConfigured: Bool {
+        guard service != nil, let signed = validSignedInIdentity, let selected = current() else { return false }
+        return Self.matches(signed: signed, selected: selected)
+    }
     public init(service: ProfileService?, current: @escaping () -> OwnedOrderReadSession?, signedInIdentity: @escaping () -> ProfileReadIdentity?, onUnauthorized: @escaping (OwnedOrderReadSession) -> Void = { _ in }) {
         self.service = service; self.current = current; self.signedInIdentity = signedInIdentity; self.onUnauthorized = onUnauthorized
     }
@@ -108,16 +115,30 @@ public struct OwnedOrderReadSession: Equatable {
     public func profileParticipants() async throws -> [ProfileParticipant] { throw APIError.notConfigured }
     public func profileParticipant(id: Int) async throws -> ProfileParticipant { throw APIError.notConfigured }
     public func profileBadges() async throws -> ProfileBadgeWall { throw APIError.notConfigured }
+    private var validSignedInIdentity: ProfileReadIdentity? {
+        guard let signed = signedInIdentity(), signed.accountID > 0 else { return nil }
+        return signed
+    }
+    /// Signed-in facts and selected read approval are independently supplied. The base
+    /// sign-in identity does not carry or issue the selected approval revision.
+    private static func matches(signed: ProfileReadIdentity, selected: OwnedOrderReadSession) -> Bool {
+        signed.accountID == selected.context.session.accountID && signed.epoch == selected.context.session.epoch
+            && signed.viewerRevision == selected.viewerRevision
+    }
+    private func matchesSignedIn(_ selected: OwnedOrderReadSession) -> Bool {
+        guard let signed = validSignedInIdentity else { return false }
+        return Self.matches(signed: signed, selected: selected)
+    }
     private func read<Value>(_ operation: (ProfileService, OwnedOrderReadSession) async throws -> Value) async throws -> Value {
-        guard signedInIdentity() != nil else { throw APIError.unauthorized }
-        guard let service, let captured = current() else { throw APIError.notConfigured }
+        guard let signed = validSignedInIdentity else { throw APIError.unauthorized }
+        guard let service, let captured = current(), Self.matches(signed: signed, selected: captured) else { throw APIError.notConfigured }
         try Task.checkCancellation()
         do {
             let result = try await operation(service, captured)
-            guard !Task.isCancelled, current() == captured else { throw CancellationError() }
+            guard !Task.isCancelled, current() == captured, matchesSignedIn(captured) else { throw CancellationError() }
             return result
         } catch {
-            guard !Task.isCancelled, current() == captured else { throw CancellationError() }
+            guard !Task.isCancelled, current() == captured, matchesSignedIn(captured) else { throw CancellationError() }
             if (error as? ProfileReadFailure)?.isUnauthorized == true || error as? APIError == .unauthorized {
                 onUnauthorized(captured); throw APIError.unauthorized
             }
