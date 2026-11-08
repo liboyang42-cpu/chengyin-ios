@@ -37,9 +37,11 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
                     } else {
                         ForEach(Array(rows.enumerated()), id: \.offset) { index, order in
                             Button {
+                                guard canPresentSummary, model.value?.contains(order) == true else { return }
                                 selection = OrderSelection(order: order, revision: reader.sessionRevision)
                             } label: { MerchantOrderRow(order: order) }
                             .buttonStyle(.plain)
+                            .disabled(!canPresentSummary)
                             .accessibilityIdentifier("merchant.order.row.\(order.id.map(String.init) ?? String(index))")
                         }
                     }
@@ -89,7 +91,8 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
         }
         .sheet(item: $selection) { selected in
             NavigationStack {
-                if reader.isSignedIn && selected.revision == reader.sessionRevision {
+                if canPresentSummary, selected.revision == reader.sessionRevision,
+                   model.value?.contains(selected.order) == true {
                     MerchantOrderSummary(order: selected.order)
                         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("merchant.done") { selection = nil } } }
                 } else { ContentUnavailableView("merchant.signIn", systemImage: "lock") }
@@ -102,7 +105,14 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
         if let status = filter.status { Text(LocalizedStringKey(status.titleKey)) }
         if let aftersale = filter.aftersaleStatus { Text(LocalizedStringKey(aftersale.titleKey)) }
     }
+    // A summary is a copy of a list row, not an independently authorized detail response.
+    private var canPresentSummary: Bool {
+        reader.isConfigured && reader.isSignedIn && model.loadedRevision == reader.sessionRevision
+            && !model.isLoading && model.errorKey == nil && model.value != nil
+    }
     private func reload(discardOldValue: Bool = false) async {
+        // Retire copied rows before refreshing permission or changing filters.
+        selection = nil
         let requestedFilter = filter
         let revision = reader.sessionRevision
         await model.load(reader: reader, discardOldValue: discardOldValue) {
