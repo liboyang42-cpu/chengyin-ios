@@ -11,6 +11,9 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
         let selectionID = UUID()
         let clubID: Int
         let viewerRevision: UInt64?
+        let authorizationGeneration: UUID?
+        let accessID: ObjectIdentifier?
+        let namespace: String?
         let memberID: Int
         var customer = false
         let identity: ClubReadIdentity
@@ -30,6 +33,13 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
     }
     private func matchesGovernance(_ identity: ClubReadIdentity) -> Bool {
         identity.isSignedIn && governance?.access.identity == identity && governance?.access.isConfigured == true
+    }
+    private func matchesSource(_ target: ProfileDestination) -> Bool {
+        target.clubID == id && target.identity == reader.clubIdentity &&
+        target.viewerRevision == governance?.viewerRevision &&
+        target.authorizationGeneration == governance?.access.authorizationGeneration &&
+        target.accessID == governance.map { ObjectIdentifier($0.access) } &&
+        target.namespace == governance?.access.storageNamespace
     }
     private var profileContext: ClubEnrollmentProfileContext? { profile ?? inheritedProfile }
     private func matches(_ context: ClubEnrollmentProfileContext, _ identity: ClubReadIdentity) -> Bool {
@@ -61,7 +71,10 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                             HStack(spacing: 12) {
                                 if member.memberId > 0, let profileContext, matches(profileContext, reader.clubIdentity) {
                                     Button {
-                                        let target = ProfileDestination(clubID: id, viewerRevision: governance?.viewerRevision, memberID: member.memberId, identity: reader.clubIdentity)
+                                        let target = ProfileDestination(clubID: id, viewerRevision: governance?.viewerRevision,
+                                            authorizationGeneration: governance?.access.authorizationGeneration,
+                                            accessID: governance.map { ObjectIdentifier($0.access) },
+                                            namespace: governance?.access.storageNamespace, memberID: member.memberId, identity: reader.clubIdentity)
                                         if directory.club.id == id, directory.club.canGovern, matchesGovernance(target.identity) {
                                             choice = target; choosing = true
                                         } else { destination = target }
@@ -88,6 +101,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
         }
         .onChange(of: reportContext) { _, _ in
             reportReadGeneration &+= 1; reportDirectory = nil; memberReport = nil; reportRefreshRevision &+= 1
+            destination = nil; choice = nil; choosing = false
         }
         .onAppear {
             if !reportSourceActive { reportSourceActive = true; reportRefreshRevision &+= 1 }
@@ -96,14 +110,14 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
         .confirmationDialog("club.members", isPresented: $choosing, titleVisibility: .hidden, presenting: choice) { target in
             Button("social.profile") { select(target, customer: false) }
                 .accessibilityIdentifier("club.member.choice.public")
-            if target.viewerRevision == governance?.viewerRevision, matchesGovernance(target.identity) {
+            if matchesSource(target), matchesGovernance(target.identity) {
                 Button("club.gov.customer") { select(target, customer: true) }
                     .accessibilityIdentifier("club.member.choice.customer")
             }
             Button("action.cancel", role: .cancel) { choice = nil }
         }
         .navigationDestination(item: $destination) { target in
-            if target.clubID == id, target.viewerRevision == governance?.viewerRevision, target.identity == reader.clubIdentity {
+            if matchesSource(target) {
                 if target.customer, let governance, matchesGovernance(target.identity) {
                     // This existing reader rechecks access/me and exact member scope before exposing CRM data.
                     ClubGovernanceReadView(operation: .customer, scope: .init(clubID: target.clubID, memberID: target.memberID),
@@ -120,6 +134,10 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
         .onChange(of: reader.clubIdentity) { _, _ in destination = nil; choice = nil; choosing = false }
         .onChange(of: id) { _, _ in destination = nil; choice = nil; choosing = false }
         .onChange(of: governance?.viewerRevision) { _, _ in destination = nil; choice = nil; choosing = false }
+        .onChange(of: governance?.access.storageNamespace) { _, _ in
+            destination = nil; choice = nil; choosing = false
+            reportReadGeneration &+= 1; reportDirectory = nil; memberReport = nil; reportRefreshRevision &+= 1
+        }
     }
     @ViewBuilder private func reportButton(_ member: ClubMember, directory: ClubMemberDirectory) -> some View {
         if let governance, governance.access.isConfigured, governance.access.identity == reader.clubIdentity,
@@ -145,7 +163,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
     private func select(_ target: ProfileDestination, customer: Bool) {
         guard choice == target else { return }
         choice = nil; choosing = false
-        guard target.clubID == id, target.viewerRevision == governance?.viewerRevision, target.identity == reader.clubIdentity, target.memberID > 0, id > 0 else { return }
+        guard matchesSource(target), target.memberID > 0, id > 0 else { return }
         if customer { guard matchesGovernance(target.identity) else { return } }
         else { guard let profileContext, matches(profileContext, target.identity) else { return } }
         var selected = target; selected.customer = customer; destination = selected
