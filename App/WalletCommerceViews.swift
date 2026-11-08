@@ -84,12 +84,13 @@ private struct WalletFormatting {
     @Environment(\.locale) private var locale
     private var format: WalletFormatting { .init(locale: locale) }
     let reader: WalletCommerceReader
-    @StateObject private var funds = WalletScreen<WalletFundsStages>()
+    @State private var funds = WalletAssetsReadPresentation()
+    private var owner: WalletAssetsReadPresentation.Owner { .init(reader: reader) }
+    private var snapshot: WalletAssetsReadPresentation.Snapshot { funds.snapshot(for: owner) }
     var body: some View {
         List {
             Section("wallet.fundStages") {
-                if funds.loading { ProgressView("wallet.loading") }
-                else if let value = funds.value, funds.loadedScope == reader.scope {
+                if let value = snapshot.stages {
                     if !value.amountsKnown { Text("wallet.amountsUnknown") }
                     if value.pendingSettlement.value > 0 { LabeledContent("wallet.pendingSettlement", value: format.amount(value.pendingSettlement, currency: value.currency)) }
                     ForEach(Array(value.complaintPeriod.enumerated()), id: \.offset) { _, item in
@@ -100,17 +101,27 @@ private struct WalletFormatting {
                     if value.disputed.value > 0 { LabeledContent("wallet.disputed", value: format.amount(value.disputed, currency: value.currency)) }
                     LabeledContent("wallet.available", value: format.amount(value.withdrawable, currency: value.currency))
                     Text("wallet.notPayout")
-                } else { WalletIssueView(reader: reader, requiresLogin: funds.requiresLogin) { Task { await load() } } }
+                } else if let failure = snapshot.failure {
+                    WalletIssueView(reader: reader, requiresLogin: failure == .login,
+                                    unavailable: failure == .unavailable) { Task { await load() } }
+                } else if !reader.isConfigured || reader.scope == nil {
+                    WalletIssueView(reader: reader) { Task { await load() } }
+                } else if snapshot.isLoading { ProgressView("wallet.loading") }
+                else { Button("wallet.retry") { Task { await load() } }.frame(minHeight: 44) }
             }
             Section {
                 NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }
                 NavigationLink("wallet.balanceLedger") { WalletLedgerView(reader: reader, kind: .balance) }
                 NavigationLink("wallet.pointsLedger") { WalletLedgerView(reader: reader, kind: .assetPoints) }
             }
-        }.appNavigationTitle("wallet.assets").task(id: reader.scope) { funds.clear(); await load() }
-            .onDisappear { funds.cancel() }.refreshable { await load() }
+        }.appNavigationTitle("wallet.assets")
+            .task(id: owner) {
+                guard !Task.isCancelled else { return }
+                funds.activate(reader: reader); await load()
+            }
+            .onDisappear { funds.deactivate() }.refreshable { await load() }
     }
-    private func load() async { await funds.load(reader) { try await $0.stages(token: $1) } }
+    private func load() async { await funds.reload(reader: reader) }
 }
 @MainActor private final class WalletPagerScreen: ObservableObject {
     @Published var revision = 0

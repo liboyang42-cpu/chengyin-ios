@@ -13,10 +13,15 @@ class WalletPointsLedgerContracts(unittest.TestCase):
         self.view = self.source.split('@MainActor struct WalletLedgerView: View {', 1)[1].split('@MainActor struct WalletIncomeView: View {', 1)[0]
         self.core = (ROOT / 'Core/WalletPointsLedgerPresentation.swift').read_text()
 
-    def test_only_owned_view_segment_changed(self):
+    def test_only_owned_wallet_view_segments_changed(self):
+        # The follow-on entry recovery owns WalletAssetsView as well as the ledger.
+        # Exclude only those two exact segments; retain the guard on everything else.
         before, tail = self.source.split('@MainActor struct WalletLedgerView: View {', 1)
+        asset_start = before.index('@MainActor struct WalletAssetsView: View {')
+        asset_end = before.index('@MainActor private final class WalletPagerScreen:', asset_start)
+        before = before[:asset_start] + '<ASSET ENTRY>\n' + before[asset_end:]
         after = '@MainActor struct WalletIncomeView: View {' + tail.split('@MainActor struct WalletIncomeView: View {', 1)[1]
-        self.assertEqual(hashlib.sha256(before.encode()).hexdigest(), '5482b6f1909c03c28b15a83ad2489a6f7da1a8a3dcbca54d4eff1c20a7c3f64a')
+        self.assertEqual(hashlib.sha256(before.encode()).hexdigest(), 'e0c7dcfeccffbf1519bfb56e66b1c89ec7fd462929963067c1bc2eb8b24632a7')
         self.assertEqual(hashlib.sha256(after.encode()).hexdigest(), '7543e4b594cf8287d1b8fe2f677855fd036b22e704225553c17de1b288da92a3')
 
     def test_points_facts_are_per_row_and_unknowns_explicit(self):
