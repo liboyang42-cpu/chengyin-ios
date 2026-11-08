@@ -158,9 +158,15 @@ public enum PlayDeviceOutput: Equatable {
     private var capturedContext: PlayDeviceContext?
     private var capturedInteraction: PlayDeviceInteraction?
     public var outputInteractionContext: PlayInteractionContext? { capturedInteraction?.context }
-    public var canReviewOutput: Bool {
-        output != nil && !busy && capturedContext == current() && (capturedInteraction?.isCurrent ?? true)
+    /// Presentation has the same identity/read-lease fence as confirmation.
+    /// Keep the captured bytes internal for lifecycle reconciliation, but never
+    /// render a prior task/account's photo or scan result after its lease changes.
+    public var currentOutput: PlayDeviceOutput? {
+        guard let capturedContext, capturedContext == current(),
+              capturedInteraction?.isCurrent ?? true else { return nil }
+        return output
     }
+    public var canReviewOutput: Bool { currentOutput != nil && !busy }
     private let filter: ((Data, PlayPhotoFilter) throws -> Data)?
     private let upload: ((Data, String, PlayDeviceContext) async throws -> String)?
     private let provider: any PlayDeviceProviding
@@ -181,6 +187,7 @@ public enum PlayDeviceOutput: Equatable {
     }
     /// Explicit user upload step. Completion still requires the journey's separate review.
     public func uploadPhoto(expectedOutputID: UUID? = nil) async {
+        guard !Task.isCancelled else { return }
         guard capturedInteraction == nil || (expectedOutputID != nil && expectedOutputID == outputID),
               canUpload, let upload, let context = capturedContext, current() == context,
               case .photo(let bytes, let mime) = output else { issue = .disabled; return }
@@ -191,7 +198,12 @@ public enum PlayDeviceOutput: Equatable {
             guard self.generation == generation, current() == context, (capturedInteraction?.isCurrent ?? true), !Task.isCancelled else { return }
             guard PlayExperienceService.validHTTPS(url) else { throw PlayExperienceError.malformed }
             uploadedPhoto = .photo(uploadedURL: url)
-        } catch { if self.generation == generation, current() == context { issue = error as? PlayExperienceError ?? .unknownResult } }
+        } catch {
+            if self.generation == generation, current() == context,
+               capturedInteraction?.isCurrent ?? true, !Task.isCancelled {
+                issue = error as? PlayExperienceError ?? .unknownResult
+            }
+        }
     }
     public func reviewedPhoto(expectedOutputID: UUID? = nil) -> PlayCompletionEvidence? {
         guard capturedInteraction == nil || (expectedOutputID != nil && expectedOutputID == outputID),
@@ -201,6 +213,8 @@ public enum PlayDeviceOutput: Equatable {
     public var isAuthorizing: Bool { (provider as? any PlayDevicePermissionStateProviding)?.authorizationInFlight == true }
     public func supports(_ kind: PlayDeviceKind) -> Bool { provider.supported.contains(kind) }
     public func capture(_ kind: PlayDeviceKind, photoFilter: PlayPhotoFilter? = nil, cameraFrame: PlayKitPhotoFrame? = nil, usePhotoLibrary: Bool = false, interaction: PlayDeviceInteraction? = nil) async {
+        // Retired screens must not acquire fresh evidence or replace a newer preview.
+        guard !Task.isCancelled else { return }
         guard !busy, let context = current(), supports(kind), interaction?.isCurrent ?? true else { issue = .unsupported; return }
         generation &+= 1; let generation = generation; busy = true; output = nil; outputID = nil; uploadedPhoto = nil; capturedContext = nil; capturedInteraction = nil; issue = nil
         defer { if self.generation == generation { busy = false } }
@@ -222,7 +236,8 @@ public enum PlayDeviceOutput: Equatable {
             guard self.generation == generation, current() == context, (interaction?.isCurrent ?? true), !Task.isCancelled else { return }
             output = result; outputID = UUID(); capturedContext = context; capturedInteraction = interaction
         } catch {
-            if self.generation == generation, current() == context {
+            if self.generation == generation, current() == context,
+               interaction?.isCurrent ?? true, !Task.isCancelled {
                 issue = error is CancellationError ? nil : (error as? PlayExperienceError ?? .unknownResult)
             }
         }

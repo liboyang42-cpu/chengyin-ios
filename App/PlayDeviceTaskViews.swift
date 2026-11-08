@@ -24,7 +24,7 @@ import SwiftUI
                 Button("playx.device.capture") { Task { await model.capture(kind, photoFilter: photoFilter, interaction: interaction) } }
                     .disabled(model.busy || !model.supports(kind) || unsupportedPhotoSubtype).accessibilityIdentifier("playx.device.capture")
                 if model.busy { ProgressView("playx.loading") }
-                if let output = model.output {
+                if let output = model.currentOutput {
                     switch output {
                     case .scan(let code):
                         Text("playx.device.scanCaptured")
