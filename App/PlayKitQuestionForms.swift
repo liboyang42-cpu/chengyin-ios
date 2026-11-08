@@ -19,8 +19,9 @@ extension PlayKitScreen {
             }
             submitButton("SUBMIT_QA", payload: multi ? ["optionIds": .array(selected.sorted().map(PlayWireValue.string))] : ["optionId": .string(selected.first ?? "")], valid: !selected.isEmpty)
         } else {
-            TextField("playkit.qa.answer", text: textBinding(), axis: .vertical).textFieldStyle(.roundedBorder).disabled(!enabled)
-            submitButton("SUBMIT_QA", payload: ["input": .string(text)], valid: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            PlayQATextAnswerForm(model: model, enabled: enabled,
+                onDirty: { dirty = true }, requestReview: prepare)
+                .id(childReset)
         }
         if let answer = raw["answerId"].text, !answer.isEmpty, projection.complete {
             LabeledContent("playkit.qa.revealedAnswer") { Text(verbatim: projection.options.first { $0.id == answer }?.label ?? answer) }

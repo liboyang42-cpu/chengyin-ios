@@ -1,0 +1,12 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "qaText.tooLong": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Your answer is too long. Shorten it before reviewing." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "答案过长，请缩短后再确认。" } }
+      }
+    }
+  },
+  "version": "1.0"
+}
