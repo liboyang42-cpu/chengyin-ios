@@ -20,7 +20,10 @@ extension PlayKitScreen {
             submitButton("SUBMIT_QA", payload: multi ? ["optionIds": .array(selected.sorted().map(PlayWireValue.string))] : ["optionId": .string(selected.first ?? "")], valid: !selected.isEmpty)
         } else {
             PlayQATextAnswerForm(model: model, enabled: enabled,
-                onDirty: { dirty = true }, requestReview: prepare)
+                onDirty: {
+                    dirty = true
+                    qaTextFeedback.markEdited(attempts: raw["attempts"].integer, finished: projection.complete)
+                }, requestReview: prepare)
                 .id(childReset)
         }
         if let answer = raw["answerId"].text, !answer.isEmpty, projection.complete {

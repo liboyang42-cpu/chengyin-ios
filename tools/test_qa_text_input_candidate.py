@@ -45,6 +45,11 @@ def main():
         tests = package / 'Tests/QuestifyCoreTests'; tests.mkdir(parents=True)
         shutil.copyfile(root / 'Core/PlayQATextInput.swift', sources / 'PlayQATextInput.swift')
         shutil.copyfile(root / 'Tests/CoreTests/PlayQATextInputTests.swift', tests / 'PlayQATextInputTests.swift')
+        shutil.copyfile(root / 'Core/PlayQATextFeedbackState.swift', sources / 'PlayQATextFeedbackState.swift')
+        shutil.copyfile(root / 'Tests/CoreTests/PlayQATextFeedbackStateTests.swift', tests / 'PlayQATextFeedbackStateTests.swift')
+        evidence['production_sources'] = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in [root / 'Core/PlayQATextInput.swift', root / 'Core/PlayQATextFeedbackState.swift',
+                      root / 'Tests/CoreTests/PlayQATextInputTests.swift', root / 'Tests/CoreTests/PlayQATextFeedbackStateTests.swift']}
         (sources / 'OriginalLimitText.swift').write_text('import Foundation\npublic enum OriginalPlayKitInputContract {\n' + original_method + '\n}\n')
         (tests / 'OriginalQATruncationReproductionTests.swift').write_text('''import XCTest
 @testable import QuestifyCore

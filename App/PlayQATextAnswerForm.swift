@@ -46,7 +46,8 @@ import SwiftUI
         let mount = input.mountID
         return .init(get: { input.text(current: visibleRevision, mountID: mount) }, set: { text in
             guard canEdit else { return }
-            if input.update(text, current: currentRevision, mountID: mount) { onDirty() }
+            let previous = input.text(current: currentRevision, mountID: mount)
+            if input.update(text, current: currentRevision, mountID: mount), !previous.utf8.elementsEqual(text.utf8) { onDirty() }
         })
     }
     private func mountCurrent() {

@@ -23,11 +23,23 @@ objects and references; existing targets, settings, build phases and entries
 are preserved. The full generator's unrelated object reordering is excluded.
 Core tests remain discovered by the existing Package.swift test path.
 
+## Text retry feedback
+
+The original shared reasoning-feedback state handles sort, match and classify,
+so editing a TYPE retry previously left the preceding failed-attempt label and
+feedback displayed. A separate `PlayQATextFeedbackState` now hides only this
+text-QA presentation after a real text change. Re-reading the same attempt does
+not restore it; a later server attempt or an authoritative terminal result does.
+The original attempt count, server projection, submit gates and exact pending
+request are unchanged. PICK, SHOT and other kit result presentation are unchanged.
+The host clears this local state with its existing transient scope cleanup.
+An unchanged native text-binding assignment does not hide the previous result.
+
 ## Observed checks
 
 - Swift 6.0.3 Linux compiled, linked and ran the isolated production input model:
-  10 regression tests and 2 reproductions using the unchanged production
-  `limitText` method passed. The reproductions demonstrate lost suffix/emoji in
+  10 input regression tests, 8 retry-feedback tests and 2 reproductions using the unchanged production
+  `limitText` method passed (20 XCTest total). The reproductions demonstrate lost suffix/emoji in
   the old function and retention plus blocked review in the new input model.
 - `tools/check_scaffold.py` passed its references, bilingual keys, schemes and
   semantic project equivalence checks. This is a structural check, not Xcode.

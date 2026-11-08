@@ -23,6 +23,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     @State var avatarURL = ""
     @State var dirty = false
     @State var reasoningFeedback = PlayKitReasoningFeedbackState()
+    @State var qaTextFeedback = PlayQATextFeedbackState()
     @State var review: PlayKitActionReview?
     @State var reviewedCompletion: (() -> Void)?
     @State var issue: PlayExperienceError?
@@ -162,7 +163,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
         }
     }
     @ViewBuilder var authoritativeResult: some View {
-        if reasoningFeedback.showsResult(for: projection) {
+        if reasoningFeedback.showsResult(for: projection) && qaTextFeedbackIsVisible {
             if kind == .photoCheck, segment["degraded"].bool == true {
                 Label("playkit.photo.noVerdict", systemImage: "exclamationmark.bubble")
             } else if let passed = projection.reportedPass {
@@ -171,6 +172,10 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
             if let feedback = projection.feedback, !feedback.isEmpty { Text(verbatim: feedback) }
             if projection.complete { Text("playkit.result.authority").font(.footnote).foregroundStyle(.secondary) }
         }
+    }
+    private var qaTextFeedbackIsVisible: Bool {
+        guard kind == .qa, (raw["mode"].text ?? "TYPE").uppercased() == "TYPE" else { return true }
+        return qaTextFeedback.showsResult(attempts: raw["attempts"].integer, finished: projection.complete)
     }
     @ViewBuilder private var recovery: some View {
         if model.phase == "submitting" || model.phase == "loading" { ProgressView("playkit.sending") }
@@ -206,7 +211,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     private func clearTransient() {
         if kind == .photoCheck { model.clearObjectCardReceipt() }
         lifetime = UUID(); review = nil; reviewedCompletion = nil; text = ""; selected = []; answers = [:]; avatarURL = ""
-        dirty = false; reasoningFeedback = .init(); childReset = UUID(); device?.cancel()
+        dirty = false; reasoningFeedback = .init(); qaTextFeedback = .init(); childReset = UUID(); device?.cancel()
     }
 }
 
