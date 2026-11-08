@@ -144,8 +144,20 @@ public struct ProjectEditContinuation {
     }
     public func discardLocalDraft() {
         guard !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, let session = capturedSession, session == currentSession(), let identity else { return }
-        do { try store.remove(session: session, identity: identity); restore = .missing; messageKey = "projectEdit.localRemoved" }
-        catch { messageKey = "projectEdit.localFailed" }
+        guard let baseline = snapshot else { return }
+        let stamp = generation
+        do {
+            try store.remove(session: session, identity: identity)
+            guard active(session, stamp), self.identity == identity else { return }
+            guard case .missing = store.load(session: session, identity: identity, baseline: baseline.draft) else {
+                throw ProjectEditError.persistenceUnavailable
+            }
+            guard active(session, stamp), self.identity == identity else { return }
+            restore = .missing; messageKey = "projectEdit.localRemoved"
+        } catch {
+            guard active(session, stamp), self.identity == identity else { return }
+            messageKey = "projectEdit.localFailed"
+        }
     }
     @discardableResult public func saveLocal(_ draft: ProjectEditDraft) -> Bool {
         guard !hasUnconfirmedChapterRemoval, !isBusy, !isLocked, state != .blocked, state != .simulated, state != .acknowledged, let session = capturedSession, session == currentSession(), let identity,
@@ -153,8 +165,24 @@ public struct ProjectEditContinuation {
               baseline.scope != .whitelist || draft.whitelistLockedFieldsEqual(to: baseline.draft) else { return false }
         // Never overwrite an unreviewed saved draft/conflict with the blank baseline.
         guard case .missing = restore else { return false }
-        do { try store.save(draft, session: session, identity: identity); messageKey = "projectEdit.localSaved"; return true }
-        catch { messageKey = "projectEdit.localFailed"; return false }
+        let stamp = generation
+        do {
+            try store.save(draft, session: session, identity: identity)
+            guard active(session, stamp), self.identity == identity else { return false }
+            guard case .ready(let verified) = store.load(session: session, identity: identity, baseline: baseline.draft),
+                  let expected = ProjectEditPendingMaterials.exactData(draft),
+                  ProjectEditPendingMaterials.exactData(verified.draft) == expected else { throw ProjectEditError.persistenceUnavailable }
+            if identity.topicID == nil {
+                guard try store.activeIdentity(session: session, product: draft.product, owner: draft.owner) == identity else {
+                    throw ProjectEditError.persistenceUnavailable
+                }
+            }
+            guard active(session, stamp), self.identity == identity else { return false }
+            messageKey = "projectEdit.localSaved"; return true
+        } catch {
+            guard active(session, stamp), self.identity == identity else { return false }
+            messageKey = "projectEdit.localFailed"; return false
+        }
     }
     /// An opaque, coordinator-issued read capability for one chapter-removal review.
     /// Callers cannot supply a different identity, account or expected replacement.
@@ -271,9 +299,36 @@ public struct ProjectEditContinuation {
             // Persist the active new-draft pointer as well as the intent, so a fresh
             // coordinator can discover an uncertain create even without UI autosave.
             try store.save(value.draft, session: session, identity: identity)
+            guard active(session, stamp), self.identity == identity else { return }
+            guard case .ready(let checkpoint) = store.load(session: session, identity: identity, baseline: value.baseline.draft),
+                  let draftBytes = ProjectEditPendingMaterials.exactData(value.draft),
+                  ProjectEditPendingMaterials.exactData(checkpoint.draft) == draftBytes else { throw ProjectEditError.persistenceUnavailable }
+            if identity.topicID == nil {
+                guard try store.activeIdentity(session: session, product: value.draft.product, owner: value.draft.owner) == identity else {
+                    throw ProjectEditError.persistenceUnavailable
+                }
+            }
+            guard active(session, stamp), self.identity == identity else { return }
             let operation = ProjectEditPending(operationID: value.id, ownerKey: session.ownerKey, identity: identity, payload: value.payload, baseline: value.baseline)
             try store.savePending(operation, session: session)
-            pending = operation; state = .submitting
+            guard active(session, stamp), self.identity == identity else {
+                // A departure preserves the original owner's durable lock, never a new owner's UI.
+                if currentSession() == session, capturedSession == session, self.identity == identity {
+                    pending = operation; state = .unknown; messageKey = "projectEdit.unknown"
+                }
+                return
+            }
+            pending = operation
+            guard let persisted = try store.pending(session: session, identity: identity),
+                  let expected = ProjectEditPendingMaterials.exactData(operation),
+                  ProjectEditPendingMaterials.exactData(persisted) == expected else { throw ProjectEditError.persistenceUnavailable }
+            if identity.topicID == nil {
+                guard try store.activeIdentity(session: session, product: value.draft.product, owner: value.draft.owner) == identity else {
+                    throw ProjectEditError.persistenceUnavailable
+                }
+            }
+            guard active(session, stamp), self.identity == identity else { return }
+            state = .submitting
             let outcome = await service.submit(operation, session: session)
             // The persisted lock is intentionally retained if the user or navigation changed.
             guard active(session, stamp) else { return }
