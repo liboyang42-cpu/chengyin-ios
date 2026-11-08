@@ -5,6 +5,16 @@
 	};
 	"objectVersion" = 56;
 	"objects" = {
+		"9A0314576819DECBD2614EA4" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/PlayQATextDisclosureTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"ACC47EE5CAB752FAA86F9880" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "9A0314576819DECBD2614EA4";
+		};
 		"25BFC03AD80BED756E056F5C" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -18452,6 +18462,7 @@
 				"CD9B50322F297C0114CC4A2E",
 				"D64F06746D01065B1A704F28",
 				"25BFC03AD80BED756E056F5C",
+				"9A0314576819DECBD2614EA4",
 			);
 			"sourceTree" = "<group>";
 		};
@@ -26147,6 +26158,7 @@
 				"BC3CA55D79E4BB1E8F59746F",
 				"4E222FCC09ED02DF57647801",
 				"75A65B7E21C1978034E49C52",
+				"ACC47EE5CAB752FAA86F9880",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};

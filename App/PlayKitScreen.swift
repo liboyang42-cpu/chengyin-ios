@@ -34,8 +34,12 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     @State var lifetime = UUID()
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    var qaTextReadIsAvailable: Bool {
+        guard kind == .qa, (model.state?.playKit["qa"]["mode"].text ?? "TYPE").uppercased() == "TYPE" else { return true }
+        return model.isCurrent && !["stale", "disabled"].contains(model.phase)
+    }
     private var segment: PlayWireValue {
-        guard let state = model.state else { return .null }
+        guard qaTextReadIsAvailable, let state = model.state else { return .null }
         return ChapterInlineKitSelection.segment(kind, in: state)
     }
     var projection: PlayKitScreenProjection { .init(kind: kind, segment: segment) }
@@ -50,28 +54,35 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
         }))
         .privacySensitive()
         .sheet(item: $review) { item in
-            NavigationStack {
-                Form {
-                    Section("playkit.review") {
-                        Text(LocalizedStringKey("playkit.kind." + kind.rawValue))
-                        Text(verbatim: item.action).font(.caption)
-                        Text("playkit.reviewBoundary")
-                        if let question = item.compareQuestion { PlayCompareReview(question: question, marked: (item.payload["marked"]?.array ?? []).compactMap(\.text)) }
-                        else { PlayKitPayloadReadback(payload: item.payload) }
-                        LabeledContent("playkit.version") { Text(verbatim: String(item.version)) }
-                        Button("playkit.confirm") {
-                            let completion = reviewedCompletion
-                            let expectedLifetime = lifetime
-                            review = nil; reviewedCompletion = nil
-                            Task {
-                                if await model.submit(item), lifetime == expectedLifetime { issue = nil; dirty = false; completion?() }
-                            }
-                        }.disabled(!model.canInteract || model.state?.version != item.version || model.state?.sessionID != item.sessionID)
-                            .accessibilityIdentifier("playkit.review.confirm")
-                    }
-                }.navigationTitle("playkit.review")
-                    .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playkit.cancel") { review = nil; reviewedCompletion = nil } } }
-            }.privacySensitive()
+            if !qaTextReadIsAvailable {
+                VStack(spacing: 16) {
+                    Text("playkit.sessionChanged")
+                    Button("playkit.close") { review = nil; reviewedCompletion = nil }
+                }.padding().privacySensitive()
+            } else {
+                NavigationStack {
+                    Form {
+                        Section("playkit.review") {
+                            Text(LocalizedStringKey("playkit.kind." + kind.rawValue))
+                            Text(verbatim: item.action).font(.caption)
+                            Text("playkit.reviewBoundary")
+                            if let question = item.compareQuestion { PlayCompareReview(question: question, marked: (item.payload["marked"]?.array ?? []).compactMap(\.text)) }
+                            else { PlayKitPayloadReadback(payload: item.payload) }
+                            LabeledContent("playkit.version") { Text(verbatim: String(item.version)) }
+                            Button("playkit.confirm") {
+                                let completion = reviewedCompletion
+                                let expectedLifetime = lifetime
+                                review = nil; reviewedCompletion = nil
+                                Task {
+                                    if await model.submit(item), lifetime == expectedLifetime { issue = nil; dirty = false; completion?() }
+                                }
+                            }.disabled(!model.canInteract || model.state?.version != item.version || model.state?.sessionID != item.sessionID)
+                                .accessibilityIdentifier("playkit.review.confirm")
+                        }
+                    }.navigationTitle("playkit.review")
+                        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playkit.cancel") { review = nil; reviewedCompletion = nil } } }
+                }.privacySensitive()
+            }
         }
         .confirmationDialog("playkit.discardQuestion", isPresented: $leaveReview, titleVisibility: .visible) {
             Button("playkit.discard", role: .destructive) { clearTransient(); dismiss() }
@@ -103,13 +114,17 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     }
     private var contents: some View {
         VStack(alignment: .leading, spacing: 24) {
-            header
-            if let issue { PlayExperienceIssueView(issue: issue) }
-            if let modelIssue = model.issue { PlayExperienceIssueView(issue: modelIssue) }
-            if !model.isCurrent { Text("playkit.sessionChanged") }
-            else if segment.object == nil { ContentUnavailableView("playkit.unavailable", systemImage: "rectangle.slash") }
-            else { content; authoritativeResult }
-            recovery
+            if !qaTextReadIsAvailable {
+                Text("playkit.sessionChanged")
+            } else {
+                header
+                if let issue { PlayExperienceIssueView(issue: issue) }
+                if let modelIssue = model.issue { PlayExperienceIssueView(issue: modelIssue) }
+                if !model.isCurrent { Text("playkit.sessionChanged") }
+                else if segment.object == nil { ContentUnavailableView("playkit.unavailable", systemImage: "rectangle.slash") }
+                else { content; authoritativeResult }
+                recovery
+            }
         }
     }
     @ViewBuilder private var header: some View {

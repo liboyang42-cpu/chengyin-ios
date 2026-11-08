@@ -35,6 +35,23 @@ request are unchanged. PICK, SHOT and other kit result presentation are unchange
 The host clears this local state with its existing transient scope cleanup.
 An unchanged native text-binding assignment does not hide the previous result.
 
+## Withdrawn text-QA read access
+
+The TYPE screen now checks current owner/read authority and the existing
+`stale` / `disabled` phases before exposing its segment, header, errors, result
+or frozen-confirmation payload. The old coordinator state can remain for
+recovery, but the old question is not presented after an account/epoch change,
+logout or current authorization denial. This display fence does not clear,
+recreate or resend the pending original action.
+
+Three AppUnit regression cases use the actual advanced coordinator, the existing
+sealed recording transport and PlayKitScreen's real projection: owner/epoch/
+logout withdrawal, same-owner 401 withdrawal, and an unknown original action
+retained without another dispatch after the screen is withdrawn. They are
+registered in QuestifyAppUnitTests, syntax-checked, and **not run or Apple-type-
+compiled** in this Linux environment. They are not included in the 20 passed
+Core-slice tests above.
+
 ## Observed checks
 
 - Swift 6.0.3 Linux compiled, linked and ran the isolated production input model:
