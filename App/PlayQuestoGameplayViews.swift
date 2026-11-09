@@ -268,8 +268,7 @@ import SwiftUI
             .navigationTitle(Text(verbatim: suspect.name))
             .navigationBarTitleDisplayMode(.inline)
         }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
+        .questoSheet([.half, .full])
     }
 }
 

@@ -15,11 +15,14 @@ func questoText(_ key: String) -> Text { Text(LocalizedStringKey("playQuesto." +
     /// Levels whose write result is unknown: only "继续核对" with the same requestId is offered.
     let pending: Set<Int>
     let refusal: PlayHelpRefusal?
+    /// Levels whose use request is in flight; their button morphs into a progress capsule (qx-u4).
+    var working: Set<Int> = []
     let onUse: (PlayHelpLayer) -> Void
     let onCheck: (Int) -> Void
     let onSkip: () -> Void
     @State private var confirming: PlayHelpLayer?
     @State private var confirmingSkip = false
+    @QuestifyReduceMotion private var reduceMotion
 
     var body: some View {
         NavigationStack {
@@ -50,8 +53,7 @@ func questoText(_ key: String) -> Text { Text(LocalizedStringKey("playQuesto." +
             .navigationTitle(Text(LocalizedStringKey("playQuesto.help.title"), tableName: "PlayQuesto"))
             .navigationBarTitleDisplayMode(.inline)
         }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
+        .questoSheet([.half, .full])
         .confirmationDialog(Text(LocalizedStringKey("playQuesto.help.confirmTitle"), tableName: "PlayQuesto"),
                             isPresented: Binding(get: { confirming != nil }, set: { if !$0 { confirming = nil } }),
                             titleVisibility: .visible, presenting: confirming) { layer in
@@ -75,18 +77,27 @@ func questoText(_ key: String) -> Text { Text(LocalizedStringKey("playQuesto." +
                     Button { onCheck(layer.level) } label: { questoText("unknown.check") }
                         .buttonStyle(.bordered)
                 } else {
-                    button(layer, state: state)
+                    // ref 3 morph: button → progress → check once the server approved the content.
+                    QuestoMorphControl(phase: morphPhase(layer)) { button(layer, state: state) }
                 }
             }
             if pending.contains(layer.level) {
                 questoText("unknown.pending").font(.footnote).foregroundStyle(.secondary)
             } else if let use = revealed[layer.level] {
                 PlayHelpContentView(use: use)
+                    .transition(reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .top)))
             }
         }
+        .animation(reduceMotion ? nil : QuestifyMotion.content, value: revealed[layer.level] != nil)
         .frame(minHeight: 44)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("playQuesto.help.level." + String(layer.level))
+    }
+
+    private func morphPhase(_ layer: PlayHelpLayer) -> QuestoMorphPhase {
+        if revealed[layer.level] != nil { return .done }
+        if working.contains(layer.level) { return .working }
+        return .idle
     }
 
     @ViewBuilder private func button(_ layer: PlayHelpLayer, state: PlayHelpLayer.ButtonState) -> some View {
