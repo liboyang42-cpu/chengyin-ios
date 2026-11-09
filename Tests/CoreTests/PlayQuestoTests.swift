@@ -116,7 +116,7 @@ final class PlayQuestoTests: XCTestCase {
     func testAccusationThreeEndingsAndNoGuessing() throws {
         let view = try PlayAccusationView(raw: wire(#"{"enabled":true,"suspects":[{"id":"a","name":"Ada","identity":"Butler","testimony":[{"key":"clue.a","text":"Saw the door"}]},{"id":"b","name":"Bo"}],"earlyAccuse":{"allowed":true}}"#), baseURL: nil)
         XCTAssertEqual(view.suspects.map(\.id), ["a", "b"]); XCTAssertEqual(view.suspects[1].testimony, []); XCTAssertTrue(view.earlyAccuseAllowed)
-        XCTAssertFalse(PlayAccusationOutcome.decided(wire(#"{"enabled":true}"#)))
+        XCTAssertFalse(PlayAccusationOutcome.decided(try wire(#"{"enabled":true}"#)))
         XCTAssertEqual(PlayAccusationOutcome(accusation: try wire(#"{"result":{"verdict":"CORRECT","early":false},"screen":"Case closed text"}"#)).ending, .solved)
         let early = PlayAccusationOutcome(accusation: try wire(#"{"result":{"verdict":"CORRECT","early":true}}"#))
         XCTAssertEqual(early.ending, .closedEarly); XCTAssertFalse(early.celebrates, "closed early is not a success")
