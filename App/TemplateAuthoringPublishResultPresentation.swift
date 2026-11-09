@@ -65,9 +65,13 @@ struct TemplateAuthoringPublishResultPreferenceKey: PreferenceKey {
 @MainActor struct TemplateAuthoringPublishResultPanel: View {
     let result: TemplateAuthoringPublishResult
     let close: () -> Void
+    @State private var settled = false
+    @QuestifyReduceMotion private var reduceMotion
     var body: some View {
         VStack(spacing: 20) {
+            // ref 3 success pulse (qx-u4): the check scales in once; Reduce Motion shows it at rest.
             Image(systemName: "checkmark.circle.fill").font(.largeTitle).foregroundStyle(.green)
+                .scaleEffect(settled || reduceMotion ? 1 : 0.4).opacity(settled || reduceMotion ? 1 : 0)
             Text("templatePublishResult.title", tableName: "CreatorPublishResult").font(.title2.bold())
             Text(verbatim: result.title).font(.headline)
             Text("templatePublishResult.detail", tableName: "CreatorPublishResult")
@@ -79,5 +83,9 @@ struct TemplateAuthoringPublishResultPreferenceKey: PreferenceKey {
                 .buttonStyle(.borderedProminent).accessibilityIdentifier("templatePublishResult.openLibrary")
         }.padding(24).presentationDetents([.medium]).interactiveDismissDisabled(true)
             .accessibilityIdentifier("templatePublishResult.panel")
+            .onAppear {
+                guard !settled else { return }
+                withAnimation(reduceMotion ? nil : .spring(duration: 0.4, bounce: 0.3)) { settled = true }
+            }
     }
 }
