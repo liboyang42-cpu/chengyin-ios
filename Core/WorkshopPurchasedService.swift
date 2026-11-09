@@ -95,6 +95,7 @@ public struct WorkshopPurchasedReadApproval {
         catch { try check(lifetime); throw (error as? WorkshopPurchasedIssue) ?? .unavailable }
         let (data, status) = result
         guard data.count <= 524_288 else { throw WorkshopPurchasedIssue.malformed }
+        if WorkshopContractUpgrade.isRequired(data: data, status: status) { try check(lifetime); throw WorkshopPurchasedIssue.upgradeRequired }
         let code: Int?
         if (200..<300).contains(status) {
             guard let text = String(data: data, encoding: .utf8), let parsed = try? ContentDraftJSON.parse(text),

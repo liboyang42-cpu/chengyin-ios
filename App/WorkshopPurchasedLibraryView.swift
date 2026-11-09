@@ -32,7 +32,7 @@ struct WorkshopPurchasedAccountLink: View {
             Section { purchasedText("scope").font(.footnote).fixedSize(horizontal: false, vertical: true) }
             switch browser.phase {
             case .idle, .loading: ProgressView { purchasedText("loading") }
-            case .notEnabled: PurchasedUnavailableView()
+            case .notEnabled: PurchasedUnavailableView(upgradeRequired: browser.issue == .upgradeRequired)
             case .empty: purchasedText("empty")
             case .failed, .invalidated:
                 purchasedText(browser.phase == .invalidated ? "sessionChanged" : "failed")
@@ -113,8 +113,8 @@ struct WorkshopPurchasedAccountLink: View {
                 } header: { purchasedText("currentBoundary") }
                 WorkshopPaidInstallEntry(item: item, makeController: makeInstall, makeProfessional: makeProfessional, makeText: makeText)
             } else if let issue = browser.detailIssue {
-                purchasedText(issue == .staleSession ? "sessionChanged" : issue == .notFound ? "notFound" : "failed")
-                if issue != .staleSession { Button { navigation.scheduleDetail(rendered, licenseId: licenseId) } label: { purchasedText("retry") } }
+                purchasedText(issue == .staleSession ? "sessionChanged" : issue == .notFound ? "notFound" : issue == .upgradeRequired ? "upgradeRequired" : "failed")
+                if issue != .staleSession, issue != .upgradeRequired { Button { navigation.scheduleDetail(rendered, licenseId: licenseId) } label: { purchasedText("retry") } }
             }
         }
         .modifier(PurchasedTitle("detail"))
@@ -140,7 +140,16 @@ private struct PurchasedLimit: View {
     var body: some View { VStack(alignment: .leading) { purchasedText(key).font(.caption); if value.unlimited { purchasedText("explicitUnlimited") } else { Text(verbatim: String(value.maximum)) } } }
 }
 private struct PurchasedUnavailableView: View {
-    var body: some View { ContentUnavailableView { Label { purchasedText("unavailable") } icon: { Image(systemName: "icloud.slash") } } description: { purchasedText("unavailableDetail") } }
+    var upgradeRequired = false
+    var body: some View {
+        if upgradeRequired {
+            // 409 WORKSHOP_CONTRACT_UPGRADE_REQUIRED: the server retired v1; never render it as an empty library.
+            ContentUnavailableView { Label { purchasedText("upgradeRequired") } icon: { Image(systemName: "arrow.down.app") } } description: { purchasedText("upgradeRequiredDetail") }
+                .accessibilityIdentifier("workshopPurchased.upgradeRequired")
+        } else {
+            ContentUnavailableView { Label { purchasedText("unavailable") } icon: { Image(systemName: "icloud.slash") } } description: { purchasedText("unavailableDetail") }
+        }
+    }
 }
 private struct PurchasedTitle: ViewModifier {
     let key: String

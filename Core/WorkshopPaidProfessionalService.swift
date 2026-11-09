@@ -154,7 +154,7 @@ public struct WorkshopPaidProfessionalWriteApproval {
             return operation
         } catch {
             try check(lifetime, write: true)
-            if let issue = error as? WorkshopPaidProfessionalIssue, issue == .unauthorized { throw issue }
+            if let issue = error as? WorkshopPaidProfessionalIssue, issue == .unauthorized || issue == .upgradeRequired { throw issue }
             throw WorkshopPaidProfessionalIssue.outcomeUnknown
         }
     }
@@ -178,6 +178,7 @@ public struct WorkshopPaidProfessionalWriteApproval {
                 (data, status) = try await mutation.sendWorkshopPaidProfessional(request, authorization: authorization)
             } else { (data, status) = try await transport.send(request) }
             try check(lifetime, write: write)
+            if WorkshopContractUpgrade.isRequired(data: data, status: status) { throw WorkshopPaidProfessionalIssue.upgradeRequired }
             if status == 401 { try check(lifetime, write: write); onUnauthorized(lease.context); throw WorkshopPaidProfessionalIssue.unauthorized }
             let code = (200..<300).contains(status) ? try decode(Code.self, data).code : status
             if code == 401 { try check(lifetime, write: write); onUnauthorized(lease.context); throw WorkshopPaidProfessionalIssue.unauthorized }

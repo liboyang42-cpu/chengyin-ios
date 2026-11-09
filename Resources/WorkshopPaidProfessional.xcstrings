@@ -912,6 +912,22 @@
           }
         }
       }
+    },
+    "workshopPaidProfessional.upgradeRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable in this version. Update the app."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前版本不可用，请更新 App。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

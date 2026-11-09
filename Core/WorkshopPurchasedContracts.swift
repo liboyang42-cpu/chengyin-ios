@@ -3,6 +3,8 @@ import Foundation
 /// NEW purchased-version owner metadata contract; separate from FREE claims and purchase execution.
 public enum WorkshopPurchasedIssue: Error, Equatable {
     case unavailable, disabled, unauthorized, forbidden, notFound, malformed, staleSession, staleRead, invalid
+    /// v1 route answered 409 WORKSHOP_CONTRACT_UPGRADE_REQUIRED; show "update the app", never empty.
+    case upgradeRequired
 }
 public struct WorkshopPurchasedItem: Decodable, Equatable, Identifiable {
     public enum Status: String, Decodable { case active = "ACTIVE", suspended = "SUSPENDED", revoked = "REVOKED" }

@@ -64,6 +64,7 @@ public struct WorkshopPaidInstalledTextApproval {
         do {
             try check(lifetime); let (data, status) = try await transport.send(request); try check(lifetime)
             guard data.count <= 2_097_152 else { throw WorkshopPaidInstalledTextIssue.malformed }
+            if WorkshopContractUpgrade.isRequired(data: data, status: status) { throw WorkshopPaidInstalledTextIssue.upgradeRequired }
             let code = (200..<300).contains(status) ? try decode(Code.self, data).code : status
             if status == 401 || code == 401 { try check(lifetime); onUnauthorized(lease.context); throw WorkshopPaidInstalledTextIssue.unauthorized }
             guard (200..<300).contains(status), code == 200 else { throw WorkshopPaidInstalledTextIssue.unavailable }

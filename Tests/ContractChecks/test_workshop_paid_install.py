@@ -94,7 +94,7 @@ class PaidInstallSourceContracts(unittest.TestCase):
             self.assertNotIn(absent, s)
     def test_all_new_copy_is_bilingual_and_explicit_about_scope(self):
         values = json.loads(self.read('Resources/WorkshopPaidInstall.xcstrings'))['strings']
-        self.assertEqual(len(values), 58)
+        self.assertEqual(len(values), 59)  # +upgradeRequired (409 v1 refusal)
         for key, value in values.items():
             self.assertEqual(set(value['localizations']), {'zh-Hans', 'en'}, key)
         for key in ['unknownNote', 'unresolvedMode', 'materializationRequired', 'storageBlocked', 'state.EXPIRED']:

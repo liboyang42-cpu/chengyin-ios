@@ -4,6 +4,8 @@ import Foundation
 public enum WorkshopPaidInstallIssue: Error, Equatable {
     case disabled, invalid, malformed, unavailable, unauthorized, staleSession, staleAction
     case storageUnavailable, pendingConflict, outcomeUnknown
+    /// v1 route answered 409 WORKSHOP_CONTRACT_UPGRADE_REQUIRED. The server executed nothing.
+    case upgradeRequired
 }
 public struct WorkshopPaidInstallTarget: Codable, Equatable, Identifiable {
     public let targetDraftId, targetRevision: Int64
