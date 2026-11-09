@@ -40,7 +40,7 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
             Form {
                 Section { professionalText("scope").fixedSize(horizontal: false, vertical: true) }
                 if let issue = controller.issue {
-                    Section { professionalText(issue == .disabled ? "notConfigured" : issue == .storageUnavailable || issue == .pendingConflict ? "storageBlocked" : "unavailable") }
+                    Section { professionalText(issue == .upgradeRequired ? "upgradeRequired" : issue == .disabled ? "notConfigured" : issue == .storageUnavailable || issue == .pendingConflict ? "storageBlocked" : "unavailable") }
                 }
                 switch controller.phase {
                 case .idle: EmptyView()

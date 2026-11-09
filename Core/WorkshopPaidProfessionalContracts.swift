@@ -5,6 +5,8 @@ import Foundation
 public enum WorkshopPaidProfessionalIssue: Error, Equatable {
     case disabled, invalid, malformed, unavailable, unauthorized, staleSession, staleAction
     case storageUnavailable, pendingConflict, outcomeUnknown
+    /// v1 route answered 409 WORKSHOP_CONTRACT_UPGRADE_REQUIRED. The server executed nothing.
+    case upgradeRequired
 }
 public struct WorkshopPaidProfessionalTarget: Decodable, Equatable, Identifiable {
     public enum Mode: String, Codable { case city = "CITY_ORIENTATION", free = "FREE_EXPLORATION", unresolved = "UNRESOLVED" }

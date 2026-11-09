@@ -15,6 +15,8 @@ import XCTest
         value["ownedDraftId"]=state=="INSTALLED_PRIVATE_DRAFT" ? 101 as Any:NSNull();value["installedAt"]=state=="INSTALLED_PRIVATE_DRAFT" ? "2026-10-05T00:00:01Z" as Any:NSNull()
         value["professionalTemplateStatus"]="MATERIALIZATION_REQUIRED";value["published"]=false;value["executable"]=false;return value
     }
+    /// Exact backend legacy handler body: HTTP 200, AjaxResult code 409.
+    static let legacyRefusal=Data(#"{"code":409,"msg":"WORKSHOP_CONTRACT_UPGRADE_REQUIRED"}"#.utf8)
     @MainActor private final class Memory:TemplateAuthoringStorage {
         var values:[String:Data]=[:];var failWrite=false
         func read(_ key:String)throws->Data?{values[key]}
@@ -23,7 +25,7 @@ import XCTest
     }
     @MainActor private final class Wire:HTTPTransport,WorkshopPaidInstallMutationTransport {
         let context:RuntimeDependencyContext
-        var requests:[URLRequest]=[],writes=0,delayNext=false,commitThenThrow=false
+        var requests:[URLRequest]=[],writes=0,delayNext=false,commitThenThrow=false,legacy409=false
         var committed:WorkshopPaidInstallCommand?
         var suspended:CheckedContinuation<(Data,Int),Never>?
         init(_ context:RuntimeDependencyContext){self.context=context}
@@ -31,6 +33,7 @@ import XCTest
         func resume(_ value:(Data,Int)){let old=suspended;suspended=nil;old?.resume(returning:value)}
         func send(_ request:URLRequest)async throws->(Data,Int){
             requests.append(request)
+            if legacy409{return(WorkshopPaidInstallTests.legacyRefusal,200)}
             if delayNext{delayNext=false;return await withCheckedContinuation{suspended=$0}}
             switch request.url!.lastPathComponent{
             case "targets":return(try WorkshopPaidInstallTests.envelope(["schema":"w18-paid-install-targets-v1","scope":"OWNER_DRAFT_METADATA_ONLY","licenseId":"w18-paid-11","checkedAt":"2026-10-05T00:00:00Z","items":[WorkshopPaidInstallTests.target],"hasMore":false,"nextBeforeDraftId":NSNull()]),200)
@@ -42,6 +45,7 @@ import XCTest
         func sendWorkshopPaidInstall(_ request:URLRequest,authorization:WorkshopPaidInstallDispatchAuthorization)async throws->(Data,Int){
             try authorization.consume(request,context:context,revision:authorization.approvalRevision);writes += 1;requests.append(request)
             let command=try WorkshopPaidInstallWire.decode(WorkshopPaidInstallCommand.self,data:request.httpBody!)
+            if legacy409{return(WorkshopPaidInstallTests.legacyRefusal,200)}
             committed=command
             if delayNext{delayNext=false;return await withCheckedContinuation{suspended=$0}}
             if commitThenThrow{throw WorkshopPaidInstallIssue.unavailable}
@@ -89,6 +93,24 @@ import XCTest
         XCTAssertThrowsError(try WorkshopPaidInstallWire.decode(WorkshopPaidInstallCommand.self,data:Data(duplicate.utf8)))
         XCTAssertThrowsError(try WorkshopPaidInstallWire.decode(WorkshopPaidInstallCommand.self,data:Data((String(repeating:"[",count:1000)+"0"+String(repeating:"]",count:1000)).utf8)))
         XCTAssertThrowsError(try WorkshopPaidInstallWire.decode(WorkshopPaidInstallCommand.self,data:Data(repeating:0,count:4097),maximum:4096))
+    }
+    func testContractUpgradeRefusalIsRecognisedOnlyForTheExactEnvelope(){
+        XCTAssertTrue(WorkshopContractUpgrade.isRequired(data:Self.legacyRefusal,status:200))
+        XCTAssertTrue(WorkshopContractUpgrade.isRequired(data:Data(#"{"msg":"WORKSHOP_CONTRACT_UPGRADE_REQUIRED"}"#.utf8),status:409))
+        XCTAssertFalse(WorkshopContractUpgrade.isRequired(data:Data(#"{"code":409,"msg":"OTHER"}"#.utf8),status:200))
+        XCTAssertFalse(WorkshopContractUpgrade.isRequired(data:Data(#"{"code":200,"msg":"WORKSHOP_CONTRACT_UPGRADE_REQUIRED"}"#.utf8),status:200))
+        XCTAssertFalse(WorkshopContractUpgrade.isRequired(data:Self.legacyRefusal,status:500))
+        XCTAssertFalse(WorkshopContractUpgrade.isRequired(data:Data(),status:409))
+    }
+    func testLegacyReadRefusalShowsUpgradeRequiredInsteadOfEmptyOrFailure()async throws{
+        let f=try Fixture(),a=WorkshopPaidInstallAppearance();f.wire.legacy409=true;try await f.load(a)
+        XCTAssertEqual(f.controller.issue,.upgradeRequired);XCTAssertEqual(f.controller.phase,.failed);XCTAssertTrue(f.controller.targets.isEmpty);XCTAssertEqual(f.unauthorized,0)
+    }
+    func testLegacySubmitRefusalIsDefiniteNotUnknownAndKeepsSavedCommand()async throws{
+        let f=try Fixture(),a=WorkshopPaidInstallAppearance();try await f.load(a);let c=try f.review(a);f.wire.legacy409=true
+        await (try XCTUnwrap(f.controller.offerSubmit(a,command:c)))()
+        XCTAssertEqual(f.controller.issue,.upgradeRequired);XCTAssertNotEqual(f.controller.phase,.installed)
+        XCTAssertEqual(f.controller.pending?.id,c.id);XCTAssertEqual(try f.store.load()?.id,c.id);XCTAssertEqual(f.wire.writes,1);XCTAssertNil(f.wire.committed)
     }
     func testSaveReadbackPrecedesDispatchAndConfirmedInstallClearsOnlyMatchingPending()async throws{
         let f=try Fixture(),a=WorkshopPaidInstallAppearance();try await f.load(a);let c=try f.review(a),offered=try XCTUnwrap(f.controller.offerSubmit(a,command:c))

@@ -5,6 +5,8 @@ import CryptoKit
 /// approval. This model is deliberately not Encodable or a TemplateAuthoringDraft.
 public enum WorkshopPaidInstalledTextIssue: Error, Equatable {
     case disabled, invalid, malformed, unavailable, unauthorized, staleSession, staleAction
+    /// v1 route answered 409 WORKSHOP_CONTRACT_UPGRADE_REQUIRED.
+    case upgradeRequired
 }
 public struct WorkshopPaidInstalledTextReference: Equatable {
     public let item: WorkshopPurchasedItem

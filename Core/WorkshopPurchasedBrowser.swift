@@ -60,7 +60,7 @@ import Observation
             guard action.isLive, current(), listGeneration == ticket else { return }
             guard !Task.isCancelled else { closeList(); return }
             issue = (error as? WorkshopPurchasedIssue) ?? .unavailable
-            phase = issue == .disabled || issue == .notFound ? .notEnabled : .failed
+            phase = issue == .disabled || issue == .notFound || issue == .upgradeRequired ? .notEnabled : .failed
         }
     }
     public func presentDetail(licenseId: String) -> WorkshopPurchasedPresentationPermit? {

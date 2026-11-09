@@ -640,6 +640,22 @@
           }
         }
       }
+    },
+    "workshopPaidInstalledText.upgradeRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable in this version. Update the app to read."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前版本不可读取，请更新 App。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

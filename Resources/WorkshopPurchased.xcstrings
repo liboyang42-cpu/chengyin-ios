@@ -704,6 +704,38 @@
           }
         }
       }
+    },
+    "workshopPurchased.upgradeRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update required"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要更新"
+          }
+        }
+      }
+    },
+    "workshopPurchased.upgradeRequiredDetail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update the app to use purchased packages."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请更新 App 后使用已购玩法包。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

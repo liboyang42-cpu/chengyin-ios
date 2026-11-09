@@ -109,7 +109,7 @@ class WorkshopPaidInstalledTextContracts(unittest.TestCase):
 
     def test_new_resource_is_bilingual_and_honest_about_missing_materializer(self):
         value = json.loads(read('Resources/WorkshopPaidInstalledText.xcstrings'))
-        self.assertEqual(len(value['strings']), 40)
+        self.assertEqual(len(value['strings']), 41)  # +upgradeRequired (409 v1 refusal)
         for entry in value['strings'].values():
             self.assertEqual(set(entry['localizations']), {'zh-Hans','en'})
         text = value['strings']['workshopPaidInstalledText.materializationRequired']['localizations']['en']['stringUnit']['value']

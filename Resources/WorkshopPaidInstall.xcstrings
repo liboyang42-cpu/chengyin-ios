@@ -928,6 +928,22 @@
           }
         }
       }
+    },
+    "workshopPaidInstall.upgradeRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable in this version. Update the app to install."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前版本不可安装，请更新 App。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

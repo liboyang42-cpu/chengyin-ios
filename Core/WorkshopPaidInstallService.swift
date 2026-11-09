@@ -109,6 +109,8 @@ public struct WorkshopPaidInstallApproval {
             return outcome
         } catch {
             try check(lifetime)
+            // The 409 upgrade refusal is the only definite non-execution: the legacy route runs nothing.
+            if (error as? WorkshopPaidInstallIssue) == .upgradeRequired { throw WorkshopPaidInstallIssue.upgradeRequired }
             // Even a post-dispatch decode/transport error may follow a committed copy. Keep UUID.
             throw WorkshopPaidInstallIssue.outcomeUnknown
         }
@@ -130,6 +132,7 @@ public struct WorkshopPaidInstallApproval {
     private func decode<T: Decodable>(_ response: (Data, Int), lifetime: WorkshopPaidInstallLifetime) throws -> T {
         try check(lifetime); let (data, status) = response
         guard data.count <= 524_288 else { throw WorkshopPaidInstallIssue.malformed }
+        if WorkshopContractUpgrade.isRequired(data: data, status: status) { try check(lifetime); throw WorkshopPaidInstallIssue.upgradeRequired }
         let code = (200..<300).contains(status) ? try WorkshopPaidInstallWire.decode(Code.self, data: data).code : status
         if status == 401 || code == 401 { try check(lifetime); onUnauthorized(lease.context); throw WorkshopPaidInstallIssue.unauthorized }
         guard (200..<300).contains(status), code == 200 else { throw code == 503 ? WorkshopPaidInstallIssue.disabled : .unavailable }

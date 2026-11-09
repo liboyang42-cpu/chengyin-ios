@@ -71,9 +71,15 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                 } else {
                     if let issue = controller.issue {
                         Section {
-                            installText(issue == .storageUnavailable || issue == .pendingConflict ? "storageBlocked" : issue == .disabled ? "notConfigured" : "readOrOutcomeUnavailable")
-                                .fixedSize(horizontal: false, vertical: true)
-                            Button { schedule(controller.offerLoad(displayed)) } label: { installText("refresh") }
+                            if issue == .upgradeRequired {
+                                // Server refused the v1 contract; retrying cannot help, so no button.
+                                installText("upgradeRequired").fixedSize(horizontal: false, vertical: true)
+                                    .accessibilityIdentifier("workshopPaidInstall.upgradeRequired")
+                            } else {
+                                installText(issue == .storageUnavailable || issue == .pendingConflict ? "storageBlocked" : issue == .disabled ? "notConfigured" : "readOrOutcomeUnavailable")
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Button { schedule(controller.offerLoad(displayed)) } label: { installText("refresh") }
+                            }
                         }
                     }
                     if let pending = controller.pending {

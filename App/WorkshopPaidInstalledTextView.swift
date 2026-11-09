@@ -86,9 +86,14 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
                     Section { paidText("materializationRequired").fixedSize(horizontal: false, vertical: true) }
                 } else if controller.phase == .unavailable {
                     Section {
-                        paidText(controller.issue == .disabled ? "notConfigured" : "unavailable").fixedSize(horizontal: false, vertical: true)
-                        Button { schedule(controller.offerReload(displayed)) } label: { paidText("retry") }
-                            .accessibilityIdentifier("workshopPaidInstalledText.retry")
+                        if controller.issue == .upgradeRequired {
+                            paidText("upgradeRequired").fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("workshopPaidInstalledText.upgradeRequired")
+                        } else {
+                            paidText(controller.issue == .disabled ? "notConfigured" : "unavailable").fixedSize(horizontal: false, vertical: true)
+                            Button { schedule(controller.offerReload(displayed)) } label: { paidText("retry") }
+                                .accessibilityIdentifier("workshopPaidInstalledText.retry")
+                        }
                     }
                 }
             }
