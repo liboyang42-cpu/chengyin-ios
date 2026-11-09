@@ -47,7 +47,7 @@ public enum PlayKitActionCatalog {
         "reaction": ["START_CHALLENGE", "SUBMIT_REACTION"], "ballShake": ["START_CHALLENGE", "SUBMIT_BALL_SHAKE"],
         "quietHold": ["START_CHALLENGE", "SUBMIT_QUIET_HOLD"], "random": ["DRAW"], "scan": ["SUBMIT_SCAN"],
         "profile": ["SUBMIT_PROFILE"], "photoCheck": ["SUBMIT_PHOTO_CHECK"], "note": ["SUBMIT_NOTE"],
-        "typeIn": ["START_CHALLENGE", "SUBMIT_TYPE_IN"], "timeWindow": [], "musicCorner": [], "walk": [], "gameTimer": [], "stickerBook": [], "bingo": []
+        "typeIn": ["START_CHALLENGE", "SUBMIT_TYPE_IN"], "hangman": ["SUBMIT_HANGMAN"], "timeWindow": [], "musicCorner": [], "walk": [], "gameTimer": [], "stickerBook": [], "bingo": []
     ]
     public static func payload(kind: String, action: String, detail: [String: PlayWireValue]) throws -> [String: PlayWireValue] {
         guard actions[kind]?.contains(action) == true else { throw PlayExperienceError.unsupported }
@@ -62,6 +62,13 @@ public enum PlayKitActionCatalog {
         case "SUBMIT_QUIET_HOLD":
             guard let seconds = detail["heldSeconds"]?.double, seconds.isFinite, seconds >= 0, seconds <= 3600 else { throw PlayExperienceError.invalidAction }
             return ["heldMs": .int(Int((seconds * 1000).rounded()))]
+        case "SUBMIT_HANGMAN":
+            // Exactly one of {slots:{i:ch}} or {input:"..."}; built by PlayHangmanProjection. Server judges.
+            let slotValues = detail["slots"]?.object.map { Array($0.values) } ?? []
+            let slotsValid = !slotValues.isEmpty && slotValues.allSatisfy { $0.text?.count == 1 }
+            let inputValid = !(detail["input"]?.text ?? "").isEmpty
+            guard detail.count == 1, slotsValid || inputValid else { throw PlayExperienceError.invalidAction }
+            return detail
         case "SUBMIT_BALL_SHAKE":
             guard let hits = detail["hits"]?.integer, hits >= 0 else { throw PlayExperienceError.invalidAction }
             return ["hits": .int(hits)]
@@ -74,9 +81,13 @@ public struct PlayAdvancedPending: Equatable {
     public let action: String; public let payload: [String: PlayWireValue]
 }
 extension PlayExperienceService {
-    public func startAdvanced(activityID: Int, topicID: Int, nodeID: Int, token: String) async throws -> PlayAdvancedState {
+    /// `declaration == nil` keeps the legacy undeclared request byte-identical (server: unconfirmed, never blocked).
+    /// A declaration is sent only when the host passes one; a missing required capability is then refused at start.
+    public func startAdvanced(activityID: Int, topicID: Int, nodeID: Int, token: String, declaration: PlayClientCapabilityDeclaration? = nil) async throws -> PlayAdvancedState {
         guard activityID >= 0, topicID > 0, nodeID > 0 else { throw APIError.invalidRequest }
-        let state = try PlayAdvancedState(await request("api/play/advanced/start", json: ["activityId": .int(activityID), "topicId": .int(topicID), "nodeId": .int(nodeID)], capability: .advanced, token: token))
+        var body: [String: PlayWireValue] = ["activityId": .int(activityID), "topicId": .int(topicID), "nodeId": .int(nodeID)]
+        if let declaration { body.merge(declaration.json) { current, _ in current } }
+        let state = try PlayAdvancedState(await request("api/play/advanced/start", json: body, capability: .advanced, token: token))
         guard state.activityID == activityID, state.topicID == topicID, state.nodeID == nodeID else { throw PlayExperienceError.malformed }
         return state
     }

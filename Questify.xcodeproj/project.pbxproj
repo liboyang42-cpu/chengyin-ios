@@ -3738,6 +3738,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "E5D5F4FD015474704B2BDCD3";
 		};
+		"65371D26D2CC5EF38B3072DC" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/PlayQuestoGameplayViews.swift";
+			"sourceTree" = "<group>";
+		};
+		"FF54CF999780AB5C89751252" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "65371D26D2CC5EF38B3072DC";
+		};
+		"9414449756042FED66755CF7" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/PlayQuestoHelpViews.swift";
+			"sourceTree" = "<group>";
+		};
+		"C1154E163B98E9D444841620" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "9414449756042FED66755CF7";
+		};
 		"A43AC7EB50DA2F09F130C3C1" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -11914,6 +11934,36 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "0E368FCECEEAC34F84073CFF";
 		};
+		"374D8D25B0A7597B6CF417B6" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/PlayQuestoArrival.swift";
+			"sourceTree" = "<group>";
+		};
+		"0C408CE1153702767E6918F2" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "374D8D25B0A7597B6CF417B6";
+		};
+		"DDDAD4B717B67E4228B11EC2" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/PlayQuestoGameplay.swift";
+			"sourceTree" = "<group>";
+		};
+		"631043EAE86F036C5176CC85" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "DDDAD4B717B67E4228B11EC2";
+		};
+		"C30E258B6FE0AB815BBA1333" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/PlayQuestoHelp.swift";
+			"sourceTree" = "<group>";
+		};
+		"14443FC39E497FC15785988C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C30E258B6FE0AB815BBA1333";
+		};
 		"45EDB4C097E77702203EEE80" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -16044,6 +16094,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "B390E1B35EA0A2B0EE993233";
 		};
+		"418037982B5A1C2C3C8C6AA6" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "text.json.xcstrings";
+			"path" = "Resources/PlayQuesto.xcstrings";
+			"sourceTree" = "<group>";
+		};
+		"936246FC048A2BD90D934676" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "418037982B5A1C2C3C8C6AA6";
+		};
 		"B09E2202E0727E01FB90070D" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "text.json.xcstrings";
@@ -16881,6 +16941,8 @@
 				"F53BF4B0FB704E58934A83F5",
 				"330A92383C3B80A131F7B90B",
 				"E5D5F4FD015474704B2BDCD3",
+				"65371D26D2CC5EF38B3072DC",
+				"9414449756042FED66755CF7",
 				"A43AC7EB50DA2F09F130C3C1",
 				"71D6EC755F52BEFA71CF2745",
 				"48D809C7C3362E1C8DEB1239",
@@ -17698,6 +17760,9 @@
 				"065F189CCBF708310DFB40CB",
 				"D7A779F07B5DBEE8810E0E08",
 				"0E368FCECEEAC34F84073CFF",
+				"374D8D25B0A7597B6CF417B6",
+				"DDDAD4B717B67E4228B11EC2",
+				"C30E258B6FE0AB815BBA1333",
 				"45EDB4C097E77702203EEE80",
 				"FED85B957B0AA453CB036CE1",
 				"A70A2910D5137A6D96B47EB3",
@@ -18111,6 +18176,7 @@
 				"B9205ADF22D03DB90A9DF532",
 				"DE5EE0876F360E797D806DD9",
 				"B390E1B35EA0A2B0EE993233",
+				"418037982B5A1C2C3C8C6AA6",
 				"B09E2202E0727E01FB90070D",
 				"0ADFF91BF55EA7CEC912B1AC",
 				"1AF27B25FE1DFE1AE44F5912",
@@ -19109,6 +19175,8 @@
 				"2BD9CDB4F2C89285C4C71DC4",
 				"66E34F559D34C396EFAAD1F5",
 				"0DCB0B2AFA080092993ECBD9",
+				"FF54CF999780AB5C89751252",
+				"C1154E163B98E9D444841620",
 				"6E29B474C0325B6C5059E2DE",
 				"E8C8340A8CA995492A2F8232",
 				"F3F62DFB7172ACCC4D9AE1C9",
@@ -19926,6 +19994,9 @@
 				"E4235374E127CE1E196BBF13",
 				"2506B0B40C117EDAD5D7ACE4",
 				"B8FA91C124E8ABEA33225949",
+				"0C408CE1153702767E6918F2",
+				"631043EAE86F036C5176CC85",
+				"14443FC39E497FC15785988C",
 				"4A39BD20E035028549601A85",
 				"858AC73646BD05E47264E7C5",
 				"6C6C403EA4616388969CBF56",
@@ -20346,6 +20417,7 @@
 				"5F136ADD84E3316C1A3BDCA6",
 				"7A5F4366DA2C5D1C13FD5B2C",
 				"DB6A68797D6DB39DFEC9AC39",
+				"936246FC048A2BD90D934676",
 				"29E30A8E3C1D65D0C34A791C",
 				"3EECEDB164B9334DDA737A05",
 				"070D1D5DB2F7702EB6640CDA",
