@@ -516,7 +516,8 @@ import SwiftUI
                 }
             }
         }
-        if case .redemptions(let filter, _) = query {
+        if case .redemptions(let filter, _) = query, state.isCurrent,
+           state.snapshot?.access.allows("merchant:finance:read") == true {
             Picker("merchant.business.filter", selection: Binding(get: { filter }, set: { raw in
                 guard let selected = MerchantRedemptionFilter(rawValue: raw), raw != filter else { return }
                 query = .redemptions(filter: selected.rawValue, page: 1); Task { await reload() }

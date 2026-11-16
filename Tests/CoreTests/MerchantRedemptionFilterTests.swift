@@ -18,7 +18,7 @@ final class MerchantRedemptionFilterTests: XCTestCase {
             XCTAssertEqual(request.path, "api/merchant/finance/redemptions")
             XCTAssertEqual(request.query, [:])
             XCTAssertEqual(request.body, .json(["pageNum": .int(1), "pageSize": .int(20), "filter": .string(option.rawValue)]))
-            XCTAssertEqual(query.permissions, ["merchant:finance:read"])
+            XCTAssertEqual(query.permissions, ["merchant:verify:record:read"])
         }
     }
     func testNextPageKeepsEachSelectedServerFilter() throws {

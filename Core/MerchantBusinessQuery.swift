@@ -49,8 +49,8 @@ public enum MerchantBusinessQuery: Equatable, Hashable {
         switch self {
         case .customers, .customer: return ["merchant:crm:read"]
         case .aftercare, .refund: return ["merchant:aftercare:read"]
-        case .overview, .entries, .batches, .batch, .redemptions, .redemption: return ["merchant:finance:read"]
-        case .verificationRecords: return ["merchant:verify:record:read"]
+        case .overview, .entries, .batches, .batch: return ["merchant:finance:read"]
+        case .redemptions, .redemption, .verificationRecords: return ["merchant:verify:record:read"]
         case .operators, .roles: return ["merchant:operator:manage"]
         case .reviews: return [] // Source management rows supply canReply/canReport; do not invent review permissions
         }

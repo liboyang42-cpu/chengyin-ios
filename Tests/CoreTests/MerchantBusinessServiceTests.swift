@@ -15,6 +15,63 @@ final class MerchantBusinessServiceTests: XCTestCase {
     private func service(_ transport: BusinessRecordingTransport, writes: Bool = false) throws -> MerchantBusinessService {
         try .init(configuration: .init(baseURL: URL(string: "https://example.com/test")!), readTransport: transport, testingMutationTransport: writes ? transport : nil)
     }
+    func testCheckinReadsMaskedRedemptionListAndDetail() async throws {
+        let access = try MerchantBusinessAccess(MerchantBusinessSyntheticFixtures.decode(
+            #"{"active":true,"merchant":{"id":610},"roleCode":"MERCHANT_CHECKIN","canManageOperators":false,"permissions":["merchant:verify:record:read"]}"#).object!)
+        var row = try XCTUnwrap(MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.redemption).object)
+        for key in ["settlementAmount", "settlementState", "settlementRoute", "destination", "displayState", "noCashReason", "publicSettlement"] { row[key] = .null }
+        for query in [MerchantBusinessQuery.redemptions(filter: "all", page: 1), .redemption(recordID: "64001")] {
+            var payload = try MerchantBusinessSyntheticFixtures.payload(query)
+            if case .redemptions = query {
+                var list = try XCTUnwrap(payload.object); list["rows"] = .array([.object(row)]); payload = .object(list)
+            } else { payload = .object(row) }
+            let envelope = MerchantBusinessValue.object(["code": .int(200), "data": payload])
+            let fake = BusinessRecordingTransport(String(decoding: try JSONEncoder().encode(envelope), as: UTF8.self))
+            let document = try await service(fake).document(query, access: access, token: "synthetic-token")
+            XCTAssertEqual(document.rows.count, 1)
+            XCTAssertEqual(document.rows.first?.id, "redemption:64001")
+            XCTAssertEqual(document.rows.first?.fields["settlementAmount"], .null)
+            let requests = await fake.requests
+            XCTAssertEqual(requests.count, 1)
+            XCTAssertTrue(requests[0].url!.path.hasSuffix(try query.request().path))
+        }
+    }
+    func testCheckinFinancialReadsAreDeniedBeforeTransport() async throws {
+        let access = try MerchantBusinessAccess(MerchantBusinessSyntheticFixtures.decode(
+            #"{"active":true,"merchant":{"id":610},"roleCode":"MERCHANT_CHECKIN","canManageOperators":false,"permissions":["merchant:verify:record:read"]}"#).object!)
+        let fake = BusinessRecordingTransport("{}")
+        for query in [MerchantBusinessQuery.overview, .entries(source: "all", page: 1), .batches(page: 1), .batch(try .init(66001))] {
+            do { _ = try await service(fake).document(query, access: access, token: "synthetic-token"); XCTFail("CHECKIN must not read finance") }
+            catch { XCTAssertEqual(error as? MerchantBusinessFailure, .denied) }
+        }
+        let requests = await fake.requests; XCTAssertTrue(requests.isEmpty)
+    }
+    func testMissingVerifyReadAndServerRefusalRemainDenied() async throws {
+        let raw = #"{"active":true,"merchant":{"id":610},"roleCode":"MERCHANT_FINANCE","canManageOperators":false,"permissions":["merchant:finance:read"]}"#
+        let access = try MerchantBusinessAccess(MerchantBusinessSyntheticFixtures.decode(raw).object!)
+        let fake = BusinessRecordingTransport("{}")
+        for query in [MerchantBusinessQuery.redemptions(filter: "all", page: 1), .redemption(recordID: "64001")] {
+            do { _ = try await service(fake).document(query, access: access, token: "synthetic-token"); XCTFail("FINANCE alone must not grant VERIFY_RECORD_READ") }
+            catch { XCTAssertEqual(error as? MerchantBusinessFailure, .denied) }
+        }
+        let unsent = await fake.requests; XCTAssertTrue(unsent.isEmpty)
+        let checkin = try MerchantBusinessAccess(MerchantBusinessSyntheticFixtures.decode(
+            #"{"active":true,"merchant":{"id":610},"roleCode":"MERCHANT_CHECKIN","canManageOperators":false,"permissions":["merchant:verify:record:read"]}"#).object!)
+        let refusal = BusinessRecordingTransport(#"{"code":403,"data":null}"#)
+        do { _ = try await service(refusal).document(.redemption(recordID: "64001"), access: checkin, token: "synthetic-token"); XCTFail("server ownership rejection must remain denied") }
+        catch { XCTAssertEqual(error as? MerchantBusinessFailure, .denied) }
+        let sent = await refusal.requests; XCTAssertEqual(sent.count, 1)
+    }
+    func testOwnerRetainsExistingFinancialReads() async throws {
+        let access = try MerchantBusinessAccess(MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.access).object!)
+        for query in [MerchantBusinessQuery.overview, .entries(source: "all", page: 1), .batches(page: 1), .batch(try .init(66001))] {
+            let envelope = MerchantBusinessValue.object(["code": .int(200), "data": try MerchantBusinessSyntheticFixtures.payload(query)])
+            let fake = BusinessRecordingTransport(String(decoding: try JSONEncoder().encode(envelope), as: UTF8.self))
+            let document = try await service(fake).document(query, access: access, token: "synthetic-token")
+            XCTAssertEqual(document.query, query)
+            let requests = await fake.requests; XCTAssertEqual(requests.count, 1)
+        }
+    }
     func testReadAdapterDecodesSourceEnvelope() async throws {
         let fake = BusinessRecordingTransport("{\"code\":200,\"data\":\(MerchantBusinessSyntheticFixtures.access)}")
         let access = try await service(fake).access(token: "synthetic-token")
