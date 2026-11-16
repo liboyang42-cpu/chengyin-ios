@@ -102669,13 +102669,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue to the base task"
+            "value": "Return to the base task"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "继续基础任务"
+            "value": "返回基础任务"
           }
         }
       }
