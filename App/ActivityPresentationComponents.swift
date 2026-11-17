@@ -17,7 +17,7 @@ struct ActivityListCard: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        VStack(alignment:.leading,spacing:14) {
+        VStack(alignment:.leading,spacing:QuestifyDesign.Space.between) {
             if let url=QuestifyCardArtwork.safeURL(item.imageURL) {
                 QuestifyCardArtwork(url:url,height:dynamicTypeSize.isAccessibilitySize ? 132 : 164)
             }
@@ -25,7 +25,7 @@ struct ActivityListCard: View {
                 .font(.title3.weight(.semibold))
             ActivitySummaryMetadata(summary:item)
             Divider()
-            VStack(alignment:.leading,spacing:4) {
+            VStack(alignment:.leading,spacing:QuestifyDesign.Space.xs) {
                 Text("activity.startingPrice").font(.caption).foregroundStyle(.secondary)
                 AmountLabel(amount:item.minimumAmount).font(.headline)
             }
@@ -41,21 +41,57 @@ struct ActivityDetailHeader: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        VStack(alignment:.leading,spacing:16) {
-            if let url=QuestifyCardArtwork.safeURL(summary.imageURL) {
-                QuestifyCardArtwork(url:url,height:dynamicTypeSize.isAccessibilitySize ? 180 : 240)
-            }
+        VStack(alignment:.leading,spacing:QuestifyDesign.Space.lg) {
             ActivityName(name:summary.name)
-                .font(.title.weight(.bold))
+                .font(.largeTitle.bold())
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("activity.detail.name")
+            if let text=ActivityPresentation.nonempty(summary.description) {
+                Text(verbatim:text)
+                    .font(.body)
+                    .fixedSize(horizontal:false,vertical:true)
+                    .textSelection(.enabled)
+                    .accessibilityIdentifier("activity.detail.introduction")
+            }
+        }
+        .padding(.top, 160)
+        .padding(QuestifyDesign.Space.lg)
+        .frame(maxWidth:.infinity, minHeight:dynamicTypeSize.isAccessibilitySize ? 480 : 420, alignment:.bottomLeading)
+        .foregroundStyle(QuestifyCardArtwork.safeURL(summary.imageURL) == nil ? Color.primary : Color.white)
+        .background {
+            if let url=QuestifyCardArtwork.safeURL(summary.imageURL) {
+                GeometryReader { geometry in
+                    QuestifyCardArtwork(url:url,height:geometry.size.height)
+                        .overlay {
+                            LinearGradient(colors:[.black.opacity(0.15), .black.opacity(0.9)], startPoint:.top, endPoint:.bottom)
+                        }
+                }
+            }
+        }
+    }
+}
+
+struct ActivityDetailFacts: View {
+    let summary: ActivitySummary
+    var body: some View {
+        VStack(alignment:.leading,spacing:QuestifyDesign.Space.sm) {
             ActivitySummaryMetadata(summary:summary)
+            if !summary.categoryNames.isEmpty {
+                Text(verbatim:summary.categoryNames.joined(separator:" · "))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal:false,vertical:true)
+            }
+            if let end=ActivityPresentation.nonempty(summary.endDate) {
+                LabeledContent("topic.end", value:end)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
             if let address=ActivityPresentation.nonempty(summary.address),
                let place=ActivityPresentation.nonempty(summary.addressName), address != place {
                 QuestifyMetadataLine(label:"activity.address",value:address,systemImage:"location")
             }
         }
-        .questifyCardSurface()
     }
 }
 
@@ -73,7 +109,7 @@ private struct ActivityName: View {
 private struct ActivitySummaryMetadata: View {
     let summary: ActivitySummary
     var body: some View {
-        VStack(alignment:.leading,spacing:8) {
+        VStack(alignment:.leading,spacing:QuestifyDesign.Space.sm) {
             if let date=ActivityPresentation.nonempty(summary.startDate) {
                 QuestifyMetadataLine(label:"activity.date",value:date,systemImage:"calendar")
             }
@@ -87,7 +123,7 @@ private struct ActivitySummaryMetadata: View {
 struct ActivityTicketCard: View {
     let ticket: ActivityTicket
     var body: some View {
-        VStack(alignment:.leading,spacing:10) {
+        VStack(alignment:.leading,spacing:QuestifyDesign.Space.control) {
             Text(verbatim:ticket.name)
                 .font(.headline)
                 .fixedSize(horizontal:false,vertical:true)
@@ -109,6 +145,5 @@ struct ActivityTicketCard: View {
                     .fixedSize(horizontal:false,vertical:true)
             }
         }
-        .questifyCardSurface()
     }
 }

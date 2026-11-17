@@ -125,12 +125,12 @@ struct ActivityDetailView: View {
         .onDisappear { loads.cancel(); generation += 1; loading = false }
         .onDisappear { gateIsVisible = false; gatePresentationID = UUID() }
         .onChange(of: id) { _, value in
-            latestGateActivityID = value; gateReadID = nil; requiredClubSelection = nil
+            latestGateActivityID = value; gateReadID = nil; requiredClubSelection = nil; showsRegistration = false
         }
         .onChange(of: ObjectIdentifier(reader)) { _, value in
-            latestGateReaderID = value; gateReadID = nil; requiredClubSelection = nil
+            latestGateReaderID = value; gateReadID = nil; requiredClubSelection = nil; showsRegistration = false
         }
-        .onChange(of: reader.activityPresentationIdentity) { _, _ in gateReadID = nil; requiredClubSelection = nil }
+        .onChange(of: reader.activityPresentationIdentity) { _, _ in gateReadID = nil; requiredClubSelection = nil; showsRegistration = false }
         .navigationDestination(item: $requiredClubSelection) { selection in
             if selection.mayRemainOpen(access: access, in: gateScope), let requiredClubDestination {
                 requiredClubDestination(selection.clubID, {
@@ -159,8 +159,14 @@ struct ActivityDetailView: View {
         .sheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .activity(id), owner: (reader as? AppSession)?.contextualReviews?.coordinator(.activity(id))) { loads.start { await load() } } }
         }
-        .sheet(isPresented:$showsRegistration) {
-            if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }
+        .sheet(isPresented:$showsRegistration, onDismiss: {
+            if gateIsVisible, gateScope != nil { loads.start { await load() } }
+        }) {
+            if registrationEnabled, gateScope != nil, let access, case .allowed(let detail)=access, detail.summary.id == id {
+                SessionRegistrationSheet(activity:detail)
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
+            }
         }
     }
     @ViewBuilder private func requiredClubAction(_ renderedAccess: ActivityDetailAccess) -> some View {
@@ -190,31 +196,13 @@ struct ActivityDetailView: View {
         List {
             Section {
                 ActivityDetailHeader(summary:detail.summary)
-                    .questifyCardListRow()
+                    .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
             }
-            if let topicID = detail.summary.linkedTopicID, let topicDestination {
-                Section {
-                    NavigationLink { topicDestination(topicID) } label: {
-                        Label("activity.viewTopic", systemImage: "map")
-                    }.accessibilityIdentifier("activity.openTopic")
-                }
-            }
-            if let text=ActivityPresentation.nonempty(detail.summary.description) {
-                Section("activity.about") {
-                    Text(verbatim:text)
-                        .font(.body)
-                        .fixedSize(horizontal:false,vertical:true)
-                        .textSelection(.enabled)
-                        .questifyCardSurface()
-                        .questifyCardListRow()
-                }
+            Section {
+                ActivityDetailFacts(summary: detail.summary)
             }
             ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail))
-            // Only this successful, current allowed response supplies these rows.
-            // A scope/reader/activity/reread invalidation immediately removes them.
-            if gateScope != nil, detail.summary.id == id {
-                ActivityAssociatedPlaysSection(plays: detail.associatedPlays)
-            }
             if detail.summary.hasValidCoordinates,
                let latitude=detail.summary.latitude, let longitude=detail.summary.longitude {
                 Section("activity.location") {
@@ -237,19 +225,18 @@ struct ActivityDetailView: View {
                 }
                 ForEach(detail.tickets) { ticket in
                     ActivityTicketCard(ticket:ticket)
-                        .questifyCardListRow()
                 }
             }
             ActivityReviewsSection(reviews: detail.reviews)
             Section { Button("context.review.title") { showsReview = true }.accessibilityIdentifier("activity.openReview") }
-            if let playReaderForActivity {
+            if detail.summary.linkedTopicID != nil, let playReaderForActivity {
                 Section {
                     NavigationLink { PlaySessionView(reader:playReaderForActivity(id)) } label: {
                         Label("play.openSession",systemImage:"figure.walk")
                     }.accessibilityIdentifier("activity.openPlay")
                 }
             }
-            if let session = reader as? AppSession, session.playExperience(for: .activity(id)) != nil {
+            if detail.summary.linkedTopicID != nil, let session = reader as? AppSession, session.playExperience(for: .activity(id)) != nil {
                 Section {
                     NavigationLink { SessionPlayRuntimeView(session: session, destination: .journey(.activity(id))) } label: {
                         Label("playx.title", systemImage: "figure.walk.circle")
@@ -259,7 +246,7 @@ struct ActivityDetailView: View {
                     }.accessibilityIdentifier("activity.openPlayDirector")
                 }
             }
-            Section {
+            if !registrationEnabled { Section {
                 Label {
                     Text("activity.registrationPending")
                         .accessibilityIdentifier("activity.detail.readOnly")
@@ -267,9 +254,9 @@ struct ActivityDetailView: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal:false,vertical:true)
-            }
+            } }
         }
-        .listStyle(.insetGrouped)
+        .listStyle(.plain)
         .listSectionSpacing(20)
         .accessibilityIdentifier("activity.detail.content")
         .safeAreaInset(edge:.bottom,spacing:0) {
@@ -293,7 +280,11 @@ struct ActivityDetailView: View {
     private var registrationAction: some View {
         VStack(spacing:0) {
             Divider()
-            Button { showsRegistration=true } label: {
+            Button {
+                guard gateIsVisible, gateScope != nil, !showsRegistration,
+                      let access, case .allowed(let detail) = access, detail.summary.id == id else { return }
+                showsRegistration=true
+            } label: {
                 Text("registration.form.title")
                     .font(.headline)
                     .fixedSize(horizontal:false,vertical:true)
@@ -303,12 +294,13 @@ struct ActivityDetailView: View {
             .controlSize(.large)
             .tint(QuestifyPalette.accent)
             .accessibilityIdentifier("activity.openRegistration")
-            .padding(.horizontal,16)
-            .padding(.vertical,12)
+            .padding(.horizontal,QuestifyDesign.Space.page)
+            .padding(.vertical,QuestifyDesign.Space.md)
         }
         .background(Color(uiColor:.secondarySystemGroupedBackground))
     }
     @MainActor private func load() async {
+        showsRegistration = false
         generation += 1
         let operation=generation
         let capturedActivityID = id
