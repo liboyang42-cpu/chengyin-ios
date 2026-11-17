@@ -2,6 +2,23 @@ import XCTest
 @testable import Questify
 
 @MainActor final class ClubRosterInteractionTests: XCTestCase {
+    func testMemberAvatarKeepsReturnedReferenceWithoutChangingIdentityOrRole() throws {
+        let reference = "https://media.example.test/upload/member.png?viewer=52"
+        let data = try JSONSerialization.data(withJSONObject: ["memberId": 51, "nickname": "Member", "avatar": reference, "role": 0])
+        let member = try JSONDecoder().decode(ClubMember.self, from: data)
+        XCTAssertEqual(member.avatar, reference)
+        XCTAssertEqual(member.memberId, 51); XCTAssertEqual(member.nickname, "Member")
+        XCTAssertEqual(member.role, 0); XCTAssertFalse(member.isAdmin); XCTAssertFalse(member.isOwner)
+    }
+    func testMissingEmptyAndMalformedMemberAvatarsStayDistinct() throws {
+        for (field, expected) in [("", nil), (",\"avatar\":null", nil), (",\"avatar\":\"\"", ""), (",\"avatar\":\"  \"", "  ")] as [(String, String?)] {
+            let data = Data("{\"memberId\":51\(field)}".utf8)
+            XCTAssertEqual(try JSONDecoder().decode(ClubMember.self, from: data).avatar, expected)
+        }
+        for value in ["42", "true", "[]", "{}"] {
+            XCTAssertThrowsError(try JSONDecoder().decode(ClubMember.self, from: Data("{\"memberId\":51,\"avatar\":\(value)}".utf8)))
+        }
+    }
     @MainActor private final class Access: ClubGovernanceAccess {
         var identity: ClubReadIdentity? = .init(accountID: 701, epoch: 1)
         var isConfigured = true

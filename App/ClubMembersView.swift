@@ -152,7 +152,11 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
     }
     private func memberRow(_ member: ClubMember) -> some View {
         HStack(spacing: 12) {
-            Image(systemName: "person.crop.circle.fill").font(.title).foregroundStyle(.secondary).accessibilityHidden(true)
+            if let avatar = member.avatar, !avatar.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                SquareImage(source: avatar).frame(width: 32, height: 32).clipShape(Circle()).accessibilityHidden(true)
+            } else {
+                Image(systemName: "person.crop.circle.fill").font(.title).foregroundStyle(.secondary).accessibilityHidden(true)
+            }
             VStack(alignment: .leading, spacing: 4) {
                 if let nickname = member.trimmedNickname { Text(verbatim: nickname) }
                 else { Text("club.memberNumber \(member.memberId)") }
