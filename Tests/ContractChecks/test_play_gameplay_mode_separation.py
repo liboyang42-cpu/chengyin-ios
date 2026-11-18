@@ -50,12 +50,12 @@ class PlayGameplayModeSeparationContracts(unittest.TestCase):
         for denied in ['PlayPreferenceView','PlayAdvancedView','PlayLeadSection','PlayPlayerSessionView','requestHint(']:self.assertNotIn(denied,free)
     def test_free_ending_has_its_own_read_and_no_score_ranking_or_write(self):
         source=self.read('Core/PlayExperienceCoordinator.swift').split('public func loadFreeExplorationEnding() async {',1)[1].split('public func loadEndingAndLeaderboard',1)[0]
-        for marker in ['gameplayMode == .freeExploration','isFullyRedeemed == true','service.ending']:self.assertIn(marker,source)
+        for marker in ['gameplayMode == .freeExploration','isFullyVisited == true','service.ending']:self.assertIn(marker,source)
         self.assertNotIn('service.leaderboard',source);self.assertNotIn('dispatch',source)
     def test_bilingual_copy_and_authored_normal_runtime_ui_coverage(self):
         strings=json.loads(self.read('Resources/Localizable.xcstrings'))['strings']
         keys=[key for key in strings if key.startswith('playFree.') or key.startswith('playMode.')]
-        self.assertEqual(len(keys),27)
+        self.assertEqual(len(keys),41)
         for key in keys:
             for language in ['en','zh-Hans']:self.assertTrue(strings[key]['localizations'][language]['stringUnit']['value'])
         tests=self.read('Tests/AppUITests/PlayExperienceFlowTests.swift')

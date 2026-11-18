@@ -50,7 +50,7 @@ final class PlayExperienceFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["playx.results.load"].exists)
         let store = app.buttons["playFree.store.701"]; reveal(store, app: app); store.tap()
         XCTAssertTrue(app.navigationBars["Store visit"].waitForExistence(timeout: 5), app.debugDescription)
-        let steps = app.staticTexts["Three on-site steps"]; reveal(steps, app: app); XCTAssertTrue(steps.exists)
+        let steps = app.staticTexts["Visit and redeem"]; reveal(steps, app: app); XCTAssertTrue(steps.exists)
         XCTAssertFalse(app.buttons["playx.answer.review"].exists); XCTAssertEqual(app.alerts.count, 0)
         attachFixtureScreenshot(self, app: app, name: "Free exploration store proof is separate from orientation")
     }

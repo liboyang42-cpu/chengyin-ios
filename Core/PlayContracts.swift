@@ -12,6 +12,14 @@ public enum PlaySessionScope: Hashable {
     }
 }
 
+/// Free-exploration (mode 2) place visit check. Unknown values stay nil, never GPS by guess.
+public enum PlayVisitCheck: String, Equatable { case gps = "GPS", scan = "SCAN", online = "ONLINE" }
+/// Server visit time kept as sent: epoch milliseconds or verbatim text, no timezone guess.
+public enum PlayVisitTime: Equatable {
+    case epochMilliseconds(Int64), text(String)
+    public var date: Date? { if case .epochMilliseconds(let value) = self { return Date(timeIntervalSince1970: Double(value) / 1000) }; return nil }
+}
+
 /// Optional facts stay optional: missing completion, arrival, XP or duration is not zero.
 /// Strings are plain server text, never Markdown/HTML, instructions or navigation.
 public struct PlayNode: Decodable, Equatable, Identifiable {
@@ -58,6 +66,15 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
     public let sensorType: String?
     /// Retain unknown configuration rather than silently bypassing its prerequisite.
     public let advancedConfig: PlayJSONValue?
+    /// F07: a later city-route station not yet reached arrives with `imgUrl: null` and
+    /// `imgHidden: true`. Any future station image shows a neutral silhouette instead.
+    public let imgHidden: Bool?
+    /// FE-STORY (mode 2 only). Missing or malformed values stay nil; see `PlaySnapshot.isStoryLocked`.
+    public let visited: Bool?
+    public let visitTime: PlayVisitTime?
+    public let visitCheck: PlayVisitCheck?
+    public let visitRadius: Int?
+    public let storyLocked: Bool?
 
     private enum CodingKeys: String, CodingKey {
         case nodeId, name, npc, address, latitude, longitude, sortId, done, arrived, selfReported, hasGame, gameDone, locked, validationMethod
@@ -65,6 +82,7 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         case hookText, storyText, gameTitle, ruleInstructions, requiredMaterials, duration, difficulty
         case players, photoRequireDesc, businessTime, openStatus, routeNodeState, lockReason
         case unlockAfterNodeId, chapterId, xp, puzzleScore, completionMode, sensorType, advancedConfigJson
+        case imgHidden, visited, visitTime, visitCheck, visitRadius, storyLocked
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -105,6 +123,15 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         completionMode = try c.decodeIfPresent(String.self, forKey: .completionMode)
         sensorType = try c.decodeIfPresent(String.self, forKey: .sensorType)
         advancedConfig = try c.decodeIfPresent(PlayJSONValue.self, forKey: .advancedConfigJson)
+        // Additive fields never fail an otherwise valid read: malformed means unknown.
+        imgHidden = try? c.playBool(.imgHidden)
+        visited = try? c.playBool(.visited)
+        storyLocked = try? c.playBool(.storyLocked)
+        visitRadius = (try? c.playInt(.visitRadius)).flatMap { $0 > 0 ? $0 : nil }
+        visitCheck = (try? c.decodeIfPresent(String.self, forKey: .visitCheck)).flatMap { PlayVisitCheck(rawValue: $0.uppercased()) }
+        if let millis = try? c.decodeIfPresent(Int64.self, forKey: .visitTime), millis > 0 { visitTime = .epochMilliseconds(millis) }
+        else if let text = try? c.decodeIfPresent(String.self, forKey: .visitTime), !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { visitTime = .text(text) }
+        else { visitTime = nil }
     }
     public var hasAdvancedPrerequisite: Bool {
         guard let advancedConfig else { return false }
@@ -130,13 +157,16 @@ public struct PlayChapter: Decodable, Equatable, Identifiable {
     public let description: String?
     /// Narration from the same authorized /api/play/nodes response.
     public let audioURL: String?
-    private enum CodingKeys: String, CodingKey { case chapterId, name, description, audioUrl }
+    /// FE-STORY mode 2 only: every place in this chapter is still unvisited. Missing stays nil.
+    public let chapterLocked: Bool?
+    private enum CodingKeys: String, CodingKey { case chapterId, name, description, audioUrl, chapterLocked }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         guard let id = try c.playInt(.chapterId), id > 0 else { throw APIError.malformedResponse }
         self.id = id; name = try c.decodeIfPresent(String.self, forKey: .name)
         description = try c.decodeIfPresent(String.self, forKey: .description)
         audioURL = try c.decodeIfPresent(String.self, forKey: .audioUrl)
+        chapterLocked = try? c.playBool(.chapterLocked)
     }
 }
 
@@ -201,9 +231,12 @@ public struct PlayNodesResult: Decodable, Equatable {
     public let nodes: [PlayNode]
     public let chapters: [PlayChapter]
     public let routeState: PlayRouteState?
+    /// FE-STORY mode 2 chapter counts. Nil unless both are present and consistent.
+    public let storyUnlocked: Int?
+    public let storyTotal: Int?
     private enum CodingKeys: String, CodingKey {
         case topicId, topicName, topicDesc, mode, playable, registered, leadSpectator, selfPlay, total, doneCount
-        case timeNote, expiresAt, nodes, chapters, routeState, eggs
+        case timeNote, expiresAt, nodes, chapters, routeState, eggs, storyUnlocked, storyTotal
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -220,6 +253,10 @@ public struct PlayNodesResult: Decodable, Equatable {
         nodes = try c.decode([PlayNode].self, forKey: .nodes)
         chapters = try c.decodeIfPresent([PlayChapter].self, forKey: .chapters) ?? []
         routeState = try c.decodeIfPresent(PlayRouteState.self, forKey: .routeState)
+        let unlocked = try? c.playInt(.storyUnlocked), storyCount = try? c.playInt(.storyTotal)
+        if let unlocked, let storyCount, storyCount >= 0, (0...storyCount).contains(unlocked) {
+            storyUnlocked = unlocked; storyTotal = storyCount
+        } else { storyUnlocked = nil; storyTotal = nil }
         guard Set(nodes.map(\.id)).count == nodes.count, Set(chapters.map(\.id)).count == chapters.count,
               total.map({ $0 >= 0 }) ?? true, doneCount.map({ $0 >= 0 }) ?? true else { throw APIError.malformedResponse }
     }

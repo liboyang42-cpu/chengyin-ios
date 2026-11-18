@@ -17,6 +17,22 @@
         }
       }
     },
+    "NSLocationWhenInUseUsageDescription": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read your location once when you tap I've arrived, to confirm you are near the start or a place you are visiting."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅在你点「我已到达」时读取一次位置，用于确认你在起点或要到访的地点附近。"
+          }
+        }
+      }
+    },
     "NSMotionUsageDescription": {
       "localizations": {
         "en": {

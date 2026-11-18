@@ -119,3 +119,59 @@ import SwiftUI
         }
     }
 }
+/// F08 per-station 「我已到达」 and FE-STORY 「我已到达」 visit control. Every state is text plus
+/// icon; the one success haptic follows a server-confirmed arrival, never a page load.
+@MainActor struct PlayArrivalControl: View {
+    @Bindable var arrival: PlayArrivalService
+    let nodeID: Int
+    let context: PlayInteractionContext?
+    let canSubmit: Bool
+    var visitRadius: Int? = nil
+    private var isCurrent: Bool { arrival.nodeID == nodeID }
+    var body: some View {
+        Group {
+            if let kind = arrival.offer(for: nodeID) {
+                Section("playArrival.title") {
+                    hint(kind)
+                    Button { Task { await arrival.arrive(nodeID: nodeID, context: context) } } label: {
+                        Label("playArrival.action", systemImage: "mappin.and.ellipse").frame(maxWidth: .infinity, minHeight: 44)
+                    }.buttonStyle(.borderedProminent).disabled(arrival.isBusy || !canSubmit)
+                        .accessibilityIdentifier("playArrival.action.\(nodeID)")
+                    if !canSubmit { Text("playArrival.disabled").font(.footnote).foregroundStyle(.secondary) }
+                    if isCurrent { status }
+                }
+            } else if isCurrent, arrival.phase != .idle {
+                Section("playArrival.title") { status }
+            }
+        }
+        .sensoryFeedback(.success, trigger: isCurrent && arrival.phase == .succeeded) { _, new in new }
+    }
+    @ViewBuilder private func hint(_ kind: PlayArrivalService.Kind) -> some View {
+        switch kind {
+        case .stationTap: Text("playArrival.station.hint").font(.subheadline)
+        case .start: Text("playArrival.start.hint").font(.subheadline)
+        case .freeVisit: Text("playArrival.visit.hint \(PlayArrivalPolicy.visitRadiusMeters(configured: visitRadius))").font(.subheadline)
+        }
+    }
+    @ViewBuilder private var status: some View {
+        switch arrival.phase {
+        case .idle: EmptyView()
+        case .locating: ProgressView("playArrival.locating")
+        case .submitting: ProgressView("playArrival.submitting")
+        case .succeeded:
+            Label("playArrival.succeeded", systemImage: "checkmark.circle.fill").accessibilityIdentifier("playArrival.succeeded")
+        case .rejected(let rejection):
+            VStack(alignment: .leading, spacing: 6) {
+                Label(LocalizedStringKey("playArrival.rejected." + rejection.reason.rawValue), systemImage: "exclamationmark.triangle")
+                if let distance = rejection.distanceMeters { Text("playArrival.distance \(distance)") }
+                Text("playArrival.retryHint").font(.footnote).foregroundStyle(.secondary)
+            }.accessibilityElement(children: .combine).accessibilityIdentifier("playArrival.rejected")
+        case .unknown:
+            Label("playArrival.unknown", systemImage: "questionmark.circle").accessibilityIdentifier("playArrival.unknown")
+            Button("playArrival.reread", systemImage: "arrow.clockwise") { Task { await arrival.reread() } }
+                .accessibilityIdentifier("playArrival.reread")
+        case .unavailable: Label("playArrival.unavailable", systemImage: "nosign")
+        case .locationUnavailable: Label("playArrival.location.unavailable", systemImage: "location.slash")
+        }
+    }
+}
