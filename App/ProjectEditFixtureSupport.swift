@@ -8,6 +8,26 @@ import SwiftUI
     }
 }
 
+/// FE-STORY 7.10 in-memory visit-config server for UI tests: synthetic places only, no network.
+@MainActor final class FreeExplorationVisitConfigFixtureTransport: HTTPTransport {
+    private var rows: [[String: Any]] = [
+        ["nodeId": 801, "name": "示例站点 A", "chapterId": 1, "visitCheck": "GPS", "visitRadius": NSNull(), "hasCoordinates": true],
+        ["nodeId": 802, "name": "示例站点 B", "chapterId": 1, "visitCheck": "SCAN", "visitRadius": NSNull(), "hasCoordinates": false],
+    ]
+    private(set) var writes = 0
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        guard request.url?.path.hasSuffix("/" + FreeExplorationVisitConfigService.path) == true else { return (Data(), 404) }
+        if request.httpMethod == "POST" {
+            guard let body = request.httpBody, let fields = try JSONSerialization.jsonObject(with: body) as? [String: Any],
+                  let id = fields["nodeId"] as? Int, let index = rows.firstIndex(where: { $0["nodeId"] as? Int == id }) else { return (Data(#"{"code":500,"msg":"Synthetic refusal"}"#.utf8), 200) }
+            writes += 1
+            rows[index]["visitCheck"] = fields["visitCheck"] ?? "GPS"; rows[index]["visitRadius"] = fields["visitRadius"] ?? NSNull()
+            return (Data(#"{"code":200,"msg":"ok"}"#.utf8), 200)
+        }
+        return (try JSONSerialization.data(withJSONObject: ["code": 200, "data": rows]), 200)
+    }
+}
+
 @MainActor private final class ProjectEditFixtureContext: ObservableObject {
     var session: ProjectEditSession? = try? .init(accountID: 901, epoch: 1, storageNamespace: "synthetic-project-editor")
     let storage = ProjectEditMemoryStorage()
@@ -81,8 +101,21 @@ import SwiftUI
     private var inspectionSequence = 0
     lazy var store = ProjectEditLocalStore(storage: storage)
     lazy var coordinator = makeCoordinator()
+    private let visitConfigEnabled: Bool
+    private lazy var visitConfigTransport = FreeExplorationVisitConfigFixtureTransport()
+    /// Same shape as `AppSession.makeFreeExplorationVisitConfig`: read and write granted, synthetic server.
+    var visitConfig: ((Int) -> FreeExplorationVisitConfigModel?)? {
+        guard visitConfigEnabled else { return nil }
+        return { [weak self] topicID in
+            guard let self, self.session != nil, let configuration = try? APIConfiguration(baseURL: URL(string: "https://example.com/fixture/")!) else { return nil }
+            let service = FreeExplorationVisitConfigService(configuration: configuration, transport: self.visitConfigTransport, authorWrites: true,
+                                                            token: { [weak self] in self?.session == nil ? nil : "synthetic-token" })
+            return FreeExplorationVisitConfigModel(topicID: topicID, service: service)
+        }
+    }
     init(arguments: [String]) {
         disabled = arguments.contains("--project-edit-disabled")
+        visitConfigEnabled = arguments.contains("--project-edit-visit-config")
         storyAudioEnabled = arguments.contains("--project-story-audio")
         storyAudioUnknown = arguments.contains("--project-story-audio-unknown")
         storyAudioCancelFirst = arguments.contains("--project-story-audio-cancel-first")
@@ -103,6 +136,7 @@ import SwiftUI
         var existing = ProjectEditSyntheticFixtures.snapshot(scope: scope)
         if arguments.contains("--project-edit-rich-story") { existing.draft = ProjectEditRichStoryFixtures.draft(); existing.draft.baseRevision = "fixture-r1"; existing.draft.publishToCreative = false }
         if arguments.contains("--project-edit-free-explore") { existing.draft.product = .freeExplore }
+        if arguments.contains("--project-edit-merchant-owner") { existing.draft.owner = .merchant }
         service = ProjectEditSyntheticService(scenario: arguments.contains("--project-edit-unknown") ? .unknown : .accepted, snapshot: existing)
         if arguments.contains("--project-edit-edit") || scope == .whitelist { initial = existing }
         else {
@@ -218,7 +252,7 @@ import SwiftUI
                 Text("Test-only generated audio bytes and in-memory upload; no document, playback or network")
                     .font(.caption).dynamicTypeSize(.large).accessibilityIdentifier("projectStoryAudio.fixture.scope")
             }
-            NavigationStack { ProjectEditView(coordinator: context.coordinator, sessionRevision: context.revision, ownedCoverPicker: context.ownedCoverPicker, storyImagePicker: context.storyImagePicker, storyAudioPicker: context.storyAudioPicker) }.id(context.mount)
+            NavigationStack { ProjectEditView(coordinator: context.coordinator, sessionRevision: context.revision, ownedCoverPicker: context.ownedCoverPicker, storyImagePicker: context.storyImagePicker, storyAudioPicker: context.storyAudioPicker, visitConfig: context.visitConfig) }.id(context.mount)
         }
     }
 }

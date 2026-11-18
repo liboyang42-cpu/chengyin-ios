@@ -13,6 +13,8 @@ public enum BusinessRuntimeFeature: Hashable {
     case approvedTopicReleasePrepare, approvedTopicReleasePublish, approvedTopicReleaseStatus
     case approvedTopicReviewSources, approvedTopicReviewPrepare, approvedTopicReviewSubmit, approvedTopicReviewStatus, approvedTopicReviewCurrent
     case topicSelfPlayRead, topicSelfPlayCreate, topicSelfPlayPay, topicSelfPlayConsentRead, topicSelfPlayConsentWrite
+    /// FE-STORY 7.10 author 「到访方式」: the only GET in this catalog (a read) and its POST write.
+    case freeExploreVisitConfigRead, freeExploreVisitConfigWrite
 }
 public struct BusinessRuntimeRoute: Hashable {
     public let method: String
@@ -23,6 +25,7 @@ public struct BusinessRuntimeRoute: Hashable {
         self.method = method; self.path = path
     }
     public static func post(_ path: String) throws -> Self { try .init(method: "POST", path: path) }
+    public static func get(_ path: String) throws -> Self { try .init(method: "GET", path: path) }
 }
 public enum BankWithdrawalServerAction: Hashable { case confirm, reject }
 /// Each feature receives its own exact method/path subset. No "all" mode exists.
@@ -122,7 +125,8 @@ public struct BusinessRuntimeConfiguration {
 public extension BusinessRuntimeFeature {
     /// Source contract catalog constrains the meaning of every named feature.
     func accepts(_ route: BusinessRuntimeRoute) -> Bool {
-        guard route.method == "POST" else { return false }
+        // The visit-config read is a GET on the server; every other named feature stays POST-only.
+        guard route.method == (self == .freeExploreVisitConfigRead ? "GET" : "POST") else { return false }
         let paths: Set<String>
         switch self {
         case .bankConsentRead: paths = ["api/compliance/consents/latest"]
@@ -160,6 +164,7 @@ public extension BusinessRuntimeFeature {
         case .approvedTopicReleasePrepare: paths = [ApprovedTopicReleasePaths.prepare]
         case .approvedTopicReleasePublish: paths = [ApprovedTopicReleasePublicationPath.publish]
         case .approvedTopicReleaseStatus: paths = [ApprovedTopicReleasePublicationPath.status]
+        case .freeExploreVisitConfigRead, .freeExploreVisitConfigWrite: paths = [FreeExplorationVisitConfigService.path]
         case .projectRead: paths = ["api/publish/home", "api/topic/edit-detail"]
         case .projectWrite: paths = ["api/topic/create", "api/topic/update", "api/topic/v2/create", "api/topic/v2/update"]
         case .directVerification: paths = ["api/merchant/access/me", "api/verify/groupcode/redeem", "api/coupon/verification", "api/registration/scan_dynamic_code", "api/registration/scan_qr_code", "api/registration/scan_qr_code_chapter", "api/registration/scan_qr_code_station", "api/verify/citynode/redeem"]

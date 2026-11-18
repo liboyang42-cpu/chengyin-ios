@@ -21,7 +21,7 @@ import SwiftUI
                 } label: { Label("projectEdit.city", systemImage: "map") }
                     .accessibilityIdentifier("projectEdit.openCity")
                 NavigationLink {
-                    ProjectEditView(coordinator: session.projectEditor(product: .freeExplore), sessionRevision: session.sessionRevision, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) }).id(session.projectEditorContextID)
+                    ProjectEditView(coordinator: session.projectEditor(product: .freeExplore), sessionRevision: session.sessionRevision, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) }, visitConfig: { session.makeFreeExplorationVisitConfig(topicID: $0) }).id(session.projectEditorContextID)
                 } label: { Label("projectEdit.freeExplore", systemImage: "location.magnifyingglass") }
                     .accessibilityIdentifier("projectEdit.openFreeExplore")
             }

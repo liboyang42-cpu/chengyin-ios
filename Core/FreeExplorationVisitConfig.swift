@@ -84,8 +84,8 @@ public enum FreeExplorationVisitConfigError: Error, Equatable {
 }
 
 /// Author-side visit configuration. Reads need only a token; every write additionally needs
-/// `authorWrites`, which compositions derive from the existing author-write (project write)
-/// grant and which defaults to off. One request per tap; there is no retry or queue.
+/// `authorWrites`, which compositions set from the `freeExploreVisitConfigWrite` route grant
+/// and which defaults to off. One request per tap; there is no retry or queue.
 @MainActor public final class FreeExplorationVisitConfigService {
     public static let path = "api/topic/free-explore/visit-config"
     private let configuration: APIConfiguration
