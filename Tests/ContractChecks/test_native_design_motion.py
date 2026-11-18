@@ -60,7 +60,7 @@ class NativeDesignMotionGuards(unittest.TestCase):
         for required in ("onDestination(item.id)", 'homeFeed.\\(section).\\(item.accessibilityKey)', "model.loadMore(reader: reader)", "model.invalidate()"):
             self.assertIn(required, home)
         wallet = app("TicketWalletView.swift")
-        self.assertIn("ForEach(Array(snapshot.tickets.enumerated()), id: \\.offset)", wallet)
+        self.assertIn("ForEach(entries, id: \\.index)", wallet)
         self.assertIn("if ticket.action == .detail", wallet)
         self.assertIn("TicketWalletDetailView(id: ticket.id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator)", wallet)
         self.assertIn("model.cancelPending()", wallet)

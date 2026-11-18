@@ -4,6 +4,23 @@ public enum TicketWalletLane: Int, CaseIterable { case route = 1, activity = 2 }
 public enum TicketWalletStatus: String { case ready, pending, verified, cancelled, expired, unknown }
 public enum TicketWalletAction: String { case detail, paymentUnavailable, cancelled, expired, unknown }
 public enum TicketWalletRedemption: String { case notImplemented, unpaid, cancelled, expired, complete, unknown }
+/// Server-computed usable window (Asia/Shanghai). Unknown text stays nil rather than a guess.
+public enum TicketWalletUsableState: String { case usable = "USABLE", upcoming = "UPCOMING", expired = "EXPIRED" }
+/// Server-computed clear tag. NONE means the product has no clear concept and shows no tag.
+public enum TicketWalletClearState: String { case cleared = "CLEARED", notCleared = "NOT_CLEARED", notApplicable = "NONE" }
+
+/// Family-ticket composition snapshot taken at order time. Age only, never a child name.
+public struct TicketWalletParty: Decodable, Equatable {
+    public let adultCount: Int?
+    public let childCount: Int?
+    public let childAge: Int?
+    public var isFamily: Bool { childCount == 1 }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: TicketWalletKey.self)
+        adultCount = c.tolerantInteger("adultCount"); childCount = c.tolerantInteger("childCount")
+        childAge = c.tolerantInteger("childAge")
+    }
+}
 
 /// Narrow read projection of MyRegistration / RegistrationDetail. No code or payment credentials.
 public struct TicketWalletTicket: Decodable, Equatable, Identifiable {
@@ -28,6 +45,16 @@ public struct TicketWalletTicket: Decodable, Equatable, Identifiable {
     public let purchaseKind: String?
     public let entitlements: [TicketWalletEntitlement]
     public let verificationTime: String?
+    /// 0 unpaid, 1 paying, 2 paid, 3 failed, 4 refunded. Missing stays unknown.
+    public let paymentStatus: Int?
+    /// Additive F13 fields; old servers omit them and decoding stays tolerant.
+    public let usableFrom: String?
+    public let usableUntil: String?
+    public let usableState: TicketWalletUsableState?
+    public let clearState: TicketWalletClearState?
+    /// Any refund application other than a rejected one (status 2), or a manual refund case.
+    public let hasRefundInProgress: Bool
+    public let party: TicketWalletParty?
 
     public var status: TicketWalletStatus {
         // Source wxs precedence: verification takes precedence even for a cancelled row.
@@ -84,6 +111,22 @@ public struct TicketWalletTicket: Decodable, Equatable, Identifiable {
         } else { purchaseKind = try c.text("purchaseKind") }
         entitlements = try c.decodeIfPresent([TicketWalletEntitlement].self, forKey: TicketWalletKey("entitlements")) ?? []
         verificationTime = try c.text("verificationTime")
+        paymentStatus = c.tolerantInteger("paymentStatus")
+        usableFrom = c.tolerantText("usableFrom"); usableUntil = c.tolerantText("usableUntil")
+        usableState = c.tolerantText("usableState").flatMap(TicketWalletUsableState.init(rawValue:))
+        clearState = c.tolerantText("clearState").flatMap(TicketWalletClearState.init(rawValue:))
+        let refund = (try? c.decodeIfPresent(TicketWalletRefundApplication.self, forKey: TicketWalletKey("refundApplication"))) ?? nil
+        let manualCase = c.tolerantText("manualRefundCaseStatus")
+        hasRefundInProgress = (refund.map { $0.status != 2 } ?? false) || (manualCase.map { !$0.isEmpty } ?? false)
+        party = (try? c.decodeIfPresent(TicketWalletParty.self, forKey: TicketWalletKey("party"))) ?? nil
+    }
+}
+
+private struct TicketWalletRefundApplication: Decodable {
+    let status: Int?
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: TicketWalletKey.self)
+        status = c.tolerantInteger("status")
     }
 }
 
@@ -105,6 +148,72 @@ public struct TicketWalletEntitlement: Decodable, Equatable, Identifiable {
         chapterID = try c.integer("chapterId"); chapterName = try c.text("chapterName")
         statusLabel = try c.text("statusLabel"); invalidReason = try c.text("invalidReason")
         redeemedAt = try c.text("redeemedAt")
+    }
+}
+
+/// Calendar day in Asia/Shanghai, used for the "M月D日开始" tag.
+public struct TicketWalletMonthDay: Equatable {
+    public let month: Int
+    public let day: Int
+    public init(month: Int, day: Int) { self.month = month; self.day = day }
+}
+
+/// One wallet row. `index` is the exact position in the source snapshot, so row-bound
+/// navigation keeps addressing the server row even after filtering and sorting.
+public struct TicketWalletListEntry: Equatable {
+    public let index: Int
+    public let ticket: TicketWalletTicket
+    /// Not started yet: shown greyed, never opened, no back-side actions.
+    public var isUpcoming: Bool { ticket.usableState == .upcoming }
+    /// Clear state is a tag, not a filter. NONE (or an unknown value) shows no tag.
+    public var clearTagKey: String? {
+        guard !isUpcoming else { return nil }
+        switch ticket.clearState {
+        case .cleared?: return "ticketWallet.clear.cleared"
+        case .notCleared?: return "ticketWallet.clear.notCleared"
+        default: return nil
+        }
+    }
+    public var startsOn: TicketWalletMonthDay? {
+        guard isUpcoming, let raw = ticket.usableFrom, let date = RegistrationWaitlistStatus.parseDeadline(raw) else { return nil }
+        var calendar = Calendar(identifier: .gregorian)
+        guard let zone = TimeZone(identifier: "Asia/Shanghai") else { return nil }
+        calendar.timeZone = zone
+        let parts = calendar.dateComponents([.month, .day], from: date)
+        guard let month = parts.month, let day = parts.day else { return nil }
+        return TicketWalletMonthDay(month: month, day: day)
+    }
+    public var showsFamilyParty: Bool { ticket.party?.isFamily == true }
+}
+
+/// F13 wallet rule shared with the mini program and computed from server fields only:
+/// paid and registered, not refunding/refunded, not EXPIRED. Verified (cleared) tickets stay,
+/// because replays are unlimited. USABLE rows first by usableUntil ascending (open-ended last),
+/// then UPCOMING rows by usableFrom ascending. Ties keep the server order.
+public enum TicketWalletListing {
+    public static func isListed(_ ticket: TicketWalletTicket) -> Bool {
+        ticket.registrationStatus == 2 && ticket.paymentStatus == 2
+            && !ticket.hasRefundInProgress && ticket.usableState != .expired
+    }
+    public static func entries(_ tickets: [TicketWalletTicket]) -> [TicketWalletListEntry] {
+        let listed = tickets.enumerated().filter { isListed($0.element) }
+            .map { TicketWalletListEntry(index: $0.offset, ticket: $0.element) }
+        let usable = listed.filter { !$0.isUpcoming }
+            .sorted { precedes($0, $1, key: { $0.ticket.usableUntil }) }
+        let upcoming = listed.filter(\.isUpcoming)
+            .sorted { precedes($0, $1, key: { $0.ticket.usableFrom }) }
+        return usable + upcoming
+    }
+    private static func precedes(_ a: TicketWalletListEntry, _ b: TicketWalletListEntry,
+                                 key: (TicketWalletListEntry) -> String?) -> Bool {
+        let left = key(a).flatMap(RegistrationWaitlistStatus.parseDeadline)
+        let right = key(b).flatMap(RegistrationWaitlistStatus.parseDeadline)
+        switch (left, right) {
+        case let (l?, r?) where l != r: return l < r
+        case (_?, nil): return true
+        case (nil, _?): return false
+        default: return a.index < b.index
+        }
     }
 }
 
@@ -183,6 +292,13 @@ private extension KeyedDecodingContainer where Key == TicketWalletKey {
         if let value = try? decode(Int.self, forKey: k) { return value }
         if let value = try? decode(String.self, forKey: k), let number = Int(value.trimmingCharacters(in: .whitespacesAndNewlines)) { return number }
         throw APIError.malformedResponse
+    }
+    /// Additive optional fields: wrong types read as absent instead of failing the whole row.
+    func tolerantInteger(_ key: String) -> Int? { (try? integer(key)) ?? nil }
+    func tolerantText(_ key: String) -> String? {
+        guard let value = (try? text(key)) ?? nil else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
     func requiredID(_ key: String) throws -> Int {
         guard let value = try integer(key), value > 0 else { throw APIError.malformedResponse }
