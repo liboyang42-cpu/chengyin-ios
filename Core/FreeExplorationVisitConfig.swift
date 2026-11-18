@@ -5,7 +5,7 @@ import FoundationNetworking
 #endif
 
 /// FE-STORY 7.10: one free-exploration place's 「到访方式」 as the author sees it.
-/// `GET /api/free-explore/visit-config?topicId=` row. Unknown checks are rejected, never GPS by guess.
+/// `GET /api/topic/free-explore/visit-config?topicId=` row. Unknown checks are rejected, never GPS by guess.
 public struct FreeExplorationVisitConfigRow: Equatable, Identifiable {
     public let id: Int
     public let name: String?
@@ -87,7 +87,7 @@ public enum FreeExplorationVisitConfigError: Error, Equatable {
 /// `authorWrites`, which compositions derive from the existing author-write (project write)
 /// grant and which defaults to off. One request per tap; there is no retry or queue.
 @MainActor public final class FreeExplorationVisitConfigService {
-    public static let path = "api/free-explore/visit-config"
+    public static let path = "api/topic/free-explore/visit-config"
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
     private let token: () -> String?

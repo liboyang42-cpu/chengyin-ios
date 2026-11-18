@@ -35,7 +35,7 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         Group {
-            if model.gameplayMode == .freeExploration || (model.snapshot == nil && (presentedMode == .freeExploration || model.storyArchive != nil)) {
+            if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) || (model.snapshot == nil && model.storyArchive != nil) {
                 FreeExplorationExperienceView(model: model, storeDestination: { AnyView(freeStoreDestination($0)) }, rewardCollectionDestination: rewardCollectionDestination)
             } else if model.gameplayMode == .cityOrientation {
                 orientationContent

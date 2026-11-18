@@ -3,7 +3,8 @@ import SwiftUI
 /// FE-STORY 7.10 author control: per place 「到访方式」 GPS (default) / scan / online only, and
 /// a 300 / 400 / 500 m radius for GPS. Saving needs the author-write grant (default off);
 /// nothing changes locally until the server's list confirms it, and an unknown save is
-/// re-read, never re-sent.
+/// re-read, never re-sent. Not mounted yet: the author editor (`ProjectEditView`) is pinned
+/// byte-exact by reviewed contract checks, and no composition grants these routes.
 @MainActor struct FreeExplorationVisitConfigView: View {
     @State private var model: FreeExplorationVisitConfigModel
     init(model: FreeExplorationVisitConfigModel) { _model = State(initialValue: model) }

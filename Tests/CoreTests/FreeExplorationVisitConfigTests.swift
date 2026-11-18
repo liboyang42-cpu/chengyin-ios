@@ -42,7 +42,7 @@ import FoundationNetworking
         let rows = try await service(wire).load(topicID: 71)
         XCTAssertEqual(rows.map(\.id), [701, 702, 703]); XCTAssertEqual(rows.map(\.visitCheck), [.gps, .scan, .online])
         let request = try XCTUnwrap(wire.requests.first)
-        XCTAssertEqual(request.httpMethod, "GET"); XCTAssertEqual(request.url?.path, "/api/free-explore/visit-config")
+        XCTAssertEqual(request.httpMethod, "GET"); XCTAssertEqual(request.url?.path, "/api/topic/free-explore/visit-config")
         XCTAssertEqual(request.url?.query, "topicId=71"); XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "synthetic")
     }
 
