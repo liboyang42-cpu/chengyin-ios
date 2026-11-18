@@ -15,8 +15,11 @@ final class FreeExplorationStoryFlowTests: XCTestCase {
         app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", value)).firstMatch
     }
     /// Static labels are found by their visible text, as the other play fixtures do; they need not be hittable.
-    private func reveal(_ element: XCUIElement, in app: XCUIApplication) -> Bool {
-        element.waitForExistence(timeout: 10) && revealFixtureElement(element, in: app, requiresHittable: false)
+    /// A List builds only on-screen rows: a result row below the visit button may not exist
+    /// until it is scrolled to, so a row that has not appeared is searched for by scrolling.
+    private func reveal(_ element: XCUIElement, in app: XCUIApplication, towardTop: Bool = false) -> Bool {
+        if element.waitForExistence(timeout: 10) { return revealFixtureElement(element, in: app, requiresHittable: false) }
+        return revealFixtureElement(element, in: app, towardTop: towardTop, requiresHittable: false)
     }
     private func openLockedPlace(_ app: XCUIApplication) {
         let pack = app.buttons["playFree.pack.open"]
@@ -63,9 +66,11 @@ final class FreeExplorationStoryFlowTests: XCTestCase {
         let app = launch("feStoryTooFar"); openLockedPlace(app); tapArrive(app)
         let distance = text("About 340 m away", in: app)
         XCTAssertTrue(reveal(distance, in: app), app.debugDescription)
-        XCTAssertTrue(text("Locked. Readable after you visit", in: app).exists, app.debugDescription)
+        let action = app.buttons["playArrival.action.701"]
+        XCTAssertTrue(revealFixtureElement(action, in: app, towardTop: true), app.debugDescription)
+        XCTAssertTrue(action.isEnabled, app.debugDescription)
+        XCTAssertTrue(reveal(text("Locked. Readable after you visit", in: app), in: app, towardTop: true), app.debugDescription)
         XCTAssertFalse(text("Synthetic unlocked chapter text", in: app).exists)
-        XCTAssertTrue(app.buttons["playArrival.action.701"].isEnabled)
         attachFixtureScreenshot(self, app: app, name: "Too far shows the distance")
     }
 
@@ -77,7 +82,7 @@ final class FreeExplorationStoryFlowTests: XCTestCase {
         XCTAssertFalse(action.exists && action.isEnabled, "An unknown visit must not be sent again")
         let reread = app.buttons["playArrival.reread"]
         XCTAssertTrue(revealFixtureElement(reread, in: app), app.debugDescription); reread.tap()
-        XCTAssertTrue(unknown.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(reveal(unknown, in: app), app.debugDescription)
         XCTAssertFalse(action.exists && action.isEnabled)
         XCTAssertFalse(text("Synthetic unlocked chapter text", in: app).exists)
         attachFixtureScreenshot(self, app: app, name: "Unknown visit is re-read, not re-sent")
