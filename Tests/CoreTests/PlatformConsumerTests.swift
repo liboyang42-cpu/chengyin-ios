@@ -14,6 +14,33 @@ import XCTest
         for raw in ["http://media.example.test/a", "https://media.example.test.evil/a", "https://user:secret@media.example.test/a", "https://media.example.test:8443/a"] { XCTAssertFalse(policy.allows(URL(string: raw)!)) }
         XCTAssertTrue(policy.allows(URL(string: "https://media.example.test:443/a")!))
     }
+    func testArrivalNarrationAutoplayPreferenceDefaultsOnAndPersists() throws {
+        let suite = "PlatformConsumerTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        XCTAssertEqual(PlatformNarrationAutoplayPreference.storageKey, "play.narrationOn")
+        XCTAssertTrue(PlatformNarrationAutoplayPreference.isEnabled(in: defaults))
+        PlatformNarrationAutoplayPreference.set(false, in: defaults)
+        XCTAssertFalse(PlatformNarrationAutoplayPreference.isEnabled(in: defaults))
+        PlatformNarrationAutoplayPreference.set(true, in: defaults)
+        XCTAssertTrue(PlatformNarrationAutoplayPreference.isEnabled(in: defaults))
+    }
+    func testArrivalAutoplayStartsOnlyIdleApprovedNarrationOnce() {
+        let fake = SyntheticPlatformAudioDriver(), value = source()
+        let model = PlatformAudioPlayback(driver: fake, policy: policy, enabled: true)
+        model.select(value); model.autoplaySelectedNarration()
+        XCTAssertEqual(fake.starts, 1); XCTAssertEqual(model.state, .loading)
+        model.autoplaySelectedNarration(); XCTAssertEqual(fake.starts, 1)
+        fake.event?(.playing); model.toggle(); XCTAssertEqual(model.state, .paused)
+        model.autoplaySelectedNarration(); XCTAssertEqual(model.state, .paused); XCTAssertEqual(fake.starts, 1)
+        let gatedDriver = SyntheticPlatformAudioDriver()
+        let gated = PlatformAudioPlayback(driver: gatedDriver, policy: policy)
+        gated.select(value); gated.autoplaySelectedNarration(); XCTAssertEqual(gatedDriver.starts, 0); XCTAssertEqual(gated.state, .gated)
+        let foreignDriver = SyntheticPlatformAudioDriver()
+        let foreign = PlatformAudioPlayback(driver: foreignDriver, policy: policy, enabled: true)
+        foreign.select(PlatformMediaSource(url: URL(string: "https://other.example.test/a.mp3")!, scope: UUID()))
+        foreign.autoplaySelectedNarration(); XCTAssertEqual(foreignDriver.starts, 0)
+    }
     func testPlaybackErrorCompletionAndRepeat() {
         let fake = SyntheticPlatformAudioDriver(), value = source()
         let model = PlatformAudioPlayback(driver: fake, policy: policy, enabled: true)

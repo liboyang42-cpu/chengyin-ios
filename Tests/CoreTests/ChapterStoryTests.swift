@@ -42,6 +42,16 @@ final class ChapterStoryTests: XCTestCase {
         XCTAssertEqual(rows.count, 4); XCTAssertTrue(rows.allSatisfy { $0.mood == "quiet" && $0.odd == 3 })
         XCTAssertEqual(rows[2].content, .reveal(speaker: "Guide", lines: ["A", "B"]))
     }
+    func testOptionalTextBlockBecomesCollapsedFurtherReadingWithWhoSubtitle() throws {
+        let chapter = try ChapterStoryDocument(raw: wire(#"{"chapterId":8,"blocks":[{"type":"text","content":"Main"},{"type":"text","optional":true,"who":"Sample station note","content":"First {name|friend}\n\nSecond"},{"type":"text","optional":true,"content":"No heading"},{"type":"text","optional":false,"content":"Plain"}]}"#))
+        let rows = ChapterStoryProjection.segments(chapter: chapter, snapshot: try snapshot(nodes: "[]"), variables: [:])
+        XCTAssertEqual(rows.map(\.content), [.text("Main"), .optionalReading(subtitle: "Sample station note", paragraphs: ["First friend", "Second"]), .optionalReading(subtitle: nil, paragraphs: ["No heading"]), .text("Plain")])
+    }
+    func testOptionalBlockDoesNotBypassSpoilerTruncation() throws {
+        let snapshot = try snapshot(nodes: #"[{"nodeId":1,"chapterId":8,"done":false,"locked":false}]"#)
+        let chapter = try ChapterStoryDocument(raw: wire(#"{"chapterId":8,"blocks":[{"type":"node","nodeId":1},{"type":"text","optional":true,"content":"SPOILER"}]}"#))
+        XCTAssertEqual(ChapterStoryProjection.segments(chapter: chapter, snapshot: snapshot, variables: [:]).map(\.content), [.game(nodeID: 1)])
+    }
     func testAuthorizedRuntimeDocumentCarriesVarsVoicesAndThoughts() throws {
         let document: PlayExperienceDocument = try wire(#"{"topicId":9,"playable":true,"nodes":[],"chapters":[{"chapterId":8,"name":"Chapter"}],"vars":{"name":"Ada"},"storyVoices":{"1":[{"who":"Guide","text":"Remember"}]},"routeState":{"thoughts":[{"key":"known","name":"Thought"}]}}"#).decoded()
         XCTAssertEqual(document.storyVariables["name"], .string("Ada")); XCTAssertNotNil(document.chapterStories[8]); XCTAssertEqual(document.storyThoughts.count, 1)

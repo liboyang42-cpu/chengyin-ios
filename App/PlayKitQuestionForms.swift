@@ -18,6 +18,10 @@ extension PlayKitScreen {
                     .accessibilityAddTraits(selected.contains(option.id) ? .isSelected : [])
             }
             submitButton("SUBMIT_QA", payload: multi ? ["optionIds": .array(selected.sorted().map(PlayWireValue.string))] : ["optionId": .string(selected.first ?? "")], valid: !selected.isEmpty)
+        } else if raw["letterPool"] != .null {
+            PlayKitQuestionLetterPoolView(segment: raw, revision: runtimeIdentity, enabled: enabled,
+                onDirty: { dirty = true }, requestReview: prepare)
+                .id(childReset)
         } else {
             TextField("playkit.qa.answer", text: textBinding(), axis: .vertical).textFieldStyle(.roundedBorder).disabled(!enabled)
             // F02: the server's reply sits right under the input; the typed answer stays for editing.

@@ -139,8 +139,13 @@ import SwiftUI
     var body: some View {
         Section("journey.record.endingChapter") {
             if let title = raw["name"].text { Text(verbatim: title).font(.headline) }
-            ForEach(Array((raw["blocks"].array ?? []).enumerated()), id: \.offset) { _, block in
+            ForEach(Array((raw["blocks"].array ?? []).enumerated()), id: \.offset) { index, block in
                 switch block["type"].text {
+                case "text" where block["optional"].bool == true:
+                    if let content = block["content"].text {
+                        ChapterOptionalReadingCard(id: "ending." + String(index), subtitle: block["who"].text.flatMap { $0.isEmpty ? nil : $0 },
+                            paragraphs: content.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty })
+                    }
                 case "text", "voice", "reveal":
                     if let who = block["who"].text { Text(verbatim: who).font(.caption) }
                     if let content = block["content"].text { Text(verbatim: content) }
