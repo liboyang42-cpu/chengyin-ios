@@ -37,6 +37,7 @@ public enum PlayKitActionCatalog {
     public static let actions: [String: Set<String>] = [
         "sort": ["SUBMIT_SORT"], "match": ["SUBMIT_MATCH"], "classify": ["SUBMIT_CLASSIFY"],
         "compare": ["SUBMIT_COMPARE"], // Current backend-only family, absent from historical client hosts.
+        "hangman": ["SUBMIT_HANGMAN"], // F03: payload {"slots":{"<index>":"<char>"}}; keyboard and letter-pool modes.
         "compass": ["SUBMIT_COMPASS"], "shout": ["START_CHALLENGE", "SUBMIT_SHOUT"],
         "qa": ["SUBMIT_QA"], "branch": ["CHOOSE"], "estimate": ["SUBMIT_ESTIMATE"],
         "pricePair": ["SUBMIT_PRICE_PAIR"], "hiddenObject": ["SUBMIT_HIDDEN_OBJECT"],
@@ -76,7 +77,9 @@ public struct PlayAdvancedPending: Equatable {
 extension PlayExperienceService {
     public func startAdvanced(activityID: Int, topicID: Int, nodeID: Int, token: String) async throws -> PlayAdvancedState {
         guard activityID >= 0, topicID > 0, nodeID > 0 else { throw APIError.invalidRequest }
-        let state = try PlayAdvancedState(await request("api/play/advanced/start", json: ["activityId": .int(activityID), "topicId": .int(topicID), "nodeId": .int(nodeID)], capability: .advanced, token: token))
+        var body: [String: PlayWireValue] = ["activityId": .int(activityID), "topicId": .int(topicID), "nodeId": .int(nodeID)]
+        body.merge(PlayClientCapabilities.startFields()) { current, _ in current }
+        let state = try PlayAdvancedState(await request("api/play/advanced/start", json: body, capability: .advanced, token: token))
         guard state.activityID == activityID, state.topicID == topicID, state.nodeID == nodeID else { throw PlayExperienceError.malformed }
         return state
     }

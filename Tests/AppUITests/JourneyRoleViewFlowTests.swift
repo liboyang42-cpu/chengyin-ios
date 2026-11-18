@@ -21,6 +21,25 @@ final class JourneyRoleViewFlowTests: XCTestCase {
         let app = launch("roleSolo")
         XCTAssertTrue(app.staticTexts["roleView.body.A"].waitForExistence(timeout: 5)); XCTAssertTrue(app.staticTexts["roleView.body.B"].exists)
     }
+    func testOnlyOneActiveMemberGetsSoloFullViewWithRoleHeadings() {
+        // The server degrades a team with one active member to SOLO and sends every role's view.
+        let app = launch("roleSoloSingle")
+        for role in ["A", "B", "C"] {
+            XCTAssertTrue(app.staticTexts["roleView.body." + role].waitForExistence(timeout: 5), app.debugDescription)
+            XCTAssertTrue(app.staticTexts["roleView.heading." + role].exists, app.debugDescription)
+        }
+        XCTAssertEqual(app.staticTexts["roleView.heading.A"].label, "Synthetic guide")
+        XCTAssertEqual(app.staticTexts["roleView.heading.C"].label, "Synthetic keeper")
+        XCTAssertFalse(app.staticTexts["roleView.teammatesOther"].exists)
+        XCTAssertTrue(app.buttons["journey.fixture.mainTask"].exists)
+    }
+    func testAssignedThirdRoleSeesOwnLabelAndOtherRoleLabelsOnly() {
+        let app = launch("roleC", language: "zh-Hans")
+        XCTAssertTrue(app.staticTexts["roleView.body.C"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertFalse(app.staticTexts["roleView.body.A"].exists); XCTAssertFalse(app.staticTexts["roleView.body.B"].exists)
+        XCTAssertEqual(app.staticTexts["roleView.assignment"].label, "你的角色：Synthetic keeper")
+        XCTAssertTrue(app.staticTexts["roleView.teammatesOther"].exists)
+    }
     func testMissingAssignmentHidesAllPrivateContentAndLeavesMainTask() {
         let app = launch("roleMissing", language: "zh-Hans")
         XCTAssertTrue(app.otherElements["roleView.missing"].waitForExistence(timeout: 5) || app.staticTexts["roleView.missing"].exists)

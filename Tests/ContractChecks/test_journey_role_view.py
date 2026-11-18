@@ -14,11 +14,11 @@ class JourneyRoleViewChecks(unittest.TestCase):
         self.assertNotIn('encounter["roleViews"]',self.domain)
         for token in ['TemplateAdvancedDraft','advancedConfigJson','memberIndex','teamOrder']:self.assertNotIn(token,self.domain+self.coordinator+self.view)
     def test_exact_server_role_values(self):
-        self.assertIn('case a = "A", b = "B", solo = "SOLO", missing',self.domain)
+        self.assertIn('case a = "A", b = "B", c = "C", d = "D", solo = "SOLO", missing',self.domain)
         self.assertIn('assignment != .missing',self.domain)
     def test_assignment_privacy_cardinality(self):
         self.assertIn('parsed.count == 1, ids == [role]',self.domain)
-        self.assertIn('parsed.count == 2, ids == ["A", "B"]',self.domain)
+        self.assertIn('(2...Self.roleIDs.count).contains(rows.count)',self.domain)
         self.assertIn('guard rows.isEmpty',self.domain)
         self.assertIn('ids.insert(id).inserted',self.domain)
     def test_node_run_version_binding(self):
@@ -55,11 +55,11 @@ class JourneyRoleViewChecks(unittest.TestCase):
         self.assertNotIn('service.act',self.coordinator)
     def test_bilingual_catalog(self):
         fragment=json.loads((ROOT/'Resources/RoleViewLocalizations.fragment.json').read_text())
-        self.assertEqual(len(fragment),13)
+        self.assertEqual(len(fragment),17)
         catalog=json.loads((ROOT/'Resources/Localizable.xcstrings').read_text())['strings']
         for key in fragment:
             for lang in ['en','zh-Hans']:self.assertTrue(catalog[key]['localizations'][lang]['stringUnit']['value'])
     def test_synthetic_scenarios_and_ui_acceptance_authored(self):
         fixture=(ROOT/'App/JourneyContentFixtureSupport.swift').read_text();ui=(ROOT/'Tests/AppUITests/JourneyRoleViewFlowTests.swift').read_text()
-        for scenario in ['roleA','roleB','roleSolo','roleMissing']:self.assertIn('"'+scenario+'"',fixture)
+        for scenario in ['roleA','roleB','roleSolo','roleMissing','roleC','roleSoloSingle']:self.assertIn('"'+scenario+'"',fixture)
         self.assertIn('roleMismatch',ui);self.assertIn('Must not render A',ui);self.assertIn('Must not render B',ui)

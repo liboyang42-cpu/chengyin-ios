@@ -60,6 +60,13 @@ public enum PlatformAudioEvent: Sendable { case playing, ended, failed, interrup
             }
         }
     }
+    /// Arrival narration (F06): with the player's persisted 「到站自动播放」 preference on,
+    /// that standing choice is the consent for the selected narration source. It only
+    /// starts an idle, policy-approved source once; it never resumes a pause or retries a failure.
+    public func autoplaySelectedNarration() {
+        guard state == .idle, enabled, let source, policy.allows(source.url) else { return }
+        consentedSource = source; toggle()
+    }
     /// Navigation, account/region/source changes and backgrounding invalidate late callbacks and consent.
     public func suspend() {
         guard state != .disposed else { return }
@@ -67,6 +74,16 @@ public enum PlatformAudioEvent: Sendable { case playing, ended, failed, interrup
     }
     public func dispose() { invalidate(); source = nil; consentedSource = nil; state = .disposed }
     private func invalidate() { generation += 1; driver.stop() }
+}
+/// F06: 「到站自动播放」 for chapter narration and the station voice guide. Default ON;
+/// persisted locally. Turning it off only stops automatic starts; tap-to-play remains.
+public enum PlatformNarrationAutoplayPreference {
+    public static let storageKey = "play.narrationOn"
+    public static let defaultValue = true
+    public static func isEnabled(in defaults: UserDefaults) -> Bool {
+        (defaults.object(forKey: storageKey) as? Bool) ?? defaultValue
+    }
+    public static func set(_ enabled: Bool, in defaults: UserDefaults) { defaults.set(enabled, forKey: storageKey) }
 }
 @MainActor public final class SyntheticPlatformAudioDriver: PlatformAudioDriving {
     public private(set) var starts = 0

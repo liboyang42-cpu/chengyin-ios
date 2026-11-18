@@ -4,6 +4,8 @@ import SwiftUI
 @MainActor struct PlatformAudioConsumerView: View {
     @Bindable var model: PlatformAudioPlayback
     let source: PlatformMediaSource?
+    /// F06 arrival narration: start the selected source without the per-source review.
+    var autoplay = false
     @Environment(\.scenePhase) private var scenePhase
     @State private var review = false
     var body: some View {
@@ -21,8 +23,8 @@ import SwiftUI
             Button("platform.audio.allow") { model.approveSelectedMedia(); model.toggle() }
             Button("platform.cancel", role: .cancel) {}
         } message: { Text(verbatim: source?.url.host ?? "") }
-        .onAppear { model.select(source) }
-        .onChange(of: source) { _, next in review = false; model.select(next) }
+        .onAppear { model.select(source); if autoplay { model.autoplaySelectedNarration() } }
+        .onChange(of: source) { _, next in review = false; model.select(next); if autoplay { model.autoplaySelectedNarration() } }
         .onChange(of: scenePhase) { _, next in if next != .active { review = false; model.suspend() } }
         .onDisappear { review = false; model.dispose() }
     }
@@ -61,6 +63,7 @@ import SwiftUI
     let rawURL: String?
     let scope: UUID
     var makeModel: (@MainActor () -> PlatformAudioPlayback)? = nil
+    var autoplay = false
     @State private var model: PlatformAudioPlayback?
     private var source: PlatformMediaSource? {
         guard let rawURL, let url = URL(string: rawURL.trimmingCharacters(in: .whitespacesAndNewlines)) else { return nil }
@@ -68,7 +71,7 @@ import SwiftUI
     }
     var body: some View {
         Group {
-            if let model { PlatformAudioConsumerView(model: model, source: source) }
+            if let model { PlatformAudioConsumerView(model: model, source: source, autoplay: autoplay) }
             else if rawURL?.isEmpty == false { Label("platform.audio.gated", systemImage: "speaker.slash") }
         }
         .onAppear { if model == nil { model = makeModel?() } }
@@ -99,6 +102,8 @@ import SwiftUI
     let scope: UUID
     var makeModel: (@MainActor () -> PlatformAudioPlayback)? = nil
     @State private var guide = false
+    /// F06 「到站自动播放」: default on, persisted. Narration plays with the .playback session.
+    @AppStorage(PlatformNarrationAutoplayPreference.storageKey) private var autoplay = PlatformNarrationAutoplayPreference.defaultValue
     private var selectedURL: String? { guide ? selection?.guideURL : selection?.narrationURL }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -107,7 +112,9 @@ import SwiftUI
                     if selection.narrationURL != nil { Text("platform.audio.narration").tag(false) }
                     if selection.guideURL != nil { Text("platform.audio.guide").tag(true) }
                 }.accessibilityIdentifier("platform.audio.source")
-                PlatformAudioHost(rawURL: selectedURL, scope: scope, makeModel: makeModel)
+                Toggle("platform.audio.autoplay", isOn: $autoplay)
+                    .accessibilityIdentifier("platform.audio.autoplay")
+                PlatformAudioHost(rawURL: selectedURL, scope: scope, makeModel: makeModel, autoplay: autoplay)
             }
         }
         .onAppear { guide = selection?.narrationURL == nil }
