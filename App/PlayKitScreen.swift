@@ -164,6 +164,10 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
                 revisionIdentity: runtimeIdentity, currentRevisionIdentity: { model.state.map { "\($0.sessionID):\($0.version)" } ?? "" })
                 .id(childReset)
         case .sort, .match, .classify: reasoningForm
+        case .hangman:
+            PlayKitHangmanView(segment: segment, revision: runtimeIdentity, enabled: enabled,
+                onDirty: { dirty = true }, requestReview: prepare)
+                .id(childReset)
         case .compare:
             PlayCompareView(segment: segment, revision: runtimeIdentity, enabled: enabled,
                 currentRevision: { runtimeIdentity }, onDirty: { dirty = true }, requestReview: prepare)

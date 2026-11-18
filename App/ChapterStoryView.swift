@@ -110,6 +110,8 @@ import UIKit
                     if let line = item.line, !line.isEmpty { Text(verbatim: line).font(.subheadline) }
                 }
             }
+        case .optionalReading(let subtitle, let paragraphs):
+            ChapterOptionalReadingCard(id: segment.id, subtitle: subtitle, paragraphs: paragraphs)
         case .thought(let name, let description):
             VStack(alignment: .leading, spacing: 8) {
                 Label { Text(verbatim: name).font(.headline) } icon: { Image(systemName: "lightbulb") }
@@ -265,5 +267,30 @@ import UIKit
                 try Task.checkCancellation(); image = UIImage(data: sanitized.jpeg)
             } catch { if !Task.isCancelled { failed = true } }
         }.onDisappear { image = nil }
+    }
+}
+
+/// Optional chapter text (`optional: true`): a collapsed 「延伸阅读」 card, expanded on tap.
+@MainActor struct ChapterOptionalReadingCard: View {
+    let id: String
+    let subtitle: String?
+    let paragraphs: [String]
+    @State private var expanded = false
+    var body: some View {
+        DisclosureGroup(isExpanded: $expanded) {
+            VStack(alignment: .leading, spacing: 12) {
+                ForEach(Array(paragraphs.enumerated()), id: \.offset) { _, line in
+                    Text(verbatim: line).font(.body).lineSpacing(8).textSelection(.enabled)
+                }
+            }.padding(.top, 8)
+        } label: {
+            VStack(alignment: .leading, spacing: 4) {
+                Label("chapterStory.optionalReading", systemImage: "book")
+                    .font(.headline)
+                if let subtitle { Text(verbatim: subtitle).font(.subheadline).foregroundStyle(.secondary) }
+            }
+        }
+        .padding().background(.quaternary, in: RoundedRectangle(cornerRadius: 16))
+        .accessibilityIdentifier("chapterStory.optional." + id)
     }
 }

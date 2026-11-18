@@ -138,6 +138,23 @@
         }
       }
     },
+    "playhelp.type.POOL_TRIM": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove decoys"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去掉干扰字"
+          }
+        }
+      }
+    },
     "playhelp.type.DIGIT": {
       "extractionState": "manual",
       "localizations": {

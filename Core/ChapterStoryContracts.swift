@@ -25,6 +25,8 @@ public struct ChapterStorySegment: Equatable, Identifiable {
         case text(String), image(String), audio(String), voice(speaker: String, text: String)
         case reveal(speaker: String, lines: [String]), dream(title: String?, images: [ChapterStoryDreamImage])
         case thought(name: String, description: String?), game(nodeID: Int)
+        /// Text block marked `optional: true`: 「延伸阅读」, collapsed by default; `who` is its subtitle.
+        case optionalReading(subtitle: String?, paragraphs: [String])
     }
     public let id: String
     public let content: Content
@@ -107,7 +109,15 @@ public enum ChapterStoryProjection {
                 if activeInlineNodeID == nodeID { append(.game(nodeID: nodeID), id: id + ".game") }
                 voices(nodeID, prefix: id)
                 paragraphs(node.storyText, prefix: id + ".note")
-            case "text": paragraphs(block["content"].text, prefix: id)
+            case "text":
+                if block["optional"].bool == true {
+                    let lines = (block["content"].text ?? "").components(separatedBy: .newlines).compactMap { value -> String? in
+                        let value = value.trimmingCharacters(in: .whitespacesAndNewlines)
+                        return value.isEmpty ? nil : substitute(value, variables: variables)
+                    }
+                    let subtitle = block["who"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !lines.isEmpty { append(.optionalReading(subtitle: subtitle?.isEmpty == false ? subtitle : nil, paragraphs: lines), id: id) }
+                } else { paragraphs(block["content"].text, prefix: id) }
             case "image": if let url = ParticipationRecord.text(block["url"]) { append(.image(url), id: id) }
             case "audio": if let url = ParticipationRecord.text(block["url"]) { append(.audio(url), id: id) }
             case "voice":

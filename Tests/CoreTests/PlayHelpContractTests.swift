@@ -31,6 +31,15 @@ import FoundationNetworking
         XCTAssertTrue(view.rows[2].isAnswer)
     }
 
+    func testPoolTrimLayerIsARequestableHintRow() throws {
+        let view = try PlayHelpView(wire(#"{"enabled":true,"layers":["#
+            + #"{"level":1,"type":"POOL_TRIM","usable":true,"unlocked":false,"free":true,"costPoints":0},"#
+            + #"{"level":2,"type":"ANSWER","usable":true,"unlocked":false,"free":false,"costPoints":0}]}"#))
+        XCTAssertEqual(view.rows.map(\.type), ["POOL_TRIM", "ANSWER"])
+        XCTAssertEqual(view.rows.first?.state, .free)
+        XCTAssertTrue(PlayHelpView.renderableTypes.contains("POOL_TRIM"))
+    }
+
     func testDisabledViewHasNoRowsAndUnknownCounterIsNil() throws {
         let view = try PlayHelpView(wire(#"{"enabled":false,"layers":[]}"#))
         XCTAssertFalse(view.enabled); XCTAssertTrue(view.rows.isEmpty); XCTAssertNil(view.skipLevel); XCTAssertNil(view.remainingFreeUses)

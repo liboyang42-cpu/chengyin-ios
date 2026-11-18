@@ -158,13 +158,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Solo: both role views"
+          "value": "Solo: every role view"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "单人模式：两个角色视角"
+          "value": "单人模式：全部角色视角"
         }
       }
     }
@@ -216,6 +216,74 @@
         "stringUnit": {
           "state": "translated",
           "value": "收起角色内容"
+        }
+      }
+    }
+  },
+  "roleView.assignment.C": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Role C"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "角色 C"
+        }
+      }
+    }
+  },
+  "roleView.assignment.D": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Role D"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "角色 D"
+        }
+      }
+    }
+  },
+  "roleView.yourRole %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your role: %@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "你的角色：%@"
+        }
+      }
+    }
+  },
+  "roleView.teammatesOther": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your teammates are reading the other parts."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "队友在看另一份。"
         }
       }
     }

@@ -25,14 +25,24 @@ import SwiftUI
                                 .accessibilityIdentifier("roleView.missing")
                             Text("roleView.missingDetail").font(.footnote)
                         } else {
-                            Text(LocalizedStringKey("roleView.assignment." + projection.assignment.rawValue)).font(.headline)
+                            Group {
+                                if let own = projection.roleLabel { Text("roleView.yourRole \(own)") }
+                                else { Text(LocalizedStringKey("roleView.assignment." + projection.assignment.rawValue)) }
+                            }.font(.headline).accessibilityAddTraits(.isHeader)
                                 .accessibilityIdentifier("roleView.assignment")
-                            if let other = projection.otherRoleLabel {
-                                LabeledContent("roleView.otherRole") { Text(verbatim: other) }
+                            if !projection.otherRoleLabels.isEmpty {
+                                LabeledContent("roleView.otherRole") { Text(verbatim: projection.otherRoleLabels.joined(separator: "、")) }
+                                    .accessibilityIdentifier("roleView.otherRoles")
                             }
                             ForEach(projection.views) { view in
                                 VStack(alignment: .leading, spacing: 8) {
-                                    if projection.assignment == .solo { Text(LocalizedStringKey("roleView.assignment." + view.roleID)).font(.headline) }
+                                    if projection.assignment == .solo {
+                                        Group {
+                                            if let label = view.label { Text(verbatim: label) }
+                                            else { Text(LocalizedStringKey("roleView.assignment." + view.roleID)) }
+                                        }.font(.headline).accessibilityAddTraits(.isHeader)
+                                            .accessibilityIdentifier("roleView.heading." + view.roleID)
+                                    }
                                     if !view.title.isEmpty { Text(verbatim: view.title).font(.title3).accessibilityIdentifier("roleView.title." + view.roleID) }
                                     if !view.body.isEmpty { Text(verbatim: view.body).accessibilityIdentifier("roleView.body." + view.roleID) }
                                     ForEach(view.items) { item in
@@ -41,6 +51,10 @@ import SwiftUI
                                             .accessibilityIdentifier("roleView.item." + view.roleID + "." + String(item.id))
                                     }
                                 }.padding(.vertical, 4)
+                            }
+                            if projection.assignment != .solo {
+                                Text("roleView.teammatesOther").font(.footnote).foregroundStyle(.secondary)
+                                    .accessibilityIdentifier("roleView.teammatesOther")
                             }
                         }
                         Text("roleView.serverAssigned").font(.caption).foregroundStyle(.secondary)

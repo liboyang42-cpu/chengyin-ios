@@ -52,6 +52,42 @@ final class JourneyRoleProjectionTests: XCTestCase {
             XCTAssertThrowsError(try JourneyRoleProjection(encounter: encounter(.object(["role": .string("SOLO"), "views": .array(rows)])), expectedNodeID: 34))
         }
     }
+    func testAssignedCAndDCarryOwnLabelAndOtherRoleLabels() throws {
+        for role in ["C", "D"] {
+            var view = content(role).object!; view["label"] = .string(role + " label")
+            let projection = try XCTUnwrap(JourneyRoleProjection(encounter: encounter(.object(["role": .string(role), "roleLabel": .string("Keeper"), "otherRoleLabel": .string("Guide"), "otherRoleLabels": .array([.string("Guide"), .string("Reader")]), "views": .array([.object(view)])])), expectedNodeID: 34))
+            XCTAssertEqual(projection.assignment.rawValue, role); XCTAssertEqual(projection.views.map(\.roleID), [role])
+            XCTAssertEqual(projection.roleLabel, "Keeper"); XCTAssertEqual(projection.views[0].label, role + " label")
+            XCTAssertEqual(projection.otherRoleLabel, "Guide"); XCTAssertEqual(projection.otherRoleLabels, ["Guide", "Reader"])
+        }
+    }
+    func testAssignedRoleLabelFallsBackToViewLabelAndSingleOtherLabel() throws {
+        var view = content("B").object!; view["label"] = .string("Reader")
+        let projection = try XCTUnwrap(JourneyRoleProjection(encounter: encounter(.object(["role": .string("B"), "otherRoleLabel": .string("Guide"), "views": .array([.object(view)])])), expectedNodeID: 34))
+        XCTAssertEqual(projection.roleLabel, "Reader"); XCTAssertEqual(projection.otherRoleLabels, ["Guide"])
+    }
+    func testSoloMergesTwoToFourLabelledRoleViews() throws {
+        let ids = ["A", "B", "C", "D"]
+        for count in 2...4 {
+            let rows: [PlayWireValue] = ids.prefix(count).map { role in
+                var view = content(role).object!; view["label"] = .string(role + " label"); return .object(view)
+            }
+            let projection = try XCTUnwrap(JourneyRoleProjection(encounter: encounter(.object(["role": .string("SOLO"), "views": .array(rows)])), expectedNodeID: 34))
+            XCTAssertEqual(projection.assignment, .solo); XCTAssertEqual(projection.views.map(\.roleID), Array(ids.prefix(count)))
+            XCTAssertEqual(projection.views.compactMap(\.label), ids.prefix(count).map { $0 + " label" })
+            XCTAssertNil(projection.roleLabel); XCTAssertTrue(projection.otherRoleLabels.isEmpty)
+        }
+    }
+    func testSoloRejectsFifthOrUnknownRole() {
+        let five: [PlayWireValue] = ["A", "B", "C", "D", "E"].map(content)
+        XCTAssertThrowsError(try JourneyRoleProjection(encounter: encounter(.object(["role": .string("SOLO"), "views": .array(five)])), expectedNodeID: 34))
+        XCTAssertThrowsError(try JourneyRoleProjection(encounter: encounter(.object(["role": .string("SOLO"), "views": .array([content("A"), content("E")])])), expectedNodeID: 34))
+        XCTAssertThrowsError(try JourneyRoleProjection(encounter: encounter(.object(["role": .string("E"), "views": .array([content("E")])])), expectedNodeID: 34))
+    }
+    func testOtherRoleLabelsMustBeShortTextList() {
+        XCTAssertThrowsError(try JourneyRoleProjection(encounter: encounter(.object(["role": .string("A"), "otherRoleLabels": .string("Guide"), "views": .array([content("A")])])), expectedNodeID: 34))
+        XCTAssertThrowsError(try JourneyRoleProjection(encounter: encounter(.object(["role": .string("A"), "otherRoleLabels": .array([.integer(1)]), "views": .array([content("A")])])), expectedNodeID: 34))
+    }
     func testTextAndItemLimitsRejectMalformedPayloads() {
         var view = content("A").object!; view["body"] = .string(String(repeating: "🎨", count: 101))
         XCTAssertThrowsError(try JourneyRoleProjection(encounter: encounter(.object(["role": .string("A"), "views": .array([.object(view)])])), expectedNodeID: 34))
@@ -126,6 +162,13 @@ private final class RoleViewFakeHTTP: HTTPTransport {
         http.body = #"{"code":200,"data":{"nodeId":34,"runId":100,"stateVersion":1,"roleView":{"role":"A","views":[{"roleId":"B","body":"Must not render"}]}}}"#
         let model = JourneyRoleViewCoordinator(scope: .topic(12), topicID: 12, nodeID: 34, service: try service(http), currentSession: { session })
         await model.load(); XCTAssertNil(model.projection); XCTAssertEqual(model.status, .unavailable)
+    }
+    func testSingleActiveMemberSoloShowsEveryRoleView() async throws {
+        let http = RoleViewFakeHTTP(), session = try owner()
+        http.body = #"{"code":200,"data":{"nodeId":34,"runId":100,"stateVersion":1,"roleView":{"role":"SOLO","views":[{"roleId":"A","label":"Guide","body":"A part"},{"roleId":"B","label":"Reader","body":"B part"},{"roleId":"C","label":"Keeper","body":"C part"}]}}}"#
+        let model = JourneyRoleViewCoordinator(scope: .topic(12), topicID: 12, nodeID: 34, service: try service(http), currentSession: { session })
+        await model.load(); XCTAssertEqual(model.status, .ready); XCTAssertEqual(model.projection?.assignment, .solo)
+        XCTAssertEqual(model.projection?.views.map(\.roleID), ["A", "B", "C"]); XCTAssertEqual(model.projection?.views.compactMap(\.label), ["Guide", "Reader", "Keeper"])
     }
     func testMissingAssignmentIsReadableButNeverClientAssigned() async throws {
         let http = RoleViewFakeHTTP(), session = try owner()
