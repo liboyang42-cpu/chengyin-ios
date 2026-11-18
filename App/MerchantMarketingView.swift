@@ -85,8 +85,8 @@ import SwiftUI
             if let message = error.serverMessage { Text(message).font(.footnote) }
         }
     }
-    private func value(_ number: Int?) -> String { number.map(String.init) ?? "—" }
-    private func percent(_ number: Double?) -> String { number.map { String(format: "%.1f%%", $0 * 100) } ?? "—" }
+    private func value(_ number: Int?) -> String { MoneyFormat.countText(number) }
+    private func percent(_ number: Double?) -> String { String(format: "%.1f%%", (number ?? 0) * 100) }
     @ViewBuilder private func dashboardSections(_ dashboard: MerchantMarketingDashboard) -> some View {
         Section("merchantMarketing.coupons") {
             LabeledContent("merchantMarketing.active", value: value(dashboard.couponCount))

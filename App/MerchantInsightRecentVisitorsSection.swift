@@ -22,7 +22,7 @@ struct MerchantInsightRecentVisitorsSection: View {
                         VStack(alignment: .leading, spacing: 6) {
                             if let name = row.nickname { Text(verbatim: name).font(.headline) }
                             else { Text("merchant.insightVisitors.nameUnavailable").font(.headline) }
-                            LabeledContent("merchant.insightVisitors.count", value: row.visitCount.map(String.init) ?? "—")
+                            LabeledContent("merchant.insightVisitors.count", value: MoneyFormat.countText(row.visitCount))
                             if let topic = row.topicName { LabeledContent("merchant.insightVisitors.topic", value: topic) }
                             if let time = row.lastAtText { LabeledContent("merchant.insightVisitors.time", value: time) }
                         }.accessibilityElement(children: .combine)

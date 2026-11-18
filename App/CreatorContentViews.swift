@@ -149,7 +149,7 @@ private struct CreatorContentIssueView: View {
                         if center.recentIncome.isEmpty { Text("creatorContent.noIncome") }
                         ForEach(Array(center.recentIncome.enumerated()), id: \.offset) { _, row in
                             VStack(alignment: .leading) {
-                                Text(verbatim: row.amount ?? "—")
+                                Text(verbatim: row.amount ?? MoneyFormat.missingMoney)
                                 if let source = row.source { Text(verbatim: source) }
                                 if let date = row.date { Text(verbatim: date) }
                             }
@@ -162,7 +162,7 @@ private struct CreatorContentIssueView: View {
         .appNavigationTitle("creatorContent.center")
         .modifier(CreatorContentReadLifecycle(key: key, refresh: refresh, cancel: model.cancel))
     }
-    private func metric(_ title: LocalizedStringKey, _ count: Int?) -> some View { LabeledContent(title, value: count.map(String.init) ?? "—") }
+    private func metric(_ title: LocalizedStringKey, _ count: Int?) -> some View { LabeledContent(title, value: MoneyFormat.countText(count)) }
     private func issue(_ value: CreatorContentIssue) -> some View { CreatorContentIssueView(issue: value) { Task { await refresh() } } }
     private func refresh() async {
         guard reader.isAuthenticated, reader.isConfigured else { model.clear(); return }

@@ -70,9 +70,10 @@ final class MerchantContractTests: XCTestCase {
             XCTAssertFalse(access.active)
         }
     }
+    /// F14a (MC-011 = B): missing money shows ¥0.00; malformed text is still never disguised as zero.
     func testMoneyDoesNotInventZeroOrRoundTripThroughDouble() {
-        XCTAssertEqual(MerchantMoney.display(nil), "—")
-        XCTAssertEqual(MerchantMoney.display(""), "—")
+        XCTAssertEqual(MerchantMoney.display(nil), "¥0.00")
+        XCTAssertEqual(MerchantMoney.display(""), "¥0.00")
         XCTAssertEqual(MerchantMoney.display("NaN"), "—")
         XCTAssertEqual(MerchantMoney.display("12abc"), "—")
         XCTAssertEqual(MerchantMoney.display("0"), "¥0.00")
@@ -89,7 +90,7 @@ final class MerchantContractTests: XCTestCase {
         XCTAssertNil(dash.revenue7d.last?.amount)
         let missing = try decode(MerchantDashboard.self, "{}")
         XCTAssertNil(missing.revenue)
-        XCTAssertEqual(MerchantMoney.display(missing.revenue), "—")
+        XCTAssertEqual(MerchantMoney.display(missing.revenue), "¥0.00")
         XCTAssertThrowsError(try decode(MerchantDashboard.self, #"{"revenue":0}"#))
     }
     func testCompletedVerificationIsNotPendingTodo() throws {
@@ -109,7 +110,7 @@ final class MerchantContractTests: XCTestCase {
         XCTAssertEqual(order.aftersaleStatus, 9)
         XCTAssertNil(MerchantOrderStatus(rawValue: order.status!))
         XCTAssertNil(order.payAmount)
-        XCTAssertEqual(MerchantMoney.display(order.payAmount), "—")
+        XCTAssertEqual(MerchantMoney.display(order.payAmount), "¥0.00")
         let numeric = try decode(MerchantOrder.self, #"{"payAmount":12.25}"#)
         XCTAssertEqual(numeric.payAmount, "12.25")
     }
