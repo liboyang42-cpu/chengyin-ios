@@ -31,7 +31,7 @@ final class ProfileSelfProjectActionsTests: XCTestCase {
         XCTAssertFalse(ProfileSelfProjectActions.canEdit(club))
     }
     func testActionTitles() {
-        XCTAssertEqual(ProfileSelfProjectAction.edit.title(zh: true), "编辑")
-        XCTAssertEqual(ProfileSelfProjectAction.open.title(zh: true), "查看")
+        XCTAssertEqual(ProfileSelfProjectAction.edit.localizationKey, "profile.selfProjects.action.edit")
+        XCTAssertEqual(ProfileSelfProjectAction.open.localizationKey, "profile.selfProjects.action.open")
     }
 }

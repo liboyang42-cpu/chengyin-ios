@@ -18,12 +18,6 @@ struct AccountView: View {
     @State private var showsCooperation=false
     @State private var confirmsLogout=false
     @State private var showsMerchantApplication=false
-    @Environment(\.locale) private var feReferenceLocale
-    private func feReferenceTitle(payer: Bool) -> String {
-        let zh = feReferenceLocale.language.languageCode?.identifier == "zh"
-        if payer { return zh ? "自由探索结算（参考）· 主办方" : "Free exploration settlement (reference) · Organizer" }
-        return zh ? "自由探索结算（参考）· 店铺" : "Free exploration settlement (reference) · Store"
-    }
     private var localCoverOwner: ProfileLocalCoverOwner? {
         ProfileLocalCoverOwner.make(accountID: account.id, configuration: session.regionalConfiguration)
     }
@@ -123,15 +117,13 @@ struct AccountView: View {
                     NavigationLink { MerchantHomeView(reader:session,marketingModel:session.merchantMarketingCoordinator,marketingDestination:{ AnyView(SessionMerchantMarketingDestination(session:session,destination:$0)) },openApplication:{ showsMerchantApplication=true },operationsReader:session.merchantOperationsReader,operationsDestinationFactory:{ session.merchantOperationsDestination($0, access: $1) },businessReader:session.merchantBusinessReader,businessJournal:session.merchantBusinessJournal,contentService:session.merchantContentService,cooperationFlowReader:session.cooperationFlowReader,engagementReader:session.merchantEngagementReader,exportRecovery:session.merchantExportRecovery) } label: {
                         Label("merchant.title",systemImage:"storefront")
                     }.accessibilityIdentifier("account.merchant")
-                    NavigationLink { SessionFeReferenceSettlementView(session: session, role: .merchant) } label: {
-                        Label(feReferenceTitle(payer: false), systemImage: "list.bullet.rectangle")
-                    }.accessibilityIdentifier("account.feReference.merchant")
-                    NavigationLink { SessionFeReferenceSettlementView(session: session, role: .payer) } label: {
-                        Label(feReferenceTitle(payer: true), systemImage: "checklist")
-                    }.accessibilityIdentifier("account.feReference.payer")
                     Button { showsMerchantApplication=true } label: {
                         Label("merchant.onboarding.openApplication",systemImage:"doc.text")
                     }.accessibilityIdentifier("account.merchantApplication")
+                    // One entry; the store and organizer views are chosen on the next screen.
+                    NavigationLink { SessionFeReferenceSettlementHubView(session: session) } label: {
+                        Label("feReference.entry", systemImage: "list.bullet.rectangle")
+                    }.accessibilityIdentifier("account.feReference")
                 }
                 Section {
                     Button("auth.signOut",role:.destructive) { confirmsLogout=true }

@@ -142,23 +142,25 @@ public enum FeReferenceMoney {
 
 public enum FeReferenceSettlementStatus: String, CaseIterable {
     case open = "OPEN", settledOffline = "SETTLED_OFFLINE", void = "VOID", disputed = "DISPUTED"
-    public func title(zh: Bool) -> String {
+    /// Localizable.xcstrings key.
+    public var localizationKey: String {
         switch self {
-        case .open: return zh ? "待线下结款" : "Awaiting offline settlement"
-        case .settledOffline: return zh ? "已线下结清" : "Settled offline"
-        case .void: return zh ? "已作废" : "Void"
-        case .disputed: return zh ? "有异议" : "Disputed"
+        case .open: return "feReference.status.open"
+        case .settledOffline: return "feReference.status.settledOffline"
+        case .void: return "feReference.status.void"
+        case .disputed: return "feReference.status.disputed"
         }
     }
 }
 public enum FeReferenceSupplierKind: String { case merchant = "MERCHANT", author = "AUTHOR" }
 public enum FeReferenceBasis: String {
     case perkRedeemed = "PERK_REDEEMED", revshareHead = "REVSHARE_HEAD", traffic = "TRAFFIC"
-    public func title(zh: Bool) -> String {
+    /// Localizable.xcstrings key.
+    public var localizationKey: String {
         switch self {
-        case .perkRedeemed: return zh ? "权益核销" : "Perk redeemed"
-        case .revshareHead: return zh ? "按人头计酬" : "Per-head share"
-        case .traffic: return zh ? "引流" : "Traffic"
+        case .perkRedeemed: return "feReference.basis.perkRedeemed"
+        case .revshareHead: return "feReference.basis.revshareHead"
+        case .traffic: return "feReference.basis.traffic"
         }
     }
 }
@@ -194,7 +196,8 @@ public struct FeReferenceSettlementRow: Equatable, Identifiable {
     }
     public var amountText: String { FeReferenceMoney.display(amount) }
     public var unitAmountText: String { FeReferenceMoney.display(unitAmount) }
-    public func statusTitle(zh: Bool) -> String { statusText ?? status?.title(zh: zh) ?? (zh ? "状态未知" : "Unknown status") }
+    /// The server's statusText wins; otherwise this catalog key is shown.
+    public var statusLocalizationKey: String { status?.localizationKey ?? "feReference.status.unknown" }
     /// Author self-supply rows are recorded as settled with amount 0 ("作者自营，无需结算").
     public var isAuthorSelfSupply: Bool { supplierKind == .author }
 }

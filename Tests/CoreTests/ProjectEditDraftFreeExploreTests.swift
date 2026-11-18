@@ -43,7 +43,7 @@ private final class FreeExploreSaleHTTPFake: HTTPTransport {
     func testReadinessDecodesExactServerShape() throws {
         let value = try FreeExploreSaleReadiness(json(#"{"topicId":71,"lifecycle":1,"totalSlots":3,"filledSlots":1,"openSlots":2,"canFillPrice":false,"canPublish":false}"#), expectedTopicID: 71)
         XCTAssertEqual(value.openSlots, 2); XCTAssertEqual(value.priceState, .awaitingSlots(open: 2))
-        XCTAssertEqual(value.priceState.openSlotsText(zh: true), "还有 2 个位置待承接")
+        XCTAssertEqual(value.priceState.openSlotCount, 2)
         XCTAssertTrue(value.priceState.disablesPriceFields)
         XCTAssertThrowsError(try FreeExploreSaleReadiness(json(#"{"topicId":72,"lifecycle":1,"totalSlots":3,"filledSlots":1,"openSlots":2,"canFillPrice":false,"canPublish":false}"#), expectedTopicID: 71))
         XCTAssertThrowsError(try FreeExploreSaleReadiness(json(#"{"topicId":71,"lifecycle":1,"totalSlots":3}"#), expectedTopicID: 71))

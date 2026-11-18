@@ -81,12 +81,8 @@ public enum ProfileSelfProjectAction: String, CaseIterable, Identifiable {
     case open, edit
     public var id: String { rawValue }
     public var systemImage: String { self == .open ? "arrow.up.right.square" : "square.and.pencil" }
-    public func title(zh: Bool) -> String {
-        switch self {
-        case .open: return zh ? "查看" : "Open"
-        case .edit: return zh ? "编辑" : "Edit"
-        }
-    }
+    /// Localizable.xcstrings key.
+    public var localizationKey: String { "profile.selfProjects.action.\(rawValue)" }
 }
 public enum ProfileSelfProjectActions {
     /// Source myproject edit rule: drafts, rejected and offline topics, plus (F10) free-exploration

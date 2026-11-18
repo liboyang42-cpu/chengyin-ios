@@ -50,13 +50,23 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
     static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }
+/// One navigation destination per section: a second `navigationDestination` inside the lazy List
+/// could be ignored or misroute other pushes on the same stack.
+enum ProfileSelfProjectRoute: Identifiable, Hashable {
+    case detail(ProfileSelfProjectSelection)
+    case edit(ProjectEditRemoteTarget)
+    var id: String {
+        switch self {
+        case .detail(let selection): return "detail:\(selection.id)"
+        case .edit(let target): return "edit:\(target.id)"
+        }
+    }
+}
 @MainActor struct ProfileSelfProjectsSection: View {
     @State private var reader: ProfileSelfProjectsScopedReader
     @State private var model = ProfileSelfProjectsController()
-    @State private var selection: ProfileSelfProjectSelection?
-    @State private var editing: ProjectEditRemoteTarget?
+    @State private var route: ProfileSelfProjectRoute?
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.locale) private var locale
     private let detail: (CreatorContentDestination) -> AnyView
     private let edit: ((ProjectEditRemoteTarget, any CreatorContentReading) -> AnyView)?
     init(context: ProfileSelfProjectsContext, accountReader: any SocialAccountReading,
@@ -64,7 +74,6 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
         _reader = State(initialValue: .init(context: context, accountReader: accountReader,
             projectsReader: access.reader, isCurrent: isCurrent)); detail = access.detail; edit = access.edit
     }
-    private var zh: Bool { locale.language.languageCode?.identifier == "zh" }
     var body: some View {
         Group {
             if reader.isCurrentContext {
@@ -90,29 +99,25 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
                         }
                         ForEach(preview.rows) { project in
                             let actions = ProfileSelfProjectActions.actions(for: project, editingAvailable: edit != nil)
-                            HStack(spacing: 8) {
-                                // Plain style: in a List row with a second control, only this frame opens the
-                                // detail (a default-style row button would also fire for taps on the menu).
-                                Button {
-                                    perform(.open, project)
-                                } label: { row(project, today: today).contentShape(Rectangle()) }
-                                    .buttonStyle(.plain)
-                                    // Long press stays a shortcut on the same identified element; its state is unchanged.
-                                    .contextMenu { actionButtons(actions, project) }
-                                    .disabled(model.isLoading || model.issue != nil)
-                                    .accessibilityIdentifier("profile.selfProjects.project.\(project.id)")
-                                if !actions.isEmpty {
-                                    // Visible entry; the context menu above is only a long-press shortcut.
-                                    Menu { actionButtons(actions, project) } label: {
-                                        Image(systemName: "ellipsis.circle").imageScale(.large)
-                                            .frame(minWidth: 44, minHeight: 44)
+                            // Row structure is unchanged; rows with more than "open" get a trailing ⋯ menu as an
+                            // overlay accessory, so row height and the row button's hittable frame stay the same.
+                            Button {
+                                perform(.open, project)
+                            } label: { row(project, today: today, reservesMenu: actions.count > 1) }
+                                .disabled(model.isLoading || model.issue != nil)
+                                .accessibilityIdentifier("profile.selfProjects.project.\(project.id)")
+                                .overlay(alignment: .trailing) {
+                                    if actions.count > 1 {
+                                        Menu { actionButtons(actions, project) } label: {
+                                            Image(systemName: "ellipsis.circle").imageScale(.large)
+                                                .frame(width: 44, height: 44)
+                                        }
+                                        .buttonStyle(.borderless)
+                                        .disabled(model.isLoading || model.issue != nil)
+                                        .accessibilityLabel(Text("profile.selfProjects.more"))
+                                        .accessibilityIdentifier("profile.selfProjects.more.\(project.id)")
                                     }
-                                    .buttonStyle(.borderless)
-                                    .disabled(model.isLoading || model.issue != nil)
-                                    .accessibilityLabel(Text(verbatim: zh ? "更多" : "More"))
-                                    .accessibilityIdentifier("profile.selfProjects.more.\(project.id)")
                                 }
-                            }
                         }
                     }
                     Button("profile.selfProjects.refresh") { Task { await load() } }.disabled(model.isLoading)
@@ -125,12 +130,14 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
                 }
             }
         }
-        .navigationDestination(item: $selection) { selected in
-            ProfileSelfProjectDestination(selection: selected, reader: reader, detail: detail)
-        }
-        .navigationDestination(item: $editing) { target in
-            if reader.isCurrentContext, reader.scope == target.readerScope, let edit { edit(target, reader) }
-            else { Text("social.changed") }
+        .navigationDestination(item: $route) { route in
+            switch route {
+            case .detail(let selected):
+                ProfileSelfProjectDestination(selection: selected, reader: reader, detail: detail)
+            case .edit(let target):
+                if reader.isCurrentContext, reader.scope == target.readerScope, let edit { edit(target, reader) }
+                else { Text("social.changed") }
+            }
         }
         .task { await load() }
         .refreshable { await load() }
@@ -142,22 +149,22 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
     private func load() async { await model.load(reader: reader) }
     @ViewBuilder private func actionButtons(_ actions: [ProfileSelfProjectAction], _ project: CreatorContentProject) -> some View {
         ForEach(actions) { action in
-            Button { perform(action, project) } label: { Label(action.title(zh: zh), systemImage: action.systemImage) }
+            Button { perform(action, project) } label: { Label(LocalizedStringKey(action.localizationKey), systemImage: action.systemImage) }
                 .accessibilityIdentifier("profile.selfProjects.action.\(action.rawValue).\(project.id)")
         }
     }
     private func perform(_ action: ProfileSelfProjectAction, _ project: CreatorContentProject) {
-        guard selection == nil, editing == nil, !model.isLoading, model.issue == nil,
+        guard route == nil, !model.isLoading, model.issue == nil,
               model.canOpen(project, reader: reader, today: ProfileSelfProjectCalendar.today()) else { return }
         switch action {
-        case .open: selection = .init(project: project)
+        case .open: route = .detail(.init(project: project))
         case .edit:
             guard edit != nil, ProfileSelfProjectActions.canEdit(project),
                   let target = ProjectEditRemoteTarget(project: project, readerScope: reader.scope) else { return }
-            editing = target
+            route = .edit(target)
         }
     }
-    private func row(_ project: CreatorContentProject, today: String) -> some View {
+    private func row(_ project: CreatorContentProject, today: String, reservesMenu: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             if project.title.isEmpty { Text("creatorContent.untitled") } else { Text(verbatim: project.title) }
             if let status = ProfileSelfProjectCalendar.status(start: project.startTime, end: project.endTime, today: today) {
@@ -165,6 +172,7 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
             }
             if let start = project.startTime { Text(verbatim: start).font(.caption).foregroundStyle(.secondary) }
         }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            .padding(.trailing, reservesMenu ? 44 : 0)
     }
 }
 @MainActor struct ProfileSelfProjectsBrowser: View {

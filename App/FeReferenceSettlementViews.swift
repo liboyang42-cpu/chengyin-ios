@@ -19,35 +19,33 @@ enum FeReferenceSettlementRole: String { case merchant, payer }
     @State private var reloadKey = UUID()
     @Environment(\.locale) private var locale
     private var zh: Bool { locale.language.languageCode?.identifier == "zh" }
-    private func t(_ en: String, _ cn: String) -> String { zh ? cn : en }
     var body: some View {
         List {
             Section {
-                Text(t("Reference amounts only. The platform transfers nothing; organizer and merchant settle offline.",
-                       "以下均为参考金额，平台不划款，由主办方与店铺线下结款。"))
+                Text(appLocalized("feReference.referenceAmountsOnlyThe", locale: locale))
                     .font(.footnote).foregroundStyle(.secondary)
-                LabeledContent(t("Open (reference)", "待线下结款（参考）"), value: (list ?? .init()).totalOpenText)
+                LabeledContent(appLocalized("feReference.openReference", locale: locale), value: (list ?? .init()).totalOpenText)
                     .accessibilityIdentifier("feReference.totalOpen")
-                LabeledContent(t("Settled offline (reference)", "已线下结清（参考）"), value: (list ?? .init()).totalSettledText)
+                LabeledContent(appLocalized("feReference.settledOfflineReference", locale: locale), value: (list ?? .init()).totalSettledText)
                     .accessibilityIdentifier("feReference.totalSettled")
                 if role == .merchant {
-                    Picker(t("Status", "状态"), selection: $filter) {
-                        Text(t("All", "全部")).tag(FeReferenceSettlementStatus?.none)
+                    Picker(appLocalized("feReference.status", locale: locale), selection: $filter) {
+                        Text(appLocalized("feReference.all", locale: locale)).tag(FeReferenceSettlementStatus?.none)
                         ForEach(FeReferenceSettlementStatus.allCases, id: \.self) { status in
-                            Text(status.title(zh: zh)).tag(Optional(status))
+                            Text(LocalizedStringKey(status.localizationKey)).tag(Optional(status))
                         }
                     }.pickerStyle(.menu)
                 }
             }
             if client?.canRead != true {
-                Section { Text(t("Live reads are disabled until independently approved.", "真实读取需独立批准后启用。")) }
+                Section { Text(appLocalized("feReference.liveReadsAreDisabled", locale: locale)) }
             }
             if let list {
-                if list.isEmpty { Section { Text(t("No reference settlement rows.", "暂无参考结算记录。")) } }
+                if list.isEmpty { Section { Text(appLocalized("feReference.noReferenceSettlementRows", locale: locale)) } }
                 ForEach(list.groups) { group in
                     Section {
-                        LabeledContent(t("Open (reference)", "待结（参考）"), value: group.openAmountText)
-                        LabeledContent(t("Settled (reference)", "已结（参考）"), value: group.settledAmountText)
+                        LabeledContent(appLocalized("feReference.openReference2", locale: locale), value: group.openAmountText)
+                        LabeledContent(appLocalized("feReference.settledReference", locale: locale), value: group.settledAmountText)
                         ForEach(group.rows) { row in rowView(row) }
                     } header: {
                         Text(verbatim: [group.activityTitle ?? "#\(group.activityID)", group.payerName].compactMap { $0 }.joined(separator: " · "))
@@ -57,7 +55,7 @@ enum FeReferenceSettlementRole: String { case merchant, payer }
             }
             if !message.isEmpty { Section { Text(message).accessibilityIdentifier("feReference.message") } }
         }
-        .navigationTitle(t("Free exploration settlement (reference)", "自由探索结算（参考）"))
+        .navigationTitle(appLocalized("feReference.freeExplorationSettlementReference", locale: locale))
         .task(id: "\(reloadKey)-\(filter?.rawValue ?? "all")") { await load() }
         .refreshable { await load() }
         .sheet(item: $disputeRow) { row in disputeSheet(row) }
@@ -68,18 +66,18 @@ enum FeReferenceSettlementRole: String { case merchant, payer }
                 Button { toggle(row.id) } label: {
                     Image(systemName: selected.contains(row.id) ? "checkmark.circle.fill" : "circle")
                 }.buttonStyle(.borderless).frame(minWidth: 44, minHeight: 44)
-                    .accessibilityLabel(Text(verbatim: t("Select", "选择")))
+                    .accessibilityLabel(Text(verbatim: appLocalized("feReference.select", locale: locale)))
             }
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: [row.chapterName, row.merchantName].compactMap { $0 }.joined(separator: " · "))
-                if row.isAuthorSelfSupply { Text(t("Author self-supply, no settlement needed", "作者自营，无需结算")).font(.caption) }
-                Text(verbatim: "\(row.basis?.title(zh: zh) ?? "—") × \(row.quantity) · \(row.unitAmountText)").font(.caption).foregroundStyle(.secondary)
-                Text(verbatim: t("Reference ", "参考 ") + row.amountText).font(.headline)
-                Text(verbatim: row.statusTitle(zh: zh)).font(.caption)
-                if let voucher = row.voucherNo { Text(verbatim: t("Voucher ", "凭证号 ") + voucher).font(.caption2) }
+                if row.isAuthorSelfSupply { Text(appLocalized("feReference.authorSelfSupplyNo", locale: locale)).font(.caption) }
+                Text(verbatim: "\(row.basis.map { appLocalized(String.LocalizationValue($0.localizationKey), locale: locale) } ?? "—") × \(row.quantity) · \(row.unitAmountText)").font(.caption).foregroundStyle(.secondary)
+                Text(verbatim: String(format: appLocalized("feReference.referenceAmount", locale: locale), row.amountText)).font(.headline)
+                Text(verbatim: row.statusText ?? appLocalized(String.LocalizationValue(row.statusLocalizationKey), locale: locale)).font(.caption)
+                if let voucher = row.voucherNo { Text(verbatim: String(format: appLocalized("feReference.voucherNumber", locale: locale), voucher)).font(.caption2) }
                 if let at = row.settledAt { Text(verbatim: at).font(.caption2).foregroundStyle(.secondary) }
                 if role == .merchant, row.status == .open, !row.isAuthorSelfSupply {
-                    Button(t("Dispute", "提出异议")) { disputeNote = ""; disputeRow = row }
+                    Button(appLocalized("feReference.dispute", locale: locale)) { disputeNote = ""; disputeRow = row }
                         .disabled(client?.canDispute != true || busy)
                         .accessibilityIdentifier("feReference.dispute.\(row.id)")
                 }
@@ -89,27 +87,27 @@ enum FeReferenceSettlementRole: String { case merchant, payer }
     @ViewBuilder private func settleSection(_ list: FeReferenceSettlementList) -> some View {
         let rows = FeReferencePayerActions.settleable(list).filter { selected.contains($0.id) }
         Section {
-            TextField(t("Voucher number (optional)", "凭证号（选填）"), text: $voucher)
-            Button(t("Mark as settled offline", "标记已线下结清")) { Task { await settle(rows) } }
+            TextField(appLocalized("feReference.voucherNumberOptional", locale: locale), text: $voucher)
+            Button(appLocalized("feReference.markAsSettledOffline", locale: locale)) { Task { await settle(rows) } }
                 .disabled(busy || rows.isEmpty || client?.canSettle != true)
                 .accessibilityIdentifier("feReference.settle")
             if client?.canSettle != true {
-                Text(t("Marking is disabled until independently approved.", "标记结清需独立批准后启用。")).font(.caption).foregroundStyle(.secondary)
+                Text(appLocalized("feReference.markingIsDisabledUntil", locale: locale)).font(.caption).foregroundStyle(.secondary)
             }
         } footer: {
-            Text(t("Only records that payment happened offline; the merchant may dispute.", "仅记录已在线下付款；店铺可提出异议。"))
+            Text(appLocalized("feReference.onlyRecordsThatPayment", locale: locale))
         }
     }
     private func disputeSheet(_ row: FeReferenceSettlementRow) -> some View {
         NavigationStack {
             Form {
-                Text(verbatim: t("Reference ", "参考 ") + row.amountText)
-                TextField(t("Reason", "异议说明"), text: $disputeNote, axis: .vertical).lineLimit(3...6)
-                Button(t("Submit dispute", "提交异议")) { Task { await dispute(row) } }
+                Text(verbatim: String(format: appLocalized("feReference.referenceAmount", locale: locale), row.amountText))
+                TextField(appLocalized("feReference.reason", locale: locale), text: $disputeNote, axis: .vertical).lineLimit(3...6)
+                Button(appLocalized("feReference.submitDispute", locale: locale)) { Task { await dispute(row) } }
                     .disabled(busy || (try? FeReferenceDisputeRequest(row: row, note: disputeNote)) == nil || client?.canDispute != true)
             }
-            .navigationTitle(t("Dispute", "提出异议"))
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(t("Cancel", "取消")) { disputeRow = nil } } }
+            .navigationTitle(appLocalized("feReference.dispute", locale: locale))
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(appLocalized("feReference.cancel", locale: locale)) { disputeRow = nil } } }
         }
     }
     private func toggle(_ id: Int) { if selected.contains(id) { selected.remove(id) } else { selected.insert(id) } }
@@ -135,10 +133,10 @@ enum FeReferenceSettlementRole: String { case merchant, payer }
     }
     private func report(_ outcome: FeReferenceSettlementOutcome) {
         switch outcome {
-        case .acknowledged: message = t("Server acknowledged; refreshing.", "服务器已接收，正在刷新。"); selected = []; reloadKey = UUID()
+        case .acknowledged: message = appLocalized("feReference.serverAcknowledgedRefreshing", locale: locale); selected = []; reloadKey = UUID()
         case .rejected(let text): message = text
-        case .notSent: message = t("Not sent. Authorization is disabled or the session changed.", "未发送。授权关闭或账号已变化。")
-        case .unknown: message = t("Outcome unknown. Check server state; do not resubmit.", "结果未知。请核对服务器状态，勿重复提交。")
+        case .notSent: message = appLocalized("feReference.notSentAuthorizationIs", locale: locale)
+        case .unknown: message = appLocalized("feReference.outcomeUnknownCheckServer", locale: locale)
         }
     }
 }
@@ -150,5 +148,23 @@ enum FeReferenceSettlementRole: String { case merchant, payer }
         // Grants stay dormant: reads and both writes require independent approval.
         FeReferenceSettlementView(client: session.publisherLifecycleContext.map { FeReferenceSettlementHTTP(sharing: $0.client) }, role: role)
             .id(session.sessionRevision)
+    }
+}
+/// Single account entry for F11; the store and organizer views are separate rows here so the
+/// account list gains only one row.
+@MainActor struct SessionFeReferenceSettlementHubView: View {
+    @ObservedObject var session: AppSession
+    var body: some View {
+        List {
+            Section {
+                NavigationLink { SessionFeReferenceSettlementView(session: session, role: .merchant) } label: {
+                    Label("feReference.hub.merchant", systemImage: "storefront")
+                }.accessibilityIdentifier("feReference.hub.merchant")
+                NavigationLink { SessionFeReferenceSettlementView(session: session, role: .payer) } label: {
+                    Label("feReference.hub.payer", systemImage: "checklist")
+                }.accessibilityIdentifier("feReference.hub.payer")
+            } footer: { Text("feReference.hub.note") }
+        }
+        .navigationTitle(Text("feReference.entry"))
     }
 }

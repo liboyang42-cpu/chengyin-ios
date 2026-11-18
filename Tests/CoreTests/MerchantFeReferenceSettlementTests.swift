@@ -30,8 +30,8 @@ private final class FeReferenceHTTPFake: HTTPTransport {
         XCTAssertEqual(group.rows.map(\.id), [1, 2, 3])
         XCTAssertEqual(group.rows[0].status, .open); XCTAssertEqual(group.rows[0].basis, .perkRedeemed)
         XCTAssertEqual(group.rows[0].amountText, "¥24.00"); XCTAssertEqual(group.rows[0].unitAmountText, "¥8.00")
-        XCTAssertTrue(group.rows[1].isAuthorSelfSupply); XCTAssertEqual(group.rows[1].statusTitle(zh: true), "作者自营，无需结算")
-        XCTAssertNil(group.rows[2].status); XCTAssertEqual(group.rows[2].unitAmountText, "¥5.50")
+        XCTAssertTrue(group.rows[1].isAuthorSelfSupply); XCTAssertEqual(group.rows[1].statusText, "作者自营，无需结算")
+        XCTAssertNil(group.rows[2].status); XCTAssertEqual(group.rows[2].statusLocalizationKey, "feReference.status.unknown"); XCTAssertEqual(group.rows[2].unitAmountText, "¥5.50")
         XCTAssertEqual(value.totalOpenText, "¥24.00"); XCTAssertEqual(value.totalSettledText, "¥0.00")
     }
     func testMissingMoneyDisplaysZero() throws {

@@ -64,9 +64,10 @@ public enum FreeExplorePriceState: Equatable {
     public var disablesPriceFields: Bool {
         switch self { case .awaitingSlots, .frozen: return true; default: return false }
     }
-    public func openSlotsText(zh: Bool) -> String? {
+    /// Open slot count while awaiting suppliers; the view localizes it with "freeExplore.sale.openSlots".
+    public var openSlotCount: Int? {
         guard case .awaitingSlots(let open) = self else { return nil }
-        return zh ? "还有 \(open) 个位置待承接" : "\(open) slot(s) still need a supplier"
+        return open
     }
 }
 
