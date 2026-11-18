@@ -3,13 +3,15 @@ import CryptoKit
 
 /// Durable normal-Play prerequisite only. Uses the unchanged reviewed OS storage primitives;
 /// neither arbitrary conformance nor this injectable initializer grants network authority.
-@MainActor public final class PlayDurableRecovery: PlayCompletionRecoveryStore, PlayPausedStorage {
+@MainActor public final class PlayDurableRecovery: PlayCompletionRecoveryStore, PlayPausedStorage, FreeExplorationStoryArchiveStore {
     private static let liveProcessID = UUID()
     public let processID: UUID
     private let key: String
     private let owner: PlayRecoveryOwner
     private let completion: PlayEncryptedSlot
     private let paused: PlayEncryptedSlot
+    /// FE-STORY offline copy of unlocked chapters, in the same account/run-bound encrypted journal.
+    private let storyArchive: PlayEncryptedSlot
     #if canImport(Security) && canImport(Darwin)
     private var systemStorage: PlayRecoverySystemStorage?
     var isSystemBacked: Bool { systemStorage != nil }
@@ -35,6 +37,7 @@ import CryptoKit
         self.owner = owner; self.key = key; self.processID = processID
         completion = try PlayEncryptedSlot(binding: key + ":completion", anchors: anchors, ciphertexts: ciphertexts)
         paused = try PlayEncryptedSlot(binding: key + ":paused", anchors: anchors, ciphertexts: ciphertexts)
+        storyArchive = try PlayEncryptedSlot(binding: key + ":fe-story", anchors: anchors, ciphertexts: ciphertexts)
     }
     private func check(_ key: String) throws {
         guard self.key.utf8.elementsEqual(key.utf8) else { throw PlayExperienceError.persistenceUnavailable }
@@ -103,6 +106,27 @@ import CryptoKit
         let old = PlayEncryptedSnapshot(data: snapshot.persistedBytes, generation: snapshot.generation)
         let written = try await paused.write(encode(value), replacing: old)
         return .init(value: value, generation: written.generation, persistedBytes: written.data)
+    }
+}
+extension PlayDurableRecovery {
+    /// Missing, corrupt or foreign records fail closed; the caller then shows no archive.
+    public func readStoryArchive(key: String) async throws -> FreeExplorationStoryArchive? {
+        try check(key)
+        do {
+            guard let data = try await storyArchive.read().data else { return nil }
+            let value = try PropertyListDecoder().decode(FreeExplorationStoryArchive.self, from: data)
+            guard value.owner == owner, value.schema == FreeExplorationStoryArchive.currentSchema else { throw PlayExperienceError.persistenceUnavailable }
+            return value
+        } catch { throw PlayExperienceError.persistenceUnavailable }
+    }
+    /// A read cache only: it replaces the previous generation and never authorizes a write.
+    public func writeStoryArchive(_ archive: FreeExplorationStoryArchive, key: String) async throws {
+        try check(key)
+        guard archive.owner == owner else { throw PlayExperienceError.persistenceUnavailable }
+        let encoder = PropertyListEncoder(); encoder.outputFormat = .binary
+        let bytes = try encoder.encode(archive)
+        let current = try await storyArchive.read()
+        _ = try await storyArchive.write(bytes, replacing: current)
     }
 }
 private struct PlayEncryptedSnapshot: Equatable {
