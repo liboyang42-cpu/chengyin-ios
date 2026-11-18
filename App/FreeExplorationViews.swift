@@ -197,7 +197,9 @@ struct FreeExplorationStoreName: View {
             .onChange(of: showingReview) { _, visible in if !visible, review != nil { review = nil; model.cancelReview() } }
             .onAppear {
                 guard arrival == nil else { return }
-                let location: any RoamDeviceLocationProviding = makeArrivalLocation?() ?? RuntimeNativeLocationProvider(enabled: device?.supports(.location) == true)
+                let location: any RoamDeviceLocationProviding
+                if let makeArrivalLocation { location = makeArrivalLocation() }
+                else { location = RuntimeNativeLocationProvider(enabled: device?.supports(.location) == true) }
                 arrival = PlayArrivalService(runtime: model, location: location)
             }
             .onDisappear { device?.cancel(); review = nil; model.cancelReview(); arrival?.cancel() }

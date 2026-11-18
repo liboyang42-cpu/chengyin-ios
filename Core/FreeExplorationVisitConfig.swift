@@ -103,7 +103,7 @@ public enum FreeExplorationVisitConfigError: Error, Equatable {
         var request = URLRequest(url: url); request.httpMethod = "GET"
         request.setValue(token, forHTTPHeaderField: "Authorization"); request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.cachePolicy = .reloadIgnoringLocalCacheData; request.timeoutInterval = 20
-        let (data, status): (Data, Int)
+        let data: Data, status: Int
         do { (data, status) = try await transport.send(request) } catch { throw FreeExplorationVisitConfigError.malformed }
         let payload = try Self.decode(data, status: status, write: false)
         guard let rows = payload.array else { throw FreeExplorationVisitConfigError.malformed }
@@ -122,7 +122,7 @@ public enum FreeExplorationVisitConfigError: Error, Equatable {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type"); request.timeoutInterval = 20
         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
         request.httpBody = try encoder.encode(change.body)
-        let (data, status): (Data, Int)
+        let data: Data, status: Int
         do { (data, status) = try await transport.send(request) } catch { throw FreeExplorationVisitConfigError.unknownResult }
         _ = try Self.decode(data, status: status, write: true)
     }

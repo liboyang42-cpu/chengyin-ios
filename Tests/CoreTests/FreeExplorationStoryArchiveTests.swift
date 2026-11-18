@@ -59,7 +59,7 @@ import FoundationNetworking
         for secret in ["Synthetic stale locked description", "Synthetic stale locked story", "Synthetic stale fragment", "Synthetic locked chapter text"] {
             XCTAssertFalse(bytes.contains(secret), secret)
         }
-        XCTAssertNil(FreeExplorationStoryArchive(snapshot: try snapshot(#"{"mode":1,"registered":true,"playable":true,"nodes":[{"nodeId":701,"storyLocked":false,"storyText":"City"}]}"#), chapterStories: [:], owner: .init(session: session())))
+        XCTAssertNil(try FreeExplorationStoryArchive(snapshot: snapshot(#"{"mode":1,"registered":true,"playable":true,"nodes":[{"nodeId":701,"storyLocked":false,"storyText":"City"}]}"#), chapterStories: [:], owner: .init(session: session())))
     }
 
     func testArchiveRoundTripsAndMergesWithoutLosingEarlierVisits() throws {

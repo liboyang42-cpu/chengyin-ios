@@ -152,7 +152,7 @@ private final class PlayExperienceFixtureTransport: HTTPTransport {
                 summaryModel: { topicID in state.retained("summary:\(topicID)") { PlayOperatingSummaryCoordinator(topicID: topicID, service: service, currentSession: { state.session }) } },
                 playerModel: state.retained("player") { PlayPlayerGameCoordinator(activityID: 41, service: service, currentSession: { state.session }) },
                 circleModel: state.retained("circle") { PlayCircleCoordinator(topicID: 71, service: service, currentSession: { state.session }) },
-                makeArrivalLocation: state.scenario.hasPrefix("fe") ? { FreeExplorationFixtureLocation() } : nil)
+                makeArrivalLocation: state.scenario.hasPrefix("fe") ? { () -> any RoamDeviceLocationProviding in FreeExplorationFixtureLocation() } : nil)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("playx.fixture.switch") { state.epoch += 1; state.accountID = 9002; model.invalidate(); revision += 1 }
