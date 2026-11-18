@@ -258,8 +258,11 @@ import SwiftUI
     let sessionRevision: UInt64
     var publisherClient: PublisherLifecycleHTTP? = nil
     var publisherHost: ((PublishedResource) -> AnyView)? = nil
-    init(coordinator: ProjectEditCoordinator, sessionRevision: UInt64, seed: ProjectEditDraft? = nil, publisherClient: PublisherLifecycleHTTP? = nil, publisherHost: ((PublishedResource) -> AnyView)? = nil, ownedCoverPicker: (() -> any OwnedTopicCoverSelecting)? = nil, storyImagePicker: (() -> any OwnedTopicCoverSelecting)? = nil, storyAudioPicker: (() -> any ProjectStoryAudioSelecting)? = nil) {
-        self.publisherClient = publisherClient; self.publisherHost = publisherHost; self.ownedCoverPicker = ownedCoverPicker
+    /// FE-STORY 7.10 per-place 「到访方式」 for an existing free-exploration topic. No
+    /// composition supplies it until its read/write routes are granted; nil hides the entry.
+    var visitConfigModel: ((Int) -> FreeExplorationVisitConfigModel?)? = nil
+    init(coordinator: ProjectEditCoordinator, sessionRevision: UInt64, seed: ProjectEditDraft? = nil, publisherClient: PublisherLifecycleHTTP? = nil, publisherHost: ((PublishedResource) -> AnyView)? = nil, ownedCoverPicker: (() -> any OwnedTopicCoverSelecting)? = nil, storyImagePicker: (() -> any OwnedTopicCoverSelecting)? = nil, storyAudioPicker: (() -> any ProjectStoryAudioSelecting)? = nil, visitConfigModel: ((Int) -> FreeExplorationVisitConfigModel?)? = nil) {
+        self.publisherClient = publisherClient; self.publisherHost = publisherHost; self.ownedCoverPicker = ownedCoverPicker; self.visitConfigModel = visitConfigModel
         let value = ProjectEditModel(coordinator: coordinator, seed: seed, storyImagePicker: storyImagePicker, storyAudioPicker: storyAudioPicker)
         _model = StateObject(wrappedValue: value); _starter = StateObject(wrappedValue: .init(model: value)); _pending = StateObject(wrappedValue: .init(model: value)); _chapterRemoval = StateObject(wrappedValue: .init(model: value)); _issueNavigation = StateObject(wrappedValue: .init(model: value)); _modeReview = StateObject(wrappedValue: .init(model: value)); _ownedCover = StateObject(wrappedValue: .init(model: value)); _approvedRelease = StateObject(wrappedValue: .init(model: value)); _reviewRequest = StateObject(wrappedValue: .init(model: value)); self.sessionRevision = sessionRevision
     }
@@ -293,6 +296,14 @@ import SwiftUI
                         Text(LocalizedStringKey(model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
                             .accessibilityIdentifier("projectRemote.mode")
                         Text("projectRemote.freshSource").font(.caption)
+                        if model.draft.product == .freeExplore, let visitConfigModel {
+                            NavigationLink {
+                                if let visit = visitConfigModel(id) { FreeExplorationVisitConfigView(model: visit) }
+                                else { Text("feVisitConfig.disabled") }
+                            } label: {
+                                Label("feVisitConfig.title", systemImage: "location.viewfinder")
+                            }.accessibilityIdentifier("projectEdit.visitConfig")
+                        }
                     }
                 }
                 ProjectSubmissionEvidenceSection(model: model)

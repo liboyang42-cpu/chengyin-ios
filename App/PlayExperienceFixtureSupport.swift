@@ -115,6 +115,7 @@ private final class PlayExperienceFixtureTransport: HTTPTransport {
         recorder.responses["/fixture/api/play/route-state"] = .reply(PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.route), 200)
         for path in ["answer", "sensor-result", "checkin", "photo", "arrive"] { recorder.responses["/fixture/api/play/" + path] = scenario == "unknown" ? .failure(.unknownResult) : .reply(PlayExperienceSyntheticFixtures.envelope(#"{"nodeId":701,"firstTime":true,"xp":9,"completed":true}"#), 200) }
         recorder.afterCompletion["/fixture/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.complete), 200)
+        if scenario.hasPrefix("fe") { FreeExplorationStoryFixtures.install(scenario: scenario, on: recorder) }
         recorder.responses["/fixture/api/play/run-session"] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"runState":"PAUSED","savedAt":1000,"elapsedSeconds":12}"#), 200)
         for path in ["run-session/save", "run-session/clear"] { recorder.responses["/fixture/api/play/" + path] = .reply(PlayExperienceSyntheticFixtures.envelope("null"), 200) }
         recorder.responses["/fixture/api/play/ending"] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"opener":"","fragments":[]}"#), 200)
@@ -124,7 +125,8 @@ private final class PlayExperienceFixtureTransport: HTTPTransport {
         for action in PlayLeadAction.allCases { recorder.responses["/fixture/api/club/lead/" + action.rawValue] = .reply(PlayExperienceSyntheticFixtures.envelope("null"), 200) }
         recorder.responses["/fixture/api/play/hint/unlock"] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"hint1":"Synthetic hint","hint2":"","cost":2}"#), 200)
         let normalService = PlayExperienceService(configuration: try! APIConfiguration(baseURL: URL(string: "https://example.com/fixture/")!), transport: recorder, enabled: service.enabled)
-        _model = State(initialValue: PlayExperienceCoordinator(scope: .activity(41), service: normalService, recovery: PlayMemoryCompletionRecovery(), pausedStorage: PlayMemoryPausedStorage(), currentSession: { state.session }))
+        _model = State(initialValue: PlayExperienceCoordinator(scope: .activity(41), service: normalService, recovery: PlayMemoryCompletionRecovery(), pausedStorage: PlayMemoryPausedStorage(), currentSession: { state.session },
+            storyArchive: FreeExplorationMemoryStoryArchive()))
     }
     var body: some View {
         if state.scenario.hasPrefix("routeMap") {
@@ -149,7 +151,8 @@ private final class PlayExperienceFixtureTransport: HTTPTransport {
                 },
                 summaryModel: { topicID in state.retained("summary:\(topicID)") { PlayOperatingSummaryCoordinator(topicID: topicID, service: service, currentSession: { state.session }) } },
                 playerModel: state.retained("player") { PlayPlayerGameCoordinator(activityID: 41, service: service, currentSession: { state.session }) },
-                circleModel: state.retained("circle") { PlayCircleCoordinator(topicID: 71, service: service, currentSession: { state.session }) })
+                circleModel: state.retained("circle") { PlayCircleCoordinator(topicID: 71, service: service, currentSession: { state.session }) },
+                makeArrivalLocation: state.scenario.hasPrefix("fe") ? { FreeExplorationFixtureLocation() } : nil)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("playx.fixture.switch") { state.epoch += 1; state.accountID = 9002; model.invalidate(); revision += 1 }
@@ -159,5 +162,39 @@ private final class PlayExperienceFixtureTransport: HTTPTransport {
         }.id(revision)
         }
     }
+}
+/// FE-STORY synthetic scripts: neutral places only, never private story content.
+@MainActor enum FreeExplorationStoryFixtures {
+    static let locked = #"{"topicId":71,"topicName":"Synthetic story walk","mode":2,"registered":true,"playable":true,"total":2,"doneCount":0,"storyUnlocked":1,"storyTotal":2,"chapters":[{"chapterId":81,"name":"Synthetic chapter one","chapterLocked":true},{"chapterId":82,"name":"Synthetic chapter two","description":"Synthetic shared chapter text","chapterLocked":false}],"nodes":[{"nodeId":701,"name":"示例站点 A","chapterId":81,"done":false,"arrived":false,"selfReported":false,"visitCheck":"GPS","visitRadius":300,"visited":false,"storyLocked":true,"latitude":31.2304,"longitude":121.4737,"address":"Synthetic address A","hookText":"Synthetic hook line","description":"Synthetic stale locked description","storyText":"Synthetic stale locked story"},{"nodeId":702,"name":"示例站点 B","chapterId":82,"done":false,"arrived":true,"selfReported":false,"visitCheck":"GPS","visited":true,"visitedByTeam":true,"visitTime":null,"storyLocked":false,"description":"Synthetic team unlocked text"}]}"#
+    static let unlocked = #"{"topicId":71,"topicName":"Synthetic story walk","mode":2,"registered":true,"playable":true,"total":2,"doneCount":0,"storyUnlocked":2,"storyTotal":2,"chapters":[{"chapterId":81,"name":"Synthetic chapter one","description":"Synthetic first chapter text","chapterLocked":false},{"chapterId":82,"name":"Synthetic chapter two","description":"Synthetic shared chapter text","chapterLocked":false}],"nodes":[{"nodeId":701,"name":"示例站点 A","chapterId":81,"done":false,"arrived":true,"selfReported":false,"visitCheck":"GPS","visitRadius":300,"visited":true,"visitTime":1763344800000,"storyLocked":false,"latitude":31.2304,"longitude":121.4737,"address":"Synthetic address A","description":"Synthetic unlocked chapter text"},{"nodeId":702,"name":"示例站点 B","chapterId":82,"done":false,"arrived":true,"selfReported":false,"visitCheck":"GPS","visited":true,"visitedByTeam":true,"visitTime":null,"storyLocked":false,"description":"Synthetic team unlocked text"}]}"#
+    static let history = #"{"readOnly":true,"mode":2,"storyUnlocked":1,"storyTotal":2,"chapters":[{"chapterId":82,"name":"Synthetic chapter two","sortId":2,"description":"Synthetic shared chapter text","blocks":[{"type":"text","content":"Synthetic expired chapter block"}]}],"nodes":[{"nodeId":702,"name":"示例站点 B","chapterId":82,"address":"Synthetic address B","description":"Synthetic team unlocked text","fragmentText":"Synthetic kept fragment","visitTime":null,"visitedByTeam":true}]}"#
+    static func install(scenario: String, on recorder: PlayRecoveryRecordingTransport) {
+        let nodes = "/fixture/api/play/nodes", arrive = "/fixture/api/play/arrive"
+        recorder.responses[nodes] = .reply(PlayExperienceSyntheticFixtures.envelope(locked), 200)
+        recorder.afterCompletion[nodes] = .reply(PlayExperienceSyntheticFixtures.envelope(unlocked), 200)
+        switch scenario {
+        case "feStoryTooFar":
+            recorder.responses[arrive] = .reply(Data(#"{"code":500,"msg":"Synthetic refusal","errorCode":"ARRIVE_TOO_FAR","distanceMeters":337}"#.utf8), 200)
+        case "feStoryUnknown":
+            recorder.responses[arrive] = .failure(.unknownResult)
+        case "feOffline":
+            // One live read saves the device copy; every later read has no network.
+            recorder.queues[nodes] = [.reply(PlayExperienceSyntheticFixtures.envelope(locked), 200)]
+            recorder.responses[nodes] = .offline
+        case "feExpired":
+            recorder.responses[nodes] = .reply(PlayExperienceSyntheticFixtures.envelope(locked.replacingOccurrences(of: #""playable":true"#, with: #""playable":false"#)), 200)
+            recorder.responses["/fixture/api/play/history"] = .reply(PlayExperienceSyntheticFixtures.envelope(history), 200)
+        default:
+            recorder.responses[arrive] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"nodeId":701,"firstTime":true}"#), 200)
+        }
+    }
+}
+/// One synthetic GCJ-02 fix at the locked place; no CoreLocation or permission prompt.
+@MainActor final class FreeExplorationFixtureLocation: RoamDeviceLocationProviding {
+    func currentFix() async throws -> RoamDeviceFix {
+        guard let coordinate = RoamCoordinate(latitude: 31.2304, longitude: 121.4737) else { throw PlayExperienceError.unsupported }
+        return try RoamDeviceFix(coordinate: coordinate, accuracyMeters: 10, measuredAt: Date(), datum: .gcj02)
+    }
+    func stop() {}
 }
 #endif
