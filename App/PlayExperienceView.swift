@@ -223,7 +223,9 @@ import SwiftUI
         .accessibilityIdentifier("playx.overview")
     }
     @ViewBuilder private func freeStoreDestination(_ id: Int) -> some View {
-        if model.gameplayMode == .freeExploration {
+        // A re-read clears the snapshot while it loads; keep the same store view (and its
+        // arrival state, e.g. an unknown visit) instead of swapping it out mid-read.
+        if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) {
             FreeExplorationStoreView(nodeID: id, model: model, device: deviceModel?(id), shopNPC: shopNPCModel?(id), mediaScope: mediaScope,
                 makeExternalMaps: makeExternalMaps, storyDestination: { node in
                     guard model.hasCurrentMediaSnapshot, let chapterID = node.chapterID,
