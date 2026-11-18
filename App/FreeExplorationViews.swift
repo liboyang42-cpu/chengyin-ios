@@ -14,6 +14,10 @@ import SwiftUI
                 if let title = snapshot.result.topicName { Text(verbatim: title).font(.title.bold()) }
                 if let description = snapshot.result.topicDescription { Text(verbatim: description) }
                 Text("playFree.choiceHint")
+                if let unlocked = presentation.storyUnlocked, let chapters = presentation.storyTotal {
+                    Label("playFree.story.unlocked.count \(unlocked) \(chapters)", systemImage: "books.vertical")
+                        .font(.headline).accessibilityIdentifier("playFree.story.unlocked.count")
+                }
                 if let done = presentation.redeemed, let total = presentation.total {
                     Text("playFree.redeemed.count \(done) \(total)").accessibilityIdentifier("playFree.redeemed.count")
                 }
@@ -40,6 +44,7 @@ import SwiftUI
                                     if let title = node.gameTitle, !title.isEmpty { Text(verbatim: title).font(.subheadline) }
                                     if let open = node.openStatus, !open.isEmpty { Text(verbatim: open).font(.caption) }
                                     Text(LocalizedStringKey(FreeExplorationPresentation.state(of: node, in: snapshot).titleKey)).font(.caption.bold())
+                                    FreeExplorationStoryBadge(node: node, snapshot: snapshot).font(.caption)
                                 }.frame(maxWidth: .infinity, minHeight: 150, alignment: .topLeading).padding()
                                     .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
                             }.buttonStyle(.plain).accessibilityIdentifier("playFree.store.\(node.id)")
@@ -87,6 +92,9 @@ struct FreeExplorationStoreName: View {
                         ForEach(snapshot.visibleNodes.filter(snapshot.isDone)) { node in
                             Label { FreeExplorationStoreName(name: node.name) } icon: { Image(systemName: "checkmark.seal") }
                         }
+                    }
+                    // FE-STORY: the ending opens once every place was visited, in any order.
+                    if FreeExplorationPresentation(snapshot: snapshot)?.isFullyVisited == true {
                         Button("playFree.ending.read") { Task { await model.loadFreeExplorationEnding() } }
                         if let ending = model.ending {
                             if !ending.opener.isEmpty { Text(verbatim: ending.opener) }
@@ -123,6 +131,7 @@ struct FreeExplorationStoreName: View {
     @State private var review: PlayCompletionReview?
     @State private var showingReview = false
     @State private var issue: PlayExperienceError?
+    @State private var arrival: PlayArrivalService?
     private var node: PlayNode? {
         guard model.gameplayMode == .freeExploration else { return nil }
         return model.snapshot?.visibleNodes.first { $0.id == nodeID }
@@ -134,20 +143,34 @@ struct FreeExplorationStoreName: View {
                 Section {
                     FreeExplorationStoreName(name: node.name).font(.title2.bold())
                     Text(LocalizedStringKey(FreeExplorationPresentation.state(of: node, in: snapshot).titleKey))
+                    FreeExplorationStoryBadge(node: node, snapshot: snapshot)
                 }
-                if !snapshot.isLocked(node) {
-                    if let description = node.description { Section { Text(verbatim: description) } }
-                    if let hours = node.businessTime { LabeledContent("play.businessTime") { Text(verbatim: hours) } }
-                    if model.hasCurrentMediaSnapshot, node.npc != nil, let shopNPC {
-                        Section {
-                            ShopNPCNodeEntrance(name: shopNPC.name, makeCoordinator: shopNPC.makeCoordinator, greeting: shopNPC.greeting,
-                                makeScriptedGuide: { scope in ShopNPCScriptedGuideSource(runtime: model, nodeID: nodeID, conversation: scope) }).id(shopNPC.identity)
-                        }
-                    }
-                    if let story = storyDestination(node) { NavigationLink("playFree.story") { story } }
+                if !snapshot.isLocked(node), snapshot.isStoryLocked(node) {
+                    // FE-STORY locked card: only what finds the place; no chapter text or NPC.
+                    FreeExplorationLockedCard(node: node)
                     PlatformExternalMapHost(destination: .init(name: node.name ?? "", address: node.address,
                         latitude: node.latitude, longitude: node.longitude), scope: mediaScope, makeModel: makeExternalMaps)
-                    FreeExplorationVisitSteps(node: node)
+                    if node.visitCheck == .scan {
+                        Section { Label("playFree.story.scanUnlock", systemImage: "qrcode.viewfinder").font(.headline) }
+                    } else if let arrival {
+                        PlayArrivalControl(arrival: arrival, nodeID: nodeID, context: context, canSubmit: model.canSubmitArrival, visitRadius: node.visitRadius)
+                    }
+                }
+                if !snapshot.isLocked(node) {
+                    if !snapshot.isStoryLocked(node) {
+                        if let description = node.description { Section { Text(verbatim: description) } }
+                        if let hours = node.businessTime { LabeledContent("play.businessTime") { Text(verbatim: hours) } }
+                        if model.hasCurrentMediaSnapshot, node.npc != nil, let shopNPC {
+                            Section {
+                                ShopNPCNodeEntrance(name: shopNPC.name, makeCoordinator: shopNPC.makeCoordinator, greeting: shopNPC.greeting,
+                                    makeScriptedGuide: { scope in ShopNPCScriptedGuideSource(runtime: model, nodeID: nodeID, conversation: scope) }).id(shopNPC.identity)
+                            }
+                        }
+                        if let story = storyDestination(node) { NavigationLink("playFree.story") { story } }
+                        PlatformExternalMapHost(destination: .init(name: node.name ?? "", address: node.address,
+                            latitude: node.latitude, longitude: node.longitude), scope: mediaScope, makeModel: makeExternalMaps)
+                    }
+                    FreeExplorationVisitSteps(node: node, visited: snapshot.isVisited(node))
                     if node.done != true {
                         if node.arrived == true, node.hasGame != false, node.gameDone != true { Text("playFree.game.unavailable") }
                         if node.selfReported == true { Text("playFree.redemption.unavailable") }
@@ -167,7 +190,8 @@ struct FreeExplorationStoreName: View {
                 Button("playx.cancel", role: .cancel) { review = nil; model.cancelReview() }
             } message: { Text("playFree.evidence.notice") }
             .onChange(of: showingReview) { _, visible in if !visible, review != nil { review = nil; model.cancelReview() } }
-            .onDisappear { device?.cancel(); review = nil; model.cancelReview() }
+            .onAppear { if arrival == nil { arrival = PlayArrivalService(runtime: model, location: RuntimeNativeLocationProvider(enabled: device?.supports(.location) == true)) } }
+            .onDisappear { device?.cancel(); review = nil; model.cancelReview(); arrival?.cancel() }
     }
     private func prepare(_ evidence: PlayCompletionEvidence, context: PlayInteractionContext?) {
         guard let node, let snapshot = model.snapshot, FreeExplorationPresentation.evidenceTask(for: node, in: snapshot) != nil else { return }
@@ -175,16 +199,57 @@ struct FreeExplorationStoreName: View {
         catch { issue = error as? PlayExperienceError ?? .invalidAction }
     }
 }
+/// FE-STORY: 「到访」(GPS or scan) then 「核销」. Each row states done/not done in text, not icon only.
 struct FreeExplorationVisitSteps: View {
     let node: PlayNode
+    let visited: Bool
     var body: some View {
-        Section("playx.merchant.steps") {
-            Label("playx.merchant.scan", systemImage: node.arrived == true ? "checkmark.circle" : "circle")
-            Label("playx.merchant.photo", systemImage: node.selfReported == true ? "checkmark.circle" : "circle")
-            Label("playx.merchant.verify", systemImage: node.done == true ? "checkmark.circle" : "circle")
-            Text("playx.merchant.notice").font(.footnote)
+        Section("playFree.steps") {
+            step("playFree.steps.visit", done: visited)
+            step("playFree.steps.redeem", done: node.done == true)
+            Text("playFree.steps.notice").font(.footnote)
             if node.arrived == true, let requirement = node.photoRequirement { Text(verbatim: requirement) }
         }
+    }
+    private func step(_ key: LocalizedStringKey, done: Bool) -> some View {
+        HStack {
+            Label(key, systemImage: done ? "checkmark.circle.fill" : "circle")
+            Spacer()
+            Text(LocalizedStringKey(done ? "playFree.steps.done" : "playFree.steps.pending")).font(.caption).foregroundStyle(.secondary)
+        }.accessibilityElement(children: .combine)
+    }
+}
+/// Lock state for one place card: lock icon plus 「到访后解锁」, or the visit date once unlocked.
+struct FreeExplorationStoryBadge: View {
+    let node: PlayNode
+    let snapshot: PlaySnapshot
+    var body: some View {
+        if snapshot.isStoryLocked(node) {
+            Label("playFree.story.locked", systemImage: "lock.fill").accessibilityIdentifier("playFree.story.locked.\(node.id)")
+        } else if snapshot.result.mode == 2 {
+            Label { visitText } icon: { Image(systemName: "book.pages") }.accessibilityIdentifier("playFree.story.unlocked.\(node.id)")
+        }
+    }
+    @ViewBuilder private var visitText: some View {
+        switch node.visitTime {
+        case .epochMilliseconds(let millis)?:
+            Text("playFree.story.visitedOn \(Date(timeIntervalSince1970: Double(millis) / 1000).formatted(date: .abbreviated, time: .omitted))")
+        case .text(let text)?: Text("playFree.story.visitedOn \(text)")
+        case nil: Text("playFree.story.unlocked")
+        }
+    }
+}
+/// Name is in the header section. Shows only address, a spoiler-free hook and how to unlock.
+struct FreeExplorationLockedCard: View {
+    let node: PlayNode
+    var body: some View {
+        Section("playFree.story.lockedCard") {
+            if let hook = node.hookText, !hook.isEmpty { Text(verbatim: hook) }
+            if let address = node.address, !address.isEmpty { Label { Text(verbatim: address) } icon: { Image(systemName: "mappin") } }
+            if let hours = node.businessTime { LabeledContent("play.businessTime") { Text(verbatim: hours) } }
+            if node.visitCheck == .scan { Text("playFree.story.unlock.scan") }
+            else { Text("playFree.story.unlock.gps \(PlayArrivalPolicy.visitRadiusMeters(configured: node.visitRadius))") }
+        }.accessibilityIdentifier("playFree.story.lockedCard")
     }
 }
 
@@ -203,8 +268,10 @@ struct FreeExplorationVisitSteps: View {
                 if !snapshot.isLocked(node) {
                     if let address = node.address { Text(verbatim: address) }
                     if let hours = node.businessTime { LabeledContent("play.businessTime") { Text(verbatim: hours) } }
-                    if let story = node.storyText { Section("playFree.story") { Text(verbatim: story) } }
-                    FreeExplorationVisitSteps(node: node)
+                    // FE-STORY: chapter text only after a visit, even if a stale field arrives.
+                    if snapshot.isVisited(node), !snapshot.isStoryLocked(node), let story = node.storyText { Section("playFree.story") { Text(verbatim: story) } }
+                    else if snapshot.isStoryLocked(node), let hook = node.hookText, !hook.isEmpty { Section("playFree.story.lockedCard") { Text(verbatim: hook) } }
+                    FreeExplorationVisitSteps(node: node, visited: snapshot.isVisited(node))
                 }
                 Text("playFree.readOnly").font(.footnote)
                 Button("play.refresh") { Task { await model.load(keepingReceipt: true) } }

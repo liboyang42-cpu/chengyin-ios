@@ -168,6 +168,7 @@ private indirect enum PlayStoredWire: Codable {
 }
 private enum PlayStoredEvidence: Codable {
     case answer(String), scan(String), location(longitude: Double, latitude: Double, coordinateSystem: String), photo(uploadedURL: String), sensor(type: String, payload: [String: PlayStoredWire])
+    case arrival(PlayArrivalReading)
 }
 extension PlayCompletionEvidence {
     public init(from decoder: Decoder) throws {
@@ -177,6 +178,7 @@ extension PlayCompletionEvidence {
         case .location(let x, let y, let system): self = .location(longitude: x, latitude: y, coordinateSystem: system)
         case .photo(let v): self = .photo(uploadedURL: v)
         case .sensor(let type, let payload): self = .sensor(type: type, payload: payload.mapValues { $0.value })
+        case .arrival(let reading): guard reading.isValid else { throw PlayExperienceError.persistenceUnavailable }; self = .arrival(reading)
         }
     }
     public func encode(to encoder: Encoder) throws {
@@ -187,6 +189,7 @@ extension PlayCompletionEvidence {
         case .location(let x, let y, let system): stored = .location(longitude: x, latitude: y, coordinateSystem: system)
         case .photo(let v): stored = .photo(uploadedURL: v)
         case .sensor(let type, let payload): stored = .sensor(type: type, payload: payload.mapValues(PlayStoredWire.init))
+        case .arrival(let reading): stored = .arrival(reading)
         }
         try stored.encode(to: encoder)
     }

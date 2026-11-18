@@ -17,6 +17,13 @@ public enum RuntimeLocationProjection {
         let coordinate = try projectWGS84(fix.coordinate)
         return try RoamDeviceFix(coordinate: coordinate, accuracyMeters: fix.accuracyMeters, measuredAt: fix.measuredAt, datum: .gcj02)
     }
+    /// F08/FE arrival: the same fresh-fix rule and source conversion, but accuracy is
+    /// judged by `PlayArrivalPolicy` (up to 200 m), not by the nearby-search 100 m gate.
+    public static func gcj02ArrivalFix(_ fix: RoamDeviceFix, now: Date = Date()) throws -> RoamDeviceFix {
+        guard abs(now.timeIntervalSince(fix.measuredAt)) <= 30 else { throw APIError.invalidRequest }
+        if fix.datum == .gcj02 { return fix }
+        return try RoamDeviceFix(coordinate: try projectWGS84(fix.coordinate), accuracyMeters: fix.accuracyMeters, measuredAt: fix.measuredAt, datum: .gcj02)
+    }
     /// MapKit documents CLLocationCoordinate2D as WGS84. Convert exactly once with
     /// the existing source algorithm; already-GCJ02 input is not a new WGS84 center.
     public static func gcj02MapCenter(_ center: MapCenter) throws -> MapCenter {

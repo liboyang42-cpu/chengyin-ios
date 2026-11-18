@@ -13,8 +13,10 @@ public enum PlayCompletionEvidence: Codable, Equatable {
     case location(longitude: Double, latitude: Double, coordinateSystem: String)
     case photo(uploadedURL: String)
     case sensor(type: String, payload: [String: PlayWireValue])
+    /// F08 station tap (no coordinates once a run has started) or a located start / FE visit.
+    case arrival(PlayArrivalReading)
     var path: String {
-        switch self { case .answer: return "answer"; case .scan: return "checkin"; case .location: return "arrive"; case .photo: return "photo"; case .sensor: return "sensor-result" }
+        switch self { case .answer: return "answer"; case .scan: return "checkin"; case .location, .arrival: return "arrive"; case .photo: return "photo"; case .sensor: return "sensor-result" }
     }
 }
 /// Dormant production adapter; enabling a capability is an integration acceptance gate,
@@ -70,6 +72,12 @@ public struct PlayExperienceService {
             guard coordinateSystem == "GCJ02", longitude.isFinite, latitude.isFinite,
                   abs(longitude) <= 180, abs(latitude) <= 90 else { throw APIError.invalidRequest }
             fields["longitude"] = String(longitude); fields["latitude"] = String(latitude)
+        case .arrival(let reading):
+            guard reading.isValid else { throw APIError.invalidRequest }
+            if let longitude = reading.longitude, let latitude = reading.latitude {
+                fields["longitude"] = String(longitude); fields["latitude"] = String(latitude)
+            }
+            if let accuracy = reading.accuracyMeters { fields["accuracy"] = String(accuracy) }
         case .photo(let url):
             guard Self.validHTTPS(url) else { throw APIError.invalidRequest }
             fields["picUrl"] = url
@@ -250,6 +258,8 @@ public struct PlayExperienceService {
         // A transport error or malformed envelope cannot prove a write was rejected.
         guard (200..<300).contains(status) else { throw PlayExperienceError.unknownResult }
         guard let code else { throw PlayExperienceError.malformed }
+        if code != 200, let envelope, configuration.baseURL.appendingPathComponent("api/play/arrive") == route.url,
+           let rejection = PlayArrivalRejection(envelope: envelope) { throw PlayExperienceError.arrivalRejected(rejection) }
         guard code == 200 else { throw PlayExperienceError.rejected(code, envelope?["msg"].text) }
         return envelope?["data"] ?? .null
     }

@@ -18,6 +18,11 @@ public struct FreeExplorationPresentation: Equatable {
     public let redeemed: Int?
     public let total: Int?
     public let isFullyRedeemed: Bool
+    /// FE-STORY 「已解锁 X / N 章」: server counts only, never derived from card order.
+    public let storyUnlocked: Int?
+    public let storyTotal: Int?
+    /// The free ending opens once every visible place has been visited (any order).
+    public let isFullyVisited: Bool
     public init?(snapshot: PlaySnapshot) {
         guard PlayGameplayMode(serverValue: snapshot.result.mode) == .freeExploration else { return nil }
         stores = snapshot.availability == .registrationRequired ? [] : snapshot.visibleNodes
@@ -26,6 +31,8 @@ public struct FreeExplorationPresentation: Equatable {
             self.total = total; self.redeemed = redeemed
             isFullyRedeemed = redeemed == total && !stores.isEmpty && stores.allSatisfy(snapshot.isDone)
         } else { self.total = nil; self.redeemed = nil; isFullyRedeemed = false }
+        storyUnlocked = snapshot.result.storyUnlocked; storyTotal = snapshot.result.storyTotal
+        isFullyVisited = snapshot.availability != .registrationRequired && !stores.isEmpty && stores.allSatisfy(snapshot.isVisited)
     }
     /// Arrival precedes an optional in-store game. Missing game state never
     /// borrows a city-orientation answer/sensor/route-completion command.
