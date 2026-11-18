@@ -26,7 +26,7 @@ class RegistrationWaitlistCompositionTests(unittest.TestCase):
         self.assertEqual(source.count('try c.encode(waitlistOffer.id, forKey: .waitlistOfferId)'), 2)
         self.assertEqual(source.count('try c.encode(waitlistOffer.token, forKey: .waitlistOfferToken)'), 2)
         flow = self.read('Core/RegistrationUIFlow.swift')
-        self.assertIn('review.draft.details(waitlistOffer: review.selection.waitlistOffer)', flow)
+        self.assertIn('review.draft.details(waitlistOffer: review.selection.waitlistOffer, childAge: submittedChildAge)', flow)
         self.assertIn('result.offer(at: now()) != activeWaitlistOffer', flow)
     def test_durable_lock_before_create_and_no_unverified_clear(self):
         source = self.read('Core/RegistrationProduction.swift')
