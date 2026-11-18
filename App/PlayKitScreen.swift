@@ -17,6 +17,9 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     var approvedArtworkHosts: Set<String> = []
     var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
     var spatialApproval = PlayKitSpatialApproval()
+    /// F01 hint ladder; nil (the default) keeps help off until its capabilities are approved.
+    var help: PlayHelpCoordinator? = nil
+    @State var showHelp = false
     @State var text = ""
     @State var selected = Set<String>()
     @State var answers: [String: String] = [:]
@@ -76,6 +79,14 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
             Button("playkit.discard", role: .destructive) { clearTransient(); dismiss() }
             Button("playkit.keepEditing", role: .cancel) {}
         } message: { Text("playkit.discardBoundary") }
+        .sheet(isPresented: $showHelp) {
+            if let help {
+                PlayHelpPanelView(help: help, approvedArtworkHosts: approvedArtworkHosts) { _ in
+                    Task { await model.refreshAuthoritative() }
+                }
+            }
+        }
+        .task { await help?.load() }
         .onAppear { loadInitial() }
         .onChange(of: dirty) { _, next in reportDirty?(next) }
         .onChange(of: model.state?.sessionID) { _, next in
@@ -103,6 +114,11 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     private var contents: some View {
         VStack(alignment: .leading, spacing: 24) {
             header
+            if let help, help.enabled, !projection.complete {
+                Button { showHelp = true } label: { Label("playhelp.open", systemImage: "lightbulb") }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("playhelp.open")
+            }
             if let issue { PlayExperienceIssueView(issue: issue) }
             if let modelIssue = model.issue { PlayExperienceIssueView(issue: modelIssue) }
             if !model.isCurrent { Text("playkit.sessionChanged") }
@@ -165,10 +181,13 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
         if reasoningFeedback.showsResult(for: projection) {
             if kind == .photoCheck, segment["degraded"].bool == true {
                 Label("playkit.photo.noVerdict", systemImage: "exclamationmark.bubble")
+            } else if PlayKitNoRightAnswer.applies(kind: kind, segment: segment), projection.reportedPass != nil {
+                Label("playkit.result.recorded", systemImage: "checkmark.circle")
             } else if let passed = projection.reportedPass {
                 Label(passed ? "playkit.result.passed" : "playkit.result.notPassed", systemImage: passed ? "checkmark.circle" : "info.circle")
             } else if projection.complete { Label("playkit.result.recorded", systemImage: "checkmark.circle") }
-            if let feedback = projection.feedback, !feedback.isEmpty { Text(verbatim: feedback) }
+            // F02: a typed wrong-answer reply is already shown under the input.
+            if let feedback = projection.feedback, !feedback.isEmpty, typedWrongReply == nil { Text(verbatim: feedback) }
             if projection.complete { Text("playkit.result.authority").font(.footnote).foregroundStyle(.secondary) }
         }
     }
@@ -180,6 +199,10 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
         if model.pending == nil && model.isCurrent && model.phase != "submitting" {
             Button("playkit.refresh") { Task { await model.refreshAuthoritative() } }.accessibilityIdentifier("playkit." + kind.rawValue + ".refresh")
         }
+    }
+    var typedWrongReply: String? {
+        guard kind == .qa, (raw["mode"].text ?? "TYPE").uppercased() == "TYPE" else { return nil }
+        return PlayKitWrongReply.text(segment: raw)
     }
     func prepare(_ action: String, _ payload: [String: PlayWireValue] = [:], _ completion: @escaping () -> Void = {}) {
         do { review = try model.review(kind: kind.rawValue, action: action, detail: payload); reviewedCompletion = completion; issue = nil }
@@ -267,8 +290,9 @@ private struct PlayKitScreenChrome: ViewModifier {
     var reportDirty: ((Bool) -> Void)? = nil
     var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
     var spatialApproval = PlayKitSpatialApproval()
+    var help: PlayHelpCoordinator? = nil
     var body: some View {
         PlayKitScreen(model: model, kind: kind, presentation: .inline, reportDirty: reportDirty,
-            device: device, mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval)
+            device: device, mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval, help: help)
     }
 }
