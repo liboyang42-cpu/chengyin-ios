@@ -75,9 +75,12 @@ struct FreeExplorationStoreName: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 if model.phase == .loading { ProgressView("playx.loading") }
-                if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+                // FE-STORY: an offline or expired read shows the read-only archive instead of a bare error.
+                if let issue = model.issue, model.storyArchive == nil { PlayExperienceIssueView(issue: issue) }
                 if !model.available { Text("playx.disabled") }
-                if model.hasCurrentMediaSnapshot, let snapshot = model.snapshot {
+                if let archive = model.storyArchive, let source = model.storyArchiveSource {
+                    FreeExplorationArchiveView(archive: archive, source: source)
+                } else if model.hasCurrentMediaSnapshot, let snapshot = model.snapshot {
                     FreeExplorationCardBrowser(snapshot: snapshot, packOpen: $packOpen) { id in
                         guard model.hasCurrentMediaSnapshot, model.snapshot == snapshot, model.gameplayMode == .freeExploration else { return }
                         selectedStore = id
@@ -128,6 +131,8 @@ struct FreeExplorationStoreName: View {
     let mediaScope: UUID
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     let storyDestination: (PlayNode) -> AnyView?
+    /// Fixture-only seam; production reads one foreground fix through CoreLocation.
+    var makeArrivalLocation: (@MainActor () -> any RoamDeviceLocationProviding)? = nil
     @State private var review: PlayCompletionReview?
     @State private var showingReview = false
     @State private var issue: PlayExperienceError?
@@ -190,7 +195,13 @@ struct FreeExplorationStoreName: View {
                 Button("playx.cancel", role: .cancel) { review = nil; model.cancelReview() }
             } message: { Text("playFree.evidence.notice") }
             .onChange(of: showingReview) { _, visible in if !visible, review != nil { review = nil; model.cancelReview() } }
-            .onAppear { if arrival == nil { arrival = PlayArrivalService(runtime: model, location: RuntimeNativeLocationProvider(enabled: device?.supports(.location) == true)) } }
+            .onAppear {
+                guard arrival == nil else { return }
+                let location: any RoamDeviceLocationProviding
+                if let makeArrivalLocation { location = makeArrivalLocation() }
+                else { location = RuntimeNativeLocationProvider(enabled: device?.supports(.location) == true) }
+                arrival = PlayArrivalService(runtime: model, location: location)
+            }
             .onDisappear { device?.cancel(); review = nil; model.cancelReview(); arrival?.cancel() }
     }
     private func prepare(_ evidence: PlayCompletionEvidence, context: PlayInteractionContext?) {
@@ -225,9 +236,17 @@ struct FreeExplorationStoryBadge: View {
     let snapshot: PlaySnapshot
     var body: some View {
         if snapshot.isStoryLocked(node) {
-            Label("playFree.story.locked", systemImage: "lock.fill").accessibilityIdentifier("playFree.story.locked.\(node.id)")
+            // VoiceOver hears the whole rule, not only the short visual label.
+            Label("playFree.story.locked", systemImage: "lock.fill")
+                .accessibilityLabel(Text("playFree.story.locked.a11y"))
+                .accessibilityIdentifier("playFree.story.locked.\(node.id)")
         } else if snapshot.result.mode == 2 {
-            Label { visitText } icon: { Image(systemName: "book.pages") }.accessibilityIdentifier("playFree.story.unlocked.\(node.id)")
+            if node.visitedByTeam == true {
+                // FE-STORY 5.5: a teammate's visit unlocked it; `visitTime` may be null.
+                Label("playFree.story.visitedByTeam", systemImage: "person.2.fill").accessibilityIdentifier("playFree.story.team.\(node.id)")
+            } else {
+                Label { visitText } icon: { Image(systemName: "book.pages") }.accessibilityIdentifier("playFree.story.unlocked.\(node.id)")
+            }
         }
     }
     @ViewBuilder private var visitText: some View {
@@ -250,6 +269,73 @@ struct FreeExplorationLockedCard: View {
             if node.visitCheck == .scan { Text("playFree.story.unlock.scan") }
             else { Text("playFree.story.unlock.gps \(PlayArrivalPolicy.visitRadiusMeters(configured: node.visitRadius))") }
         }.accessibilityIdentifier("playFree.story.lockedCard")
+    }
+}
+
+/// FE-STORY 6.2 / 7.3 / 7.4: chapters already unlocked, read-only. Offline it is this device's
+/// copy for this account and run; after expiry it is the server's history. Locked places name
+/// why they stay locked and offer no visit control.
+@MainActor struct FreeExplorationArchiveView: View {
+    let archive: FreeExplorationStoryArchive
+    let source: FreeExplorationArchiveSource
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Label(LocalizedStringKey(source == .offline ? "playFree.archive.offline" : "playFree.archive.expired"),
+                  systemImage: source == .offline ? "wifi.slash" : "clock.badge.xmark")
+                .font(.headline).accessibilityIdentifier("playFree.archive.notice")
+            if let title = archive.topicName { Text(verbatim: title).font(.title2.bold()) }
+            if let unlocked = archive.storyUnlocked, let total = archive.storyTotal {
+                Label("playFree.story.unlocked.count \(unlocked) \(total)", systemImage: "books.vertical").font(.subheadline)
+            }
+            ForEach(archive.chapters) { chapter in
+                VStack(alignment: .leading, spacing: 10) {
+                    Group {
+                        if let name = chapter.name { Text(verbatim: name) } else { Text("playFree.archive.untitledChapter") }
+                    }.font(.headline).accessibilityAddTraits(.isHeader)
+                    paragraphs(chapter.paragraphs)
+                    ForEach(archive.places(in: chapter.id)) { place($0) }
+                }.frame(maxWidth: .infinity, alignment: .leading).padding()
+                    .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .accessibilityIdentifier("playFree.archive.chapter.\(chapter.id)")
+            }
+            ForEach(archive.placesWithoutChapter) { place($0) }
+            ForEach(archive.lockedPlaces) { locked in
+                VStack(alignment: .leading, spacing: 6) {
+                    FreeExplorationStoreName(name: locked.name).font(.headline)
+                    Label(LocalizedStringKey(source == .offline ? "playFree.archive.lockedOffline" : "playFree.archive.lockedExpired"), systemImage: "lock.fill")
+                        .font(.subheadline)
+                }.frame(maxWidth: .infinity, alignment: .leading).padding()
+                    .background(Color.secondary.opacity(0.05), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("playFree.archive.locked.\(locked.id)")
+            }
+            Text("playFree.archive.readOnly").font(.footnote).foregroundStyle(.secondary)
+        }.accessibilityIdentifier("playFree.archive")
+    }
+    @ViewBuilder private func paragraphs(_ values: [String]) -> some View {
+        ForEach(Array(values.enumerated()), id: \.offset) { _, text in Text(verbatim: text).fixedSize(horizontal: false, vertical: true) }
+    }
+    private func place(_ place: FreeExplorationStoryArchive.Place) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            FreeExplorationStoreName(name: place.name).font(.subheadline.bold())
+            if place.visitedByTeam {
+                Label("playFree.story.visitedByTeam", systemImage: "person.2.fill").font(.caption)
+            } else if let time = place.visitTime {
+                Label { FreeExplorationVisitTimeText(time: time) } icon: { Image(systemName: "book.pages") }.font(.caption)
+            }
+            if let address = place.address { Label { Text(verbatim: address) } icon: { Image(systemName: "mappin") }.font(.caption) }
+            paragraphs(place.paragraphs)
+        }.accessibilityIdentifier("playFree.archive.place.\(place.id)")
+    }
+}
+struct FreeExplorationVisitTimeText: View {
+    let time: PlayVisitTime
+    var body: some View {
+        switch time {
+        case .epochMilliseconds(let millis):
+            Text("playFree.story.visitedOn \(Date(timeIntervalSince1970: Double(millis) / 1000).formatted(date: .abbreviated, time: .omitted))")
+        case .text(let text): Text("playFree.story.visitedOn \(text)")
+        }
     }
 }
 
