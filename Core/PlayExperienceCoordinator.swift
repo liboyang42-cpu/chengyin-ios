@@ -112,6 +112,9 @@ public struct PlayCompletionReview: Equatable {
     public private(set) var remoteRunSaveFailed = false
     public private(set) var unresolved = false
     public private(set) var leaderOutcomeUnknown = false
+    /// Last definitive `/api/play/arrive` result for one exact review. Anything else is
+    /// either still unresolved (unknown) or an ordinary issue.
+    public private(set) var arrivalOutcome: PlayArrivalDispatchOutcome?
     public enum Phase: String { case idle, loading, ready, reviewing, submitting, needsReadback, unknown, failed }
     private let service: PlayExperienceService
     private let currentSession: () -> PlayExperienceSession?
@@ -185,6 +188,8 @@ public struct PlayCompletionReview: Equatable {
     }
     /// A read-only projection must not enable completion, hint or leader controls.
     public var canWrite: Bool { !service.enabled.isDisjoint(with: [.classicCompletion, .hints, .leader, .thoughtClaims]) && phase == .ready && !unresolved && !thoughtSyncInFlight && pendingThoughtKeys.isEmpty && loadedSession != nil && loadedSession == currentSession() }
+    /// Arrival writes reuse the classic completion grant (default off) and its durable journal.
+    public var canSubmitArrival: Bool { service.enabled.contains(.classicCompletion) && canWrite }
     /// Run state and durable pause records require their own reviewed capability.
     public var canManageRun: Bool { gameplayMode == .cityOrientation && service.enabled.contains(.runPersistence) && hasCurrentMediaSnapshot && !localRecoveryFailed && pausedLease?.value?.pendingRemote != true }
     public init(scope: PlaySessionScope, service: PlayExperienceService, recovery: any PlayCompletionRecoveryStore,
@@ -322,6 +327,14 @@ public struct PlayCompletionReview: Equatable {
                   node.validationMethod != 3 || node.options?[text] != nil else { throw PlayExperienceError.invalidAction }
             guard (node.needScan != true && node.needGPS != true) || node.arrived == true else { throw PlayExperienceError.invalidAction }
         case (.scan, .scan), (.merchantScan, .scan), (.photo, .photo), (.merchantPhoto, .photo), (.arrive, .location): break
+        case (.arrive, .arrival(let reading)):
+            guard reading.isValid else { throw PlayExperienceError.invalidAction }
+        case (.answer, .arrival(let reading)):
+            // F08: a GPS-gated answer station first records the player's own arrival tap.
+            guard reading.isValid, node.needGPS == true, node.needScan != true, node.arrived != true else { throw PlayExperienceError.invalidAction }
+        case (.merchantScan, .arrival(let reading)):
+            // FE-STORY: a GPS visit needs a located reading; scan-configured places keep the code path.
+            guard reading.isValid, reading.isLocated, node.visitCheck != .scan, node.visitCheck != .online else { throw PlayExperienceError.invalidAction }
         case (.sensor, .sensor(let type, let payload)):
             guard type == node.sensorType, type == "still", let config = try? PlayStillnessConfiguration(raw: extras[nodeID]?.sensorConfig ?? .null),
                   payload.keys.sorted() == ["heldSec"], payload["heldSec"]?.integer == config.durationSeconds else { throw PlayExperienceError.invalidAction }
@@ -365,9 +378,13 @@ public struct PlayCompletionReview: Equatable {
             defer { attempt.retire(); if completionTaskID == taskID { completionTask = nil; completionAttempt = nil } }
             let receipt = try await withTaskCancellationHandler(operation: { try await task.value }, onCancel: { task.cancel() })
             try check(session, request)
-            guard receipt["nodeId"].tolerantInteger == review.nodeID else { throw PlayExperienceError.malformed }
+            let isArrival: Bool
+            if case .arrival = review.evidence { isArrival = true } else { isArrival = false }
+            // A pure arrival receipt may omit nodeId; a different node is still malformed.
+            guard receipt["nodeId"].tolerantInteger == review.nodeID || (isArrival && receipt["nodeId"] == .null) else { throw PlayExperienceError.malformed }
             let acknowledged = try await recovery.transition(dispatched, to: .acknowledged, key: key)
             ticket = acknowledged; try check(session, request); cachedCompletion = acknowledged
+            if isArrival { arrivalOutcome = .init(reviewID: review.id, nodeID: review.nodeID, rejection: nil) }
             reward = receipt; phase = .needsReadback; await load()
         } catch {
             guard generation == request else { return }
@@ -375,6 +392,20 @@ public struct PlayCompletionReview: Equatable {
             // A storage error is never converted into an empty bucket or a safe-to-send state.
             if error as? PlayExperienceError == .persistenceUnavailable {
                 localRecoveryFailed = true; issue = .persistenceUnavailable; phase = .unknown; return
+            }
+            if case PlayExperienceError.arrivalRejected(let rejection) = error, rejection.provesNoCommit, let ticket, sent {
+                // The arrival contract defines these refusals as side-effect free: clear
+                // the exact journal so the player can move closer and tap again.
+                do {
+                    try await recovery.clear(ticket, key: key)
+                    try check(session, request); cachedCompletion = nil; unresolved = false
+                } catch {
+                    guard currentSession() == session, generation == request else { return }
+                    localRecoveryFailed = true; issue = .persistenceUnavailable; phase = .unknown; return
+                }
+                arrivalOutcome = .init(reviewID: review.id, nodeID: review.nodeID, rejection: rejection)
+                // The arrival surface renders the reason and distance itself.
+                issue = nil; phase = .ready; return
             }
             if let ticket, sent {
                 do {
@@ -446,7 +477,7 @@ public struct PlayCompletionReview: Equatable {
     /// No orientation leaderboard or completion command is inferred from card count.
     public func loadFreeExplorationEnding() async {
         guard gameplayMode == .freeExploration, hasCurrentMediaSnapshot, let snapshot,
-              FreeExplorationPresentation(snapshot: snapshot)?.isFullyRedeemed == true,
+              FreeExplorationPresentation(snapshot: snapshot)?.isFullyVisited == true,
               let session = loadedSession, session == currentSession(), phase != .submitting else { return }
         let request = generation
         do { let value = try await service.ending(scope: scope, token: session.token); try check(session, request); ending = value }
@@ -605,7 +636,7 @@ public struct PlayCompletionReview: Equatable {
         thoughtSyncNonce = UUID(); thoughtSyncInFlight = false; pendingThoughtKeys = []; thoughtClaimSessionID = nil; thoughtSyncPhase = .idle
         chapterStories = [:]; storyVariables = [:]; storyVoices = [:]; storyThoughts = []
         generation &+= 1; loadedSession = nil; authorityMode = nil; snapshot = nil; extras = [:]; reward = nil; hint = nil; cachedCompletion = nil
-        ending = nil; leaderboard = nil; lead = nil; advancedReadyNodeIDs = []; clock.restore(nil); phase = .idle
+        ending = nil; leaderboard = nil; lead = nil; advancedReadyNodeIDs = []; clock.restore(nil); phase = .idle; arrivalOutcome = nil
     }
     private func landed(_ review: PlayCompletionIntent, snapshot: PlaySnapshot) -> Bool {
         // Legacy records without mode stay unresolved; another mode's same node
@@ -614,8 +645,13 @@ public struct PlayCompletionReview: Equatable {
         if let routeSessionID = review.routeSessionID, snapshot.route?.sessionID != routeSessionID { return false }
         guard let node = snapshot.visibleNodes.first(where: { $0.id == review.nodeID }) else { return false }
         if snapshot.result.mode == 2 {
-            switch review.evidence { case .scan: return node.arrived == true; case .photo: return node.selfReported == true; default: return false }
+            switch review.evidence {
+            case .scan: return node.arrived == true
+            case .photo: return node.selfReported == true
+            case .arrival: return node.visited == true || node.storyLocked == false || node.arrived == true
+            default: return false }
         }
+        if case .arrival = review.evidence { return snapshot.isDone(node) || node.arrived == true }
         return snapshot.isDone(node)
     }
     private func check(_ session: PlayExperienceSession, _ request: UInt64) throws {

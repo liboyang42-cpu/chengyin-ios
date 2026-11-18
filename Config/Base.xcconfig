@@ -22,6 +22,8 @@ QUESTIFY_API_BASE_URL =
 INFOPLIST_KEY_QuestifyAPIBaseURL = $(QUESTIFY_API_BASE_URL)
 
 INFOPLIST_KEY_NSCameraUsageDescription = Use the camera to scan QR codes or take aftercare evidence photos when you choose.
+// Purpose only; one foreground read when the player taps "I've arrived". Grants stay off.
+INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = Read your location once when you tap I've arrived, to confirm you are near the start or a place you are visiting.
 
 // Explicit deployment identity for isolated local session persistence; no default realm.
 QUESTIFY_SESSION_REALM =

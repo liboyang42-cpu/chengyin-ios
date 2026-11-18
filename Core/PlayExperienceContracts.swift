@@ -74,6 +74,8 @@ public struct PlayRouteAdvance: Codable, Equatable {
 public enum PlayExperienceError: Error, Equatable {
     case disabled, staleSession, busy, invalidAction, unknownResult, unsupported, malformed, persistenceUnavailable
     case rejected(Int, String?), unauthorized
+    /// `/api/play/arrive` refusal with a machine-readable F08/FE reason.
+    case arrivalRejected(PlayArrivalRejection)
 }
 public struct PlayExperienceDocument: Decodable, Equatable {
     public let base: PlayNodesResult
