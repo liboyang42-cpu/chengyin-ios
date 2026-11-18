@@ -110,10 +110,3 @@ public struct PlayHangmanProjection: Equatable {
 /// Declaring a list at start is an all-or-nothing contract on the server: a supplied
 /// declaration must cover every required key of the frozen content, so this catalogue
 /// is not sent until the complete native capability list is reviewed.
-public enum PlayClientCapabilities {
-    public static let version = 1
-    public static let letterPoolAndRoleViews: [String] = ["game.hangman", "hangman.pool", "qa.letterPool", "role.views"]
-    public static func declaration(_ keys: [String]) -> String {
-        keys.sorted().map { $0 + "@" + String(version) }.joined(separator: ",")
-    }
-}

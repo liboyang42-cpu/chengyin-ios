@@ -184,7 +184,7 @@ final class HangmanPoolTests: XCTestCase {
         XCTAssertEqual(PlayKitActionCatalog.actions["hangman"], ["SUBMIT_HANGMAN"])
         XCTAssertEqual(PlayKitScreenKind.priority.last, .bingo)
         XCTAssertTrue(PlayKitScreenKind.priority.contains(.hangman))
-        XCTAssertEqual(Set(PlayClientCapabilities.letterPoolAndRoleViews), ["game.hangman", "hangman.pool", "qa.letterPool", "role.views"])
+        XCTAssertTrue(Set(PlayClientCapabilities.keys).isSuperset(of: ["game.hangman", "hangman.pool", "qa.letterPool", "role.views"]))
         XCTAssertEqual(PlayClientCapabilities.declaration(["hangman.pool", "game.hangman"]), "game.hangman@1,hangman.pool@1")
     }
 }
