@@ -397,3 +397,73 @@ public enum CoopFlowFinancialContract {
         return message
     }
 }
+
+/// F10 author self-supply ("自己承接"): the topic author fills one merchant slot with a PERK
+/// offer. This is a route contract only. Dispatch requires an independent production grant
+/// (PublisherLifecycleGrants.selfSupply), which defaults to off. Ownership is decided by the server.
+public enum CoopFlowSelfSupplyRoute {
+    public static let supplyPath = "api/topic/chapter/self-supply"
+    public static let withdrawPath = "api/topic/chapter/self-supply/withdraw"
+    public static let paths: Set<String> = [supplyPath, withdrawPath]
+}
+public struct CoopFlowSelfSupplyPerk: Equatable {
+    public let name: String
+    public let redeemRule: String
+    /// Business-calendar day, "yyyy-MM-dd".
+    public let validEnd: String
+    public let capacity: Int
+    public init(name: String, redeemRule: String, validEnd: String, capacity: Int) throws {
+        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let rule = redeemRule.trimmingCharacters(in: .whitespacesAndNewlines)
+        let day = validEnd.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty, name.count <= 64 else { throw CoopFlowFailure.invalid("perkName") }
+        guard !rule.isEmpty, rule.count <= 500 else { throw CoopFlowFailure.invalid("redeemRule") }
+        guard capacity > 0, capacity <= 100_000 else { throw CoopFlowFailure.invalid("capacity") }
+        let formatter = DateFormatter(); formatter.dateFormat = "yyyy-MM-dd"
+        formatter.locale = Locale(identifier: "en_US_POSIX"); formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.isLenient = false
+        guard let date = formatter.date(from: day), formatter.string(from: date) == day else { throw CoopFlowFailure.invalid("validEnd") }
+        self.name = name; self.redeemRule = rule; self.validEnd = day; self.capacity = capacity
+    }
+    public var json: CoopFlowJSON {
+        .object(["name": .string(name), "redeemRule": .string(redeemRule), "validEnd": .string(validEnd), "capacity": .id(capacity)])
+    }
+}
+public struct CoopFlowSelfSupplyRequest: Equatable {
+    public let topicID: Int
+    public let chapterID: Int
+    public let perk: CoopFlowSelfSupplyPerk
+    public init(topicID: Int, chapterID: Int, perk: CoopFlowSelfSupplyPerk) throws {
+        guard topicID > 0, chapterID > 0 else { throw CoopFlowFailure.invalid("selfSupplyTarget") }
+        self.topicID = topicID; self.chapterID = chapterID; self.perk = perk
+    }
+    public var path: String { CoopFlowSelfSupplyRoute.supplyPath }
+    public var body: CoopFlowJSON { .object(["topicId": .id(topicID), "chapterId": .id(chapterID), "perk": perk.json]) }
+    /// data {offerId}; anything else is an ambiguous outcome, never a silent success.
+    public static func offerID(_ data: CoopFlowJSON) throws -> Int {
+        guard let id = data["offerId"].integer, id > 0 else { throw CoopFlowFailure.ambiguous }
+        return id
+    }
+}
+public struct CoopFlowSelfSupplyWithdrawal: Equatable {
+    public let topicID: Int
+    public let offerID: Int
+    public init(topicID: Int, offerID: Int) throws {
+        guard topicID > 0, offerID > 0 else { throw CoopFlowFailure.invalid("selfSupplyWithdraw") }
+        self.topicID = topicID; self.offerID = offerID
+    }
+    public var path: String { CoopFlowSelfSupplyRoute.withdrawPath }
+    public var body: CoopFlowJSON { .object(["topicId": .id(topicID), "offerId": .id(offerID)]) }
+    /// data {lifecycle}: withdrawing may return the topic from pricing (2) to recruiting (1).
+    public static func lifecycle(_ data: CoopFlowJSON) throws -> Int {
+        guard let value = data["lifecycle"].integer, (0...7).contains(value) else { throw CoopFlowFailure.ambiguous }
+        return value
+    }
+}
+/// A recruiting chapter the author may fill. Derived from the editor's fresh server read only.
+public struct CoopFlowSelfSupplySlot: Equatable, Identifiable {
+    public let chapterID: Int
+    public let name: String
+    public var id: Int { chapterID }
+    public init(chapterID: Int, name: String) { self.chapterID = chapterID; self.name = name }
+}

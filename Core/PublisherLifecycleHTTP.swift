@@ -11,11 +11,17 @@ public struct PublisherLifecycleGrants {
     public let ownership: OperationEndpointApproval?
     public let graduation: OperationEndpointApproval?
     public let creatorApplication: OperationEndpointApproval?
+    /// F10: free-exploration author publish-for-sale. Production write; off unless independently approved.
+    public let freeExploreSale: OperationEndpointApproval?
+    /// F10: author self-supply / withdraw. Production write; off unless independently approved.
+    public let selfSupply: OperationEndpointApproval?
     public init(reads: OperationEndpointApproval? = nil, pricing: OperationEndpointApproval? = nil,
                 cancellationRefunds: OperationEndpointApproval? = nil, ownership: OperationEndpointApproval? = nil,
-                graduation: OperationEndpointApproval? = nil, creatorApplication: OperationEndpointApproval? = nil) {
+                graduation: OperationEndpointApproval? = nil, creatorApplication: OperationEndpointApproval? = nil,
+                freeExploreSale: OperationEndpointApproval? = nil, selfSupply: OperationEndpointApproval? = nil) {
         self.reads = reads; self.pricing = pricing; self.cancellationRefunds = cancellationRefunds
         self.ownership = ownership; self.graduation = graduation; self.creatorApplication = creatorApplication
+        self.freeExploreSale = freeExploreSale; self.selfSupply = selfSupply
     }
     public static var dormant: Self { .init() }
 }

@@ -41,3 +41,46 @@ extension WalletCommerceReader: ClubOwnerFundsReading {
         try await read { try await $0.stages(token: $1) }
     }
 }
+
+// MARK: - F11 自由探索结算（参考）· payer side
+
+/// GET api/fe/reference-settlement/payer?activityId= (activity optional).
+public struct FeReferencePayerQuery: Equatable {
+    public let activityID: Int?
+    public init(activityID: Int? = nil) throws {
+        guard activityID == nil || activityID! > 0 else { throw CoopFlowFailure.invalid("activityId") }
+        self.activityID = activityID
+    }
+    public var queryItems: [URLQueryItem] { activityID.map { [URLQueryItem(name: "activityId", value: String($0))] } ?? [] }
+}
+/// POST api/fe/reference-settlement/settle {ids, voucherNo?, note?}; payer only.
+/// 「标记已线下结清」 records that money moved offline; the platform transfers nothing.
+public struct FeReferenceSettleRequest: Equatable {
+    public let ids: [Int]
+    public let voucherNo: String?
+    public let note: String?
+    public init(rows: [FeReferenceSettlementRow], voucherNo: String? = nil, note: String? = nil) throws {
+        let open = rows.filter { $0.status == .open }
+        guard !open.isEmpty, open.count == rows.count else { throw CoopFlowFailure.invalid("settleRows") }
+        var seen = Set<Int>()
+        ids = open.map(\.id).filter { seen.insert($0).inserted }
+        func clean(_ value: String?, limit: Int) throws -> String? {
+            guard let text = value?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
+            guard text.count <= limit else { throw CoopFlowFailure.invalid("settleText") }
+            return text
+        }
+        self.voucherNo = try clean(voucherNo, limit: 64); self.note = try clean(note, limit: 200)
+    }
+    public var body: CoopFlowJSON {
+        var b: [String: CoopFlowJSON] = ["ids": .array(ids.map(CoopFlowJSON.id))]
+        if let voucherNo { b["voucherNo"] = .string(voucherNo) }
+        if let note { b["note"] = .string(note) }
+        return .object(b)
+    }
+}
+/// Rows a payer may select for 「标记已线下结清」: OPEN merchant rows only.
+public enum FeReferencePayerActions {
+    public static func settleable(_ list: FeReferenceSettlementList) -> [FeReferenceSettlementRow] {
+        list.groups.flatMap(\.rows).filter { $0.status == .open && !$0.isAuthorSelfSupply }
+    }
+}

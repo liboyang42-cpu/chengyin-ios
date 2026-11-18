@@ -19,6 +19,10 @@ public struct CreatorContentProject: Decodable, Equatable, Identifiable {
     public let acceptStatusText: String?
     public let startTime: String?
     public let endTime: String?
+    /// F10/F14b: /api/project/my rows carry the topic product and lifecycle. Missing means unknown,
+    /// never free exploration and never a lifecycle that unlocks author actions.
+    public let freeExplore: Bool
+    public let lifecycle: Int?
     public var destination: CreatorContentDestination? {
         guard sourceID > 0 else { return nil }
         switch bizType {
@@ -32,7 +36,7 @@ public struct CreatorContentProject: Decodable, Equatable, Identifiable {
         }
     }
     private enum CodingKeys: String, CodingKey {
-        case id, bizType, title, cover, projectTypeText, state, stateText, publishStatus, signupCount, viewCount, ownerType, clubId, acceptStatus, acceptStatusText, startTime, endTime
+        case id, bizType, title, cover, projectTypeText, state, stateText, publishStatus, signupCount, viewCount, ownerType, clubId, acceptStatus, acceptStatusText, startTime, endTime, freeExplore, lifecycle
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -53,6 +57,9 @@ public struct CreatorContentProject: Decodable, Equatable, Identifiable {
         acceptStatusText = try c.decodeIfPresent(String.self, forKey: .acceptStatusText)
         startTime = try c.decodeIfPresent(String.self, forKey: .startTime)
         endTime = try c.decodeIfPresent(String.self, forKey: .endTime)
+        if let flag = try? c.decode(Bool.self, forKey: .freeExplore) { freeExplore = flag }
+        else { freeExplore = (try? c.decode(Int.self, forKey: .freeExplore)) == 1 }
+        lifecycle = (try? c.decode(Int.self, forKey: .lifecycle)) ?? (try? c.decode(String.self, forKey: .lifecycle)).flatMap(Int.init)
     }
 }
 public enum CreatorContentDestination: Equatable { case topic(Int), activity(Int), playTemplate(Int) }
