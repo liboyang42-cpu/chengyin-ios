@@ -10,7 +10,7 @@ enum ModuleFixture: String {
     case nativeEnrollment
     case nativePlatform
     case playBranchHistory
-    case playExperience, compareGame
+    case playExperience, compareGame, letterPoolGame
     case journeyContent
     case squareWorkspace = "square-workspace"
     case objectCards
@@ -59,6 +59,7 @@ struct ModuleFixtureRootView: View {
             case .playBranchHistory: PlayBranchHistoryFixtureHost()
             case .playExperience: PlayExperienceFixtureHostView()
             case .compareGame: PlayCompareFixtureHost()
+            case .letterPoolGame: PlayKitHangmanFixtureHost()
             case .journeyContent: JourneyContentFixtureHostView()
             case .squareWorkspace: SquareWorkspaceFixtureHost()
             case .objectCards: ObjectCardFixtureHostView()

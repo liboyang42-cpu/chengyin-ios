@@ -6,10 +6,10 @@ public enum PlayKitScreenKind: String, CaseIterable, Identifiable {
     case coinFlip, diceRoll, reaction, ballShake, quietHold, countdown, stopwatch
     case qa, branch, estimate, pricePair, hiddenObject, predict, random, scan, walk, bingo
     case profile, photoCheck, note, typeIn, dailySign, steps
-    case sort, match, classify, compare, compass, shout
+    case sort, match, classify, compare, compass, shout, hangman
     case blindTaste, diyName, silentOrder, slowTask, musicCorner, timeWindow
     /// Source priority, preserving main tasks before ambient topic progress.
-    public static let priority: [Self] = [.qa, .branch, .predict, .random, .estimate, .pricePair, .sort, .match, .classify, .compare, .hiddenObject, .scan, .profile, .photoCheck, .note, .typeIn, .coinFlip, .diceRoll, .reaction, .ballShake, .quietHold, .compass, .shout, .countdown, .stopwatch, .blindTaste, .diyName, .silentOrder, .steps, .walk, .slowTask, .musicCorner, .dailySign, .timeWindow, .bingo]
+    public static let priority: [Self] = [.qa, .branch, .predict, .random, .estimate, .pricePair, .sort, .match, .classify, .compare, .hangman, .hiddenObject, .scan, .profile, .photoCheck, .note, .typeIn, .coinFlip, .diceRoll, .reaction, .ballShake, .quietHold, .compass, .shout, .countdown, .stopwatch, .blindTaste, .diyName, .silentOrder, .steps, .walk, .slowTask, .musicCorner, .dailySign, .timeWindow, .bingo]
     public static func present(in state: PlayAdvancedState) -> [Self] {
         priority.filter { state.playKit[$0.rawValue].object != nil || ($0 == .branch && state.config["branch"]["enabled"].bool == true) || ($0 == .random && state.config["random"]["enabled"].bool == true) }
     }
@@ -62,6 +62,7 @@ public struct PlayKitScreenProjection: Equatable {
         case .walk, .steps: return segment["reached"].bool == true
         case .bingo: return PlayKitBingoBoard(segment).filled.count == 9
         case .match, .classify: return segment["passed"].bool == true
+        case .hangman: return segment["solved"].bool == true
         case .reaction, .ballShake, .quietHold, .countdown, .stopwatch, .shout: return segment["submitted"].bool == true
         }
     }
@@ -275,7 +276,13 @@ public enum PlayKitInputContract {
                 let ids = (payload["optionIds"]?.array ?? []).compactMap(\.text)
                 try require(keys == ["optionIds"] && !ids.isEmpty && ids.count == payload["optionIds"]?.array?.count && Set(ids).count == ids.count && Set(ids).isSubset(of: Set(projection.options.map(\.id))))
             } else if mode == "PICK" { try require(keys == ["optionId"] && projection.options.contains { $0.id == payload["optionId"]?.text }) }
-            else { try require(keys == ["input"] && text("input")) }
+            else {
+                try require(keys == ["input"] && text("input"))
+                if let pool = try PlayQuestionLetterPool(question: segment) {
+                    let picked = (payload["input"]?.text ?? "").map(String.init)
+                    try require(picked.count == pool.answerLength && LetterPoolState.fits(picked, in: pool.chars))
+                }
+            }
         case .branch: try require(keys == ["optionId"] && projection.options.contains { $0.id == payload["optionId"]?.text })
         case .pricePair: try require(keys == ["pickId"] && projection.options.contains { $0.id == payload["pickId"]?.text })
         case .predict: try require(keys == ["optionKey"] && projection.options.contains { $0.id == payload["optionKey"]?.text })
@@ -333,6 +340,9 @@ public enum PlayKitInputContract {
             try require(action == "SUBMIT_COMPARE")
             try PlayCompareQuestion(segment).validate(payload)
         case .compass: try require(keys == ["bearing"] && finite("bearing", range: 0...359))
+        case .hangman:
+            try require(action == "SUBMIT_HANGMAN")
+            try PlayHangmanProjection(segment).validate(payload)
         case .blindTaste: try require(keys == ["key"] && projection.options.contains { $0.id == payload["key"]?.text })
         case .diyName: try require(keys == ["name"] && text("name", max: max(1, segment["maxLength"].integer ?? 16)))
         case .slowTask:

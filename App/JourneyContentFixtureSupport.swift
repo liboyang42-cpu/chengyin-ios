@@ -16,6 +16,8 @@ private final class JourneyFixtureHTTP: HTTPTransport {
             case "roleB": role = #"{"role":"B","otherRoleLabel":"Other character","views":[{"roleId":"B","title":"Synthetic B clue","body":"Only B may see this","items":[]}]}"#
             case "roleSolo": role = #"{"role":"SOLO","views":[{"roleId":"A","title":"Synthetic A clue","body":"A half","items":[]},{"roleId":"B","title":"Synthetic B clue","body":"B half","items":[]}]}"#
             case "roleMissing": role = #"{"roleMissing":true,"views":[]}"#
+            case "roleC": role = #"{"role":"C","roleLabel":"Synthetic keeper","otherRoleLabel":"Synthetic guide","otherRoleLabels":["Synthetic guide","Synthetic reader"],"views":[{"roleId":"C","label":"Synthetic keeper","title":"Synthetic C clue","body":"Only C may see this","items":[]}]}"#
+            case "roleSoloSingle": role = #"{"role":"SOLO","views":[{"roleId":"A","label":"Synthetic guide","title":"Synthetic A clue","body":"A part","items":[]},{"roleId":"B","label":"Synthetic reader","title":"Synthetic B clue","body":"B part","items":[]},{"roleId":"C","label":"Synthetic keeper","title":"Synthetic C clue","body":"C part","items":[]}]}"#
             default: role = #"{"role":"A","views":[{"roleId":"A","title":"Must not render A","body":"Private A"},{"roleId":"B","title":"Must not render B","body":"Private B"}]}"#
             }
             json = #"{"code":200,"data":{"nodeId":701,"runId":101,"stateVersion":1,"allowedActions":[],"roleView":"# + role + "}}"
