@@ -48,6 +48,19 @@ public struct PlaySnapshot: Equatable {
         if route?.isBranch == true { return !isDone(node) && route?.nodeStates[node.id] != "PLAYABLE" }
         return node.routeNodeState != nil && node.routeNodeState != "PLAYABLE" && node.routeNodeState != "COMPLETED"
     }
+    /// FE-STORY: free-exploration story text is readable only after a visit. A missing
+    /// `storyLocked` is unknown and stays locked. City routes never use this gate, and
+    /// `isLocked` (route progression) is deliberately unchanged.
+    public func isStoryLocked(_ node: PlayNode) -> Bool {
+        guard result.mode == 2 else { return false }
+        return node.storyLocked != false
+    }
+    /// A place counts as visited once the server unlocked its story, reported the visit,
+    /// or confirmed redemption (which can only happen on site).
+    public func isVisited(_ node: PlayNode) -> Bool {
+        guard result.mode == 2 else { return false }
+        return node.visited == true || node.storyLocked == false || isDone(node)
+    }
     public func lockReason(_ node: PlayNode) -> String? { route?.lockReasons[node.id] ?? node.lockReason }
     public func answerAvailability(for node: PlayNode) -> PlayAnswerAvailability {
         guard visibleNodes.contains(where: { $0.id == node.id }) else { return .locked }

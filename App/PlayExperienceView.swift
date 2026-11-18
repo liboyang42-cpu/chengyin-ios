@@ -280,6 +280,7 @@ import SwiftUI
     @State private var hintContext: PlayInteractionContext?
     @State private var hintLevel: Int?
     @State private var localIssue: PlayExperienceError?
+    @State private var arrival: PlayArrivalService?
     private var node: PlayNode? { model.snapshot?.visibleNodes.first { $0.id == nodeID } }
     var body: some View {
         let context = model.interactionContext
@@ -303,6 +304,9 @@ import SwiftUI
                     }
                     if node.questionImage?.isEmpty == false || model.extras[nodeID]?.storyImage?.isEmpty == false { Label("playx.media.image", systemImage: "photo") }
                     if let snapshot = model.snapshot { PlayTaskStatusBadge(node: node, snapshot: snapshot) }
+                }
+                if let arrival, model.snapshot?.result.mode == 1 {
+                    PlayArrivalControl(arrival: arrival, nodeID: nodeID, context: context, canSubmit: model.canSubmitArrival)
                 }
                 if model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false, node.npc != nil, let shopNPC {
                     Section {
@@ -406,7 +410,11 @@ import SwiftUI
                 Task { await model.requestHint(nodeID: nodeID, level: level, context: context) }
             }
         } message: { Text("playx.hints.consequence") }
-        .onDisappear { journey?.roleContent.close(); device?.cancel(); model.cancelReview(); review = nil; hintContext = nil; answer = "" }
+        .onAppear {
+            // One-shot location only for the start check; the device grant still decides.
+            if arrival == nil { arrival = PlayArrivalService(runtime: model, location: RuntimeNativeLocationProvider(enabled: device?.supports(.location) == true)) }
+        }
+        .onDisappear { journey?.roleContent.close(); device?.cancel(); model.cancelReview(); review = nil; hintContext = nil; answer = ""; arrival?.cancel() }
     }
     private func stateRow(_ key: String, done: Bool) -> some View { Label(LocalizedStringKey(key), systemImage: done ? "checkmark.circle.fill" : "circle") }
     private func prepare(_ evidence: PlayCompletionEvidence, context: PlayInteractionContext?) {

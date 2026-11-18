@@ -1,0 +1,42 @@
+{
+  "contract": "arrival-policy",
+  "version": 2,
+  "note": "F08/FE 到访共用判定合同。后端 ArrivalPolicy、小程序 utils/arrival-radius.js、iOS PlayArrivalPolicy 的测试都读本文件；改数值必须三端同改。",
+  "start": {
+    "radiusMeters": 300,
+    "maxRelaxMeters": 200,
+    "maxAccuracyMeters": 200,
+    "rule": "accuracy > maxAccuracyMeters => ACCURACY_LOW; distance - min(accuracy, maxRelaxMeters) <= radiusMeters => PASS; else TOO_FAR"
+  },
+  "freeExploreVisit": {
+    "defaultRadiusMeters": 300,
+    "minRadiusMeters": 300,
+    "maxRadiusMeters": 500,
+    "maxRelaxMeters": 100,
+    "missingAccuracyMeters": 80,
+    "maxAccuracyMeters": 200,
+    "rule": "radius = clamp(configured ?? defaultRadiusMeters, minRadiusMeters, maxRadiusMeters); acc = accuracy ?? missingAccuracyMeters; acc > maxAccuracyMeters => ACCURACY_LOW; distance <= radius + min(acc, maxRelaxMeters) => PASS; else TOO_FAR"
+  },
+  "stationHighlightMeters": 50,
+  "cases": [
+    { "kind": "start", "distance": 0, "accuracy": 10, "expect": "PASS" },
+    { "kind": "start", "distance": 300, "accuracy": 0, "expect": "PASS" },
+    { "kind": "start", "distance": 301, "accuracy": 0, "expect": "TOO_FAR" },
+    { "kind": "start", "distance": 420, "accuracy": 150, "expect": "PASS" },
+    { "kind": "start", "distance": 460, "accuracy": 150, "expect": "TOO_FAR" },
+    { "kind": "start", "distance": 500, "accuracy": 200, "expect": "PASS" },
+    { "kind": "start", "distance": 10, "accuracy": 250, "expect": "ACCURACY_LOW" },
+    { "kind": "visit", "distance": 290, "accuracy": 5, "radius": null, "expect": "PASS" },
+    { "kind": "visit", "distance": 310, "accuracy": 5, "radius": null, "expect": "TOO_FAR" },
+    { "kind": "visit", "distance": 520, "accuracy": 5, "radius": 300, "expect": "TOO_FAR" },
+    { "kind": "visit", "distance": 480, "accuracy": 5, "radius": 500, "expect": "PASS" },
+    { "kind": "visit", "distance": 480, "accuracy": 5, "radius": 900, "expect": "PASS" },
+    { "kind": "visit", "distance": 510, "accuracy": 5, "radius": 900, "expect": "TOO_FAR" },
+    { "kind": "visit", "distance": 300, "accuracy": 5, "radius": 100, "expect": "PASS" },
+    { "kind": "visit", "distance": 390, "accuracy": 120, "radius": null, "expect": "PASS" },
+    { "kind": "visit", "distance": 410, "accuracy": 120, "radius": null, "expect": "TOO_FAR" },
+    { "kind": "visit", "distance": 370, "accuracy": null, "radius": null, "expect": "PASS" },
+    { "kind": "visit", "distance": 390, "accuracy": null, "radius": null, "expect": "TOO_FAR" },
+    { "kind": "visit", "distance": 10, "accuracy": 250, "radius": null, "expect": "ACCURACY_LOW" }
+  ]
+}
