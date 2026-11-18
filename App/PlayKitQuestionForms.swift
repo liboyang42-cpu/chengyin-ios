@@ -20,6 +20,11 @@ extension PlayKitScreen {
             submitButton("SUBMIT_QA", payload: multi ? ["optionIds": .array(selected.sorted().map(PlayWireValue.string))] : ["optionId": .string(selected.first ?? "")], valid: !selected.isEmpty)
         } else {
             TextField("playkit.qa.answer", text: textBinding(), axis: .vertical).textFieldStyle(.roundedBorder).disabled(!enabled)
+            // F02: the server's reply sits right under the input; the typed answer stays for editing.
+            if let reply = typedWrongReply {
+                Text(verbatim: reply).font(.callout).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("playkit.qa.wrongReply")
+            }
             submitButton("SUBMIT_QA", payload: ["input": .string(text)], valid: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
         if let answer = raw["answerId"].text, !answer.isEmpty, projection.complete {
