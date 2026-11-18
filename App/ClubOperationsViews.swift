@@ -23,7 +23,7 @@ struct ClubOperationsWorkspaceView: View {
     let access: any ClubOperationsAccess
     let coordinator: ClubOperationsCoordinator
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @QuestifyReduceMotion private var reduceMotion
     @State private var snapshot: ClubOperationsSnapshot?
     @State private var draft = ClubOperationsDraft()
     @State private var baseline = ClubOperationsDraft()
@@ -51,7 +51,7 @@ struct ClubOperationsWorkspaceView: View {
             status
         }
         .navigationTitle(title)
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: loading)
+        .animation(reduceMotion ? nil : QuestifyMotion.content, value: loading)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("club.ops.close") {

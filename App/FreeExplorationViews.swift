@@ -31,7 +31,7 @@ import SwiftUI
                             Text("playFree.pack.open").font(.title2.bold())
                         }.frame(maxWidth: .infinity, minHeight: 200).padding()
                             .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 24))
-                    }.buttonStyle(.plain).accessibilityIdentifier("playFree.pack.open")
+                    }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("playFree.pack.open")
                 } else {
                     Text("playFree.stores").font(.headline)
                     if presentation.stores.isEmpty { Text("playFree.stores.empty") }
@@ -47,7 +47,7 @@ import SwiftUI
                                     FreeExplorationStoryBadge(node: node, snapshot: snapshot).font(.caption)
                                 }.frame(maxWidth: .infinity, minHeight: 150, alignment: .topLeading).padding()
                                     .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
-                            }.buttonStyle(.plain).accessibilityIdentifier("playFree.store.\(node.id)")
+                            }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("playFree.store.\(node.id)")
                         }
                     }
                 }

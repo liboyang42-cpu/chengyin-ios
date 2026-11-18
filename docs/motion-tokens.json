@@ -1,0 +1,48 @@
+{
+  "$comment": "城瘾双端共用动效 token(motion-1118)。小程序真源 chengyinhub-xcx/style/tokens.wxss 的 --cy-motion-* / --cy-ease-*;iOS 镜像 chengyin-ios App/QuestifyMotion.swift 的 QuestifyMotionToken;本文件是 hengyin docs/design/motion-tokens.json 的逐字拷贝。改值三处同改,两端契约测试判红。",
+  "version": "1118",
+  "durationMs": {
+    "press": 80,
+    "checkFill": 120,
+    "fast": 140,
+    "crossfade": 150,
+    "fadeSwap": 200,
+    "standard": 220,
+    "sheetIn": 300,
+    "sheetOut": 250,
+    "expand": 300,
+    "collapse": 200,
+    "slow": 350,
+    "celebrate": 600,
+    "spinnerCycle": 700
+  },
+  "easing": {
+    "out": [0.22, 0.61, 0.36, 1],
+    "standard": [0.4, 0, 0.2, 1],
+    "accelerate": [0.4, 0, 1, 1],
+    "emphasizedDecelerate": [0.05, 0.7, 0.1, 1],
+    "spring": [0.2, 1.4, 0.5, 1],
+    "pageRise": [0.2, 0.82, 0.2, 1]
+  },
+  "cssVar": {
+    "press": "--cy-motion-press",
+    "checkFill": "--cy-motion-check-fill",
+    "fast": "--cy-motion-fast",
+    "crossfade": "--cy-motion-crossfade",
+    "fadeSwap": "--cy-motion-fade-swap",
+    "standard": "--cy-motion-standard",
+    "sheetIn": "--cy-motion-sheet-in",
+    "sheetOut": "--cy-motion-sheet-out",
+    "expand": "--cy-motion-expand",
+    "collapse": "--cy-motion-collapse",
+    "slow": "--cy-motion-slow",
+    "celebrate": "--cy-motion-celebrate",
+    "spinnerCycle": "--cy-motion-spinner-cycle",
+    "out": "--cy-ease-out",
+    "standardEase": "--cy-ease-standard",
+    "accelerate": "--cy-ease-accelerate",
+    "emphasizedDecelerate": "--cy-ease-emphasized-decelerate",
+    "spring": "--cy-ease-spring",
+    "pageRise": "--cy-ease-page-rise"
+  }
+}

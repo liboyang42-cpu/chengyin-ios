@@ -17,12 +17,14 @@ class NativeDesignMotionGuards(unittest.TestCase):
         self.assertIn("struct QuestifyCardButtonStyle: ButtonStyle", source)
         self.assertIn("accessibilityReduceMotion", source)
         self.assertIn("@propertyWrapper", source)
-        self.assertIn("return systemValue || Self.fixtureValue", source)
+        self.assertIn("ReducedMotionPreference.effective(system: systemValue, local: localValue) || Self.fixtureValue", source)
         self.assertIn("#if DEBUG", source)
         self.assertIn("configuration.isPressed && !reduceMotion", source)
         self.assertIn("reduceMotion ? nil", source)
-        self.assertIn("duration: 0.12", source)
-        self.assertIn("duration: 0.24, bounce: 0.08", source)
+        # motion-1118: durations come from QuestifyMotionToken (mirror of docs/motion-tokens.json).
+        self.assertIn("enum QuestifyMotionToken", source)
+        self.assertIn("Animation.spring(duration: QuestifyMotionToken.standard, bounce: 0.08)", source)
+        self.assertNotRegex(source.split("enum QuestifyMotion {")[1], r"duration: \d")
         self.assertIn("value: configuration.isPressed", source)
         self.assertIn("minHeight: 44", source)
         for forbidden in ("DragGesture", "Task.sleep", "asyncAfter", "repeatForever", "sensoryFeedback"):

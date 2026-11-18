@@ -17,7 +17,7 @@ import simd
     @State private var prepared: Prepared?
     @State private var failedThisVisit = false
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @QuestifyReduceMotion private var reduceMotion
     private var configuration: PlayKitSpatialRequest? { try? .init(segment: segment, approval: approval) }
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {

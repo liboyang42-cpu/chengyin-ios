@@ -11,7 +11,7 @@ import SwiftUI
     let currentRevisionIdentity: (() -> String)?
     @State private var stage: PlayKitSensorStageModel
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @QuestifyReduceMotion private var reduceMotion
 
     init(kind: PlayKitScreenKind, segment: PlayWireValue, enabled: Bool, active: Bool,
          onDirty: @escaping () -> Void, requestReview: @escaping PlayKitReviewRequest,
