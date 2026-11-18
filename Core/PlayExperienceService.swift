@@ -107,6 +107,18 @@ public struct PlayExperienceService {
         fields.merge(advance?.fields ?? [:]) { _, new in new }
         return try await request("api/play/puzzle/reveal", form: fields, capability: .hints, token: token)
     }
+    /// FE-STORY 7.4 expired-ticket read: no routeSessionId, only visited chapters come back.
+    public func freeExplorationHistory(scope: PlaySessionScope, topicID: Int, token: String) async throws -> FreeExplorationHistoryDocument {
+        guard topicID > 0 else { throw APIError.invalidRequest }
+        let activityID: Int
+        switch scope {
+        case .activity(let id): activityID = id
+        case .topic(let id): guard id == topicID else { throw APIError.invalidRequest }; activityID = 0
+        }
+        guard scope.isValid else { throw APIError.invalidRequest }
+        let raw = try await request("api/play/history", query: ["activityId": String(activityID), "topicId": String(topicID)], capability: .reads, token: token)
+        return try FreeExplorationHistoryDocument(raw: raw)
+    }
     public func ending(scope: PlaySessionScope, token: String) async throws -> PlayEndingDocument {
         try await request("api/play/ending", query: scopeFields(scope), capability: .reads, token: token).decoded()
     }
@@ -255,6 +267,9 @@ public struct PlayExperienceService {
         let envelope = try? JSONDecoder().decode(PlayWireValue.self, from: data)
         let code = envelope?["code"].tolerantInteger
         if status == 401 || code == 401 { throw PlayExperienceError.unauthorized }
+        // FE-STORY 7.4: a read refused because the ticket expired. Reads commit nothing, so
+        // naming it is safe; writes keep their unknown-result handling unchanged.
+        if capability == .reads, status == 402 || code == 402 { throw PlayExperienceError.rejected(402, envelope?["msg"].text) }
         // A transport error or malformed envelope cannot prove a write was rejected.
         guard (200..<300).contains(status) else { throw PlayExperienceError.unknownResult }
         guard let code else { throw PlayExperienceError.malformed }
