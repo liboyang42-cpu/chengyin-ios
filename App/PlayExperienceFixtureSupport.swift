@@ -128,6 +128,12 @@ private final class PlayExperienceFixtureTransport: HTTPTransport {
         _model = State(initialValue: PlayExperienceCoordinator(scope: .activity(41), service: normalService, recovery: PlayMemoryCompletionRecovery(), pausedStorage: PlayMemoryPausedStorage(), currentSession: { state.session },
             storyArchive: FreeExplorationMemoryStoryArchive()))
     }
+    /// FE-STORY scenarios read one synthetic fix; every other scenario keeps the default.
+    private var arrivalLocation: (@MainActor () -> any RoamDeviceLocationProviding)? {
+        guard state.scenario.hasPrefix("fe") else { return nil }
+        let make: @MainActor () -> any RoamDeviceLocationProviding = { FreeExplorationFixtureLocation() }
+        return make
+    }
     var body: some View {
         if state.scenario.hasPrefix("routeMap") {
             PlayRouteMapFixtureHostView(scenario: state.scenario)
@@ -152,7 +158,7 @@ private final class PlayExperienceFixtureTransport: HTTPTransport {
                 summaryModel: { topicID in state.retained("summary:\(topicID)") { PlayOperatingSummaryCoordinator(topicID: topicID, service: service, currentSession: { state.session }) } },
                 playerModel: state.retained("player") { PlayPlayerGameCoordinator(activityID: 41, service: service, currentSession: { state.session }) },
                 circleModel: state.retained("circle") { PlayCircleCoordinator(topicID: 71, service: service, currentSession: { state.session }) },
-                makeArrivalLocation: state.scenario.hasPrefix("fe") ? { () -> any RoamDeviceLocationProviding in FreeExplorationFixtureLocation() } : nil)
+                makeArrivalLocation: arrivalLocation)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("playx.fixture.switch") { state.epoch += 1; state.accountID = 9002; model.invalidate(); revision += 1 }
