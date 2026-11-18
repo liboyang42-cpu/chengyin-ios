@@ -1,6 +1,91 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "orderLifecycle.wallet": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket wallet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "票夹"
+          }
+        }
+      }
+    },
+    "orderLifecycle.wallet.expired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expired, no longer shown in the ticket wallet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已过期，票夹不再显示"
+          }
+        }
+      }
+    },
+    "orderLifecycle.family": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Family ticket"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "亲子票"
+          }
+        }
+      }
+    },
+    "orderLifecycle.family.withAge %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 adult + 1 child (child aged %lld)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 大 1 小（儿童 %lld 岁）"
+          }
+        }
+      }
+    },
+    "orderLifecycle.family.noAge": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 adult + 1 child"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 大 1 小"
+          }
+        }
+      }
+    },
     "ticketWallet.usable.startsOn %lld %lld": {
       "extractionState": "manual",
       "localizations": {

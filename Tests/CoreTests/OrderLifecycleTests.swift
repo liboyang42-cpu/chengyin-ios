@@ -19,6 +19,22 @@ final class OrderLifecycleTests: XCTestCase {
         XCTAssertNil(d.teamMaxMembers); XCTAssertNil(d.payableAmount); XCTAssertNil(d.paymentStatus)
         XCTAssertEqual(d.summary().state, .unknown)
     }
+    /// F13/OR-012 and F12: wallet-expired line and family composition in the order detail.
+    func testExpiredUsableStateAndFamilyPartyDriveDetailLines() throws {
+        let expired = try detail(#""registrationStatus":2,"paymentStatus":2,"usableState":"EXPIRED""#)
+        XCTAssertEqual(expired.usableState, .expired); XCTAssertTrue(expired.showsWalletExpiredNotice)
+        for extra in [#""usableState":"USABLE""#, #""usableState":"UPCOMING""#, #""usableState":"LATER""#, #""usableState":7"#, #""registrationStatus":2"#] {
+            XCTAssertFalse(try detail(extra).showsWalletExpiredNotice, extra)
+        }
+        let family = try detail(#""party":{"adultCount":1,"childCount":1,"childAge":7}"#)
+        XCTAssertTrue(family.isFamilyTicket); XCTAssertEqual(family.familyChildAge, 7)
+        let noAge = try detail(#""party":{"adultCount":1,"childCount":1}"#)
+        XCTAssertTrue(noAge.isFamilyTicket); XCTAssertNil(noAge.familyChildAge)
+        for extra in [#""party":null"#, #""party":{"adultCount":1,"childCount":0}"#, #""party":"bad""#, #""registrationStatus":2"#] {
+            let value = try detail(extra)
+            XCTAssertFalse(value.isFamilyTicket, extra); XCTAssertNil(value.familyChildAge, extra)
+        }
+    }
     func testCancelledDoesNotMeanRefunded() throws {
         let d = try detail(#""registrationStatus":3,"paymentStatus":2"#)
         XCTAssertEqual(d.summary().state, .cancelled)
