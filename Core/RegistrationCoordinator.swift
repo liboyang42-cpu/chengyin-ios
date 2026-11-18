@@ -19,16 +19,19 @@ public struct RegistrationParticipantDetails {
     public let participateDate: String?
     public let usesAppPaymentChannel: Bool
     public let waitlistOffer: RegistrationWaitlistOffer?
+    /// F12 family ticket child age; nil for every other ticket.
+    public let childAge: Int?
 
     public init(realName: String, phone: String, email: String? = nil,
                 participateDate: String? = nil, usesAppPaymentChannel: Bool = true,
-                waitlistOffer: RegistrationWaitlistOffer? = nil) {
+                waitlistOffer: RegistrationWaitlistOffer? = nil, childAge: Int? = nil) {
         self.realName = realName
         self.phone = phone
         self.email = email
         self.participateDate = participateDate
         self.usesAppPaymentChannel = usesAppPaymentChannel
         self.waitlistOffer = waitlistOffer
+        self.childAge = childAge
     }
 }
 
@@ -230,7 +233,8 @@ public final class RegistrationCoordinator {
                 phone: participant.phone, email: participant.email,
                 participateDate: participant.participateDate,
                 usesAppPaymentChannel: participant.usesAppPaymentChannel,
-                requestID: makeRequestID(), waitlistOffer: participant.waitlistOffer
+                requestID: makeRequestID(), waitlistOffer: participant.waitlistOffer,
+                childAge: participant.childAge
             )
         } catch { return .blocked(.invalidRequest) }
         let accountStamp = accountGeneration

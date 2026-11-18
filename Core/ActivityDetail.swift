@@ -10,6 +10,8 @@ public struct ActivityTicket: Decodable, Equatable, Identifiable {
     public let endTime: String?
     public let selfGuided: Bool?
     public let signupDeadline: String?
+    /// F12 composition (adult/child counts and child age range); defaults to 1 adult, 0 children.
+    public let party: RegistrationTicketParty
     /// Early UI guard mirrors the current activity create service, not a purchase grant.
     /// Zone-free timestamps use the existing Shanghai server-date parser. Missing or
     /// malformed ordinary timestamps cannot establish expiry. Self-guided tickets require
@@ -37,6 +39,7 @@ public struct ActivityTicket: Decodable, Equatable, Identifiable {
         endTime=try c.decodeIfPresent(String.self,forKey:.endTime)
         selfGuided=try c.decodeIfPresent(Bool.self,forKey:.selfGuided)
         signupDeadline=try c.decodeIfPresent(String.self,forKey:.signupDeadline)
+        party=try RegistrationTicketParty(from:decoder)
         guard id > 0, price.map({ $0 >= .zero }) ?? true else { throw APIError.malformedResponse }
     }
     public var isSoldOut: Bool { remainingInventory.map { $0 <= 0 } ?? false }

@@ -40,6 +40,44 @@ public struct RegistrationProductionApproval: Equatable {
     }
 }
 
+/// F12 family-ticket composition from the ticket JSON (OmsTicket). First version allows only
+/// 1+0 (default) and 1+1. Age is the only child detail; the server re-validates the range.
+public struct RegistrationTicketParty: Decodable, Equatable {
+    public let adultCount: Int
+    public let childCount: Int
+    public let childAgeMin: Int?
+    public let childAgeMax: Int?
+    public init(adultCount: Int = 1, childCount: Int = 0, childAgeMin: Int? = nil, childAgeMax: Int? = nil) {
+        self.adultCount = adultCount; self.childCount = childCount
+        self.childAgeMin = childAgeMin; self.childAgeMax = childAgeMax
+    }
+    private enum Keys: String, CodingKey { case adultCount, childCount, childAgeMin, childAgeMax }
+    /// Additive fields: absent or wrongly typed values fall back to the server defaults (1, 0, nil).
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: Keys.self)
+        func integer(_ key: Keys) -> Int? {
+            if let value = (try? c.decodeIfPresent(Int.self, forKey: key)) ?? nil { return value }
+            if let text = (try? c.decodeIfPresent(String.self, forKey: key)) ?? nil { return Int(text.trimmingCharacters(in: .whitespaces)) }
+            return nil
+        }
+        adultCount = integer(.adultCount) ?? 1; childCount = integer(.childCount) ?? 0
+        childAgeMin = integer(.childAgeMin); childAgeMax = integer(.childAgeMax)
+    }
+    /// Family ticket = exactly one child; it needs a child age within the declared range.
+    public var isFamily: Bool { childCount == 1 }
+    /// Selectable ages. Nil when the ticket is not a family ticket or its range is unusable.
+    public var childAgeRange: ClosedRange<Int>? {
+        guard isFamily, let low = childAgeMin, let high = childAgeMax, low >= 0, low <= high else { return nil }
+        return low...high
+    }
+    /// Non-family tickets never send an age; family tickets need one inside the range.
+    public func accepts(childAge: Int?) -> Bool {
+        guard isFamily else { return childAge == nil }
+        guard let childAge, let range = childAgeRange else { return false }
+        return range.contains(childAge)
+    }
+}
+
 public struct RegistrationProductionSession: Equatable {
     public let identity: ProfileReadIdentity
     public let namespace: String
