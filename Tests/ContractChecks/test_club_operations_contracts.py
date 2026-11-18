@@ -83,7 +83,7 @@ class ClubOperationsSourceChecks(unittest.TestCase):
         for unsafe in ['URLSession','HTTPTransport','UserDefaults','https://']: self.assertNotIn(unsafe,source)
     def test_ui_has_native_review_unknown_lock_and_accessibility(self):
         ui = self.text('App/ClubOperationsViews.swift') + self.text('App/ClubOperationsReviewView.swift')
-        for required in ['.sheet(item:', '.interactiveDismissDisabled(', 'accessibilityIdentifier', '@QuestifyReduceMotion', 'QuestifyImageEntityCard', '.confirmationDialog(', 'TextField(', 'Toggle(', 'Picker(']: self.assertIn(required,ui)
+        for required in ['.sheet(item:', '.interactiveDismissDisabled(', 'accessibilityIdentifier', 'accessibilityReduceMotion', 'QuestifyImageEntityCard', '.confirmationDialog(', 'TextField(', 'Toggle(', 'Picker(']: self.assertIn(required,ui)
         self.assertNotIn('.stroke(',ui); self.assertNotIn('allowsHitTesting(false)',ui)
         coordinator = self.text('Core/ClubOperationsCoordinator.swift')
         self.assertIn('let accountID: Int; let target: ClubOperationsTarget',coordinator)
