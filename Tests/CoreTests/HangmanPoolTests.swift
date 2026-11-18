@@ -120,6 +120,9 @@ final class HangmanPoolTests: XCTestCase {
         XCTAssertTrue(state.isComplete)
         XCTAssertEqual(state.hangmanPayload, ["slots": .object(["1": .string("A")])])
         XCTAssertNoThrow(try value.validate(state.hangmanPayload))
+        XCTAssertFalse(state.clear(slotID: 0), "A carried server fill has no candidate to return")
+        state.clearAll()
+        XCTAssertEqual(state.text(of: state.slots[0]), "B"); XCTAssertNil(state.text(of: state.slots[1]))
     }
     func testTrimmedPoolRebaseKeepsStillVisiblePicksAndDropsRemovedOnes() throws {
         var before = try XCTUnwrap(LetterPoolState(hangman: projection()))

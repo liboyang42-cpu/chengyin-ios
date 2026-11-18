@@ -79,17 +79,16 @@ public struct LetterPoolState: Equatable {
         return true
     }
     /// Tapping a filled slot returns its candidate to the pool. Separator and
-    /// prefilled slots are not tappable.
+    /// prefilled slots are not tappable; a carried server fill has no candidate to return.
     @discardableResult public mutating func clear(slotID: Int) -> Bool {
         guard let position = slots.firstIndex(where: { $0.id == slotID }), slots[position].isFillable,
-              slots[position].poolIndex != nil || slots[position].carried != nil else { return false }
-        slots[position].poolIndex = nil; slots[position].carried = nil
+              slots[position].poolIndex != nil else { return false }
+        slots[position].poolIndex = nil
         return true
     }
+    /// 「清空」 returns every placed candidate to the pool.
     public mutating func clearAll() {
-        for position in slots.indices where slots[position].isFillable {
-            slots[position].poolIndex = nil; slots[position].carried = nil
-        }
+        for position in slots.indices where slots[position].isFillable { slots[position].poolIndex = nil }
     }
 
     /// SUBMIT_HANGMAN payload: `{"slots":{"<index>":"<char>"}}` for locally placed

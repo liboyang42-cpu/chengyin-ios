@@ -135,9 +135,9 @@ import SwiftUI
                             if state.clear(slotID: slot.id) { onEdit() }
                         } label: { PlayKitLetterSlotFace(text: value, fixed: false, cell: cell) }
                         .buttonStyle(.plain)
-                        .disabled(!enabled || value == nil)
+                        .disabled(!enabled || slot.poolIndex == nil)
                         .accessibilityLabel(value.map { Text(verbatim: $0) } ?? Text("playkit.letterPool.emptySlot"))
-                        .accessibilityHint(value == nil ? Text(verbatim: "") : Text("playkit.letterPool.returnHint"))
+                        .accessibilityHint(slot.poolIndex == nil ? Text(verbatim: "") : Text("playkit.letterPool.returnHint"))
                         .accessibilityIdentifier(identifierPrefix + ".slot." + String(slot.id))
                     } else {
                         PlayKitLetterSlotFace(text: value, fixed: true, cell: cell)
