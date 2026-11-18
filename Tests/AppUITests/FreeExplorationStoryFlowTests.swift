@@ -32,7 +32,9 @@ final class FreeExplorationStoryFlowTests: XCTestCase {
     private func tapArrive(_ app: XCUIApplication) {
         let action = app.buttons["playArrival.action.701"]
         XCTAssertTrue(revealFixtureElement(action, in: app), app.debugDescription)
-        XCTAssertTrue(action.isEnabled, app.debugDescription); action.tap()
+        // The store page can appear while its read is still settling; tap only once the visit is offered.
+        let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: action)
+        XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 10), .completed, app.debugDescription); action.tap()
     }
 
     func testLockedCardHidesStoryAndReadsVisitRuleToVoiceOver() {
