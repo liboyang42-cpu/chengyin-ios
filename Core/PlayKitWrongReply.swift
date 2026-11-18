@@ -12,3 +12,11 @@ public enum PlayKitWrongReply {
         return reply
     }
 }
+
+/// A qa choice with no right answer (`judge:false`): every option completes the
+/// stop, so the result reads as "recorded", never as passed or failed.
+public enum PlayKitNoRightAnswer {
+    public static func applies(kind: PlayKitScreenKind, segment: PlayWireValue) -> Bool {
+        kind == .qa && (segment["mode"].text ?? "").uppercased() == "PICK" && segment["judge"].bool == false
+    }
+}

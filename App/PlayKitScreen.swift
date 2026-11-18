@@ -181,6 +181,8 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
         if reasoningFeedback.showsResult(for: projection) {
             if kind == .photoCheck, segment["degraded"].bool == true {
                 Label("playkit.photo.noVerdict", systemImage: "exclamationmark.bubble")
+            } else if PlayKitNoRightAnswer.applies(kind: kind, segment: segment), projection.reportedPass != nil {
+                Label("playkit.result.recorded", systemImage: "checkmark.circle")
             } else if let passed = projection.reportedPass {
                 Label(passed ? "playkit.result.passed" : "playkit.result.notPassed", systemImage: passed ? "checkmark.circle" : "info.circle")
             } else if projection.complete { Label("playkit.result.recorded", systemImage: "checkmark.circle") }

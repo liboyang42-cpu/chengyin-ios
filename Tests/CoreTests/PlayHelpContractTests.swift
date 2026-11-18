@@ -114,6 +114,13 @@ import FoundationNetworking
         XCTAssertNotEqual(ledger.requestID(scope, operation: "skip", level: 0), first)
     }
 
+    func testNoRightAnswerChoiceReadsAsRecordedOnlyForJudgeFalsePick() throws {
+        XCTAssertTrue(PlayKitNoRightAnswer.applies(kind: .qa, segment: try wire(#"{"mode":"PICK","judge":false}"#)))
+        XCTAssertFalse(PlayKitNoRightAnswer.applies(kind: .qa, segment: try wire(#"{"mode":"PICK"}"#)))
+        XCTAssertFalse(PlayKitNoRightAnswer.applies(kind: .qa, segment: try wire(#"{"mode":"TYPE","judge":false}"#)))
+        XCTAssertFalse(PlayKitNoRightAnswer.applies(kind: .branch, segment: try wire(#"{"mode":"PICK","judge":false}"#)))
+    }
+
     func testWrongReplyIsShownOnlyAfterAWrongTry() throws {
         XCTAssertEqual(PlayKitWrongReply.text(segment: try wire(#"{"attempts":1,"passed":false,"lastFeedback":"前两个字母对了"}"#)), "前两个字母对了")
         XCTAssertNil(PlayKitWrongReply.text(segment: try wire(#"{"attempts":0,"lastFeedback":"x"}"#)))
