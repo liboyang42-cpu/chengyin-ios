@@ -24,7 +24,7 @@ struct MerchantOperationsHomeView: View {
                                 Text("merchant.operations.entryHint")
                             }
                         }
-                        .buttonStyle(QuestifyCardButtonStyle())
+                        .buttonStyle(.plain)
                         .accessibilityIdentifier("merchant.operations.entry." + destination.id)
                     }
                     if !access.identity.active { Text("merchant.access.inactive").foregroundStyle(.secondary) }

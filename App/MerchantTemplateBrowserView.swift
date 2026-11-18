@@ -58,7 +58,7 @@ import SwiftUI
                                     Text(LocalizedStringKey(status(row.status)))
                                     if let method = row.validationMethod.flatMap(MerchantTemplateMethod.init(rawValue:)) { Text(LocalizedStringKey(method.titleKey)) }
                                 }
-                            }.buttonStyle(QuestifyCardButtonStyle()).disabled(!browser.canOpen)
+                            }.buttonStyle(.plain).disabled(!browser.canOpen)
                                 .accessibilityIdentifier("merchant.operations.template.\(row.id)")
                         }
                         footer
