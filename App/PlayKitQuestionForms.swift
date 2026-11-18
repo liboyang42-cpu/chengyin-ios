@@ -22,6 +22,11 @@ extension PlayKitScreen {
             PlayKitQuestionLetterPoolView(segment: raw, revision: runtimeIdentity, enabled: enabled,
                 onDirty: { dirty = true }, requestReview: prepare)
                 .id(childReset)
+            // F02 reply under the letter pool as well; the picked letters stay in their slots.
+            if let reply = typedWrongReply {
+                Text(verbatim: reply).font(.callout).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("playkit.qa.wrongReply")
+            }
         } else {
             TextField("playkit.qa.answer", text: textBinding(), axis: .vertical).textFieldStyle(.roundedBorder).disabled(!enabled)
             // F02: the server's reply sits right under the input; the typed answer stays for editing.

@@ -47,7 +47,9 @@ public struct PlayHelpRow: Equatable, Identifiable {
 /// Projection of GET `/api/play/help`. Hint rows keep the author order; the
 /// skip level is kept apart so the panel can place it on the last row.
 public struct PlayHelpView: Equatable {
-    public static let renderableTypes: Set<String> = ["TEXT", "IMAGE", "LETTER", "DIGIT", "ANSWER"]
+    /// POOL_TRIM (F03) removes decoys from a letter pool server-side; its content is a plain sentence and
+    /// the panel's post-use refresh brings back the trimmed pool.
+    public static let renderableTypes: Set<String> = ["TEXT", "IMAGE", "LETTER", "DIGIT", "ANSWER", "POOL_TRIM"]
     public let enabled: Bool
     public let rows: [PlayHelpRow]
     public let skipLevel: Int?
