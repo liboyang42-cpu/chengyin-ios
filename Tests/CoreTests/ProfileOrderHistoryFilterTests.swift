@@ -73,4 +73,16 @@ final class ProfileOrderHistoryFilterTests: XCTestCase {
         s.retire(); XCTAssertEqual(s.value(for:a),.all)
     }
     private func owner(_ reader:NSObject,_ account:Int)->ProfileOrderFilterOwner { .init(readerID:ObjectIdentifier(reader),identity:.init(accountID:account,epoch:1),isConfigured:true) }
+    // F13: the wallet hides unpaid rows (mini-program 2026-10-28 rule); the same row must stay reachable
+    // under 我的订单 → 待支付, whose detail opens the order lifecycle (payment) screen. Synthetic row only.
+    func testUnpaidRowHiddenFromWalletStaysUnderPendingPaymentOrders() throws {
+        let json = #"{"id":91,"ownerType":1,"registrationStatus":1,"paymentStatus":1,"cmsTopic":{"name":"示例站点"}}"#
+        let ticket = try JSONDecoder().decode(TicketWalletTicket.self, from: Data(json.utf8))
+        XCTAssertFalse(TicketWalletListing.isListed(ticket))
+        XCTAssertTrue(TicketWalletListing.entries([ticket]).isEmpty)
+        let order = try JSONDecoder().decode(ProfileOrder.self, from: Data(json.utf8))
+        XCTAssertEqual(order.historyState(now: now), .pendingPayment)
+        XCTAssertEqual(ProfileOrderHistoryFilter.pendingPayment.orders(in: [order], now: now).map(\.id), [91])
+        XCTAssertEqual(ProfileOrderHistoryFilter.all.orders(in: [order], now: now).map(\.id), [91])
+    }
 }
