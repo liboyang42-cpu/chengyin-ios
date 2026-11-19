@@ -123,5 +123,6 @@ public struct MerchantBusinessMoney: Equatable {
               text.range(of: #"^[+-]?[0-9]+(?:\.[0-9]+)?$"#, options: .regularExpression) != nil else { throw MerchantBusinessFailure.malformed }
         raw = text
     }
-    public var display: String { raw.map { "\(currency) \($0)" } ?? "—" }
+    /// F14a: a missing amount is zero in the same currency format, never "—".
+    public var display: String { "\(currency) \(raw ?? "0.00")" }
 }

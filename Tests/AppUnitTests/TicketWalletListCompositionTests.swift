@@ -104,6 +104,57 @@ import XCTest
             }
         }
     }
+    // F13: one list, server-computed usable window. Synthetic rows only ("示例站点").
+    private func row(_ id: Int, registration: Int = 2, payment: String = "2", _ extra: String = "") throws -> TicketWalletTicket {
+        let json = "{\"id\":\(id),\"ownerType\":1,\"registrationStatus\":\(registration),\"paymentStatus\":\(payment),\"cmsTopic\":{\"name\":\"示例站点\"}" + extra + "}"
+        return try JSONDecoder().decode(TicketWalletTicket.self, from: Data(json.utf8))
+    }
+    func testWalletHidesExpiredUnpaidAndRefundedButKeepsVerifiedTickets() throws {
+        let tickets = [
+            try row(1, #","usableState":"EXPIRED""#),
+            try row(2, payment: "0"),
+            try row(3, registration: 1, payment: "0"),
+            try row(4, payment: "4"),
+            try row(5, #","refundApplication":{"status":0}"#),
+            try row(6, #","verificationStatus":1,"usableState":"USABLE","clearState":"CLEARED""#),
+            try row(7, #","refundApplication":{"status":2},"usableState":"USABLE""#),
+            try row(8, registration: 3),
+            try row(9, #","manualRefundCaseStatus":"OPEN""#)]
+        XCTAssertEqual(TicketWalletListing.entries(tickets).map(\.ticket.id), [6, 7])
+    }
+    func testUsableFirstByUntilThenUpcomingByFromKeepingSourceIndex() throws {
+        let tickets = [
+            try row(10, #","usableState":"UPCOMING","usableFrom":"2030-06-02 09:00:00""#),
+            try row(11, #","usableState":"USABLE""#),
+            try row(12, #","usableState":"USABLE","usableUntil":"2030-05-31 23:59:59""#),
+            try row(13, #","usableState":"UPCOMING","usableFrom":"2030-05-20 00:00:00""#),
+            try row(14, #","usableState":"USABLE","usableUntil":"2030-05-01 23:59:59""#),
+            try row(15, #","usableState":"EXPIRED","usableUntil":"2020-01-01 00:00:00""#)]
+        let entries = TicketWalletListing.entries(tickets)
+        XCTAssertEqual(entries.map(\.ticket.id), [14, 12, 11, 13, 10])
+        XCTAssertEqual(entries.map(\.index), [4, 2, 1, 3, 0])
+        XCTAssertEqual(entries.map(\.isUpcoming), [false, false, false, true, true])
+    }
+    func testUpcomingIsGreyTaggedWithStartDayAndUsableShowsClearTag() throws {
+        let upcoming = try XCTUnwrap(TicketWalletListing.entries([try row(20, #","usableState":"UPCOMING","usableFrom":"2030-05-01 00:00:00","clearState":"NOT_CLEARED""#)]).first)
+        XCTAssertTrue(upcoming.isUpcoming)
+        XCTAssertEqual(upcoming.startsOn, TicketWalletMonthDay(month: 5, day: 1))
+        XCTAssertNil(upcoming.clearTagKey)
+        let labels = TicketWalletListing.entries([
+            try row(21, #","usableState":"USABLE","clearState":"CLEARED""#),
+            try row(22, #","usableState":"USABLE","clearState":"NOT_CLEARED""#),
+            try row(23, #","usableState":"USABLE","clearState":"NONE""#),
+            try row(24, #","usableState":"USABLE""#)]).map(\.clearTagKey)
+        XCTAssertEqual(labels, ["ticketWallet.clear.cleared", "ticketWallet.clear.notCleared", nil, nil])
+    }
+    func testNewFieldsDecodeTolerantlyAndFamilyPartyLabels() throws {
+        let odd = try row(30, payment: "\"2\"", #","usableFrom":12,"usableState":"LATER","clearState":false,"party":"bad""#)
+        XCTAssertNil(odd.usableFrom); XCTAssertNil(odd.usableState); XCTAssertNil(odd.clearState); XCTAssertNil(odd.party)
+        XCTAssertEqual(odd.paymentStatus, 2)
+        let family = try row(31, #","usableState":"USABLE","party":{"adultCount":1,"childCount":1,"childAge":7}"#)
+        XCTAssertEqual(family.party?.childAge, 7)
+        XCTAssertEqual(TicketWalletListing.entries([family, try row(32, #","party":null"#)]).map(\.showsFamilyParty), [true, false])
+    }
     @MainActor private final class Vault: AppTokenStorage {
         var value: String?
         func read() throws -> String? { value }

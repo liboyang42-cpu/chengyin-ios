@@ -5,8 +5,10 @@ import Foundation
 public struct RegistrationUIFormDraft: Equatable {
     public var realName: String
     public var phone: String
-    public init(realName: String = "", phone: String = "") {
-        self.realName = realName; self.phone = phone
+    /// F12 family ticket only: the child's age. No child name is collected.
+    public var childAge: Int?
+    public init(realName: String = "", phone: String = "", childAge: Int? = nil) {
+        self.realName = realName; self.phone = phone; self.childAge = childAge
     }
     public var trimmedName: String { realName.trimmingCharacters(in: .whitespacesAndNewlines) }
     public var trimmedPhone: String { phone.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -21,8 +23,8 @@ public struct RegistrationUIFormDraft: Equatable {
         return nil
     }
     public var participantDetails: RegistrationParticipantDetails { details(waitlistOffer: nil) }
-    public func details(waitlistOffer: RegistrationWaitlistOffer?) -> RegistrationParticipantDetails {
-        RegistrationParticipantDetails(realName: trimmedName, phone: trimmedPhone, waitlistOffer: waitlistOffer)
+    public func details(waitlistOffer: RegistrationWaitlistOffer?, childAge: Int? = nil) -> RegistrationParticipantDetails {
+        RegistrationParticipantDetails(realName: trimmedName, phone: trimmedPhone, waitlistOffer: waitlistOffer, childAge: childAge)
     }
 }
 

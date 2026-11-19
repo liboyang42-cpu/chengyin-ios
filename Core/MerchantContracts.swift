@@ -162,16 +162,6 @@ public struct MerchantProjectPage: Decodable, Equatable {
 /// Flutter merchant_money.dart explicitly identifies this domain as CNY.
 /// Decimal normalization avoids a binary floating-point roundtrip. Absence is not zero.
 public enum MerchantMoney {
-    public static func display(_ raw: String?) -> String {
-        guard let raw else { return "—" }
-        let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard text.range(of: #"^[+-]?[0-9]+(?:\.[0-9]+)?$"#, options: .regularExpression) != nil,
-              var amount = Decimal(string: text, locale: Locale(identifier: "en_US_POSIX")), !amount.isNaN else { return "—" }
-        var rounded = Decimal()
-        NSDecimalRound(&rounded, &amount, 2, .plain)
-        var result = NSDecimalNumber(decimal: rounded).stringValue
-        if !result.contains(".") { result += ".00" }
-        else if result.split(separator: ".", omittingEmptySubsequences: false).last?.count == 1 { result += "0" }
-        return "¥" + result
-    }
+    /// F14a: routed through the shared MoneyFormat rule (missing → "¥0.00").
+    public static func display(_ raw: String?) -> String { MoneyFormat.yuan(raw) }
 }

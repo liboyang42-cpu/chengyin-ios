@@ -36,17 +36,26 @@ import SwiftUI
                             TicketWalletIssueView(issue: partial.issue, retry: { schedule(offeredPresentation) })
                         }
                     }
-                    if snapshot.tickets.isEmpty {
+                    let entries = TicketWalletListing.entries(snapshot.tickets)
+                    if entries.isEmpty {
                         // A partial empty response never claims the whole wallet is empty.
                         Text(LocalizedStringKey(snapshot.partialFailure == nil ? "ticketWallet.empty" : "ticketWallet.partialEmpty"))
                             .accessibilityIdentifier("ticketWallet.empty")
                     }
-                    // Source preserves both lanes and row order, including repeated server IDs.
-                    ForEach(Array(snapshot.tickets.enumerated()), id: \.offset) { rowIndex, ticket in
-                        if ticket.action == .detail {
+                    // F13: paid, non-refunded, non-expired rows; usable first, upcoming after.
+                    // Each row keeps its source index, including repeated server IDs.
+                    ForEach(entries, id: \.index) { entry in
+                        let rowIndex = entry.index, ticket = entry.ticket
+                        if entry.isUpcoming {
+                            // Not started yet: greyed, not tappable, no back-side actions.
+                            TicketWalletRow(ticket: ticket, entry: entry)
+                                .saturation(0).opacity(0.6)
+                                .accessibilityIdentifier("ticketWallet.upcoming.\(ticket.id)")
+                                .questifyCardListRow()
+                        } else if ticket.action == .detail {
                             NavigationLink {
                                 TicketWalletDetailView(id: ticket.id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator, makeTeamCoordinator: makeTeamCoordinator)
-                            } label: { TicketWalletRow(ticket: ticket) }
+                            } label: { TicketWalletRow(ticket: ticket, entry: entry) }
                             .buttonStyle(QuestifyCardButtonStyle())
                             .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
                             .questifyCardListRow()
@@ -59,12 +68,12 @@ import SwiftUI
                                       let current = model.value(owner: key) else { return }
                                 pendingOrderEntry.activate(ticket: ticket, rowIndex: rowIndex, snapshot: current,
                                     reader: reader, provider: provider, presentationID: offeredPendingPresentation)
-                            } label: { TicketWalletRow(ticket: ticket, showsPendingOrderAction: true) }
+                            } label: { TicketWalletRow(ticket: ticket, entry: entry, showsPendingOrderAction: true) }
                             .buttonStyle(QuestifyCardButtonStyle())
                             .accessibilityIdentifier("ticketWallet.pendingOrder.open.\(ticket.id)")
                             .questifyCardListRow()
                         } else {
-                            TicketWalletRow(ticket: ticket, showsActionNotice: true)
+                            TicketWalletRow(ticket: ticket, entry: entry, showsActionNotice: true)
                                 .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
                                 .questifyCardListRow()
                         }
@@ -147,12 +156,31 @@ import SwiftUI
 
 private struct TicketWalletRow: View {
     let ticket: TicketWalletTicket
+    var entry: TicketWalletListEntry? = nil
     var showsActionNotice = false
     var showsPendingOrderAction = false
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .top, spacing: 12) {
-                TicketWalletStatusBadge(status: ticket.status)
+                if let entry, entry.isUpcoming {
+                    if let start = entry.startsOn {
+                        QuestifyStatusBadge(title: "ticketWallet.usable.startsOn \(start.month) \(start.day)", systemImage: "calendar.badge.clock", stateKey: "upcoming")
+                            .accessibilityIdentifier("ticketWallet.upcomingTag.\(ticket.id)")
+                    } else {
+                        QuestifyStatusBadge(title: "ticketWallet.usable.upcoming", systemImage: "calendar.badge.clock", stateKey: "upcoming")
+                            .accessibilityIdentifier("ticketWallet.upcomingTag.\(ticket.id)")
+                    }
+                } else {
+                    TicketWalletStatusBadge(status: ticket.status)
+                    if let key = entry?.clearTagKey {
+                        QuestifyStatusBadge(title: LocalizedStringKey(key), systemImage: key == "ticketWallet.clear.cleared" ? "flag.checkered" : "flag", stateKey: key)
+                            .accessibilityIdentifier("ticketWallet.clearTag.\(ticket.id)")
+                    }
+                }
+                if entry?.showsFamilyParty == true {
+                    QuestifyStatusBadge(title: "ticketWallet.party.family", systemImage: "figure.and.child.holdinghands", stateKey: "family")
+                        .accessibilityIdentifier("ticketWallet.familyTag.\(ticket.id)")
+                }
                 Spacer(minLength: 0)
                 Image(systemName: "ticket")
                     .font(.title2).foregroundStyle(QuestifyPalette.accent).accessibilityHidden(true)

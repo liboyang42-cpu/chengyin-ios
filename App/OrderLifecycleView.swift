@@ -88,7 +88,17 @@ import SwiftUI
             }.fixedSize(horizontal: false, vertical: true).padding(.vertical, 8)
             OrderLifecycleField(label: "orderLifecycle.number", value: detail.registrationNumber)
             OrderLifecycleField(label: "orderLifecycle.ticket", value: detail.ticketName)
+            if detail.isFamilyTicket {
+                LabeledContent("orderLifecycle.family") {
+                    if let age = detail.familyChildAge { Text("orderLifecycle.family.withAge \(age)") }
+                    else { Text("orderLifecycle.family.noAge") }
+                }.accessibilityIdentifier("orderLifecycle.family")
+            }
             LabeledContent("orderLifecycle.amount") { AmountLabel(amount: detail.payableAmount) }
+            if detail.showsWalletExpiredNotice {
+                LabeledContent("orderLifecycle.wallet") { Text("orderLifecycle.wallet.expired") }
+                    .accessibilityIdentifier("orderLifecycle.walletExpired")
+            }
         }
     }
     private func payment(_ detail: OrderLifecycleDetail) -> some View {

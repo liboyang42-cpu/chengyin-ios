@@ -118,6 +118,7 @@ public final class RegistrationUIFlow {
         if selectedTicket?.isSoldOut == true && !hasActiveWaitlistOffer { return .soldOut }
         if case .approved = creationPolicy, quoteReceivedAt.map({ now().timeIntervalSince($0) >= 0 && now().timeIntervalSince($0) < 120 }) != true { return .quoteUnavailable }
         if draft.validation != nil { return .invalidForm }
+        if let party = selectedTicket?.party, !party.accepts(childAge: submittedChildAge) { return .invalidForm }
         if !consented { return .missingConsent }
         if isQuoting || !coordinator.canConfirm { return .quoteUnavailable }
         return nil
@@ -137,6 +138,16 @@ public final class RegistrationUIFlow {
         }
         refreshCreationLock()
         changed()
+    }
+    /// Family ticket (1 adult + 1 child): the form asks for the child's age only.
+    public var childAgeRange: ClosedRange<Int>? { selectedTicket?.party.childAgeRange }
+    public var requiresChildAge: Bool { selectedTicket?.party.isFamily == true }
+    /// Only a family ticket sends an age; switching to another ticket never leaks a stale one.
+    private var submittedChildAge: Int? { requiresChildAge ? draft.childAge : nil }
+    public func setChildAge(_ value: Int?) {
+        guard canEdit else { return }
+        if let value, childAgeRange?.contains(value) != true { return }
+        draft.childAge = value; invalidateConfirmation(); changed()
     }
     public func setName(_ value: String) {
         guard canEdit else { return }
@@ -173,7 +184,9 @@ public final class RegistrationUIFlow {
     @discardableResult public func selectTicket(id: Int?) -> Bool {
         guard canEdit, (id == nil ? activity.tickets.isEmpty : activity.tickets.contains(where: { $0.id == id })) else { return false }
         guard selectedTicketID != id else { return false }
-        selectedTicketID = id; resetWaitlist(); refreshCreationLock(); applySelection(); changed(); return true
+        selectedTicketID = id
+        if let age = draft.childAge, childAgeRange?.contains(age) != true { draft.childAge = nil }
+        resetWaitlist(); refreshCreationLock(); applySelection(); changed(); return true
     }
     @discardableResult public func setUsePoints(_ value: Bool) -> Bool {
         guard canEdit, value != usePoints else { return false }
@@ -240,7 +253,7 @@ public final class RegistrationUIFlow {
         guard creationPolicy.permitsCreation else { block = .creationDisabled; changed(); return }
         let stamp = generation, identity = openedIdentity
         confirmation = nil; isSubmitting = true; changed()
-        _ = await coordinator.confirm(review.draft.details(waitlistOffer: review.selection.waitlistOffer))
+        _ = await coordinator.confirm(review.draft.details(waitlistOffer: review.selection.waitlistOffer, childAge: submittedChildAge))
         guard matches(stamp, identity) else { return }
         isSubmitting = false; changed()
     }
@@ -430,7 +443,7 @@ public final class RegistrationUIFlow {
     }
     private func applyParticipant(_ participant: ProfileParticipant) {
         selectedParticipantID = participant.id
-        draft = .init(realName: participant.fullName, phone: participant.mobilePhone)
+        draft = .init(realName: participant.fullName, phone: participant.mobilePhone, childAge: draft.childAge)
     }
     private func matches(_ stamp: UInt64, _ identity: ProfileReadIdentity?) -> Bool {
         generation == stamp && openedIdentity == identity && hasCurrentSession

@@ -136,7 +136,8 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             }
             if access.canReadDashboard {
                 Section("merchant.revenue") {
-                    MerchantSectionState(model: dashboard, retry: { Task { await loadDashboard() } }) { value in
+                    // F14a: a failed read shows "加载失败·重试", never a number; missing money is ¥0.00.
+                    MerchantSectionState(model: dashboard, retry: { Task { await loadDashboard() } }, retryKey: MoneyFormat.loadFailedRetryKey) { value in
                         Text(MerchantMoney.display(value.revenue)).font(.largeTitle).monospacedDigit()
                             .accessibilityIdentifier("merchant.dashboard.revenue")
                         if !value.revenue7d.isEmpty {
@@ -224,20 +225,21 @@ struct MerchantCountRow: View {
 struct MerchantSectionState<Value, Content: View>: View {
     @ObservedObject var model: MerchantLoadModel<Value>
     let retry: () -> Void
+    var retryKey = "action.retry"
     let content: (Value) -> Content
-    init(model: MerchantLoadModel<Value>, retry: @escaping () -> Void, @ViewBuilder content: @escaping (Value) -> Content) {
-        self.model = model; self.retry = retry; self.content = content
+    init(model: MerchantLoadModel<Value>, retry: @escaping () -> Void, retryKey: String = "action.retry", @ViewBuilder content: @escaping (Value) -> Content) {
+        self.model = model; self.retry = retry; self.retryKey = retryKey; self.content = content
     }
     var body: some View {
         if let value = model.value {
             if model.isLoading { ProgressView("merchant.refreshing") }
             if let error = model.errorKey {
                 Text("merchant.stale").font(.footnote).foregroundStyle(.secondary)
-                MerchantInlineFailure(errorKey: error, retry: retry)
+                MerchantInlineFailure(errorKey: error, retry: retry, retryKey: retryKey)
             }
             content(value)
         } else if let error = model.errorKey {
-            MerchantInlineFailure(errorKey: error, retry: retry)
+            MerchantInlineFailure(errorKey: error, retry: retry, retryKey: retryKey)
         } else { ProgressView("merchant.loading") }
     }
 }
@@ -245,11 +247,12 @@ struct MerchantSectionState<Value, Content: View>: View {
 struct MerchantInlineFailure: View {
     let errorKey: String
     let retry: () -> Void
+    var retryKey = "action.retry"
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(LocalizedStringKey(errorKey)).foregroundStyle(.secondary)
             if errorKey != "merchant.access.denied" && errorKey != "auth.expired" {
-                Button("action.retry", action: retry)
+                Button(LocalizedStringKey(retryKey), action: retry)
             }
         }
     }

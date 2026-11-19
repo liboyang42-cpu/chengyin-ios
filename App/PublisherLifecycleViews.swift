@@ -161,10 +161,10 @@ import SwiftUI
     var body: some View {
         Section("XP") {
             if let budget {
-                Text("\(budget.totalXP.map(String.init) ?? "—") / \(budget.budget.map(String.init) ?? "—")")
-                Text(zh ? "通关奖励：\(budget.remain.map(String.init) ?? "—")" : "Completion reward: \(budget.remain.map(String.init) ?? "—")")
+                Text("\(MoneyFormat.countText(budget.totalXP)) / \(MoneyFormat.countText(budget.budget))")
+                Text(zh ? "通关奖励：\(MoneyFormat.countText(budget.remain))" : "Completion reward: \(MoneyFormat.countText(budget.remain))")
                 Text(budget.over.map { $0 ? (zh ? "服务器：超预算" : "Server: over budget") : (zh ? "服务器：未超预算" : "Server: within budget") } ?? (zh ? "预算状态未知" : "Budget status unknown"))
-                ForEach(budget.nodes) { node in Text("\(node.name ?? "#\(node.id)"): \(node.xp.map(String.init) ?? "—")") }
+                ForEach(budget.nodes) { node in Text("\(node.name ?? "#\(node.id)"): \(MoneyFormat.countText(node.xp))") }
             }
             Text(message)
         }.accessibilityIdentifier("publisher.xpBudget")

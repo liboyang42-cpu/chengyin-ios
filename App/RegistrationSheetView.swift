@@ -222,6 +222,7 @@ struct RegistrationSheetView: View {
                 }.disabled(!flow.canEdit).accessibilityIdentifier("registration.form.ticketPicker")
                 if let ticket = flow.selectedTicket {
                     RegistrationAmountRow(key: "registration.form.ticketPrice", amount: ticket.price)
+                    if flow.requiresChildAge { childAgeRow }
                     if let description = ticket.description, !description.isEmpty { Text(verbatim: description) }
                     TimelineView(.periodic(from: .now, by: 1)) { _ in
                         if flow.signupClosed {
@@ -241,6 +242,26 @@ struct RegistrationSheetView: View {
                     }
                 }
             }
+        }
+    }
+    /// F12 family ticket (1 adult + 1 child): age only, constrained to the ticket's range.
+    @ViewBuilder private var childAgeRow: some View {
+        Text("registration.form.familyTicket").font(.subheadline).foregroundStyle(.secondary)
+        if let range = flow.childAgeRange {
+            Picker("registration.form.childAge", selection: Binding<Int?>(
+                get: { flow.draft.childAge },
+                set: { flow.setChildAge($0) }
+            )) {
+                Text("registration.form.childAgeUnselected").tag(Optional<Int>.none)
+                ForEach(Array(range), id: \.self) { age in
+                    Text("registration.form.childAgeValue \(age)").tag(Optional(age))
+                }
+            }.disabled(!flow.canEdit).accessibilityIdentifier("registration.form.childAgePicker")
+            Text("registration.form.childAgeHint \(range.lowerBound) \(range.upperBound)")
+                .font(.caption).foregroundStyle(.secondary)
+        } else {
+            Text("registration.form.childAgeUnavailable").foregroundStyle(.secondary)
+                .accessibilityIdentifier("registration.form.childAgeUnavailable")
         }
     }
     @ViewBuilder private var waitlistSection: some View {

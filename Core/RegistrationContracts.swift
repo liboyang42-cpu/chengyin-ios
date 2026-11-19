@@ -98,6 +98,8 @@ public struct RegistrationCreateIntent: Encodable, Equatable {
     public let requestID: String
     public let quoteSign: String
     public let waitlistOffer: RegistrationWaitlistOffer?
+    /// F12 family ticket only: the child's age (no name). Absent for every other ticket.
+    public let childAge: Int?
     public var ownerType: Int { 2 }
 
     /// `quote` must be the response for `selection`, under the current authenticated account.
@@ -107,8 +109,8 @@ public struct RegistrationCreateIntent: Encodable, Equatable {
                 realName: String, phone: String, email: String? = nil,
                 participateDate: String? = nil, usesAppPaymentChannel: Bool = true,
                 requestID: String = "app-\(UUID().uuidString)",
-                waitlistOffer: RegistrationWaitlistOffer? = nil) throws {
-        guard quote.isUsableForCreate,
+                waitlistOffer: RegistrationWaitlistOffer? = nil, childAge: Int? = nil) throws {
+        guard quote.isUsableForCreate, childAge.map({ $0 >= 0 }) ?? true,
               !realName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               !phone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               !requestID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
@@ -123,11 +125,12 @@ public struct RegistrationCreateIntent: Encodable, Equatable {
         self.quoteSign = quote.quoteSign
         guard selection.waitlistOffer == nil || selection.waitlistOffer == waitlistOffer else { throw APIError.invalidRequest }
         self.waitlistOffer = waitlistOffer
+        self.childAge = childAge
     }
 
     private enum CodingKeys: String, CodingKey {
         case ownerType, ownerId, ticketId, realName, phone, email, participateDate
-        case isUsePoint, quoteSign, payChannel, requestId, waitlistOfferId, waitlistOfferToken
+        case isUsePoint, quoteSign, payChannel, requestId, waitlistOfferId, waitlistOfferToken, childAge
     }
     public func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
@@ -146,6 +149,7 @@ public struct RegistrationCreateIntent: Encodable, Equatable {
             try c.encode(waitlistOffer.id, forKey: .waitlistOfferId)
             try c.encode(waitlistOffer.token, forKey: .waitlistOfferToken)
         }
+        try c.encodeIfPresent(childAge, forKey: .childAge)
     }
 }
 

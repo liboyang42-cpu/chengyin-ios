@@ -29,11 +29,22 @@ public struct OrderLifecycleDetail: Decodable, Equatable, Identifiable {
     public let refundApplication: OrderLifecycleRefund?
     public let manualRefundCaseStatus: String?
     public let entitlements: [TicketWalletEntitlement]
+    /// F13/OR-012: server-computed usable window, same field as the wallet list. Lenient and optional.
+    public let usableState: TicketWalletUsableState?
+    /// F12: family-ticket snapshot {adultCount, childCount, childAge}; nil for ordinary tickets.
+    public let party: TicketWalletParty?
+    /// An EXPIRED ticket is no longer listed in the wallet; the detail says so explicitly.
+    public var showsWalletExpiredNotice: Bool { usableState == .expired }
+    /// Family ticket (childCount == 1) shows "1 大 1 小（儿童 N 岁）".
+    public var isFamilyTicket: Bool { party?.isFamily == true }
+    /// The child's age when supplied and non-negative; nil shows "1 大 1 小" without an age.
+    public var familyChildAge: Int? { isFamilyTicket ? party?.childAge.flatMap { $0 >= 0 ? $0 : nil } : nil }
 
     enum CodingKeys: String, CodingKey {
         case id, ownerType, ownerId, registrationNo, registrationStatus, paymentStatus, verificationStatus
         case payableAmount, ticketName, purchaseKind, createTime, paymentTime, verificationTime, payExpireTime
         case cmsActivity, cmsTopic, refundInfo, refundApplication, manualRefundCaseStatus, entitlements
+        case usableState, party
     }
     private struct Owner: Decodable {
         let name: String?
@@ -75,6 +86,9 @@ public struct OrderLifecycleDetail: Decodable, Equatable, Identifiable {
         refundApplication = try c.decodeIfPresent(OrderLifecycleRefund.self, forKey: .refundApplication)
         manualRefundCaseStatus = try c.decodeIfPresent(String.self, forKey: .manualRefundCaseStatus)
         entitlements = try c.decodeIfPresent([TicketWalletEntitlement].self, forKey: .entitlements) ?? []
+        usableState = ((try? c.decodeIfPresent(String.self, forKey: .usableState)) ?? nil)
+            .flatMap { TicketWalletUsableState(rawValue: $0.trimmingCharacters(in: .whitespacesAndNewlines)) }
+        party = (try? c.decodeIfPresent(TicketWalletParty.self, forKey: .party)) ?? nil
     }
 }
 
