@@ -18,6 +18,35 @@ import FoundationNetworking
         XCTAssertFalse(ContextualReviewDraft(rating: 1, contents: String(repeating: "x", count: 501)).isValid)
         XCTAssertThrowsError(try draft.fields(target: .topic(0)))
     }
+    func testReviewRequestIDIsOptionalAndValidated() throws {
+        let draft = ContextualReviewDraft(rating: 4, contents: "Experience")
+        XCTAssertNil(try draft.fields(target: .topic(7))["request_id"])
+        let stamped = ContextualReviewDraft(rating: 4, contents: "Experience", requestID: "0123456789abcdef")
+        XCTAssertEqual(try stamped.fields(target: .topic(7))["request_id"], "0123456789abcdef")
+        for invalid in ["short", "has space 0123456789", String(repeating: "a", count: 65)] {
+            XCTAssertThrowsError(try ContextualReviewDraft(rating: 4, contents: "Experience", requestID: invalid).fields(target: .topic(7)))
+        }
+        XCTAssertTrue(ContextualReviewDraft.isValidRequestID(ContextualReviewDraft.makeRequestID()))
+    }
+    func testSameDraftReusesRequestIDOnRetryAndEditedDraftGetsNewOne() async throws {
+        let transport = ProfileTestTransport([.json(#"{"code":500}"#), .json(#"{"code":500}"#), .json(#"{"code":500}"#)])
+        let session = try session()
+        let writer = ContextualReviewHTTPWriter(configuration: try config(), transport: transport, enabled: true, currentSession: { session })
+        let owner = ContextualReviewCoordinator(target: .topic(7), writer: writer)
+        let draft = ContextualReviewDraft(rating: 4, contents: "Experience")
+        await owner.submit(draft, expected: session); XCTAssertEqual(owner.state, .rejected)
+        await owner.submit(draft, expected: session)
+        await owner.submit(.init(rating: 4, contents: "Edited"), expected: session)
+        XCTAssertEqual(transport.requests.count, 3)
+        let ids = try transport.requests.map { try XCTUnwrap(requestID(in: $0)) }
+        XCTAssertTrue(ContextualReviewDraft.isValidRequestID(ids[0]))
+        XCTAssertEqual(ids[0], ids[1]); XCTAssertNotEqual(ids[1], ids[2])
+    }
+    private func requestID(in request: URLRequest) -> String? {
+        let body = String(decoding: request.httpBody ?? Data(), as: UTF8.self)
+        guard let start = body.range(of: "name=\"request_id\"\r\n\r\n") else { return nil }
+        return body[start.upperBound...].components(separatedBy: "\r\n").first
+    }
     func testDormantWriterCannotDispatch() async throws {
         let transport = ProfileTestTransport([]), session = try session()
         let writer = ContextualReviewHTTPWriter(configuration: try config(), transport: transport, currentSession: { session })
