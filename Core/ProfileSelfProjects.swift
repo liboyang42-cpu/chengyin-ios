@@ -75,6 +75,31 @@ public enum ProfileSelfProjectCalendar {
         return .running
     }
 }
+/// F14b: one action list for both the visible trailing "更多" menu and the long-press context menu.
+/// Long press is only a shortcut; it is never the sole entry to an action (Apple HIG).
+public enum ProfileSelfProjectAction: String, CaseIterable, Identifiable {
+    case open, edit
+    public var id: String { rawValue }
+    public var systemImage: String { self == .open ? "arrow.up.right.square" : "square.and.pencil" }
+    /// Localizable.xcstrings key.
+    public var localizationKey: String { "profile.selfProjects.action.\(rawValue)" }
+}
+public enum ProfileSelfProjectActions {
+    /// Source myproject edit rule: drafts, rejected and offline topics, plus (F10) free-exploration
+    /// topics while recruiting (lifecycle 1) or awaiting price (lifecycle 2). This selects UI
+    /// affordances only; the editor still requires a fresh server read before any write.
+    public static func canEdit(_ row: CreatorContentProject) -> Bool {
+        guard row.bizType == "topic", row.sourceID > 0, ["member", "merchant"].contains(row.ownerType ?? "") else { return false }
+        if row.freeExplore, let lifecycle = row.lifecycle, lifecycle == 1 || lifecycle == 2 { return true }
+        return ["draft", "rejected", "offline"].contains(row.state ?? "")
+    }
+    public static func actions(for row: CreatorContentProject, editingAvailable: Bool) -> [ProfileSelfProjectAction] {
+        var result: [ProfileSelfProjectAction] = []
+        if row.destination != nil { result.append(.open) }
+        if editingAvailable, canEdit(row) { result.append(.edit) }
+        return result
+    }
+}
 public struct ProfileSelfProjectsPreview: Equatable {
     public let rows: [CreatorContentProject]
     public let sourceTruncated: Bool

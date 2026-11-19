@@ -5,6 +5,46 @@
 	};
 	"objectVersion" = 56;
 	"objects" = {
+		"4B3ABB47245CD04365687026" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/FeReferenceSettlementViews.swift";
+			"sourceTree" = "<group>";
+		};
+		"FF616A2246BB5EF6CA828D06" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4B3ABB47245CD04365687026";
+		};
+		"767DD62ABF79B3B9D5C56909" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/FreeExploreSaleViews.swift";
+			"sourceTree" = "<group>";
+		};
+		"66D4ED5599642C814770BA34" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "767DD62ABF79B3B9D5C56909";
+		};
+		"263E363F80ABDD0A7B1A7CC7" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/FeReferenceSettlementHTTP.swift";
+			"sourceTree" = "<group>";
+		};
+		"40901883711ECE8DB497F42E" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "263E363F80ABDD0A7B1A7CC7";
+		};
+		"160E0EA313D29CDD6987197D" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/FreeExploreSaleFlow.swift";
+			"sourceTree" = "<group>";
+		};
+		"15C944E56E28C3A4818CBA21" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "160E0EA313D29CDD6987197D";
+		};
 		"630D1CFA5FEBD33A996B0FD1" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -16638,6 +16678,10 @@
 		"19F479106CE8C3BA8C106518" = {
 			"isa" = "PBXGroup";
 			"children" = (
+				"160E0EA313D29CDD6987197D",
+				"263E363F80ABDD0A7B1A7CC7",
+				"767DD62ABF79B3B9D5C56909",
+				"4B3ABB47245CD04365687026",
 				"630D1CFA5FEBD33A996B0FD1",
 				"1C05F0EA73C477B9583A1D92",
 				"58A4F97176EC2F047E8C1785",
@@ -18881,6 +18925,10 @@
 			"isa" = "PBXSourcesBuildPhase";
 			"buildActionMask" = 2147483647;
 			"files" = (
+				"15C944E56E28C3A4818CBA21",
+				"40901883711ECE8DB497F42E",
+				"66D4ED5599642C814770BA34",
+				"FF616A2246BB5EF6CA828D06",
 				"F24AD3F36FD050591D646093",
 				"30B1D308D233AC486091C54C",
 				"6F4AAFB84C944399F748A616",

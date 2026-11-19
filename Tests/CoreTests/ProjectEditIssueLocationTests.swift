@@ -28,7 +28,7 @@ final class ProjectEditIssueLocationTests: XCTestCase {
     }
     func testTicketDestinationDoesNotParseAnIndexFromDigitsInsideItsID() throws {
         var draft = ProjectEditSyntheticFixtures.draft(product: .freeExplore)
-        var ticket = ProjectEditTicket(); ticket.id = "ticket-901-3"; ticket.price = ""
+        var ticket = ProjectEditTicket(); ticket.id = "ticket-901-3"; ticket.price = "abc"
         draft.tickets = [ticket]
         XCTAssertEqual(ProjectEditIssueLocation.location(for: try issue("price" + ticket.id, in: draft), in: draft, scope: .full),
                        .ticket(id: ticket.id, anchor: "project-issue-anchor-price"))
@@ -43,7 +43,7 @@ final class ProjectEditIssueLocationTests: XCTestCase {
         let nodeIssue = try issue("nodeName" + nodeID, in: draft)
         XCTAssertNil(ProjectEditIssueLocation.location(for: nodeIssue, in: draft, scope: .full))
         XCTAssertNil(ProjectEditIssueLocation.location(for: nodeIssue, in: draft, scope: .whitelist))
-        var ticket = ProjectEditTicket(); ticket.id = "duplicate"; ticket.price = ""
+        var ticket = ProjectEditTicket(); ticket.id = "duplicate"; ticket.price = "abc"
         draft.tickets = [ticket, ticket]
         XCTAssertNil(ProjectEditIssueLocation.location(for: try issue("price" + ticket.id, in: draft), in: draft, scope: .full))
     }

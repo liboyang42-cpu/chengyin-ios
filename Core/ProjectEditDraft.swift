@@ -217,6 +217,11 @@ public struct ProjectEditIssue: Identifiable, Equatable {
 }
 
 public enum ProjectEditValidation {
+    /// Server parity (CmsTopicServiceImpl): only FREE_EXPLORE topics may save a ticket without a price.
+    /// A typed but malformed price is still rejected; "0" remains an explicit free ticket.
+    public static func allowsMissingPrice(_ ticket: ProjectEditTicket, product: ProjectEditProduct) -> Bool {
+        product == .freeExplore && ticket.price.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
     public static func decimal(_ value: String) -> Decimal? {
         let text = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard text.range(of: #"^-?[0-9]+(?:\.[0-9]+)?$"#, options: .regularExpression) != nil else { return nil }
@@ -290,7 +295,9 @@ public enum ProjectEditValidation {
             }
             need((try? ticket.saleTimePayloads()) != nil, "ticketSaleDates\(ticket.id)", "dates")
             need(!ticket.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, "ticketName\(ticket.id)", "ticketName")
-            need(decimal(ticket.price).map { $0 >= 0 } ?? false, "price\(ticket.id)", "price")
+            // F10: free exploration may publish for merchant recruitment before pricing;
+            // an empty price stays missing (never coerced to free) and is filled before sale.
+            need(allowsMissingPrice(ticket, product: draft.product) || (decimal(ticket.price).map { $0 >= 0 } ?? false), "price\(ticket.id)", "price")
             need(Int(ticket.totalStock).map { $0 >= 0 } ?? false, "stock\(ticket.id)", "number")
             need(Int(ticket.teamSize).map { $0 >= 0 } ?? false, "team\(ticket.id)", "number")
             let schedule = ticket.schedule(in: draft)

@@ -15,7 +15,7 @@ import XCTest
         let owner = Owner(), storage = Storage()
         var draft = ProjectEditSyntheticFixtures.draft(product: .freeExplore)
         draft.name = ""; draft.chapters[0].nodes[0].name = ""
-        var ticket = ProjectEditTicket(); ticket.id = "ticket-901-3"; ticket.price = ""
+        var ticket = ProjectEditTicket(); ticket.id = "ticket-901-3"; ticket.price = "abc"
         draft.tickets = [ticket]
         let initial = ProjectEditSnapshot(draft: draft), service = ProjectEditSyntheticService(snapshot: initial)
         let model = ProjectEditModel(coordinator: .init(initial: initial, service: service,

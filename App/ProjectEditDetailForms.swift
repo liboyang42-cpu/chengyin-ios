@@ -462,13 +462,28 @@ import SwiftUI
     @ObservedObject var model: ProjectEditModel
     let ticketID: String
     var initialIssueAnchor: String? = nil
+    /// F10: free-exploration price gating from the server's sale readiness.
+    var freeExploreSale: FreeExplorePriceState = .notApplicable
+    @Environment(\.locale) private var ticketLocale
     private var ticket: Binding<ProjectEditTicket> { model.ticket(ticketID) }
     var body: some View {
         Form {
             Section("projectEdit.ticketDetails") {
                 TextField("projectEdit.ticketName", text: ticket.name).accessibilityIdentifier("projectEdit.ticketName").id("project-issue-anchor-ticketName")
                 TextField("projectEdit.ticketPrice", text: ticket.price).keyboardType(.decimalPad).accessibilityIdentifier("projectEdit.ticketPrice").id("project-issue-anchor-price")
+                    .disabled(freeExploreSale.disablesPriceFields)
                 Text("projectEdit.priceHint").font(.caption).foregroundStyle(.secondary)
+                if model.draft.product == .freeExplore {
+                    if let open = freeExploreSale.openSlotCount {
+                        Text(verbatim: String(format: appLocalized("freeExplore.sale.openSlots", locale: ticketLocale), open)).font(.caption).accessibilityIdentifier("projectEdit.freeExplore.ticketOpenSlots")
+                    } else if case .priceEntry = freeExploreSale {
+                        Text("freeExplore.ticket.allSlotsFilled")
+                            .font(.caption).foregroundStyle(.secondary)
+                    } else {
+                        Text("freeExplore.ticket.priceOptional")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                }
                 TextField("projectEdit.totalStock", text: ticket.totalStock).keyboardType(.numberPad).accessibilityIdentifier("projectEdit.totalStock").id("project-issue-anchor-stock")
                 TextField("projectEdit.teamSize", text: ticket.teamSize).keyboardType(.numberPad).id("project-issue-anchor-team")
                 TextField("projectEdit.description", text: ticket.description, axis: .vertical).lineLimit(3...8)
