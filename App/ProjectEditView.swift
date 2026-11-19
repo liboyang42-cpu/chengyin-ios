@@ -74,6 +74,15 @@ import SwiftUI
     var canEdit: Bool { ownsVisit && !coordinator.hasUnconfirmedChapterRemoval && loadedSnapshot && loadedSession == coordinator.session && coordinator.snapshot != nil && !busy && !coordinator.isLocked && coordinator.state != .simulated && coordinator.state != .acknowledged && coordinator.state != .blocked && !hasRestore }
     var canReview: Bool { currentReviewLease() != nil }
     var canSaveLocal: Bool { canEdit && coordinator.session != nil }
+    /// FE-STORY 7.10: a saved free-exploration topic read back from the server for its personal
+    /// owner (`edit-detail` already refused anyone else). Merchant-scoped topics belong to the
+    /// merchant account, which the visit-config route does not accept, so they get no entry.
+    var visitConfigTopicID: Int? {
+        guard loadedSnapshot, coordinator.session != nil, loadedSession == coordinator.session,
+              let snapshot = coordinator.snapshot, let id = snapshot.topicID, id > 0,
+              snapshot.draft.product == .freeExplore, snapshot.draft.owner == .personal else { return nil }
+        return id
+    }
     var fullEdit: Bool { canEdit && coordinator.snapshot?.scope == .full }
     var hasRestore: Bool { switch coordinator.restore { case .missing: return false; default: return true } }
     var canRestore: Bool { if case .ready = coordinator.restore { return true }; return false }
@@ -258,8 +267,10 @@ import SwiftUI
     let sessionRevision: UInt64
     var publisherClient: PublisherLifecycleHTTP? = nil
     var publisherHost: ((PublishedResource) -> AnyView)? = nil
-    init(coordinator: ProjectEditCoordinator, sessionRevision: UInt64, seed: ProjectEditDraft? = nil, publisherClient: PublisherLifecycleHTTP? = nil, publisherHost: ((PublishedResource) -> AnyView)? = nil, ownedCoverPicker: (() -> any OwnedTopicCoverSelecting)? = nil, storyImagePicker: (() -> any OwnedTopicCoverSelecting)? = nil, storyAudioPicker: (() -> any ProjectStoryAudioSelecting)? = nil) {
-        self.publisherClient = publisherClient; self.publisherHost = publisherHost; self.ownedCoverPicker = ownedCoverPicker
+    /// FE-STORY 7.10 author 「到访方式」 editor; nil (the default) hides the entry.
+    let visitConfig: ((Int) -> FreeExplorationVisitConfigModel?)?
+    init(coordinator: ProjectEditCoordinator, sessionRevision: UInt64, seed: ProjectEditDraft? = nil, publisherClient: PublisherLifecycleHTTP? = nil, publisherHost: ((PublishedResource) -> AnyView)? = nil, ownedCoverPicker: (() -> any OwnedTopicCoverSelecting)? = nil, storyImagePicker: (() -> any OwnedTopicCoverSelecting)? = nil, storyAudioPicker: (() -> any ProjectStoryAudioSelecting)? = nil, visitConfig: ((Int) -> FreeExplorationVisitConfigModel?)? = nil) {
+        self.publisherClient = publisherClient; self.publisherHost = publisherHost; self.ownedCoverPicker = ownedCoverPicker; self.visitConfig = visitConfig
         let value = ProjectEditModel(coordinator: coordinator, seed: seed, storyImagePicker: storyImagePicker, storyAudioPicker: storyAudioPicker)
         _model = StateObject(wrappedValue: value); _starter = StateObject(wrappedValue: .init(model: value)); _pending = StateObject(wrappedValue: .init(model: value)); _chapterRemoval = StateObject(wrappedValue: .init(model: value)); _issueNavigation = StateObject(wrappedValue: .init(model: value)); _modeReview = StateObject(wrappedValue: .init(model: value)); _ownedCover = StateObject(wrappedValue: .init(model: value)); _approvedRelease = StateObject(wrappedValue: .init(model: value)); _reviewRequest = StateObject(wrappedValue: .init(model: value)); self.sessionRevision = sessionRevision
     }
@@ -331,6 +342,13 @@ import SwiftUI
                     }
                 }
                 basicFields
+                if let topicID = model.visitConfigTopicID, let visitModel = visitConfig?(topicID) {
+                    Section {
+                        NavigationLink { FreeExplorationVisitConfigView(model: visitModel) } label: {
+                            Label("feVisitConfig.title", systemImage: "location.viewfinder")
+                        }.accessibilityIdentifier("projectEdit.visitConfig")
+                    }
+                }
                 ProjectTopicMediaHost(editor: model)
                 ProjectEditPendingSection(model: model, controller: pending)
                 ProjectDraftStoryPreviewEntry(model: model)

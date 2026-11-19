@@ -1348,6 +1348,22 @@ final class AppSession: ObservableObject {
         return BusinessRuntimeFactory(configuration: configuration, api: api, transport: runtimeHTTPTransport,
             current: { [weak self] in self?.currentRuntimeDependencyContext })
     }
+    /// FE-STORY 7.10: the author's 「到访方式」 editor for a saved free-exploration topic. Shown only when
+    /// this composition grants the visit-config read; saving additionally needs the write route, the
+    /// same way project reads and writes are granted. The server still checks the topic author.
+    func makeFreeExplorationVisitConfig(topicID: Int) -> FreeExplorationVisitConfigModel? {
+        guard topicID > 0, let factory = projectRuntimeFactory, factory.permits(.freeExploreVisitConfigRead),
+              let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        let captured = factory.captured
+        let service = FreeExplorationVisitConfigService(configuration: configuration,
+            transport: factory.client([.freeExploreVisitConfigRead, .freeExploreVisitConfigWrite]),
+            authorWrites: factory.permits(.freeExploreVisitConfigWrite),
+            token: { [weak self] in
+                guard let self, !self.projectConfigurationChanging, self.currentRuntimeDependencyContext == captured else { return nil }
+                return captured.session.token
+            })
+        return FreeExplorationVisitConfigModel(topicID: topicID, service: service)
+    }
     private func projectEditorService(owner: ProjectEditOwner) -> any ProjectEditServing {
         let service: any ProjectEditServing
         if let factory = projectRuntimeFactory, factory.permits(.projectRead), let configuration = regionalConfiguration?.apiConfiguration {

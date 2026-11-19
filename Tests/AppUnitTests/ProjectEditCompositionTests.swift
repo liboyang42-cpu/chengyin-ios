@@ -5,6 +5,7 @@ import XCTest
     private let base = URL(string: "https://example.com/native")!
     private final class Grant {
         var enabled = true, write = true, read = true, review = false, legacyOnly = false
+        var visitRead = false, visitWrite = false
         var generation: UInt64 = 1
     }
     private final class Vault: AppTokenStorage {
@@ -36,6 +37,10 @@ import XCTest
                 return (Data(#"{"code":200,"data":{"topicId":7901,"auditTaskId":3301,"reviewState":"PENDING","published":true,"bundledTemplateIds":[41]}}"#.utf8), 200)
             }
             if path.hasSuffix("/topic/create") || path.hasSuffix("/topic/update") { return (Data(#"{"code":200,"data":7901}"#.utf8), 200) }
+            if path.hasSuffix("/" + FreeExplorationVisitConfigService.path) {
+                if request.httpMethod == "POST" { return (Data(#"{"code":200,"msg":"ok"}"#.utf8), 200) }
+                return (Data(#"{"code":200,"data":[{"nodeId":801,"name":"Sample place","visitCheck":"GPS","visitRadius":null,"hasCoordinates":true}]}"#.utf8), 200)
+            }
             throw APIError.invalidRequest
         }
         func finishHome() { let prior = held; held = nil; prior?.resume(returning: (Data(#"{"code":200,"data":{"permission":{"canProPublish":true},"quota":{"themesRemaining":3}}}"#.utf8),200)) }
@@ -47,6 +52,8 @@ import XCTest
         if grant.read { routes[.projectRead] = try? Set([.post("api/publish/home"), .post("api/topic/edit-detail")]) }
         if grant.write { routes[.projectWrite] = try? Set([.post("api/topic/create"), .post("api/topic/update"), .post(ProjectEditStoryContract.createPath), .post(ProjectEditStoryContract.updatePath)]) }
         if grant.legacyOnly { routes = [.publishingRead: try! [.post("api/publish/home")], .publishingWrite: try! [.post("api/topic/create")]] }
+        if grant.visitRead { routes[.freeExploreVisitConfigRead] = try? [.get(FreeExplorationVisitConfigService.path)] }
+        if grant.visitWrite { routes[.freeExploreVisitConfigWrite] = try? [.post(FreeExplorationVisitConfigService.path)] }
         if grant.review {
             routes[.approvedTopicReviewPrepare] = try? [.post(ApprovedTopicReviewPath.prepare)]
             routes[.approvedTopicReviewSubmit] = try? [.post(ApprovedTopicReviewPath.submit)]
@@ -126,6 +133,39 @@ import XCTest
         }
         let minimal:[String:ProjectEditJSON] = ["id":.number(71),"scope":.string(""),"name":.string("Copy only")]
         for path in ["api/topic/update",ProjectEditStoryContract.updatePath] { XCTAssertEqual(ProjectEditCompositionRoute(request:try json(path,minimal),baseURL:base)?.path,path) }
+    }
+    func testVisitConfigPassesTheFenceOnlyWithItsOwnReadAndWriteGrants() async throws {
+        let wire = Wire(), grant = Grant(), transport = try fence(wire,grant)
+        var read = URLRequest(url:try XCTUnwrap(URL(string:base.appendingPathComponent(FreeExplorationVisitConfigService.path).absoluteString+"?topicId=71")))
+        read.httpMethod = "GET"; read.setValue("synthetic-project-7",forHTTPHeaderField:"Authorization")
+        let write = try json(FreeExplorationVisitConfigService.path,["nodeId":.number(801),"visitCheck":.string("SCAN"),"visitRadius":.null])
+        // Project read and write grants do not cover the visit-config routes.
+        for request in [read,write] { do { _ = try await transport.send(request); XCTFail() } catch {} }
+        XCTAssertTrue(wire.requests.isEmpty)
+        grant.visitRead = true
+        let (_,status) = try await transport.send(read); XCTAssertEqual(status,200)
+        do { _ = try await transport.send(write); XCTFail("write needs its own grant") } catch {}
+        grant.visitWrite = true
+        let (_,written) = try await transport.send(write); XCTAssertEqual(written,200)
+        // Only the exact query and body shapes match the route.
+        var extraQuery = read; extraQuery.url = URL(string:read.url!.absoluteString+"&scope=MERCHANT")
+        var badRadius = write; badRadius.httpBody = Data(#"{"nodeId":801,"visitCheck":"SCAN","visitRadius":400}"#.utf8)
+        var extraKey = write; extraKey.httpBody = Data(#"{"nodeId":801,"topicId":71,"visitCheck":"GPS","visitRadius":300}"#.utf8)
+        for request in [extraQuery,badRadius,extraKey] { do { _ = try await transport.send(request); XCTFail() } catch {} }
+        XCTAssertEqual(wire.requests.map(\.httpMethod),["GET","POST"])
+    }
+    func testSessionFactoryShowsVisitConfigOnlyWithTheReadGrantAndWritesOnlyWithTheWriteGrant() async throws {
+        let wire = Wire(), grant = Grant(), session = try root(wire,grant).makeSession(); await login(session)
+        XCTAssertNil(session.makeFreeExplorationVisitConfig(topicID:71))
+        session.withProjectEditConfigurationChange { grant.visitRead = true }
+        let readOnly = try XCTUnwrap(session.makeFreeExplorationVisitConfig(topicID:71))
+        await readOnly.load(); XCTAssertEqual(readOnly.phase,.ready); XCTAssertEqual(readOnly.rows.map(\.id),[801]); XCTAssertFalse(readOnly.canWrite)
+        session.withProjectEditConfigurationChange { grant.visitWrite = true }
+        let writable = try XCTUnwrap(session.makeFreeExplorationVisitConfig(topicID:71))
+        await writable.load(); XCTAssertTrue(writable.canWrite)
+        await writable.save(nodeID:801,visitCheck:.scan,visitRadius:nil); XCTAssertEqual(writable.saves[801],.saved)
+        XCTAssertEqual(wire.requests.filter { $0.httpMethod == "POST" && $0.url?.path.hasSuffix("/"+FreeExplorationVisitConfigService.path) == true }.count,1)
+        XCTAssertNil(session.makeFreeExplorationVisitConfig(topicID:0))
     }
     func testSelectorRejectsUnknownFieldsDuplicateKeysAdjacentRoutesAndMalformedMultipart() async throws {
         let wire = Wire(), grant = Grant(), transport = try fence(wire,grant)

@@ -32,6 +32,26 @@ import FoundationNetworking
         XCTAssertThrowsError(try config([.imRead: [.init(method: "GET", path: "api/im/read")]]))
         XCTAssertThrowsError(try BusinessRuntimeRoute.post("api/registration/*"))
     }
+    func testVisitConfigReadIsTheOnlyGetAndWriteNeedsItsOwnGrant() async throws {
+        let path = FreeExplorationVisitConfigService.path
+        XCTAssertThrowsError(try config([.freeExploreVisitConfigRead: [.post(path)]]))
+        XCTAssertThrowsError(try config([.freeExploreVisitConfigWrite: [.get(path)]]))
+        XCTAssertThrowsError(try config([.freeExploreVisitConfigRead: [.get("api/topic/edit-detail")]]))
+        XCTAssertThrowsError(try config([.projectWrite: [.post(path)]]))
+        let context = try context(), transport = BusinessRuntimeRecorder()
+        transport.reply = { _ in Data(#"{"code":200,"data":[{"nodeId":801,"visitCheck":"GPS","visitRadius":null,"hasCoordinates":true}]}"#.utf8) }
+        let readOnly = try config([.freeExploreVisitConfigRead: [.get(path)]])
+        let factory = try XCTUnwrap(BusinessRuntimeFactory(configuration: readOnly, api: .init(baseURL: base), transport: transport, current: { context }))
+        XCTAssertTrue(factory.permits(.freeExploreVisitConfigRead)); XCTAssertFalse(factory.permits(.freeExploreVisitConfigWrite))
+        let service = FreeExplorationVisitConfigService(configuration: try .init(baseURL: base), transport: factory.client([.freeExploreVisitConfigRead, .freeExploreVisitConfigWrite]),
+                                                        authorWrites: true, token: { "synthetic" })
+        let rows = try await service.load(topicID: 71)
+        XCTAssertEqual(rows.map(\.id), [801]); XCTAssertEqual(transport.requests.first?.httpMethod, "GET")
+        XCTAssertEqual(transport.requests.first?.url?.query, "topicId=71")
+        // Without the write route the POST never leaves the device, even with authorWrites on.
+        do { try await service.save(try .init(nodeID: 801, visitCheck: .scan, visitRadius: nil), current: rows[0]); XCTFail() } catch {}
+        XCTAssertEqual(transport.requests.filter { $0.httpMethod == "POST" }.count, 0)
+    }
     func testReadOnlyIMClientUsesRealContractWithoutGrantingSendOrMute() async throws {
         let context = try context(), transport = BusinessRuntimeRecorder()
         let accepted = try config([.imRead: [.post("api/im/read")]])

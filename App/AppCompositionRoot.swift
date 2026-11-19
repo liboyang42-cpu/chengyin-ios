@@ -484,7 +484,8 @@ extension KeychainTokenStore: AppTokenStorage {}
         let playRead = PlayReadRoute(request: request, baseURL: api.baseURL)
         let ownedCover = OwnedTopicCoverCompositionRoute(request: request, baseURL: api.baseURL)
         let ticketWalletList = TicketWalletListReadRoute(request: request, baseURL: api.baseURL)
-        guard url.query == nil || manualRead != nil || playRead != nil || cityRead != nil || ownedCover != nil else { throw APIError.notConfigured }
+        let visitConfig = FreeExploreVisitConfigCompositionRoute(request: request, baseURL: api.baseURL)
+        guard url.query == nil || manualRead != nil || playRead != nil || cityRead != nil || ownedCover != nil || visitConfig == .read else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
@@ -552,6 +553,19 @@ extension KeychainTokenStore: AppTokenStorage {}
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let configurationRevision = projectEditConfigurationRevision() else { throw APIError.notConfigured }
             let exact = try BusinessRuntimeRoute.post(route.path)
+            func permitted() -> Bool {
+                guard projectEditConfigurationRevision() == configurationRevision, let configuration = projectEditConfiguration(context), configuration.matches(context) else { return false }
+                return configuration.routes[route.feature]?.contains(exact) == true
+            }
+            guard permitted() else { throw APIError.notConfigured }
+            readApprovalStillValid = permitted
+        } else if let route = visitConfig {
+            // FE-STORY 7.10: granted through the same project-edit configuration as the author editor.
+            guard captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let configurationRevision = projectEditConfigurationRevision() else { throw APIError.notConfigured }
+            let exact = try route.exact
             func permitted() -> Bool {
                 guard projectEditConfigurationRevision() == configurationRevision, let configuration = projectEditConfiguration(context), configuration.matches(context) else { return false }
                 return configuration.routes[route.feature]?.contains(exact) == true

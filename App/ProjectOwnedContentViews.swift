@@ -34,6 +34,7 @@ import SwiftUI
     var editorContextID: String? = nil
     var publisherClient: PublisherLifecycleHTTP? = nil
     var publisherHost: ((PublishedResource) -> AnyView)? = nil
+    var visitConfig: ((Int) -> FreeExplorationVisitConfigModel?)? = nil
     @StateObject private var navigation = ProjectOwnedContentNavigation()
     var body: some View {
         let presented = navigation.selection
@@ -47,7 +48,7 @@ import SwiftUI
                         if let target = ProjectEditRemoteTarget(project: value.project, readerScope: value.scope) {
                             NavigationLink {
                                 ProjectRemoteEditorDestination(target: target, reader: reader, revision: revision,
-                                    makeEditor: makeEditor, editorContextID: editorContextID, publisherClient: publisherClient, publisherHost: publisherHost)
+                                    makeEditor: makeEditor, editorContextID: editorContextID, publisherClient: publisherClient, publisherHost: publisherHost, visitConfig: visitConfig)
                             } label: { Text("projectRemote.edit") }
                                 .accessibilityIdentifier("projectRemote.edit")
                         }
@@ -65,10 +66,11 @@ import SwiftUI
     var editorContextID: String? = nil
     var publisherClient: PublisherLifecycleHTTP? = nil
     var publisherHost: ((PublishedResource) -> AnyView)? = nil
+    var visitConfig: ((Int) -> FreeExplorationVisitConfigModel?)? = nil
     var body: some View {
         if reader.scope == target.readerScope, reader.isAuthenticated, let coordinator = makeEditor(target) {
             ProjectEditView(coordinator: coordinator, sessionRevision: revision,
-                publisherClient: publisherClient, publisherHost: publisherHost).id(editorContextID.map { target.id + ":" + $0 } ?? target.id)
+                publisherClient: publisherClient, publisherHost: publisherHost, visitConfig: visitConfig).id(editorContextID.map { target.id + ":" + $0 } ?? target.id)
         } else { Text("projectRemote.stale").accessibilityIdentifier("projectRemote.stale") }
     }
 }
@@ -85,7 +87,8 @@ import SwiftUI
                     authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision).id(session.templateAuthoringViewIdentity))
                 }
             }, editorContextID: session.projectEditorContextID, publisherClient: session.publisherLifecycleContext?.client,
-            publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) })
+            publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) },
+            visitConfig: { session.makeFreeExplorationVisitConfig(topicID: $0) })
             .id(session.creatorContentReader.scope)
     }
 }
