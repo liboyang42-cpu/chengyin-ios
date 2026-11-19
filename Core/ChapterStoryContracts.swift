@@ -27,6 +27,8 @@ public struct ChapterStorySegment: Equatable, Identifiable {
         case thought(name: String, description: String?), game(nodeID: Int)
         /// Text block marked `optional: true`: 「延伸阅读」, collapsed by default; `who` is its subtitle.
         case optionalReading(subtitle: String?, paragraphs: [String])
+        /// Cast contract: a book-style paragraph whose speaker name sits in the leading margin.
+        case line(ChapterStoryLine)
     }
     public let id: String
     public let content: Content
@@ -34,6 +36,27 @@ public struct ChapterStorySegment: Equatable, Identifiable {
     public let odd: Int
 }
 public struct ChapterStoryDreamImage: Equatable { public let url: String; public let line: String? }
+/// One reading-column paragraph with an optional margin speaker. Never a bubble.
+public struct ChapterStoryLine: Equatable {
+    public enum Speaker: Equatable {
+        /// A configured cast member (`castConfig.cast[].id`).
+        case cast(String)
+        /// The player; the margin shows the chosen name, or 「你」.
+        case player
+        /// Legacy `type:"text"` block `who`: a name with no card.
+        case named(String)
+    }
+    /// Nil renders the line as plain text with no name (e.g. a removed cast id).
+    public let speaker: Speaker?
+    public let text: String
+    /// Author recording (`media-asset:N` or https); empty means none.
+    public let audioURL: String?
+    /// Block key used for the lazy TTS request.
+    public let blockKey: String?
+    public init(speaker: Speaker?, text: String, audioURL: String? = nil, blockKey: String? = nil) {
+        self.speaker = speaker; self.text = text; self.audioURL = audioURL; self.blockKey = blockKey
+    }
+}
 
 public enum ChapterStoryProjection {
     /// Scalar replacement only. Missing variables keep the authored token unless a fallback exists.
@@ -60,24 +83,33 @@ public enum ChapterStoryProjection {
     /// Backend projection is an independent security boundary; this is a spoiler guard.
     public static func segments(chapter: ChapterStoryDocument, snapshot: PlaySnapshot,
                                 variables: [String: PlayWireValue], thoughts: [PlayWireValue] = [],
-                                storyVoices: [String: PlayWireValue] = [:], activeInlineNodeID: Int? = nil) -> [ChapterStorySegment] {
+                                storyVoices: [String: PlayWireValue] = [:], activeInlineNodeID: Int? = nil,
+                                cast: CastStoryContext? = nil) -> [ChapterStorySegment] {
         var result: [ChapterStorySegment] = []
         var mood: String?
         var odd = 0
         func append(_ content: ChapterStorySegment.Content, id: String) {
             result.append(.init(id: id, content: content, mood: mood, odd: odd))
         }
-        func paragraphs(_ raw: String?, prefix: String) {
+        func fill(_ text: String) -> String {
+            let value = substitute(text, variables: variables)
+            return cast.map { CastStoryVariables.fill(value, profile: $0.profile, config: $0.config) } ?? value
+        }
+        func paragraphs(_ raw: String?, prefix: String, who: String? = nil) {
             guard let raw else { return }
+            var named = false
             for (index, value) in raw.components(separatedBy: .newlines).enumerated() {
                 let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-                if !trimmed.isEmpty { append(.text(substitute(trimmed, variables: variables)), id: "\(prefix).\(index)") }
+                guard !trimmed.isEmpty else { continue }
+                // `who` is drawn once, in the margin beside the first paragraph; never a 「某某：」 prefix.
+                if let who, !named { named = true; append(.line(.init(speaker: .named(who), text: fill(trimmed))), id: "\(prefix).\(index)") }
+                else { append(.text(fill(trimmed)), id: "\(prefix).\(index)") }
             }
         }
         func voices(_ nodeID: Int, prefix: String) {
             for (index, voice) in (storyVoices[String(nodeID)]?.array ?? []).enumerated() {
                 if let text = ParticipationRecord.text(voice["text"]) {
-                    append(.voice(speaker: voice["who"].text ?? "", text: substitute(text, variables: variables)), id: "\(prefix).voice.\(index)")
+                    append(.voice(speaker: voice["who"].text ?? "", text: fill(text)), id: "\(prefix).voice.\(index)")
                 }
             }
         }
@@ -113,27 +145,40 @@ public enum ChapterStoryProjection {
                 if block["optional"].bool == true {
                     let lines = (block["content"].text ?? "").components(separatedBy: .newlines).compactMap { value -> String? in
                         let value = value.trimmingCharacters(in: .whitespacesAndNewlines)
-                        return value.isEmpty ? nil : substitute(value, variables: variables)
+                        return value.isEmpty ? nil : fill(value)
                     }
                     let subtitle = block["who"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
                     if !lines.isEmpty { append(.optionalReading(subtitle: subtitle?.isEmpty == false ? subtitle : nil, paragraphs: lines), id: id) }
-                } else { paragraphs(block["content"].text, prefix: id) }
+                } else {
+                    let who = block["who"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+                    paragraphs(block["content"].text, prefix: id, who: who?.isEmpty == false ? who : nil)
+                }
+            case "line":
+                guard let content = block["content"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !content.isEmpty else { break }
+                let speakerID = block["speaker"].text
+                let speaker: ChapterStoryLine.Speaker?
+                if speakerID == "player" { speaker = .player }
+                else if let member = cast?.config.member(speakerID) { speaker = .cast(member.id) }
+                else { speaker = nil } // Unknown or cast off: plain paragraph, never a crash.
+                let audio = ParticipationRecord.text(block["audioUrl"])
+                append(.line(.init(speaker: speaker, text: fill(String(content.prefix(300))), audioURL: audio,
+                                   blockKey: ParticipationRecord.text(block["key"]))), id: id)
             case "image": if let url = ParticipationRecord.text(block["url"]) { append(.image(url), id: id) }
             case "audio": if let url = ParticipationRecord.text(block["url"]) { append(.audio(url), id: id) }
             case "voice":
                 if let text = ParticipationRecord.text(block["content"]) {
-                    append(.voice(speaker: block["who"].text ?? "", text: substitute(text, variables: variables)), id: id)
+                    append(.voice(speaker: block["who"].text ?? "", text: fill(text)), id: id)
                 }
             case "reveal":
                 let lines = (block["content"].text ?? "").components(separatedBy: .newlines).compactMap { value -> String? in
                     let value = value.trimmingCharacters(in: .whitespacesAndNewlines)
-                    return value.isEmpty ? nil : substitute(value, variables: variables)
+                    return value.isEmpty ? nil : fill(value)
                 }
                 if !lines.isEmpty { append(.reveal(speaker: block["who"].text ?? "", lines: lines), id: id) }
             case "dream":
                 let images = (block["images"].array ?? []).compactMap { raw -> ChapterStoryDreamImage? in
                     guard let url = ParticipationRecord.text(raw["url"]) else { return nil }
-                    return .init(url: url, line: raw["line"].text.map { substitute($0, variables: variables) })
+                    return .init(url: url, line: raw["line"].text.map { fill($0) })
                 }
                 if !images.isEmpty { append(.dream(title: block["title"].text, images: images), id: id) }
             case "thought":

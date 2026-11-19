@@ -283,6 +283,8 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
     public let reviews: TopicReviews
     /// Nil means omitted/unknown; an empty array means the server returned no sessions.
     public let activities: [TopicActivitySummary]?
+    /// Cast contract E5: nil when the theme has no enabled cast (or the field is absent).
+    public let castConfig: CastConfig?
     public init(from decoder: Decoder) throws {
         publisherAuthoritySource = try? PublisherTopicAuthoritySource(from: decoder)
         let c = try decoder.container(keyedBy: TopicKey.self)
@@ -325,6 +327,7 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
         comments = try c.list("commentList")
         reviews = try TopicReviews(from: decoder)
         activities = try c.decodeIfPresent([TopicActivitySummary].self, forKey: TopicKey("activityList"))
+        castConfig = (try? c.decodeIfPresent(PlayWireValue.self, forKey: TopicKey("castConfig"))).flatMap { CastConfig(raw: $0) }
         if let activities, Set(activities.map(\.id)).count != activities.count { throw APIError.malformedResponse }
     }
 }
