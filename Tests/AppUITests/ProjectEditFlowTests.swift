@@ -152,7 +152,8 @@ final class ProjectEditFlowTests: XCTestCase {
     func testBlankDraftShowsValidationRatherThanFalseSuccess() {
         let app = launch(["--project-edit-blank"])
         XCTAssertTrue(app.buttons["projectEdit.review"].waitForExistence(timeout: 5)); app.buttons["projectEdit.review"].tap()
-        let issue = app.staticTexts["projectEdit.issue.name"]; find(issue, in: app)
+        // An issue row with a field to jump to is a button; one without is a label. Match either.
+        let issue = app.descendants(matching: .any)["projectEdit.issue.name"].firstMatch; find(issue, in: app)
         XCTAssertTrue(issue.exists); XCTAssertFalse(app.buttons["projectEdit.confirmSimulation"].exists)
     }
     func testNewChapterRequiresStoryBeforeNodeCreation() {

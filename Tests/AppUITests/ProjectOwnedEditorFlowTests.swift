@@ -40,7 +40,8 @@ import XCTest
         tap("projectEdit.chapter.chapter-11", in: app)
         XCTAssertTrue(app.textFields["projectEdit.chapterName"].waitForExistence(timeout: 5))
         back(app); tap("projectEdit.review", in: app, fixed: true)
-        let template = app.staticTexts["projectPrepared.chapter.0.node.0.templateId"]
+        // Same lookup as the other prepared-node flows: the value sits inside LabeledContent.
+        let template = app.descendants(matching: .any)["projectPrepared.chapter.0.node.0.templateId"].firstMatch
         XCTAssertTrue(revealFixtureElement(template, in: app, maximumSwipes: 60, requiresHittable: false)); XCTAssertEqual(template.label, "73")
         XCTAssertFalse(app.buttons["projectEdit.confirmLive"].exists); XCTAssertFalse(app.buttons["projectEdit.confirmSimulation"].exists)
         tap("projectEdit.cancelReview", in: app)
