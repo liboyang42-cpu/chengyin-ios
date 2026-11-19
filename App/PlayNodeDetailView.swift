@@ -123,7 +123,7 @@ struct PlayNodeDetailView: View {
                     if let xp = node.xp { LabeledContent("play.xp") { Text(verbatim: String(xp)) } }
                     else { Text("play.xp.unknown") }
                     if let score = node.puzzleScore { LabeledContent("play.puzzleScore") { Text(verbatim: String(score)) } }
-                    if let mode = node.completionMode, !mode.isEmpty { LabeledContent("play.completionMode") { Text(verbatim: mode) } }
+                    if let mode = node.completionMode, !mode.isEmpty { LabeledContent("play.completionMode") { PlayCompletionModeText(raw: mode) } }
                 }
             }
         }

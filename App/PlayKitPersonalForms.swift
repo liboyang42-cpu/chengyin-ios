@@ -63,7 +63,16 @@ extension PlayKitScreen {
         }
         if raw["flagged"].bool == true { Text("playkit.photo.fallbackRecorded") }
         photoInput(frame: PlayKitPhotoFrame(source: raw["frameUrl"].text, opacityPercent: raw["frameOpacity"].double, approvedHosts: approvedArtworkHosts)) { url in prepare("SUBMIT_PHOTO_CHECK", ["imageUrl": .string(url)]) }
-        Text("playkit.photo.serverOnly").font(.footnote)
+        if PlayKitPhotoRecordMode.applies(raw) {
+            // CG-ALL-12: record-only station; no camera or a declined camera still continues.
+            if !projection.complete {
+                Button("playkit.photo.continueWithout") { prepare("SUBMIT_PHOTO_CHECK", PlayKitPhotoRecordMode.skipPayload) }
+                    .disabled(!enabled)
+                    .accessibilityIdentifier("playkit.photo.continueWithout")
+            }
+        } else {
+            Text("playkit.photo.serverOnly").font(.footnote)
+        }
     }
     @ViewBuilder var scanForm: some View {
         if projection.complete {

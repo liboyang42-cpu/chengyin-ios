@@ -41,3 +41,12 @@ public enum PlayTaskStatusPresentation: String, Equatable {
         }
     }
 }
+
+extension PlayTaskStatusPresentation {
+    /// CG-07-P2-2: a completed node that was skipped, revealed, done at the desk or at an
+    /// alternate station reads as that completion, not as an ordinary solve.
+    public func labelKey(completionMode: String?) -> String {
+        if self == .completed, let mode = PlayCompletionModePresentation(raw: completionMode), mode.isAssisted { return mode.labelKey }
+        return labelKey
+    }
+}

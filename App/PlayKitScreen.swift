@@ -20,6 +20,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     /// F01 hint ladder; nil (the default) keeps help off until its capabilities are approved.
     var help: PlayHelpCoordinator? = nil
     @State var showHelp = false
+    @State var showReference = false
     @State var text = ""
     @State var selected = Set<String>()
     @State var answers: [String: String] = [:]
@@ -86,8 +87,17 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
                 }
             }
         }
+        .sheet(isPresented: $showReference) {
+            PlayKitReferenceImageSheet(source: PlayKitReferenceImage.source(in: segment), approvedHosts: approvedArtworkHosts, alt: segment["referenceImageAlt"].text)
+        }
         .task { await help?.load() }
-        .onAppear { loadInitial() }
+        .onAppear {
+            loadInitial()
+            if let node = model.state?.nodeID { PlayStageEventLog.shared.record(.stageEnter, nodeID: node, kind: kind.rawValue) }
+        }
+        .onChange(of: projection.reportedPass) { _, passed in
+            if passed == false { PlayStageEventLog.shared.record(.wrongAnswer, nodeID: model.state?.nodeID, kind: kind.rawValue) }
+        }
         .onChange(of: dirty) { _, next in reportDirty?(next) }
         .onChange(of: model.state?.sessionID) { _, next in
             if sessionIdentity != next { clearTransient(); sessionIdentity = next; loaded = false; loadInitial() }
@@ -114,6 +124,14 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     private var contents: some View {
         VStack(alignment: .leading, spacing: 24) {
             header
+            if segment.object != nil, PlayKitReferenceImage.source(in: segment) != nil {
+                Button {
+                    showReference = true
+                    PlayStageEventLog.shared.record(.referenceOpen, nodeID: model.state?.nodeID, kind: kind.rawValue)
+                } label: { Label("playkit.reference.open", systemImage: "photo.on.rectangle") }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("playkit.reference.open")
+            }
             if let help, help.enabled, !projection.complete {
                 Button { showHelp = true } label: { Label("playhelp.open", systemImage: "lightbulb") }
                     .buttonStyle(.bordered)
@@ -217,8 +235,8 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
             .buttonStyle(.borderedProminent).disabled(!enabled || !valid)
             .accessibilityIdentifier("playkit.submit." + kind.rawValue)
     }
-    func artwork(_ url: String?) -> some View {
-        PlayKitArtwork(source: url, approvedHosts: approvedArtworkHosts)
+    func artwork(_ url: String?, alt: String? = nil) -> some View {
+        PlayKitArtwork(source: url, approvedHosts: approvedArtworkHosts, alt: alt)
     }
     func textBinding(limit: Int = 4096) -> Binding<String> {
         Binding(get: { text }, set: { text = PlayKitInputContract.limitText($0, toUTF16: max(1, limit)); dirty = true })
@@ -261,14 +279,46 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
 /// headers, arbitrary scheme, local file path or hard-coded media origin is accepted.
 @MainActor struct PlayKitArtwork: View {
     let source: String?; let approvedHosts: Set<String>
+    /// CG-ALL-13: author alt text, read by VoiceOver and shown when loading fails.
+    var alt: String? = nil
+    @State private var attempt = 0
     var body: some View {
         if let url = QuestifyCardArtwork.safeURL(source), let host = url.host, approvedHosts.contains(host) {
             AsyncImage(url: url) { phase in
-                if let image = phase.image { image.resizable().scaledToFit().accessibilityLabel(Text("playkit.image")) }
-                else if phase.error != nil { Label("playkit.imageUnavailable", systemImage: "photo.badge.exclamationmark") }
+                if let image = phase.image { image.resizable().scaledToFit().accessibilityLabel(altText ?? Text("playkit.image")) }
+                else if phase.error != nil {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label { altText ?? Text("playkit.imageUnavailable") } icon: { Image(systemName: "photo.badge.exclamationmark") }
+                        Button("playkit.imageRetry", systemImage: "arrow.clockwise") { attempt += 1 }
+                            .accessibilityIdentifier("playkit.imageRetry")
+                    }
+                }
                 else { ProgressView("playkit.imageLoading") }
             }
+            .id(attempt)
         } else if source?.isEmpty == false { Label("playkit.imageGated", systemImage: "photo") }
+    }
+    private var altText: Text? {
+        guard let alt = alt?.trimmingCharacters(in: .whitespacesAndNewlines), !alt.isEmpty else { return nil }
+        return Text(verbatim: alt)
+    }
+}
+
+/// CG-09-P2-5 / CG-10-D-3: the puzzle's reference picture, reopenable from under the prompt.
+@MainActor struct PlayKitReferenceImageSheet: View {
+    let source: String?; let approvedHosts: Set<String>; var alt: String? = nil
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                PlayKitArtwork(source: source, approvedHosts: approvedHosts, alt: alt)
+                    .frame(maxWidth: .infinity).padding()
+                    .accessibilityIdentifier("playkit.reference.image")
+            }
+            .navigationTitle(Text("playkit.reference.open"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("playhelp.close") { dismiss() } } }
+        }
     }
 }
 

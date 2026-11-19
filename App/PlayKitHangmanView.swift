@@ -14,6 +14,7 @@ import SwiftUI
     @State private var loadedRevision: String?
     @State private var awaitingVerdict = false
     @State private var issue: PlayExperienceError?
+    @State private var showHowTo = false
     private var projection: PlayHangmanProjection? { try? PlayHangmanProjection(segment) }
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -26,6 +27,12 @@ import SwiftUI
                         .accessibilityIdentifier("playkit.hangman.notYet")
                 }
                 if projection.inputMode == .pool { poolInput(projection) } else { keyboardInput(projection) }
+                if let howTo = projection.howTo, !projection.solved {
+                    Button { showHowTo = true } label: { Label("playkit.hangman.howTo", systemImage: "questionmark.circle") }
+                        .buttonStyle(.borderless)
+                        .accessibilityIdentifier("playkit.hangman.howTo")
+                        .sheet(isPresented: $showHowTo) { PlayKitHangmanHowToSheet(text: howTo) }
+                }
                 if let issue { PlayExperienceIssueView(issue: issue) }
             } else {
                 Text("playkit.configurationInvalid").accessibilityIdentifier("playkit.hangman.invalid")
@@ -91,6 +98,24 @@ import SwiftUI
             pool = nil
             if typed.isEmpty { typed = projection.keyboardDraft }
         }
+    }
+}
+
+/// CG-01-P2-5: the author's fill instructions, reopenable at any time.
+@MainActor private struct PlayKitHangmanHowToSheet: View {
+    let text: String
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                Text(verbatim: text).frame(maxWidth: .infinity, alignment: .leading).padding()
+                    .accessibilityIdentifier("playkit.hangman.howTo.text")
+            }
+            .navigationTitle(Text("playkit.hangman.howTo"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("playhelp.close") { dismiss() } } }
+        }
+        .presentationDetents([.medium, .large])
     }
 }
 

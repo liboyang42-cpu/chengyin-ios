@@ -954,5 +954,21 @@
   "playkit.letterPool.removed %lld": {
     "en": "A hint removed %lld decoy letters.",
     "zh-Hans": "提示已去掉 %lld 个干扰字。"
+  },
+  "playkit.hangman.howTo": {
+    "en": "How to fill",
+    "zh-Hans": "怎么填"
+  },
+  "playkit.reference.open": {
+    "en": "Reference picture",
+    "zh-Hans": "查看资料图"
+  },
+  "playkit.imageRetry": {
+    "en": "Retry",
+    "zh-Hans": "重试"
+  },
+  "playkit.photo.continueWithout": {
+    "en": "Continue without a photo",
+    "zh-Hans": "不拍照，继续"
   }
 }

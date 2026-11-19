@@ -291,7 +291,10 @@ public enum PlayKitInputContract {
             try require(keys == ["value"] && finite("value", range: lo...hi))
         case .hiddenObject: try require(keys == ["x", "y"] && finite("x", range: 0...1) && finite("y", range: 0...1))
         case .scan: try require(keys == ["code"] && text("code", max: 4096))
-        case .photoCheck: try require(keys == ["imageUrl"] && PlayExperienceService.validHTTPS(payload["imageUrl"]?.text ?? ""))
+        case .photoCheck:
+            // CG-ALL-12: a record-only photo station may be continued without a photo.
+            if PlayKitPhotoRecordMode.applies(segment), payload == PlayKitPhotoRecordMode.skipPayload { break }
+            try require(keys == ["imageUrl"] && PlayExperienceService.validHTTPS(payload["imageUrl"]?.text ?? ""))
         case .profile:
             guard keys == ["answers", "avatarUrl"], let answers = payload["answers"]?.object else { throw PlayExperienceError.invalidAction }
             let questions = segment["questions"].array ?? [], questionKeys = Set(questions.compactMap { $0["key"].text })
@@ -403,4 +406,71 @@ public struct PlayKitPricePairResult: Equatable {
         }
         lastPickID = lastPick; self.passed = passed; self.finished = finished; answerID = answer
     }
+}
+
+/// CG-ALL-12 / CG-02-D-4: `photoMode: "record"` marks a keepsake photo station. The
+/// photo is only recorded (no model verdict), and a player without a camera or who
+/// declines it confirms in text and continues. Absent field = ordinary photo check.
+public enum PlayKitPhotoRecordMode {
+    public static func applies(_ segment: PlayWireValue) -> Bool {
+        let raw = segment["photoMode"].text ?? segment["photo_mode"].text
+        return raw?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "record"
+    }
+    /// Sent as SUBMIT_PHOTO_CHECK. The server decides whether the skip is accepted.
+    public static let skipPayload: [String: PlayWireValue] = ["skipped": .bool(true)]
+}
+
+/// CG-09-P2-5 / CG-10-D-3: an optional reference picture an author attaches to a
+/// puzzle for players who cannot see the real object clearly. Absent = no entry.
+public enum PlayKitReferenceImage {
+    public static let keys = ["referenceImage", "referenceImageUrl"]
+    public static func source(in segment: PlayWireValue) -> String? {
+        for key in keys {
+            if let value = segment[key].text?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty { return value }
+        }
+        return nil
+    }
+}
+
+/// CG-07-P2-2 / CG-ALL-11: the server's per-node `completionMode` as a player label.
+/// Skipped and revealed nodes are assisted completions, not answer proof. Unknown
+/// values keep the server text verbatim (`nil` here).
+public enum PlayCompletionModePresentation: String, Equatable, CaseIterable {
+    case solved, assisted, desk, alternate
+    public init?(raw: String?) {
+        switch raw?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased() {
+        case "SOLVED", "LEGITIMATE_COMPLETION": self = .solved
+        case "SKIPPED", "REVEALED", "ASSISTED", "ASSISTED_COMPLETION": self = .assisted
+        case "DESK": self = .desk
+        case "ALT", "ALTERNATE": self = .alternate
+        default: return nil
+        }
+    }
+    public var labelKey: String { "playx.completion." + rawValue }
+    public var isAssisted: Bool { self != .solved }
+}
+
+/// CG-01-P2-9 / CG-09-P2-6: player-side stage events. No answers, typed text or
+/// photos are recorded. There is no backend event endpoint yet, so events stay in a
+/// bounded on-device log until one is approved; nothing is sent over the network.
+public enum PlayStageEvent: String, Equatable, CaseIterable {
+    case stageEnter = "stage_enter", hintOpen = "hint_open", skip = "skip"
+    case assistedComplete = "assisted_complete", wrongAnswer = "wrong_answer", referenceOpen = "reference_open"
+}
+public struct PlayStageEventRecord: Equatable {
+    public let event: PlayStageEvent; public let nodeID: Int?; public let kind: String?
+}
+public final class PlayStageEventLog {
+    public static let shared = PlayStageEventLog()
+    public static let capacity = 200
+    private let lock = NSLock()
+    private var storage: [PlayStageEventRecord] = []
+    public init() {}
+    public var entries: [PlayStageEventRecord] { lock.lock(); defer { lock.unlock() }; return storage }
+    public func record(_ event: PlayStageEvent, nodeID: Int? = nil, kind: String? = nil) {
+        lock.lock(); defer { lock.unlock() }
+        storage.append(.init(event: event, nodeID: nodeID, kind: kind))
+        if storage.count > Self.capacity { storage.removeFirst(storage.count - Self.capacity) }
+    }
+    public func removeAll() { lock.lock(); storage.removeAll(); lock.unlock() }
 }
