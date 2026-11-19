@@ -84,7 +84,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(QuestifyCardButtonStyle())
                         .accessibilityIdentifier("merchant.project.row.\(project.id)")
                         #if DEBUG
                         .accessibilityValue(summaryFixtureTracing ? summaryFixtureEvents.joined(separator: " | ") : "")

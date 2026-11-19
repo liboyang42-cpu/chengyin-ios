@@ -94,7 +94,7 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
                 if visible.isEmpty { ContentUnavailableView("playerJourney.empty", systemImage: "ticket", description: Text("playerJourney.empty.detail")) }
                 ForEach(visible) { row in
                     Button { returnFocusID = row.id; selected = Selection(record: row, scope: reader.scope) } label: { ParticipationRow(record: row) }
-                        .buttonStyle(.plain).accessibilityIdentifier("playerJourney.participation.\(row.id)")
+                        .buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("playerJourney.participation.\(row.id)")
                         .accessibilityFocused($focusedParticipationID, equals: row.id)
                 }
                 if let issue { Text(LocalizedStringKey(issue)).font(.footnote).foregroundStyle(.secondary) }
@@ -263,7 +263,7 @@ private struct ParticipationRow: View {
                                 if let done = row.doneCount { Text(verbatim: "\(done) / \(total)").monospacedDigit() }
                             }
                         }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 6)
-                    }.buttonStyle(.plain).disabled(row.destination == nil)
+                    }.buttonStyle(QuestifyCardButtonStyle()).disabled(row.destination == nil)
                 }
                 if let issue { Text(LocalizedStringKey(issue)).font(.footnote).foregroundStyle(.secondary) }
             } else if let issue { PlayerJourneyIssue(key: issue, retry: { Task { await load() } }) }

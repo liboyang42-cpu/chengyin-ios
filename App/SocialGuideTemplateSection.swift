@@ -139,7 +139,7 @@ enum SocialGuideTemplateRows {
                                 LabeledContent("social.guideTemplates.used", value: String(count)).font(.caption)
                             }
                         }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).padding(.vertical, 6)
-                    }.buttonStyle(.plain).accessibilityIdentifier("social.guideTemplates.detail.\(item.id)")
+                    }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("social.guideTemplates.detail.\(item.id)")
                 }
             } else if model.phase == .failed {
                 Text("social.guideTemplates.failed").accessibilityIdentifier("social.guideTemplates.failed")

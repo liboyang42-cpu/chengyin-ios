@@ -156,6 +156,7 @@ import SwiftUI
     @State private var zoom = ClubPostImageZoom()
     @State private var pinchStart: Double?
     @State private var dragStart: CGSize?
+    @QuestifyReduceMotion private var reduceMotion
     var body: some View {
         GeometryReader { geometry in
             let width = Double(geometry.size.width), height = Double(geometry.size.height)
@@ -172,7 +173,7 @@ import SwiftUI
                     zoom.pan(x: Double(dragStart?.width ?? 0) + Double(value.translation.width),
                              y: Double(dragStart?.height ?? 0) + Double(value.translation.height), width: width, height: height)
                 }.onEnded { _ in dragStart = nil }, including: zoom.scale > 1 ? .all : .none)
-                .onTapGesture(count: 2) { zoom.setScale(zoom.scale > 1 ? 1 : 2.5, width: width, height: height) }
+                .onTapGesture(count: 2) { withAnimation(reduceMotion ? nil : QuestifyMotion.release) { zoom.setScale(zoom.scale > 1 ? 1 : 2.5, width: width, height: height) } }
                 .accessibilityLabel("media.destination.image")
                 .accessibilityHint("media.destination.zoomHint")
                 .accessibilityAction(named: Text("club.postImages.zoomIn")) { zoom.setScale(zoom.scale * 1.5, width: width, height: height) }

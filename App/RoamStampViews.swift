@@ -132,7 +132,7 @@ struct RoamCityStampDraftView: View {
                 Text("roam.experience.stampHint").font(.subheadline).foregroundStyle(.secondary)
             }.padding()
         }.navigationTitle("roam.experience.cityStamp")
-            .onChange(of: draft.caption) { _, _ in review = false }
+            .onChange(of: draft.caption) { _, _ in guard review else { return }; withAnimation(reduceMotion ? nil : QuestifyMotion.content) { review = false } }
             .accessibilityIdentifier("roam.experience.stamp.draft")
     }
 }
