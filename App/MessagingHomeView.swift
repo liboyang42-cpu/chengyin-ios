@@ -168,9 +168,9 @@ private struct MessagingConversationListView: View {
         }
     }
     private func searchName(_ conversation: MessagingConversation) -> String {
+        if conversation.kind == .system { return appLocalized("messaging.system",locale:locale) }
         if let name = conversation.counterparty?.nickname, !name.isEmpty { return name }
         switch conversation.kind {
-        case .system: return appLocalized("messaging.system",locale:locale)
         case .merchant: return appLocalized("messaging.official",locale:locale)
         case .group: return appLocalized("messaging.group",locale:locale)
         default: return appLocalized("messaging.member",locale:locale)

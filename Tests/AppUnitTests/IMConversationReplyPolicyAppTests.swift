@@ -28,6 +28,11 @@ import XCTest
         XCTAssertFalse(expanded.review(try route(expanded), permits: system.permits))
         XCTAssertTrue(writer.texts.isEmpty); XCTAssertTrue(writer.mutations.isEmpty)
     }
+    func testSystemConversationUsesAssistantTitleAndReplyHint() {
+        let chinese = Locale(identifier: "zh-Hans")
+        XCTAssertEqual(appLocalized("messaging.system", locale: chinese), "城瘾小助手")
+        XCTAssertEqual(appLocalized("im.reply.systemNotice", locale: chinese), "城瘾小助手不接收回复")
+    }
     func testSystemReadMuteStillDispatchThroughExistingOwner() async throws {
         let writer = Writer(), model = try expandedModel(writer), system = try policy(2)
         for mutation in [IMMutation.read(conversationID: 9), .mute(conversationID: 9, muted: true)] {

@@ -46891,13 +46891,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "System notifications are one-way. You can read them and manage notifications here."
+            "value": "Chengyin Assistant does not accept replies"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "系统通知不支持回复。你可以查看消息并设置免打扰。"
+            "value": "城瘾小助手不接收回复"
           }
         }
       }
@@ -81368,13 +81368,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "System notifications"
+            "value": "Chengyin Assistant"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "系统通知"
+            "value": "城瘾小助手"
           }
         }
       }
