@@ -21,7 +21,6 @@ import SwiftUI
             } else {
                 List {
                     if reader.isOfflineExample { Text("homeFeed.example").font(.caption) }
-                    if model.loading { ProgressView("homeFeed.loading") }
                     bannerSection
                     feedSection(.recommended)
                     feedSection(.nearby)
@@ -52,6 +51,7 @@ import SwiftUI
                 }
                 .listStyle(.insetGrouped)
                 .listSectionSpacing(20)
+                .questifyContentSwap(value: model.loading)
                 .searchable(text: $keyword, prompt: Text("homeFeed.search"))
                 .onSubmit(of: .search) { submittedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .onChange(of: keyword) { _, value in if value.isEmpty { submittedKeyword = "" } }
@@ -95,6 +95,11 @@ import SwiftUI
             } else if let items = model.sections[section] {
                 if items.isEmpty { Text("homeFeed.sectionEmpty").foregroundStyle(.secondary) }
                 ForEach(items) { item in row(item, section: section.rawValue) }
+            } else if model.loading {
+                // motion-1119: redacted card in the real layout, cross-fades to the loaded rows.
+                QuestifyRedactedPlaceholder(label: "homeFeed.loading", identifier: "homeFeed.loading.\(section.rawValue)") {
+                    QuestifyPlaceholderCard()
+                }.questifyCardListRow()
             }
         } header: {
             switch section {

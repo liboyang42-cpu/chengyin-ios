@@ -52,7 +52,8 @@ struct ProfileSelfOrderSelection: Identifiable, Hashable {
         Group {
             if reader.isCurrentContext {
                 Section("profile.selfOrders.title") {
-                    if model.isLoading || model.loadedScope == nil { ProgressView("profile.loading") }
+                    if (model.isLoading || model.loadedScope == nil) && model.rows == nil { QuestifyPlaceholderRows(label: "profile.loading", identifier: "profile.selfOrders.loading", count: 2) }
+                    else if model.isLoading { ProgressView("profile.loading") }
                     if let issue = model.issue {
                         Text(LocalizedStringKey(issue.titleKey)).accessibilityIdentifier("profile.selfOrders.issue")
                         if model.rows != nil { Text("profile.selfOrders.stale").font(.caption) }
@@ -90,6 +91,7 @@ struct ProfileSelfOrderSelection: Identifiable, Hashable {
         }
         .task { await model.load(reader: reader) }
         .refreshable { await model.load(reader: reader) }
+        .questifyContentSwap(value: model.isLoading)
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { Task { await model.load(reader: reader) } } else { model.suspend() }
         }

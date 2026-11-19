@@ -57,7 +57,8 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
         Group {
             if reader.isCurrentContext {
                 Section("profile.selfProjects.title") {
-                    if model.isLoading || model.loadedScope == nil { ProgressView("creatorContent.loading") }
+                    if (model.isLoading || model.loadedScope == nil) && model.page == nil { QuestifyPlaceholderRows(label: "creatorContent.loading", identifier: "profile.selfProjects.loading", count: 2) }
+                    else if model.isLoading { ProgressView("creatorContent.loading") }
                     if let issue = model.issue {
                         Text(LocalizedStringKey(issue.localizationKey)).accessibilityIdentifier("profile.selfProjects.issue")
                         if model.page != nil { Text("profile.selfProjects.stale").font(.caption) }
@@ -100,6 +101,7 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
         }
         .task { await load() }
         .refreshable { await load() }
+        .questifyContentSwap(value: model.isLoading)
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { Task { await load() } } else { model.suspend() }
         }

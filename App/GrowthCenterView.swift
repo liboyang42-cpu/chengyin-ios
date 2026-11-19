@@ -27,7 +27,7 @@ extension EnvironmentValues {
             if reader.isOfflineExample { Text("growth.offlineExample").font(.caption) }
             if !reader.isAuthenticated { GrowthCenterIssueView(issue: .login) }
             else if !reader.isConfigured { GrowthCenterIssueView(issue: .notConfigured) }
-            else if model.isLoading || model.loadedKey != key { ProgressView("growth.loading") }
+            else if model.isLoading || model.loadedKey != key { QuestifyPlaceholderRows(label: "growth.loading", identifier: "growth.loading", count: 4) }
             else if let issue = model.issue(key: key) { GrowthCenterIssueView(issue: issue, retry: { Task { await load() } }) }
             else if let overview = model.value(key: key) {
                 score(overview)
@@ -47,6 +47,7 @@ extension EnvironmentValues {
             }
         }
         .listStyle(.insetGrouped)
+        .questifyContentSwap(value: model.isLoading)
         .appNavigationTitle("growth.title")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
