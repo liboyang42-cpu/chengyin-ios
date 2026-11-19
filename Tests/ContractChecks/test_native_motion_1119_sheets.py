@@ -17,17 +17,18 @@ class NativeMotion1119Sheets(unittest.TestCase):
         self.assertIn('.presentationDetents([.medium, .large])', sheet)
         self.assertIn('.presentationDragIndicator(.visible)', sheet)
 
-    def test_club_post_body_is_native_card_button_with_animated_toggle(self):
+    def test_club_post_body_is_native_card_button(self):
         body = source('ClubPostDiscussion.swift').split('struct ClubPostDiscussionBody', 1)[1].split('struct ClubPostDiscussionPanel', 1)[0]
         self.assertNotIn('.onTapGesture', body)
         self.assertIn('Button(action: open)', body)
         self.assertIn('.buttonStyle(QuestifyCardButtonStyle())', body)
         self.assertIn('accessibilityIdentifier("club.discussion.body.\\(post.id)")', body)
         self.assertNotIn('Button(', body.split('private var content', 1)[1])
+        # Expand/collapse animation reverted: ClubCommunityUITests.testFeedCommentAndHistoryNavigation failed in CI
+        # (it counts and taps the inline panel's button while the panel was still transitioning).
         feed = source('ClubCommunityViews.swift')
-        self.assertIn('@QuestifyReduceMotion private var reduceMotion', feed)
         toggle = feed.split('private func toggleDiscussion', 1)[1].split('\n    }\n', 1)[0]
-        self.assertIn('withAnimation(reduceMotion ? nil : QuestifyMotion.content)', toggle)
+        self.assertNotIn('withAnimation', toggle)
 
     def test_payment_success_has_done_crossfade_and_haptic(self):
         text = source('PaymentProviderReturnSheet.swift')
