@@ -51,6 +51,15 @@ struct PlayNodeDetailView: View {
             if !snapshot.isLocked(node) {
                 if let story = node.storyText, !story.isEmpty { Section("play.story") { Text(verbatim: story) } }
                 if let description = node.description, !description.isEmpty { Section("play.description") { Text(verbatim: description) } }
+                // FE-G5 (hengyin #866): this store's perk and its declared terms; absent terms show nothing.
+                if let perk = node.perk, perk.name?.isEmpty == false || perk.included != nil || perk.extraSpendText != nil || perk.reserveRequired == true {
+                    Section("ticketWallet.entitlements") {
+                        if let name = perk.name, !name.isEmpty { Text(verbatim: name) }
+                        if perk.included == true { Text("ticketWallet.perk.included").font(.caption) }
+                        else if let spend = perk.extraSpendText { Text(verbatim: spend).font(.caption) }
+                        if perk.reserveRequired == true { Text("ticketWallet.perk.reserveRequired").font(.caption) }
+                    }.accessibilityIdentifier("play.nodePerk")
+                }
                 if let title = node.gameTitle, !title.isEmpty {
                     Section("play.task") {
                         Text(verbatim: title).font(.headline)

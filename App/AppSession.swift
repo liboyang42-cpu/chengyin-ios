@@ -1471,6 +1471,15 @@ final class AppSession: ObservableObject {
             } ?? false
             return selfPlayAllowed || self.orderLifecyclePaymentProviderAllowed
         }, context: { [weak self] in self?.currentRuntimeDependencyContext })
+    /// hengyin #866: drains the on-device stage event log only under an approved
+    /// `.playStageAnalytics` runtime grant bound to the current account; otherwise events stay local.
+    func flushPlayStageEvents() async {
+        guard let factory = businessRuntimeFactory, factory.permits(.playStageAnalytics),
+              let configuration = regionalConfiguration?.apiConfiguration else { return }
+        let captured = factory.captured
+        await PlayStageAnalyticsUploader(configuration: configuration, transport: factory.client([.playStageAnalytics]),
+            token: { [weak self] in self?.currentRuntimeDependencyContext == captured ? self?.token : nil }).flush()
+    }
     private let selfPlayOperationGate = TopicSelfPlayOperationGate()
     private var retainedSelfPlayFlows: [String: TopicSelfPlayFlow] = [:]
     func topicSelfPlayFlow(topic: TopicDetail) -> TopicSelfPlayFlow? {

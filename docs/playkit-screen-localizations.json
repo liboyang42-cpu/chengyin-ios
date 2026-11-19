@@ -970,5 +970,29 @@
   "playkit.photo.continueWithout": {
     "en": "Continue without a photo",
     "zh-Hans": "不拍照，继续"
+  },
+  "playkit.issue.open": {
+    "en": "Report a problem with this stage",
+    "zh-Hans": "这一站有问题"
+  },
+  "playkit.issue.altMaterial": {
+    "en": "Material was replaced",
+    "zh-Hans": "现场材料被替换了"
+  },
+  "playkit.issue.notFound": {
+    "en": "Can't find it",
+    "zh-Hans": "找不到"
+  },
+  "playkit.issue.unreadable": {
+    "en": "Can't read it clearly",
+    "zh-Hans": "看不清"
+  },
+  "playkit.issue.logicError": {
+    "en": "The puzzle seems wrong",
+    "zh-Hans": "题目逻辑有误"
+  },
+  "playkit.issue.recorded": {
+    "en": "Thanks, the problem was recorded.",
+    "zh-Hans": "已记录，谢谢反馈。"
   }
 }

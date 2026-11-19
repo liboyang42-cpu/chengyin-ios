@@ -185,6 +185,11 @@ import SwiftUI
                     }
                 }
                 Section("playx.results") {
+                    // CG-ALL-11 (hengyin #866 runStartMode): DESK 桌面完成, ALT 替代站完成; an ordinary start shows nothing.
+                    if let start = model.snapshot?.result.runStartMode {
+                        LabeledContent("playx.reward.mode") { Text(LocalizedStringKey(start.labelKey)) }
+                            .accessibilityIdentifier("playx.runStartMode")
+                    }
                     Button("playx.results.load") { Task { await model.loadEndingAndLeaderboard() } }.accessibilityIdentifier("playx.results.load")
                     NavigationLink("playx.stopwatch") { PlayStopwatchView() }
                     if let topicID = model.snapshot?.result.topicID, let factory = summaryModel, let summary = factory(topicID) {
@@ -453,8 +458,8 @@ struct PlayExperienceIssueView: View {
         }.accessibilityIdentifier("playx.reward")
     }
 }
-/// CG-07-P2-2 / CG-ALL-11: assisted, desk and alternate-station completions read
-/// differently from a solved node; an unrecognized server value stays verbatim.
+/// CG-07-P2-2: assisted completions read differently from a solved node; an unrecognized
+/// server value stays verbatim. Desk/alternate starts come from `runStartMode` instead.
 struct PlayCompletionModeText: View {
     let raw: String
     var body: some View {

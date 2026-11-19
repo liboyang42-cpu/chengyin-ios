@@ -54,7 +54,7 @@ import UIKit
             PlayKitNativePhotoLibrarySheet(provider: session.playNativeDeviceProvider)
         }
         .onChange(of: session.sessionRevision) { _, _ in session.playNativeDeviceProvider.cancel() }
-        .onChange(of: scenePhase) { _, phase in if phase == .background { session.nativePlatformRuntime?.suspendMotion() }; if phase == .active { Task { await session.nativePlatformRuntime?.reconcileOwnedRequests() } }; if phase == .background || (phase != .active && !session.playNativeDeviceProvider.authorizationInFlight) { session.playNativeDeviceProvider.cancel() } }
-        .onDisappear { session.playNativeDeviceProvider.cancel() }
+        .onChange(of: scenePhase) { _, phase in if phase == .background { Task { await session.flushPlayStageEvents() } }; if phase == .background { session.nativePlatformRuntime?.suspendMotion() }; if phase == .active { Task { await session.nativePlatformRuntime?.reconcileOwnedRequests() } }; if phase == .background || (phase != .active && !session.playNativeDeviceProvider.authorizationInFlight) { session.playNativeDeviceProvider.cancel() } }
+        .onDisappear { session.playNativeDeviceProvider.cancel(); Task { await session.flushPlayStageEvents() } }
     }
 }

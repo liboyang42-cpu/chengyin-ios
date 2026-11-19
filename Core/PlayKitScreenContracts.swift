@@ -292,9 +292,12 @@ public enum PlayKitInputContract {
         case .hiddenObject: try require(keys == ["x", "y"] && finite("x", range: 0...1) && finite("y", range: 0...1))
         case .scan: try require(keys == ["code"] && text("code", max: 4096))
         case .photoCheck:
-            // CG-ALL-12: a record-only photo station may be continued without a photo.
-            if PlayKitPhotoRecordMode.applies(segment), payload == PlayKitPhotoRecordMode.skipPayload { break }
+            // CG-ALL-12: a RECORD station takes only SUBMIT_PHOTO_RECORD, an ordinary one only SUBMIT_PHOTO_CHECK.
+            try require(action == PlayKitPhotoRecordMode.submitAction(for: segment))
+            if PlayKitPhotoRecordMode.applies(segment), payload == PlayKitPhotoRecordMode.textConfirmedPayload { break }
             try require(keys == ["imageUrl"] && PlayExperienceService.validHTTPS(payload["imageUrl"]?.text ?? ""))
+            // #866 submitPhotoRecord caps the recorded photo URL at 512 characters.
+            if PlayKitPhotoRecordMode.applies(segment) { try require((payload["imageUrl"]?.text?.count ?? 0) <= 512) }
         case .profile:
             guard keys == ["answers", "avatarUrl"], let answers = payload["answers"]?.object else { throw PlayExperienceError.invalidAction }
             let questions = segment["questions"].array ?? [], questionKeys = Set(questions.compactMap { $0["key"].text })
@@ -408,16 +411,20 @@ public struct PlayKitPricePairResult: Equatable {
     }
 }
 
-/// CG-ALL-12 / CG-02-D-4: `photoMode: "record"` marks a keepsake photo station. The
-/// photo is only recorded (no model verdict), and a player without a camera or who
-/// declines it confirms in text and continues. Absent field = ordinary photo check.
+/// CG-ALL-12 / CG-02-D-4 (aligned to hengyin #866): `photoCheck.mode == "RECORD"` marks a
+/// keepsake photo station. The server never runs the vision model there and rejects
+/// SUBMIT_PHOTO_CHECK; every submission is SUBMIT_PHOTO_RECORD with either the uploaded
+/// photo `{imageUrl}` or, when the player has no camera or declines it, `{textConfirmed:true}`.
+/// The server then marks the step passed with verdict RECORDED (not a verified photo).
+/// Any other mode (absent, CARD) stays an ordinary photo check.
 public enum PlayKitPhotoRecordMode {
-    public static func applies(_ segment: PlayWireValue) -> Bool {
-        let raw = segment["photoMode"].text ?? segment["photo_mode"].text
-        return raw?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "record"
-    }
-    /// Sent as SUBMIT_PHOTO_CHECK. The server decides whether the skip is accepted.
-    public static let skipPayload: [String: PlayWireValue] = ["skipped": .bool(true)]
+    public static let mode = "RECORD"
+    public static let action = "SUBMIT_PHOTO_RECORD"
+    public static func applies(_ segment: PlayWireValue) -> Bool { segment["mode"].text == mode }
+    /// The submit action for this photo segment.
+    public static func submitAction(for segment: PlayWireValue) -> String { applies(segment) ? action : "SUBMIT_PHOTO_CHECK" }
+    /// Text confirmation instead of a photo; only valid on a RECORD station.
+    public static let textConfirmedPayload: [String: PlayWireValue] = ["textConfirmed": .bool(true)]
 }
 
 /// CG-09-P2-5 / CG-10-D-3: an optional reference picture an author attaches to a
@@ -432,17 +439,16 @@ public enum PlayKitReferenceImage {
     }
 }
 
-/// CG-07-P2-2 / CG-ALL-11: the server's per-node `completionMode` as a player label.
-/// Skipped and revealed nodes are assisted completions, not answer proof. Unknown
-/// values keep the server text verbatim (`nil` here).
+/// CG-07-P2-2: the server's per-node `completionMode` as a player label. Skipped and
+/// revealed nodes are assisted completions, not answer proof. Unknown values keep the
+/// server text verbatim (`nil` here). Desk and alternate-station starts are a run-level
+/// fact (`runStartMode`, see `PlayRunStartMode`), not a per-node completion mode.
 public enum PlayCompletionModePresentation: String, Equatable, CaseIterable {
-    case solved, assisted, desk, alternate
+    case solved, assisted
     public init?(raw: String?) {
         switch raw?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased() {
         case "SOLVED", "LEGITIMATE_COMPLETION": self = .solved
         case "SKIPPED", "REVEALED", "ASSISTED", "ASSISTED_COMPLETION": self = .assisted
-        case "DESK": self = .desk
-        case "ALT", "ALTERNATE": self = .alternate
         default: return nil
         }
     }
@@ -450,16 +456,38 @@ public enum PlayCompletionModePresentation: String, Equatable, CaseIterable {
     public var isAssisted: Bool { self != .solved }
 }
 
-/// CG-01-P2-9 / CG-09-P2-6: player-side stage events. No answers, typed text or
-/// photos are recorded. There is no backend event endpoint yet, so events stay in a
-/// bounded on-device log until one is approved; nothing is sent over the network.
+/// CG-01-P2-9 / CG-09-P2-6 / CG-10-P2-6: player-side stage events, named exactly as the
+/// hengyin #866 `ApiAnalyticsController` whitelist. No answers, typed text or photos are
+/// recorded: properties carry only codes (nodeId, kit, issueKind).
 public enum PlayStageEvent: String, Equatable, CaseIterable {
-    case stageEnter = "stage_enter", hintOpen = "hint_open", skip = "skip"
-    case assistedComplete = "assisted_complete", wrongAnswer = "wrong_answer", referenceOpen = "reference_open"
+    case stageEnter = "stage_enter", hintOpen = "hint_open", stageSkip = "stage_skip"
+    case assistedComplete = "assisted_complete", wrongAnswer = "wrong_answer"
+    case stageIssueReport = "stage_issue_report", materialView = "material_view"
+}
+/// `stage_issue_report` categories; the server rejects the event without one of these.
+public enum PlayStageIssueKind: String, Equatable, CaseIterable {
+    case altMaterial = "ALT_MATERIAL", notFound = "NOT_FOUND", unreadable = "UNREADABLE", logicError = "LOGIC_ERROR"
+    public var labelKey: String {
+        switch self {
+        case .altMaterial: return "playkit.issue.altMaterial"
+        case .notFound: return "playkit.issue.notFound"
+        case .unreadable: return "playkit.issue.unreadable"
+        case .logicError: return "playkit.issue.logicError"
+        }
+    }
 }
 public struct PlayStageEventRecord: Equatable {
+    public let id: UUID
     public let event: PlayStageEvent; public let nodeID: Int?; public let kind: String?
+    public let issueKind: PlayStageIssueKind?
+    public let occurredAt: Date
+    public init(event: PlayStageEvent, nodeID: Int?, kind: String?, issueKind: PlayStageIssueKind? = nil, id: UUID = UUID(), occurredAt: Date = Date()) {
+        self.id = id; self.event = event; self.nodeID = nodeID; self.kind = kind
+        self.issueKind = event == .stageIssueReport ? issueKind : nil; self.occurredAt = occurredAt
+    }
 }
+/// Bounded on-device queue. Events leave the device only through
+/// `PlayStageAnalyticsUploader`, which the app runs only under an approved runtime grant.
 public final class PlayStageEventLog {
     public static let shared = PlayStageEventLog()
     public static let capacity = 200
@@ -467,10 +495,71 @@ public final class PlayStageEventLog {
     private var storage: [PlayStageEventRecord] = []
     public init() {}
     public var entries: [PlayStageEventRecord] { lock.lock(); defer { lock.unlock() }; return storage }
-    public func record(_ event: PlayStageEvent, nodeID: Int? = nil, kind: String? = nil) {
+    public func record(_ event: PlayStageEvent, nodeID: Int? = nil, kind: String? = nil, issueKind: PlayStageIssueKind? = nil, now: Date = Date()) {
+        // The server refuses an issue report without a category; never queue one.
+        if event == .stageIssueReport, issueKind == nil { return }
         lock.lock(); defer { lock.unlock() }
-        storage.append(.init(event: event, nodeID: nodeID, kind: kind))
+        storage.append(.init(event: event, nodeID: nodeID, kind: kind, issueKind: issueKind, occurredAt: now))
         if storage.count > Self.capacity { storage.removeFirst(storage.count - Self.capacity) }
     }
+    public func remove(_ ids: Set<UUID>) { lock.lock(); storage.removeAll { ids.contains($0.id) }; lock.unlock() }
     public func removeAll() { lock.lock(); storage.removeAll(); lock.unlock() }
+}
+
+/// `POST /api/analytics/events/batch` body (hengyin #866 `AnalyticsBatchDTO`): at most 50
+/// events, each with an idempotency key, `bizType=topic_node` and `bizId=<node id>`.
+/// No actorScope is sent (optional for these events); events older than the server's
+/// 14-day window are dropped rather than sent, since one stale event fails the batch.
+public enum PlayStageAnalyticsBatch {
+    public static let path = "api/analytics/events/batch"
+    public static let maxBatch = 50
+    public static let maxAge: TimeInterval = 13 * 24 * 60 * 60
+    public static func sendable(_ records: [PlayStageEventRecord], now: Date = Date()) -> (send: [PlayStageEventRecord], stale: [PlayStageEventRecord]) {
+        let fresh = records.filter { now.timeIntervalSince($0.occurredAt) <= maxAge && $0.occurredAt.timeIntervalSince(now) <= 60 }
+        let freshIDs = Set(fresh.map(\.id))
+        return (Array(fresh.prefix(maxBatch)), records.filter { !freshIDs.contains($0.id) })
+    }
+    public static func event(_ record: PlayStageEventRecord) throws -> [String: Any] {
+        var properties: [String: Any] = [:]
+        if let node = record.nodeID { properties["nodeId"] = node }
+        if let kind = record.kind, kind.range(of: "^[A-Za-z][A-Za-z0-9_]{0,39}$", options: .regularExpression) != nil { properties["kit"] = kind }
+        if let issue = record.issueKind { properties["issueKind"] = issue.rawValue }
+        var value: [String: Any] = [
+            "eventName": record.event.rawValue, "source": "ios",
+            "idempotencyKey": "ios-stage-" + record.id.uuidString.lowercased(),
+            "occurredAt": Int64((record.occurredAt.timeIntervalSince1970 * 1000).rounded()),
+            "propertiesJson": String(decoding: try JSONSerialization.data(withJSONObject: properties, options: [.sortedKeys]), as: UTF8.self)
+        ]
+        if let node = record.nodeID, node > 0 { value["bizType"] = "topic_node"; value["bizId"] = node }
+        return value
+    }
+    public static func body(_ records: [PlayStageEventRecord]) throws -> Data {
+        guard !records.isEmpty, records.count <= maxBatch else { throw APIError.invalidRequest }
+        return try JSONSerialization.data(withJSONObject: ["events": try records.map(event)], options: [.sortedKeys])
+    }
+}
+
+/// Drains `PlayStageEventLog` to the #866 batch endpoint. A transport failure keeps the
+/// events for a later flush; a definitive server answer (accepted or refused) removes the
+/// batch so a refused event can never block the queue.
+@MainActor public struct PlayStageAnalyticsUploader {
+    private let configuration: APIConfiguration
+    private let transport: any HTTPTransport
+    private let token: () -> String?
+    public init(configuration: APIConfiguration, transport: any HTTPTransport, token: @escaping () -> String?) {
+        self.configuration = configuration; self.transport = transport; self.token = token
+    }
+    @discardableResult
+    public func flush(_ log: PlayStageEventLog = .shared, now: Date = Date()) async -> Int {
+        let split = PlayStageAnalyticsBatch.sendable(log.entries, now: now)
+        log.remove(Set(split.stale.map(\.id)))
+        guard !split.send.isEmpty, let token = token(),
+              let body = try? PlayStageAnalyticsBatch.body(split.send),
+              let request = try? OperationAdapterHTTP.json(configuration: configuration, path: PlayStageAnalyticsBatch.path, body: body, token: token),
+              let response = try? await transport.send(request) else { return 0 }
+        let status = response.1
+        guard (200..<500).contains(status), status != 401, status != 429 else { return 0 }
+        log.remove(Set(split.send.map(\.id)))
+        return split.send.count
+    }
 }

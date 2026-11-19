@@ -21,6 +21,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     var help: PlayHelpCoordinator? = nil
     @State var showHelp = false
     @State var showReference = false
+    @State private var issueReported = false
     @State var text = ""
     @State var selected = Set<String>()
     @State var answers: [String: String] = [:]
@@ -127,7 +128,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
             if segment.object != nil, PlayKitReferenceImage.source(in: segment) != nil {
                 Button {
                     showReference = true
-                    PlayStageEventLog.shared.record(.referenceOpen, nodeID: model.state?.nodeID, kind: kind.rawValue)
+                    PlayStageEventLog.shared.record(.materialView, nodeID: model.state?.nodeID, kind: kind.rawValue)
                 } label: { Label("playkit.reference.open", systemImage: "photo.on.rectangle") }
                     .buttonStyle(.bordered)
                     .accessibilityIdentifier("playkit.reference.open")
@@ -136,6 +137,19 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
                 Button { showHelp = true } label: { Label("playhelp.open", systemImage: "lightbulb") }
                     .buttonStyle(.bordered)
                     .accessibilityIdentifier("playhelp.open")
+            }
+            if segment.object != nil, let node = model.state?.nodeID {
+                // CG-10-P2-6 (hengyin #866 stage_issue_report): only the category code is recorded, never free text.
+                Menu {
+                    ForEach(PlayStageIssueKind.allCases, id: \.self) { issueKind in
+                        Button(LocalizedStringKey(issueKind.labelKey)) {
+                            PlayStageEventLog.shared.record(.stageIssueReport, nodeID: node, kind: kind.rawValue, issueKind: issueKind)
+                            issueReported = true
+                        }.accessibilityIdentifier("playkit.issue." + issueKind.rawValue)
+                    }
+                } label: { Label("playkit.issue.open", systemImage: "exclamationmark.bubble") }
+                    .accessibilityIdentifier("playkit.issue.open")
+                if issueReported { Text("playkit.issue.recorded").font(.footnote).foregroundStyle(.secondary) }
             }
             if let issue { PlayExperienceIssueView(issue: issue) }
             if let modelIssue = model.issue { PlayExperienceIssueView(issue: modelIssue) }

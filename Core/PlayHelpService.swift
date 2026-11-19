@@ -139,7 +139,7 @@ public struct PlayHelpService {
             let receipt = try await service.skip(scope: scope, requestID: requestID, token: token)
             ledger.settle(scope, operation: "skip", level: 0)
             skipUnknown = false; skipped = true; notice = nil
-            PlayStageEventLog.shared.record(.skip, nodeID: scope.nodeID)
+            PlayStageEventLog.shared.record(.stageSkip, nodeID: scope.nodeID)
             PlayStageEventLog.shared.record(.assistedComplete, nodeID: scope.nodeID)
             return receipt
         } catch PlayExperienceError.rejected(_, let message) {

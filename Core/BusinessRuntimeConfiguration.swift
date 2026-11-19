@@ -13,6 +13,8 @@ public enum BusinessRuntimeFeature: Hashable {
     case approvedTopicReleasePrepare, approvedTopicReleasePublish, approvedTopicReleaseStatus
     case approvedTopicReviewSources, approvedTopicReviewPrepare, approvedTopicReviewSubmit, approvedTopicReviewStatus, approvedTopicReviewCurrent
     case topicSelfPlayRead, topicSelfPlayCreate, topicSelfPlayPay, topicSelfPlayConsentRead, topicSelfPlayConsentWrite
+    /// hengyin #866: player stage events (stage_enter … material_view) to the analytics batch endpoint.
+    case playStageAnalytics
 }
 public struct BusinessRuntimeRoute: Hashable {
     public let method: String
@@ -145,6 +147,7 @@ public extension BusinessRuntimeFeature {
         case .topicSelfPlayPay: paths = ["api/registration/pay/app"]
         case .topicSelfPlayConsentRead: paths = ["api/compliance/consents/latest"]
         case .topicSelfPlayConsentWrite: paths = ["api/compliance/consents"]
+        case .playStageAnalytics: paths = [PlayStageAnalyticsBatch.path]
         case .publishingAIQuota: paths = ["api/ai/theme/draft/quota"]
         case .publishingAITheme: paths = ["api/ai/theme/draft"]
         case .publishingAIClub: paths = ["api/ai/club/design"]
