@@ -8,10 +8,15 @@ import FoundationNetworking
     var configured: Bool { get }
     func document() async throws -> TopicSelfPlayDocument
     func freshTopic(_ topic: SelfPlayTopicID) async throws -> TopicDetail
+    /// OR-003: server quote for this topic; nil only where no quote reader exists.
+    func quote(_ topic: SelfPlayTopicID) async throws -> RegistrationQuote?
     func recordConsent(requestID: String, document: TopicSelfPlayDocument) async throws
     func create(_ intent: TopicSelfPlayIntent) async throws -> RegistrationCreateResult
     func paymentParameters(registrationID: Int) async throws -> [String: String]
     func readOrder(registrationID: Int) async throws -> OrderLifecycleDetail
+}
+extension TopicSelfPlayServing {
+    public func quote(_ topic: SelfPlayTopicID) async throws -> RegistrationQuote? { nil }
 }
 /// Each method is an exact single request except consent, which explicitly re-reads proof.
 /// No endpoint, credential, document version, SDK, retry, or success value is synthesized.
@@ -47,6 +52,17 @@ import FoundationNetworking
         let credential = try capture()
         let value = try await TopicService(configuration: configuration, transport: transport).detail(id: topic.rawValue, token: credential.token)
         try check(credential); return value
+    }
+    public func quote(_ topic: SelfPlayTopicID) async throws -> RegistrationQuote? {
+        let credential = try capture()
+        let request = try OperationAdapterHTTP.json(configuration: configuration, path: "api/registration/quote", body: JSONEncoder().encode(TopicSelfPlayQuoteRequest(topic: topic)), token: credential.token)
+        let data: Data, status: Int
+        // A runtime grant without the quote route refuses before dispatch; create then keeps its unsigned body.
+        do { (data, status) = try await transport.send(request) }
+        catch APIError.notConfigured { try check(credential); return nil }
+        try check(credential)
+        guard (200..<300).contains(status) else { throw TopicSelfPlayFailure.unknown }
+        return try JSONDecoder().decode(RegistrationQuoteResponse.self, from: data).data
     }
     public func recordConsent(requestID: String, document: TopicSelfPlayDocument) async throws {
         let credential = try capture()

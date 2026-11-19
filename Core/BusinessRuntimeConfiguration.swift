@@ -141,7 +141,7 @@ public extension BusinessRuntimeFeature {
         case .imSend: paths = ["api/im/send"]
         case .publishingRead: paths = ["api/publish/home", "api/publisher/identity/status", "api/category/list", "api/user/list", "api/template/my-list", "api/project/my", "api/ai/theme/draft/quota"]
         case .topicSelfPlayRead: paths = ["api/topic/info-to-user", "api/registration/info"]
-        case .topicSelfPlayCreate: paths = ["api/registration/create"]
+        case .topicSelfPlayCreate: paths = ["api/registration/quote", "api/registration/create"]
         case .topicSelfPlayPay: paths = ["api/registration/pay/app"]
         case .topicSelfPlayConsentRead: paths = ["api/compliance/consents/latest"]
         case .topicSelfPlayConsentWrite: paths = ["api/compliance/consents"]

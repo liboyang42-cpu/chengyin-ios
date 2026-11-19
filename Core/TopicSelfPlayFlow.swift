@@ -67,6 +67,13 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
             let fresh = try await client.freshTopic(value.intent.topic)
             guard stamp == generation, current else { return }
             guard fresh.id == topic.id, fresh.canOfferPurchase, fresh.selfPlay == 1, fresh.selfPlayPrice == value.price else { throw TopicSelfPlayFailure.priceChanged }
+            // OR-003: create carries the server quote signature; a quote that disagrees with the reviewed price stops here.
+            var intent = value.intent
+            if let quote = try await client.quote(value.intent.topic) {
+                guard stamp == generation, current else { return }
+                guard quote.isUsableForCreate, quote.payAmount == value.price else { throw TopicSelfPlayFailure.priceChanged }
+                intent = try value.intent.signed(quoteSign: quote.quoteSign)
+            }
             try await client.recordConsent(requestID: value.intent.requestID, document: value.document)
             guard stamp == generation, current else { return }
             let record = TopicSelfPlayPending(owner: value.session.storageKey, topic: value.intent.topic, requestID: value.intent.requestID)
@@ -74,7 +81,7 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
             try journal.write(record); pending = record
             // A synchronous journal callback can invalidate the flow after the prior fence.
             guard stamp == generation, current, !Task.isCancelled else { return }
-            let created = try await client.create(value.intent)
+            let created = try await client.create(intent)
             guard stamp == generation, current else { return }
             var known = record; known.registrationID = created.registrationID
             try journal.write(known); pending = known

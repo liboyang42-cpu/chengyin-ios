@@ -19,6 +19,47 @@ import FoundationNetworking
         XCTAssertNil(body["topicId"]); XCTAssertNil(body["quoteSign"]); XCTAssertNil(body["ticketId"])
         XCTAssertThrowsError(try JSONDecoder().decode(SelfPlayTopicID.self, from: Data("-1".utf8)))
     }
+    func testQuoteSignatureIsOnlyTheServersAndQuoteBodyMatchesCreate() throws {
+        let topic = try XCTUnwrap(SelfPlayTopicID(rawValue: 77))
+        let intent = try TopicSelfPlayIntent(topic: topic, realName: "Synthetic", phone: "13800000000", requestID: "synthetic-intent")
+        XCTAssertNil(intent.quoteSign)
+        XCTAssertThrowsError(try intent.signed(quoteSign: "  "))
+        let signed = try intent.signed(quoteSign: " server-sign ")
+        let body = try JSONDecoder().decode([String: ProjectEditJSON].self, from: JSONEncoder().encode(signed))
+        XCTAssertEqual(body["quoteSign"], .string("server-sign")); XCTAssertEqual(body["ownerType"], .number(1))
+        let quote = try JSONDecoder().decode([String: ProjectEditJSON].self, from: JSONEncoder().encode(TopicSelfPlayQuoteRequest(topic: topic)))
+        XCTAssertEqual(quote, ["ownerType": .number(1), "ownerId": .number(77), "isUsePoint": .number(0)])
+    }
+    func testQuotedCreateCarriesSignatureAfterQuoteAndBeforeConsent() async throws {
+        let client = try Client(); client.quoteValue = try Self.quote(amount: 0, sign: "server-sign")
+        let flow = TopicSelfPlayFlow(topic: try Self.topic(), client: client, journal: Journal())
+        await flow.open(); fill(flow); flow.prepare(); await flow.confirm(try XCTUnwrap(flow.review))
+        XCTAssertEqual(client.calls.prefix(4), ["fresh", "quote", "consent", "create"])
+        XCTAssertEqual(client.createdIntents.first?.quoteSign, "server-sign")
+    }
+    func testQuoteDisagreeingWithReviewedPriceStopsBeforeConsentAndCreate() async throws {
+        for quote in [try Self.quote(amount: 9, sign: "server-sign"), try Self.quote(amount: 0, sign: "")] {
+            let client = try Client(); client.quoteValue = quote
+            let journal = Journal(), flow = TopicSelfPlayFlow(topic: try Self.topic(), client: client, journal: journal)
+            await flow.open(); fill(flow); flow.prepare(); await flow.confirm(try XCTUnwrap(flow.review))
+            XCTAssertEqual(client.calls, ["fresh", "quote"]); XCTAssertNil(journal.value); XCTAssertEqual(flow.phase, .editing)
+        }
+    }
+    func testRuntimeBodyGuardAcceptsOnlyTopicQuoteAndSignedCreate() throws {
+        let base = URL(string: "https://example.com/scoped/")!
+        func request(_ path: String, _ body: [String: ProjectEditJSON]) throws -> URLRequest { try OperationAdapterHTTP.json(configuration: APIConfiguration(baseURL: base), path: path, body: JSONEncoder().encode(body), token: "synthetic") }
+        var quote: [String: ProjectEditJSON] = ["ownerType": .number(1), "ownerId": .number(77), "isUsePoint": .number(0)]
+        XCTAssertTrue(TopicSelfPlayRuntimeTransport.validates(try request("api/registration/quote", quote), baseURL: base))
+        quote["ownerType"] = .number(2)
+        XCTAssertFalse(TopicSelfPlayRuntimeTransport.validates(try request("api/registration/quote", quote), baseURL: base))
+        var create: [String: ProjectEditJSON] = ["ownerType": .number(1), "ownerId": .number(77), "realName": .string("Synthetic"), "phone": .string("13800000000"), "isUsePoint": .number(0), "payChannel": .string("APP"), "requestId": .string("test"), "quoteSign": .string("server-sign")]
+        XCTAssertTrue(TopicSelfPlayRuntimeTransport.validates(try request("api/registration/create", create), baseURL: base))
+        create["quoteSign"] = .string(" ")
+        XCTAssertFalse(TopicSelfPlayRuntimeTransport.validates(try request("api/registration/create", create), baseURL: base))
+    }
+    static func quote(amount: Int, sign: String) throws -> RegistrationQuote {
+        try JSONDecoder().decode(RegistrationQuote.self, from: Data("{\"payAmount\":\(amount),\"quoteSign\":\"\(sign)\"}".utf8))
+    }
     func testCancelReviewDoesNotConsentCreateOrJournal() async throws {
         let client = try Client(), journal = Journal(), flow = TopicSelfPlayFlow(topic: try Self.topic(), client: client, journal: journal)
         await flow.open(); fill(flow); XCTAssertTrue(flow.prepare()); flow.cancelReview()
@@ -180,13 +221,17 @@ import FoundationNetworking
         var configured: Bool { session != nil }
         var calls: [String] = []; var failConsent = false; var failCreate = false
         var suppliedParameters: [String: String]?
+        var quoteValue: RegistrationQuote?; var createdIntents: [TopicSelfPlayIntent] = []
         var fresh: TopicDetail; var orderValue: OrderLifecycleDetail
         init() throws { fresh = try TopicSelfPlayFlowTests.topic(); orderValue = try TopicSelfPlayFlowTests.order() }
         func document() async throws -> TopicSelfPlayDocument { try .init(version: "synthetic-current", officialURL: URL(string: "https://example.com/notice")!) }
         func freshTopic(_ topic: SelfPlayTopicID) async throws -> TopicDetail { calls.append("fresh"); return fresh }
+        func quote(_ topic: SelfPlayTopicID) async throws -> RegistrationQuote? {
+            guard let quoteValue else { return nil }; calls.append("quote"); return quoteValue
+        }
         func recordConsent(requestID: String, document: TopicSelfPlayDocument) async throws { calls.append("consent"); if failConsent { throw TopicSelfPlayFailure.consent } }
         func create(_ intent: TopicSelfPlayIntent) async throws -> RegistrationCreateResult {
-            calls.append("create"); if failCreate { throw TopicSelfPlayFailure.unknown }
+            calls.append("create"); createdIntents.append(intent); if failCreate { throw TopicSelfPlayFailure.unknown }
             return try JSONDecoder().decode(RegistrationCreateResult.self, from: Data(#"{"registrationId":701,"payableAmount":0}"#.utf8))
         }
         func paymentParameters(registrationID: Int) async throws -> [String: String] {

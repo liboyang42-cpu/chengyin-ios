@@ -13,7 +13,7 @@ class ContextSelfPlayTests(unittest.TestCase):
         s=self.read('Core/TopicSelfPlayFlow.swift')
         fence='guard stamp == generation, current, !Task.isCancelled else { return }'
         for write,dispatch in [
-            ('try journal.write(record); pending = record', 'let created = try await client.create(value.intent)'),
+            ('try journal.write(record); pending = record', 'let created = try await client.create(intent)'),
             ('try markPaymentAttempted()', '_ = await provider.pay(registrationID: created.registrationID, parameters: params)'),
             ('try markPaymentAttempted()', '_ = await provider.pay(registrationID: value.registrationID, parameters: params)')]:
             prefix=s[:s.index(dispatch)]
@@ -32,7 +32,19 @@ class ContextSelfPlayTests(unittest.TestCase):
         s=self.read('Core/TopicSelfPlayContracts.swift').split('public struct TopicSelfPlayIntent',1)[1].split('public struct TopicSelfPlayDocument',1)[0]
         self.assertIn('try c.encode(1, forKey: .ownerType)',s)
         self.assertIn('try c.encode("APP", forKey: .payChannel)',s)
-        self.assertNotIn('ticketId',s);self.assertNotIn('quoteSign',s)
+        self.assertNotIn('ticketId',s)
+        # OR-003: the only quoteSign is the server's, attached through signed(quoteSign:) and encoded when present.
+        self.assertIn('try c.encodeIfPresent(quoteSign, forKey: .quoteSign)',s)
+        self.assertEqual(s.count('copy.quoteSign = sign'),1)
+    def test_quote_signature_precedes_consent_and_matches_reviewed_price(self):
+        s=self.read('Core/TopicSelfPlayFlow.swift').split('public func confirm(',1)[1].split('public func prepareExistingPayment',1)[0]
+        self.assertLess(s.index('client.quote(value.intent.topic)'),s.index('client.recordConsent'))
+        self.assertIn('quote.isUsableForCreate, quote.payAmount == value.price',s)
+        self.assertIn('intent = try value.intent.signed(quoteSign: quote.quoteSign)',s)
+        t=self.read('Core/TopicSelfPlayRuntimeTransport.swift')
+        self.assertIn('Set(body.keys) == ["ownerType", "ownerId", "isUsePoint"]',t)
+        self.assertIn('base.union(["quoteSign"])',t)
+        self.assertIn('case .topicSelfPlayCreate: paths = ["api/registration/quote", "api/registration/create"]',self.read('Core/BusinessRuntimeConfiguration.swift'))
     def test_runtime_factory_has_separate_checkout_and_provider_gates(self):
         s=self.read('App/AppSession.swift').split('func topicSelfPlayFlow(',1)[1].split('var couponManagementSession',1)[0]
         for marker in ['selfPlayExternalCheckoutApproved','runtimeDependencies.signupDocument','factory.permits(.topicSelfPlayConsentWrite)','factory.configuration.selfPlayPayment','runtimeDependencies.selfPlayPayment','currentRuntimeDependencyContext == captured']:
