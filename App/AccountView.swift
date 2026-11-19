@@ -120,6 +120,10 @@ struct AccountView: View {
                     Button { showsMerchantApplication=true } label: {
                         Label("merchant.onboarding.openApplication",systemImage:"doc.text")
                     }.accessibilityIdentifier("account.merchantApplication")
+                    // One entry; the store and organizer views are chosen on the next screen.
+                    NavigationLink { SessionFeReferenceSettlementHubView(session: session) } label: {
+                        Label("feReference.entry", systemImage: "list.bullet.rectangle")
+                    }.accessibilityIdentifier("account.feReference")
                 }
                 Section {
                     Button("auth.signOut",role:.destructive) { confirmsLogout=true }
