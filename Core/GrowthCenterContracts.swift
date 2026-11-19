@@ -116,6 +116,11 @@ public struct GrowthLeaderboard: Decodable, Equatable {
     public let period: GrowthBoardPeriod
     public let list: [GrowthLeaderboardEntry]
     public let me: GrowthLeaderboardEntry
+    /// The viewer already appears as a row of `list`; a separate "my rank" row would repeat it.
+    public var listsMe: Bool {
+        guard let mine = me.memberID else { return false }
+        return list.contains { $0.memberID == mine }
+    }
 }
 public enum GrowthCenterSection<Value> {
     case content(Value), failure(GrowthCenterIssue)
