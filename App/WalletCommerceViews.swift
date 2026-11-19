@@ -142,7 +142,7 @@ private struct WalletFormatting {
             }.pickerStyle(.menu)
             if points { Text("wallet.loadedFilter"); NavigationLink("wallet.tasks") { WalletPointsTasksView(reader: reader) } }
             if model.pager.loadedScope == reader.scope {
-                if points { LabeledContent("wallet.pointsBalance") { Text(verbatim: format.points(model.pager.rows.first?.afterPoints)).questifyNumericTransition(value: model.pager.rows.first?.afterPoints.motionValue ?? 0) } }
+                if points { LabeledContent("wallet.pointsBalance") { Text(verbatim: format.points(model.pager.rows.first?.afterPoints)).questifyNumericTransition(value: model.pager.rows.first?.afterPoints?.motionValue ?? 0) } }
                 if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed { Text("wallet.empty") }
                 ForEach(filtered) { row in
                     VStack(alignment: .leading, spacing: 6) {
