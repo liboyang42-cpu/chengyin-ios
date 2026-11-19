@@ -156,6 +156,13 @@ public struct TopicChapter: Decodable, Equatable, Identifiable {
     public let title: String
     public let description: String?
     public let totalTimeMinutes: Int?
+    /// Source `total_time` as sent (seconds, per cms_topic_chapter); chapter cards round it to minutes.
+    public let totalTimeSeconds: Int?
+    /// Raw `img_arr`: comma-separated, a JSON array string, or an array. Cards use the first entry.
+    public let imageSources: [String]
+    /// Server-counted games in this chapter; nil when omitted.
+    public let templateCount: Int?
+    public let sortID: Int?
     public let nodes: [TopicNode]
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: TopicKey.self)
@@ -164,6 +171,14 @@ public struct TopicChapter: Decodable, Equatable, Identifiable {
         title = c.text("title") ?? c.text("name") ?? ""
         description = c.text("description")
         totalTimeMinutes = c.int("totalTime")
+        totalTimeSeconds = c.int("totalTime")
+        if let list = try? c.decode([String].self, forKey: TopicKey("imgArr")) {
+            imageSources = list.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        } else {
+            imageSources = TopicChapterCards.imageList(c.text("imgArr"))
+        }
+        templateCount = c.int("templateCount")
+        sortID = c.int("sortId")
         nodes = try c.list("nodes")
     }
 }
