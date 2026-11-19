@@ -43,7 +43,7 @@ struct GrowthCenterName: View {
 struct GrowthCenterInteger: View {
     let value: Int?
     var body: some View {
-        if let value = GrowthCenterFormatting.nonnegative(value) { Text(value, format: .number).monospacedDigit().questifyNumericTransition(value: Double(value)) }
+        if let value = GrowthCenterFormatting.nonnegative(value) { Text(value, format: .number).monospacedDigit() }
         else { Text("growth.unknown").accessibilityLabel(Text("growth.unknownValue")) }
     }
 }

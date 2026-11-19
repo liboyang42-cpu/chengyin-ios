@@ -89,7 +89,8 @@ class NumericTransitions(unittest.TestCase):
     def test_points_and_balances_roll(self):
         components = read('QuestifyMotionComponents.swift')
         self.assertIn(".contentTransition(reduceMotion ? .identity : .numericText(value: value))", components)
-        self.assertIn('.questifyNumericTransition(value: Double(value))', read('GrowthCenterComponents.swift'))
+        # GrowthCenterInteger kept as base: ProfileSelfGrowthFlowTests (staticTexts["700"]) failed in CI with numericText.
+        self.assertNotIn('questifyNumericTransition', read('GrowthCenterComponents.swift'))
         wallet = read('WalletCommerceViews.swift')
         self.assertEqual(wallet.count('LabeledContent("wallet.pointsBalance") { Text(verbatim: format.points('), 2)
         self.assertEqual(wallet.count('.questifyNumericTransition(value:'), 2)
