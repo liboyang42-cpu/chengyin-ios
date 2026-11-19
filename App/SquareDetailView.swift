@@ -31,7 +31,7 @@ import SwiftUI
             if let governanceContext { SquareGovernanceEntryView(context: governanceContext) }
             if reader.isOfflineExample { Text("square.offlineExample").font(.caption) }
             if !reader.isConfigured { SquareIssueView(error: APIError.notConfigured) }
-            else if loadedKey != key { ProgressView("square.loading") }
+            else if loadedKey != key { QuestifyPlaceholderRows(label: "square.loading", identifier: "square.loading", count: 4) }
             else {
                 if detailLoading { ProgressView("square.loading") }
                 if let detailIssue { SquareIssueView(error: detailIssue) { Task { await reload() } } }
@@ -85,6 +85,7 @@ import SwiftUI
         }
         .task(id: key) { await reload() }
         .refreshable { await reload() }
+        .questifyContentSwap(value: loadedKey == key)
         .onDisappear { generation += 1; detailLoading = false; commentsLoading = false }
         .accessibilityIdentifier("square.detail")
     }
