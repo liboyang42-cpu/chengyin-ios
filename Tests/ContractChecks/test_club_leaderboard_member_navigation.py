@@ -91,7 +91,7 @@ class ClubLeaderboardMemberNavigationTests(unittest.TestCase):
         spans = [
             ('            if operation == .customers {', '            if operation == .topicCustomers {', '4ff031e8141754314d6d2cc15dfcaa5a91c849b6c92af351df284ad867c9c8e2'),
             ('    @MainActor private func loadCustomersNow()', '    @MainActor private func load() async {', '162f631efc7d2991e12546535fd129c41fcdc2a919e497a4ec91e4d027994805'),
-            ('        } else if operation == .customer {', '        } else {\n            ClubGovernanceFactRows(value: value, fields: ClubGovernanceFactRows.summaryFields)', '50f8cab4aa3f2256e6f9fd3faadb37347685f0bef41f6f48f1ed971d3734264a'),
+            ('        } else if operation == .customer {', '        } else {\n            ClubGovernanceFactRows(value: value, fields: ClubGovernanceFactRows.summaryFields)', 'b09643c6a9d30529894504f37c6c592e4e1fb2bcd15e9dc80efcc308ad71531c'),
             ('/// P044 keyword-only scheduling.', '/// Mount independently of legacy', '6428a003b8500230f56372b775f14fd0c1f72230c39ed53b8713b9e318c5420f'),
         ]
         for start, end, expected in spans:
