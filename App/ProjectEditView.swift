@@ -254,7 +254,6 @@ import SwiftUI
     @State private var submission: PublishingSubmissionHandoff?
     @State private var submittedResource: PublishedResource?
     @State private var handledSubmission: UUID?
-    @State private var freeExploreSale: FreeExploreSaleReadiness?
     @FocusState private var focusedField: String?
     let sessionRevision: UInt64
     var publisherClient: PublisherLifecycleHTTP? = nil
@@ -338,13 +337,9 @@ import SwiftUI
                 chapterStructure(opening: opening).id("project-issue-anchor-chapters")
                 ProjectTeamConfigurationEntry(model: model)
                 ProjectClubLeadFields(model: model).id("project-issue-anchor-clubLead")
-                if model.draft.product == .freeExplore, let topicID = model.coordinator.snapshot?.topicID, let publisherClient {
-                    ProjectFreeExploreSaleSection(model: model, topicID: topicID, client: publisherClient, readiness: $freeExploreSale)
-                        .id("project-free-explore-sale-\(topicID)")
-                }
                 Section("projectEdit.tickets") {
                     ForEach(model.draft.tickets) { ticket in
-                        NavigationLink { ProjectEditTicketView(model: model, ticketID: ticket.id, freeExploreSale: model.draft.product == .freeExplore ? FreeExplorePriceState(freeExploreSale) : .notApplicable) } label: {
+                        NavigationLink { ProjectEditTicketView(model: model, ticketID: ticket.id) } label: {
                             ProjectEditName(value: ticket.name, fallback: "projectEdit.untitledTicket")
                         }.accessibilityIdentifier("projectEdit.ticket." + ticket.id)
                     }.onDelete { if model.fullEdit { model.draft.tickets.remove(atOffsets: $0) } }

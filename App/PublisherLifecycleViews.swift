@@ -21,7 +21,7 @@ import SwiftUI
     var body: some View {
         Form {
             Section {
-                Text(text("Live pricing is disabled until independently approved. Confirming a price locks it and freezes partner terms; the topic stays awaiting price until sales are opened. Free-exploration authors instead fill prices in the project editor and publish directly once every merchant slot is supplied (project review still applies at first publication; no separate sale review).", "真实定价需独立批准后启用。确认终价会锁价并冻结合作条款，主题仍停在待定价，开售另行处理。自由探索主题请在所有商家位置都有人承接后，回到主题编辑填写票价并直接发布（首次发布仍需立项审核，无单独开售审核）。"))
+                Text(text("Live pricing is disabled until independently approved. Confirming a price opens sales and freezes partner terms.", "真实定价需独立批准后启用。确认终价将开售并冻结合作条款。"))
                 Picker(text("Format", "玩法"), selection: $subtype) {
                     Text(text("Self-guided", "自玩")).tag(PublisherPriceSubtype.selfPlay)
                     Text(text("Guided", "带队")).tag(PublisherPriceSubtype.guided)
