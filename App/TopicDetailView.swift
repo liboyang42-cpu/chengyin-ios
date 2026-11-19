@@ -98,6 +98,7 @@ struct TopicDetailView: View {
             if let cast = value.castConfig, !cast.cast.isEmpty {
                 Section("topic.cast") { CastTopicRow(config: cast) }
             }
+            TopicChapterCardsSection(cards: TopicChapterCards.cards(chapters: value.chapters, routeCover: value.imageURL))
             Section("topic.chapters") {
                 if value.chapters.isEmpty { Text("topic.noChapters") }
                 // Index identity preserves source order even when backend IDs are absent/duplicated.
@@ -107,7 +108,7 @@ struct TopicDetailView: View {
                     } label: {
                         VStack(alignment: .leading) {
                             Text(verbatim: chapter.title)
-                            if let minutes = chapter.totalTimeMinutes {
+                            if let minutes = TopicChapterCards.minutes(chapter) {
                                 LabeledContent("topic.durationMinutes", value: String(minutes)).font(.caption)
                             }
                             LabeledContent("topic.visibleChapterStops", value: String(chapter.nodes.count)).font(.caption)
