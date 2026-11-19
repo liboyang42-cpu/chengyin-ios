@@ -76,7 +76,7 @@ struct DiscoveryHomeView: View {
                                 Button { onBannerDestination(destination) } label: {
                                     DiscoveryArtwork(source: banner.picUrl).frame(width: 280)
                                 }
-                                .buttonStyle(.plain)
+                                .buttonStyle(QuestifyCardButtonStyle())
                                 .accessibilityLabel(Text("discovery.openBanner \(index + 1)"))
                             } else {
                                 DiscoveryArtwork(source: banner.picUrl).frame(width: 280)

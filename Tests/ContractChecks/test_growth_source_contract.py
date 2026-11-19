@@ -42,7 +42,7 @@ class GrowthSourceChecks(unittest.TestCase):
         source = '\n'.join(p.read_text() for p in APP.glob("Growth*.swift"))
         for symbol in ['AsyncImage', 'URLSession', 'WKWebView', 'NavigationLink(destination: Text']:
             self.assertNotIn(symbol, source)
-        self.assertIn('accessibilityReduceMotion', source)
+        self.assertIn('@QuestifyReduceMotion', source)  # motion-1118: system + in-app setting
         self.assertIn('.onDisappear', source)
         self.assertIn('.refreshable', source)
         self.assertIn('.fixedSize(horizontal: false, vertical: true)', source)

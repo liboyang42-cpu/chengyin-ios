@@ -13,6 +13,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     /// Retained callback for hosts that own a value-based navigation path.
     var onTopicDestination: ((Int) -> Void)? = nil
     @State private var locality = MerchantClubDiscoveryState()
+    @QuestifyReduceMotion private var reduceMotion
     private var discoveryScope: ClubDiscoveryScope { reader.clubDiscoveryScope }
     var body: some View {
         ClubReadScreen(reader: reader, accessibilityPrefix: "club.home", onSignIn: onSignIn,
@@ -64,6 +65,8 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
             }
+            // motion-1118: locating spinner → ready/unavailable cross-fades instead of popping (same as ActivityBrowser).
+            .animation(reduceMotion ? nil : QuestifyMotion.content, value: locality.phase(in: discoveryScope))
         }
         .appNavigationTitle("club.title")
         .environment(\.clubEnrollmentProfile, management?.governance?.enrollmentProfile)

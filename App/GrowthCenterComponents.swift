@@ -52,7 +52,7 @@ struct GrowthCenterReadLifecycle: ViewModifier {
     let refresh: () async -> Void
     let cancel: () -> Void
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @QuestifyReduceMotion private var reduceMotion
     @State private var visible = false
     @State private var needsRefresh = false
     func body(content: Content) -> some View {

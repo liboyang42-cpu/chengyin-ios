@@ -25,7 +25,7 @@ import SwiftUI
                 }
                 ForEach(model.coordinator.teams) { team in
                     NavigationLink { TeamDetailView(lookup: .id(team.id), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator) } label: { TeamCard(team: team) }
-                        .buttonStyle(.plain).accessibilityIdentifier("team.row.\(team.id)")
+                        .buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("team.row.\(team.id)")
                 }
                 if model.coordinator.authenticated && model.coordinator.configured {
                     Button("team.refresh") { Task { await reload() } }.frame(minHeight: 44).disabled(model.running).accessibilityIdentifier("team.refresh")

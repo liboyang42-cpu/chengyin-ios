@@ -36,7 +36,7 @@ import SwiftUI
     @ViewBuilder private func personRow(_ person: ActivityPerson, identifier: String) -> some View {
         if let memberID = person.memberID, let onOpenProfile {
             Button { onOpenProfile(memberID) } label: { label(person) }
-                .buttonStyle(.plain)
+                .buttonStyle(QuestifyCardButtonStyle())
                 .accessibilityHint(Text("social.profile"))
                 .accessibilityIdentifier(identifier)
         } else {
