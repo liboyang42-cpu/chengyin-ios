@@ -94,6 +94,7 @@ struct TopicDetailView: View {
                     LabeledContent("topic.lockedChapters", value: String(value.lockedChapterCount)).accessibilityIdentifier("topic.lockedChapters")
                 }
             }
+            TopicChapterCardsSection(cards: TopicChapterCards.cards(chapters: value.chapters, routeCover: value.imageURL))
             Section("topic.chapters") {
                 if value.chapters.isEmpty { Text("topic.noChapters") }
                 // Index identity preserves source order even when backend IDs are absent/duplicated.
