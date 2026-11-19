@@ -34,8 +34,6 @@ class SharedLoadingContainer(unittest.TestCase):
             'SearchMapExplorerView.swift': 'QuestifyRedactedPlaceholder(label: "searchMap.loading", identifier: "searchMap.loading")',
             'TicketWalletView.swift': 'QuestifyPlaceholderRows(label: "ticketWallet.loading"',
             'TicketWalletDetailView.swift': 'QuestifyPlaceholderRows(label: "ticketWallet.loading"',
-            'ProfileSelfOrdersSection.swift': 'QuestifyPlaceholderRows(label: "profile.loading"',
-            'ProfileSelfProjectsSection.swift': 'QuestifyPlaceholderRows(label: "creatorContent.loading"',
             'GrowthCenterView.swift': 'QuestifyPlaceholderRows(label: "growth.loading"',
             'SquareDetailView.swift': 'QuestifyPlaceholderRows(label: "square.loading"',
             'RoamItemDetailView.swift': 'QuestifyDetailListPlaceholder(label: "roam.loading"',
@@ -49,6 +47,12 @@ class SharedLoadingContainer(unittest.TestCase):
         self.assertNotIn('if model.loading { ProgressView("homeFeed.loading") }', read('HomeFeedView.swift'))
         self.assertNotIn('{ ProgressView("topic.loading") }', read('TopicDetailView.swift'))
         self.assertNotIn('{ ProgressView("growth.loading") }', read('GrowthCenterView.swift'))
+
+    def test_profile_sections_stay_on_spinner(self):
+        # Reverted in motion-1119: CI ProfileSelfOrdersFlowTests / ProfileSelfEditReturnFlowTests failed with the
+        # placeholder + cross-fade on the profile List; kept as base until checked on a simulator.
+        self.assertIn('{ ProgressView("profile.loading") }', read('ProfileSelfOrdersSection.swift'))
+        self.assertIn('{ ProgressView("creatorContent.loading") }', read('ProfileSelfProjectsSection.swift'))
 
     def test_error_and_empty_states_are_kept(self):
         self.assertIn('ContentUnavailableView("homeFeed.empty"', read('HomeFeedView.swift'))
