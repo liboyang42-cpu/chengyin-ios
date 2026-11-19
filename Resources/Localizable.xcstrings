@@ -50736,7 +50736,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前岗位无权查看这些信息"
+            "value": "当前身份不能查看这些信息"
           }
         }
       }
@@ -50821,7 +50821,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前岗位无权查看已迁移的只读内容。"
+            "value": "当前身份不能查看已迁移的只读内容。"
           }
         }
       }
@@ -88378,7 +88378,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号无法查看这条记录"
+            "value": "当前身份不能查看这条记录"
           }
         }
       }
@@ -90072,7 +90072,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号无权访问。"
+            "value": "当前身份不能访问。"
           }
         }
       }

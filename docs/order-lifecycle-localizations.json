@@ -512,7 +512,7 @@
   {
     "key": "orderLifecycle.issue.accessDenied",
     "en": "This account does not have access.",
-    "zh-Hans": "当前账号无权访问。"
+    "zh-Hans": "当前身份不能访问。"
   },
   {
     "key": "orderLifecycle.issue.failure",
