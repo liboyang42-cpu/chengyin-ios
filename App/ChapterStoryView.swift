@@ -22,8 +22,12 @@ import UIKit
     @State private var confirmLeave = false
     @State private var activeInlineNodeID: Int?
     @State private var audioURL: String?
+    @State private var castCard: CastCardTarget?
+    /// Leading reading-column margin that holds speaker names (≈26pt each side in the spec).
+    @ScaledMetric(relativeTo: .caption2) private var nameMargin: CGFloat = 52
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     private var chapter: ChapterStoryDocument? { model.chapterStories[chapterID] }
     private var visible: Bool {
         guard model.hasCurrentMediaSnapshot, let snapshot = model.snapshot,
@@ -35,7 +39,16 @@ import UIKit
         guard visible, let chapter, let snapshot = model.snapshot else { return [] }
         return ChapterStoryProjection.segments(chapter: chapter, snapshot: snapshot,
             variables: model.storyVariables.merging(advancedVariables) { _, new in new },
-            thoughts: model.storyThoughts, storyVoices: model.storyVoices, activeInlineNodeID: activeInlineNodeID)
+            thoughts: model.storyThoughts, storyVoices: model.storyVoices, activeInlineNodeID: activeInlineNodeID,
+            cast: model.castConfig.map { CastStoryContext(config: $0, profile: model.castProfile) })
+    }
+    /// Once any paragraph carries a margin name, every paragraph shares the same column.
+    private var usesNameMargin: Bool {
+        segments.contains { if case .line(let line) = $0.content { return line.speaker != nil }; return false }
+    }
+    private var reachedChapters: Set<Int> {
+        guard let snapshot = model.snapshot else { return [] }
+        return Set(snapshot.visibleNodes.filter { !snapshot.isLocked($0) }.compactMap { $0.chapterID })
     }
     var body: some View {
         ScrollView {
@@ -72,6 +85,13 @@ import UIKit
                 ToolbarItem(placement: .topBarLeading) { Button("chapterStory.back", systemImage: "chevron.left") { leave() } }
             }
         }
+        .environment(\.questifyCast, model.castConfig.map { CastStoryContext(config: $0, profile: model.castProfile) })
+        .sheet(item: $castCard) { target in
+            if let member = model.castConfig?.member(target.castID) {
+                CastCharacterCard(member: member, trust: model.castTrust[member.id], reachedChapters: reachedChapters,
+                    line: target.line, chapterID: chapterID, model: model, mediaScope: mediaScope, makeAudio: makeAudio, imageReader: imageReader)
+            }
+        }
         .privacySensitive().accessibilityIdentifier("chapterStory.body")
         .interactiveDismissDisabled(!dirtyNodes.isEmpty)
         .confirmationDialog("chapterStory.discardQuestion", isPresented: $confirmLeave, titleVisibility: .visible) {
@@ -81,13 +101,26 @@ import UIKit
         .task(id: "\(model.identity ?? ""):chapter=\(chapterID)") { if visible { await model.claimVisibleThoughts(chapterID: chapterID) } }
         .onChange(of: model.snapshot) { _, _ in if visible { Task { await model.claimVisibleThoughts(chapterID: chapterID) } } }
         .onChange(of: model.storyVariables) { _, next in advancedVariables.merge(next) { _, new in new } }
-        .onChange(of: model.identity) { _, _ in advancedVariables = [:]; dirtyNodes = []; activeInlineNodeID = nil; audioURL = nil }
+        .onChange(of: model.identity) { _, _ in advancedVariables = [:]; dirtyNodes = []; activeInlineNodeID = nil; audioURL = nil; castCard = nil }
         .onChange(of: scenePhase) { _, phase in if phase != .active { audioURL = nil } }
         .onDisappear { audioURL = nil; advancedVariables = [:]; dirtyNodes = [] }
     }
     @ViewBuilder private func segmentBody(_ segment: ChapterStorySegment) -> some View {
         switch segment.content {
-        case .text(let text): Text(verbatim: text).font(.body).lineSpacing(8).textSelection(.enabled)
+        case .text(let text):
+            Text(verbatim: text).font(.body).lineSpacing(8).textSelection(.enabled)
+                .padding(.leading, usesNameMargin ? nameMargin : 0)
+        case .line(let line):
+            VStack(spacing: 6) {
+                ChapterStoryLineView(name: speakerName(line.speaker), text: line.text, margin: nameMargin,
+                    onTapName: castID(line.speaker).map { id -> () -> Void in { castCard = CastCardTarget(castID: id, line: line) } })
+                // D1: a line with the author's own recording gets a small centred control.
+                if line.audioURL != nil {
+                    CastVoiceButton(line: line, member: model.castConfig?.member(castID(line.speaker)), chapterID: chapterID,
+                        model: model, mediaScope: mediaScope, makeAudio: makeAudio, compact: true)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
+            }
         case .image(let url): ChapterStoryArtwork(url: url, reader: imageReader)
         case .audio(let url): Button("chapterStory.listen", systemImage: "speaker.wave.2") { audioURL = url }
         case .voice(let speaker, let text):
@@ -145,7 +178,24 @@ import UIKit
             }
         }
     }
+    private func castID(_ speaker: ChapterStoryLine.Speaker?) -> String? {
+        if case .cast(let id) = speaker { return id }; return nil
+    }
+    private func speakerName(_ speaker: ChapterStoryLine.Speaker?) -> String? {
+        switch speaker {
+        case .cast(let id): return model.castConfig?.member(id)?.name
+        case .player: return model.castProfile?.name ?? appLocalized("cast.player.you", locale: locale)
+        case .named(let name): return name
+        case nil: return nil
+        }
+    }
     private func leave() { if dirtyNodes.isEmpty { dismiss() } else { confirmLeave = true } }
+}
+
+private struct CastCardTarget: Identifiable {
+    let castID: String
+    let line: ChapterStoryLine?
+    var id: String { castID + ":" + (line?.blockKey ?? line?.text ?? "") }
 }
 
 @MainActor private struct ChapterStoryGameHost: View {

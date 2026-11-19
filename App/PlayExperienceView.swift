@@ -32,6 +32,9 @@ import SwiftUI
     @State private var confirmEnd = false
     @State private var presentedMode: PlayGameplayMode?
     @State private var presentationMount = PlayExperiencePresentationMount()
+    /// Cast contract C/E1: the naming step and the 登场人物 playbill, before chapter 1.
+    @State private var castStep: CastStep?
+    @AppStorage("cast.playbill.lastRun") private var lastPlaybillRun = ""
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         Group {
@@ -77,7 +80,10 @@ import SwiftUI
         }
         .onChange(of: PlayExperiencePresentationKey(model: model)) { _, _ in showRouteMap = false }
         .onChange(of: model.snapshot?.result) { _, _ in if model.gameplayMode == .cityOrientation { projectAmbient() } }
-        .onChange(of: model.snapshot) { _, _ in invalidateShopNPC?() }
+        .onChange(of: model.snapshot) { _, _ in invalidateShopNPC?(); evaluateCastStep() }
+        .onChange(of: model.castConfig) { _, _ in evaluateCastStep() }
+        .fullScreenCover(item: $castStep) { step in castStepView(step) }
+        .environment(\.questifyCast, model.castConfig.map { CastStoryContext(config: $0, profile: model.castProfile) })
         .onChange(of: model.hasCurrentMediaSnapshot) { _, current in if !current { invalidateShopNPC?() } }
         .onChange(of: scenePhase) { _, next in
             if model.gameplayMode == .cityOrientation, next != .active, model.clock.phase == .running {
@@ -203,6 +209,11 @@ import SwiftUI
                     if let circleModel { NavigationLink("playx.circle.title") { PlayCircleView(model: circleModel) } }
                 }
                 if let reward = model.reward { PlayRewardSection(reward: reward, collectionDestination: rewardCollectionDestination) }
+                if let config = model.castConfig, let ending = model.ending {
+                    // E6 「他们怎么看你」; the run's live trust stands in when the result omits it.
+                    CastEndingSection(config: config, result: ending.cast.trust.isEmpty
+                        ? CastEndingResult(trust: model.castTrust, endingFor: ending.cast.endingFor, endingCount: ending.cast.endingCount) : ending.cast)
+                }
                 if let ending = model.ending {
                     Section("playx.ending") {
                         if ending.hasStory {
@@ -226,6 +237,46 @@ import SwiftUI
             }
         }
         .accessibilityIdentifier("playx.overview")
+        .toolbar {
+            if let config = model.castConfig, !config.cast.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button("cast.playbill.menu", systemImage: "person.2") { castStep = .playbill }
+                            .accessibilityIdentifier("cast.playbill.reopen")
+                    } label: { Label("cast.menu.more", systemImage: "ellipsis.circle") }
+                        .accessibilityIdentifier("cast.menu")
+                }
+            }
+        }
+    }
+    private enum CastStep: String, Identifiable { case start, playbill; var id: String { rawValue } }
+    private var castRunKey: String {
+        "\(model.snapshot?.result.topicID ?? 0):\(model.snapshot?.route?.sessionID ?? 0)"
+    }
+    /// Shown only at the start of an active run that has not finished any station, so a
+    /// resumed run or a theme without cast never sees either screen.
+    private func evaluateCastStep() {
+        guard castStep == nil, let config = model.castConfig, model.hasCurrentMediaSnapshot, let snapshot = model.snapshot,
+              snapshot.availability == .active, !snapshot.visibleNodes.contains(where: { snapshot.isDone($0) }) else { return }
+        if config.needsStartStep(profile: model.castProfile) { castStep = .start }
+        else if !config.cast.isEmpty, lastPlaybillRun != castRunKey { castStep = .playbill }
+    }
+    @ViewBuilder private func castStepView(_ step: CastStep) -> some View {
+        if let config = model.castConfig {
+            switch step {
+            case .start:
+                CastStartView(config: config) { name, identityKey in
+                    Task { await model.saveCastProfile(name: name, identityKey: identityKey) }
+                    castStep = config.cast.isEmpty ? nil : .playbill
+                }
+            case .playbill:
+                CastPlaybillView(config: config, profile: model.castProfile, routeName: model.snapshot?.result.topicName) {
+                    lastPlaybillRun = castRunKey; castStep = nil
+                }
+            }
+        } else {
+            Button("cast.playbill.start") { castStep = nil }
+        }
     }
     @ViewBuilder private func freeStoreDestination(_ id: Int) -> some View {
         // A re-read clears the snapshot while it loads; keep the same store view (and its
