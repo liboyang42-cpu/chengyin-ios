@@ -196,6 +196,7 @@ import SwiftUI
     @State private var step: Step = .intro
     @State private var preview = false
     @State private var discard = false
+    @AppStorage(TemplateAuthoringEditorLayout.advancedSettingsExpandedKey) private var advancedSettingsExpanded = TemplateAuthoringEditorLayout.advancedSettingsExpandedDefault
     let sessionRevision: UInt64
     let metadataReader: (any DiscoveryReading)?
     private let onSavedDraft: ((TemplateAuthoringSavedDraft) -> Void)?
@@ -290,19 +291,7 @@ import SwiftUI
     }
     @ViewBuilder private var editor: some View {
         Group {
-            Section("templateAuthor.basics") {
-                TemplateAuthoringField("title", text: $model.draft.title)
-                TemplateAuthoringField("description", text: $model.draft.description, multiline: true)
-                TemplateAuthoringMetadataFields(model: model, reader: metadataReader)
-                TemplateAuthoringField("difficulty", text: model.optional(\.difficulty))
-                TemplateAuthoringVenueField(model: model)
-                TemplateAuthoringField("requiredMaterials", text: model.optional(\.requiredMaterials))
-                TemplateAuthoringField("categoryId", text: model.number(\.categoryId))
-                TemplateAuthoringRuleFields(model: model)
-                TemplateAuthoringField("imgUrl", text: model.optional(\.imgUrl))
-                Text("templateAuthor.mediaHint").font(.caption).foregroundStyle(.secondary)
-                Toggle("templateAuthor.sync", isOn: .init(get: { model.draft.isSync == 1 }, set: { model.draft.isSync = $0 ? 1 : 0 }))
-            }
+            // 2026-11-19 主人：先选玩法/完成方式及其核心设置，再填基本信息；描述与封面靠后。
             Section("templateAuthor.finish") {
                 Toggle("templateAuthor.moduleEnabled", isOn: $model.draft.finishEnabled)
                 if model.draft.finishEnabled {
@@ -312,12 +301,33 @@ import SwiftUI
                     TemplateAuthoringCompletionFields(model: model)
                     NavigationLink("templateAuthor.advanced") { TemplateAuthoringAdvancedView(model: model) }.accessibilityIdentifier("creatorComposition.open")
                 }
+                if let key = issueKey(.finish) { TemplateAuthoringIssueText(key: key) }
             }
-            TemplateAuthoringRewardStoryFields(model: model)
+            Section("templateAuthor.basics") {
+                TemplateAuthoringField("title", text: $model.draft.title, issueKey: issueKey(.field("title")))
+                Group {
+                    TemplateAuthoringMetadataFields(model: model, reader: metadataReader)
+                    if let key = issueKey(.metadata) { TemplateAuthoringIssueText(key: key) }
+                }
+                TemplateAuthoringField("difficulty", text: model.optional(\.difficulty))
+                TemplateAuthoringVenueField(model: model)
+                TemplateAuthoringField("categoryId", text: model.number(\.categoryId))
+                TemplateAuthoringRuleFields(model: model)
+                TemplateAuthoringField("description", text: $model.draft.description, multiline: true, issueKey: issueKey(.field("description")))
+                TemplateAuthoringField("imgUrl", text: model.optional(\.imgUrl))
+                Text("templateAuthor.mediaHint").font(.caption).foregroundStyle(.secondary)
+                Toggle("templateAuthor.sync", isOn: .init(get: { model.draft.isSync == 1 }, set: { model.draft.isSync = $0 ? 1 : 0 }))
+            }
+            // 2026-11-19 主人：选填项收进一个默认收起的「高级设置」，展开状态记住；必填项不放进来。
             Section {
-                NavigationLink("templateModules.title") { TemplateOptionalModuleManager(model: model) }
-                    .accessibilityIdentifier("templateModules.open")
+                DisclosureGroup("templateAuthor.advancedSettings", isExpanded: $advancedSettingsExpanded) {
+                    TemplateAuthoringField("requiredMaterials", text: model.optional(\.requiredMaterials))
+                    NavigationLink("templateModules.title") { TemplateOptionalModuleManager(model: model) }
+                        .accessibilityIdentifier("templateModules.open")
+                }.accessibilityIdentifier("templateAuthor.advancedSettings")
+                if let key = issueKey(.advancedSettings) { TemplateAuthoringIssueText(key: key) }
             }
+            if advancedSettingsExpanded { TemplateAuthoringRewardStoryFields(model: model) }
             Section(String(localized: LocalizedStringResource("templateMedia.title", defaultValue: "Local media review", locale: locale))) {
                 TemplateMediaReviewFields(controller: media)
             }
@@ -335,6 +345,20 @@ import SwiftUI
             }
         }.disabled(!model.canEdit)
     }
+    /// The first publish issue in screen order, shown only under its own field.
+    private func issueKey(_ anchor: TemplateAuthoringIssueAnchor) -> String? {
+        guard let issue = model.draft.firstPublishIssue, issue.anchor == anchor else { return nil }
+        return issue.key
+    }
+}
+
+/// 2026-11-19 主人：输入错误 = 字段下方红字。
+struct TemplateAuthoringIssueText: View {
+    let key: String
+    var body: some View {
+        Text(LocalizedStringKey(key)).font(.caption).foregroundStyle(.red)
+            .accessibilityIdentifier("templateIssue.field")
+    }
 }
 
 struct TemplateAuthoringField: View {
@@ -342,8 +366,9 @@ struct TemplateAuthoringField: View {
     @Binding var text: String
     let multiline: Bool
     let accessibilityID: String?
-    init(_ key: String, text: Binding<String>, multiline: Bool = false, accessibilityID: String? = nil) {
-        self.key = key; _text = text; self.multiline = multiline; self.accessibilityID = accessibilityID
+    let issueKey: String?
+    init(_ key: String, text: Binding<String>, multiline: Bool = false, accessibilityID: String? = nil, issueKey: String? = nil) {
+        self.key = key; _text = text; self.multiline = multiline; self.accessibilityID = accessibilityID; self.issueKey = issueKey
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -351,6 +376,7 @@ struct TemplateAuthoringField: View {
             TextField(LocalizedStringKey("templateAuthor.field." + key), text: $text, axis: multiline ? .vertical : .horizontal)
                 .lineLimit(multiline ? 3...10 : 1...1).accessibilityIdentifier(accessibilityID ?? "templateAuthor.field." + key)
                 .textInputAutocapitalization(.sentences)
+            if let issueKey { TemplateAuthoringIssueText(key: issueKey) }
         }.padding(.vertical, 3)
     }
 }

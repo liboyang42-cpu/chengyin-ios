@@ -9,7 +9,11 @@ import SwiftUI
                 TemplateSensorDraftConfigurationFields(model: model)
             }
             TemplateAuthoringQAFields(method: model.draft.validationMethod, field: { model.optional($0.draftPath) },
-                includesHints: false, includesChoiceOptions: false)
+                includesHints: false, includesChoiceOptions: false, issue: { field in
+                    // 2026-11-19 主人：首个未填必填项在该字段下方显示红字。
+                    guard let issue = model.draft.firstPublishIssue, issue.anchor == .field(field.rawValue) else { return nil }
+                    return issue.key
+                })
             TemplateLegacyHintFields(model: model)
             if TemplateLegacyQuestionRehearsal(model.draft).isAvailable {
                 NavigationLink("templateLegacyQuiz.title") { TemplateLegacyQuestionRehearsalView(model: model) }
@@ -64,6 +68,7 @@ import SwiftUI
     var annotation: (TemplateQAField) -> String? = { _ in nil }
     var includesHints = true
     var includesChoiceOptions = true
+    var issue: (TemplateQAField) -> String? = { _ in nil }
     var body: some View {
         Group {
             if [.text, .choice].contains(method) {
@@ -85,7 +90,7 @@ import SwiftUI
     }
     private func entry(_ key: TemplateQAField, multiline: Bool = false) -> some View {
         VStack(alignment: .leading) {
-            TemplateAuthoringField(key.rawValue, text: field(key), multiline: multiline)
+            TemplateAuthoringField(key.rawValue, text: field(key), multiline: multiline, issueKey: issue(key))
             if let label = annotation(key) { Text(LocalizedStringKey(label)).font(.caption).foregroundStyle(.secondary) }
         }
     }

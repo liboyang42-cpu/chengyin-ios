@@ -71,6 +71,10 @@
     "en": "Advanced game settings",
     "zh-Hans": "高级玩法设置"
   },
+  "templateAuthor.advancedSettings": {
+    "en": "Advanced settings",
+    "zh-Hans": "高级设置"
+  },
   "templateAuthor.reward": {
     "en": "Completion reward",
     "zh-Hans": "完成奖励"

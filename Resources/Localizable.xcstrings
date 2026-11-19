@@ -142603,6 +142603,23 @@
         }
       }
     },
+    "templateAuthor.advancedSettings": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高级设置"
+          }
+        }
+      }
+    },
     "templateAuthor.basics": {
       "localizations": {
         "en": {

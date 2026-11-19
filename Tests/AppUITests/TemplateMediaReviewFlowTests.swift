@@ -16,6 +16,8 @@ import XCTest
         let value = XCUIApplication()
         value.launchArguments = ["--ui-template-authoring", "--template-author-local-probe", "--uitesting-reset-language",
                                  "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        // Optional story / reward / narration controls sit in the remembered advanced-settings group.
+        value.launchArguments += ["-templateEditor.advancedSettingsExpanded", "YES"]
         if synthetic { value.launchArguments += ["--template-author-media-fixture"] }
         app = value; value.launch(); tap("templateAuthor.begin", in: value); tap("templateAuthor.continue", in: value)
         return value

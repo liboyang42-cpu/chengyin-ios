@@ -43,6 +43,8 @@ import XCTest
         let app = XCUIApplication()
         app.launchArguments = ["--ui-template-authoring", "--template-author-local-probe",
                                "--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        // Optional story / reward / narration controls sit in the remembered advanced-settings group.
+        app.launchArguments += ["-templateEditor.advancedSettingsExpanded", "YES"]
         app.launchEnvironment["--template-author-rules-raw"] = rules
         app.launchEnvironment["--template-author-story-raw"] = story
         app.launchEnvironment["--template-author-story-text"] = legacySummary

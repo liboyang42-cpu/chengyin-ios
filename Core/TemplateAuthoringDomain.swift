@@ -177,3 +177,75 @@ public struct TemplateAuthoringDraft: Codable, Equatable {
         return d
     }
 }
+
+/// 2026-11-19 主人：编辑页先放所选玩法/完成方式及其核心设置，再放基本信息，描述与封面靠后；
+/// 选填项（所需物料、奖励、剧情、配音、可选模块）收进一个默认收起的「高级设置」，展开状态记住。
+/// 必填项不收进去。
+public enum TemplateAuthoringEditorLayout {
+    public static let advancedSettingsExpandedKey = "templateEditor.advancedSettingsExpanded"
+    public static let advancedSettingsExpandedDefault = false
+}
+
+/// Where the editor shows a publish issue as red text under the offending field.
+public enum TemplateAuthoringIssueAnchor: Equatable, Sendable {
+    /// A `TemplateAuthoringField` key, e.g. "title", "description", "questionName".
+    case field(String)
+    /// The players / duration / category selectors.
+    case metadata
+    /// The end of the finish-method section: module switch, choice rows and game settings.
+    case finish
+    /// The folded advanced-settings group (reward, story, narration).
+    case advancedSettings
+}
+
+public struct TemplateAuthoringPublishIssue: Equatable, Sendable {
+    public let key: String
+    public let anchor: TemplateAuthoringIssueAnchor
+    public init(key: String, anchor: TemplateAuthoringIssueAnchor) { self.key = key; self.anchor = anchor }
+}
+
+extension TemplateAuthoringDraft {
+    /// 2026-11-19 主人：预览/发布按钮保持禁用；输入错误 = 字段下方红字。
+    /// Only the first missing item in screen order is shown, so the author finds it.
+    public var firstPublishIssue: TemplateAuthoringPublishIssue? {
+        var best: TemplateAuthoringPublishIssue?
+        var bestRank = Int.max
+        // publishIssues keeps its own order; ties keep the earlier key.
+        for key in publishIssues {
+            let anchor = issueAnchor(for: key)
+            let rank = Self.screenRank(anchor)
+            if rank < bestRank { best = TemplateAuthoringPublishIssue(key: key, anchor: anchor); bestRank = rank }
+        }
+        return best
+    }
+    public func issueAnchor(for key: String) -> TemplateAuthoringIssueAnchor {
+        let prefix = "templateAuthor.validation."
+        guard key.hasPrefix(prefix) else {
+            return key.hasPrefix("templateStory.") ? .advancedSettings : .finish
+        }
+        switch String(key.dropFirst(prefix.count)) {
+        case "title": return .field("title")
+        case "description", "descriptionLength": return .field("description")
+        case "players", "duration", "category": return .metadata
+        case "question": return .field("questionName")
+        case "answer":
+            let question = (questionName ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            return .field(question.isEmpty ? "questionName" : "questionAnswer")
+        case "reward", "medal", "audio": return .advancedSettings
+        default: return .finish
+        }
+    }
+    /// Matches the editor's top-to-bottom order.
+    static func screenRank(_ anchor: TemplateAuthoringIssueAnchor) -> Int {
+        switch anchor {
+        case .field("questionName"): return 0
+        case .field("questionAnswer"): return 1
+        case .finish: return 2
+        case .field("title"): return 3
+        case .metadata: return 4
+        case .field("description"): return 5
+        case .advancedSettings: return 6
+        case .field: return 2
+        }
+    }
+}
