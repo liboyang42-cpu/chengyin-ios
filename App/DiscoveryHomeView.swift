@@ -53,7 +53,7 @@ struct DiscoveryHomeView: View {
                         }
                     }
                     .refreshable { await reload() }
-                    .questifyContentSwap(value: home.isLoading)
+                    .questifyContentSwap(isLoading: home.isLoading)
                 }
             }
             .sheet(isPresented:$showsTopics) { SessionTopicBrowserView() }

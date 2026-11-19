@@ -47,7 +47,7 @@ extension EnvironmentValues {
             }
         }
         .listStyle(.insetGrouped)
-        .questifyContentSwap(value: model.isLoading)
+        .questifyContentSwap(isLoading: model.isLoading)
         .appNavigationTitle("growth.title")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {

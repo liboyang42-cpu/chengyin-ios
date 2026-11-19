@@ -52,7 +52,7 @@ import SwiftUI
             }
         }
         .listStyle(.insetGrouped)
-        .questifyContentSwap(value: model.isLoading)
+        .questifyContentSwap(isLoading: model.isLoading)
         .appNavigationTitle("accountCollection.coupons.title")
         .searchable(text: $searchText, prompt: Text("accountCollection.coupons.search"))
         .onSubmit(of: .search) { submittedQuery = searchText }

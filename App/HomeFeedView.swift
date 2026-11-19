@@ -51,7 +51,7 @@ import SwiftUI
                 }
                 .listStyle(.insetGrouped)
                 .listSectionSpacing(20)
-                .questifyContentSwap(value: model.loading)
+                .questifyContentSwap(isLoading: model.loading)
                 .searchable(text: $keyword, prompt: Text("homeFeed.search"))
                 .onSubmit(of: .search) { submittedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .onChange(of: keyword) { _, value in if value.isEmpty { submittedKeyword = "" } }

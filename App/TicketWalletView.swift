@@ -80,7 +80,7 @@ import SwiftUI
                 Section { Text("ticketWallet.readOnly").font(.footnote).foregroundStyle(.secondary) }
             }
             .listStyle(.insetGrouped)
-            .questifyContentSwap(value: model.isLoading)
+            .questifyContentSwap(isLoading: model.isLoading)
             .listSectionSpacing(20)
             .appNavigationTitle("ticketWallet.title")
             .toolbar {

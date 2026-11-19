@@ -72,7 +72,7 @@ struct RoamItemDetailView: View {
                 else if let issue { RoamStatusView(issue: issue) { startLoad() } }
                 else { content }
             }
-            .questifyContentSwap(value: loading)
+            .questifyContentSwap(isLoading: loading)
             .appNavigationTitle("roam.detail")
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(item: $eventNavigation) { selection in

@@ -118,7 +118,7 @@ struct ActivityDetailView: View {
                 }
             } else { QuestifyDetailListPlaceholder(label: "activity.loading", identifier: "activity.loading").transition(.opacity) }
         }
-        .questifyContentSwap(value: loading || access == nil)
+        .questifyContentSwap(isLoading: loading || access == nil)
         .appNavigationTitle("activity.details")
         .navigationBarTitleDisplayMode(.inline)
         .task(id:id) { await loads.run { await load() } }

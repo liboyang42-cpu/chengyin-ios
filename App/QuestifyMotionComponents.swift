@@ -140,12 +140,12 @@ struct QuestifyLoadingContainer<Placeholder: View, Content: View>: View {
                 content().transition(.opacity)
             }
         }
-        .animation(reduceMotion ? nil : QuestifyMotion.content, value: isLoading)
+        .animation(reduceMotion || isLoading ? nil : QuestifyMotion.content, value: isLoading)
     }
 }
 
 /// The placeholder half of QuestifyLoadingContainer, for List rows that cannot be wrapped in a ZStack.
-/// Pair with `.questifyContentSwap(value:)` on the List so rows cross-fade when loading ends.
+/// Pair with `.questifyContentSwap(isLoading:)` on the List so rows cross-fade when loading ends.
 struct QuestifyRedactedPlaceholder<Content: View>: View {
     let label: LocalizedStringKey
     var identifier: String? = nil
@@ -197,17 +197,19 @@ struct QuestifyPlaceholderRow: View {
 }
 
 extension View {
-    /// Cross-fade a List/stack when `value` changes (placeholder → content), skipped under Reduce Motion.
-    func questifyContentSwap<V: Equatable>(value: V) -> some View { modifier(QuestifyContentSwap(value: value)) }
+    /// Cross-fade a List/stack when loading ends (placeholder → content), skipped under Reduce Motion.
+    /// Only the arrival animates: going back to loading, sign-out or scope changes remove content at once,
+    /// so stale (possibly private) rows never linger through a fade.
+    func questifyContentSwap(isLoading: Bool) -> some View { modifier(QuestifyContentSwap(isLoading: isLoading)) }
     /// Numbers that update after load roll instead of jumping (contentTransition(.numericText())).
     func questifyNumericTransition(value: Double) -> some View { modifier(QuestifyNumericTransition(value: value)) }
 }
 
-private struct QuestifyContentSwap<V: Equatable>: ViewModifier {
-    let value: V
+private struct QuestifyContentSwap: ViewModifier {
+    let isLoading: Bool
     @QuestifyReduceMotion private var reduceMotion
     func body(content: Content) -> some View {
-        content.animation(reduceMotion ? nil : QuestifyMotion.content, value: value)
+        content.animation(reduceMotion || isLoading ? nil : QuestifyMotion.content, value: isLoading)
     }
 }
 

@@ -17,8 +17,8 @@ class SharedLoadingContainer(unittest.TestCase):
         for needle in ('struct QuestifyLoadingContainer', 'struct QuestifyRedactedPlaceholder',
                        '.redacted(reason: .placeholder)', '.allowsHitTesting(false)',
                        '.accessibilityLabel(Text(label))',
-                       '.animation(reduceMotion ? nil : QuestifyMotion.content, value: isLoading)',
-                       'content.animation(reduceMotion ? nil : QuestifyMotion.content, value: value)'):
+                       '.animation(reduceMotion || isLoading ? nil : QuestifyMotion.content, value: isLoading)',
+                       'content.animation(reduceMotion || isLoading ? nil : QuestifyMotion.content, value: isLoading)'):
             self.assertIn(needle, source)
         # Placeholder → content swap reads the shared fadeSwap token, never a literal duration.
         block = source.split('// MARK: - motion-1119', 1)[1]
@@ -41,7 +41,7 @@ class SharedLoadingContainer(unittest.TestCase):
         for name, needle in expected.items():
             source = read(name)
             self.assertIn(needle, source, name)
-            self.assertTrue('questifyContentSwap(value:' in source or 'transition(.opacity)' in source, name)
+            self.assertTrue('questifyContentSwap(isLoading:' in source or 'transition(.opacity)' in source, name)
         self.assertNotIn('if model.loading { ProgressView("homeFeed.loading") }', read('HomeFeedView.swift'))
         self.assertNotIn('{ ProgressView("topic.loading") }', read('TopicDetailView.swift'))
         self.assertNotIn('{ ProgressView("growth.loading") }', read('GrowthCenterView.swift'))
@@ -51,6 +51,14 @@ class SharedLoadingContainer(unittest.TestCase):
         # placeholder + cross-fade on the profile List; kept as base until checked on a simulator.
         self.assertIn('{ ProgressView("profile.loading") }', read('ProfileSelfOrdersSection.swift'))
         self.assertIn('{ ProgressView("creatorContent.loading") }', read('ProfileSelfProjectsSection.swift'))
+
+    def test_content_leaves_without_fade(self):
+        # GrowthCenterFlowTests.testSessionChangeClearsPrivateBoardAndNavigation: after sign-out the private
+        # board must be gone at once, so only placeholder → content animates.
+        source = read('QuestifyMotionComponents.swift')
+        self.assertNotIn('questifyContentSwap<V', source)
+        for path in (APP).glob('*.swift'):
+            self.assertNotIn('.questifyContentSwap(value:', path.read_text(), path.name)
 
     def test_error_and_empty_states_are_kept(self):
         self.assertIn('ContentUnavailableView("homeFeed.empty"', read('HomeFeedView.swift'))

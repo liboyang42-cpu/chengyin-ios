@@ -28,7 +28,7 @@ struct TopicDetailView: View {
             else if let issue { TopicIssueView(issue: issue) { loads.start { await load() } } }
             else if let detail { content(detail).transition(.opacity) }
         }
-        .questifyContentSwap(value: loading || loadedKey != key)
+        .questifyContentSwap(isLoading: loading || loadedKey != key)
         .appNavigationTitle("topic.detail")
         .navigationBarTitleDisplayMode(.inline)
         .task(id: key) { await loads.run { await load() } }

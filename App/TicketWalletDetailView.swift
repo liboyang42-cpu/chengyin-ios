@@ -79,7 +79,7 @@ import SwiftUI
             }
         }
         .listStyle(.insetGrouped)
-        .questifyContentSwap(value: model.isLoading)
+        .questifyContentSwap(isLoading: model.isLoading)
         .listSectionSpacing(20)
         .appNavigationTitle("ticketWallet.detail")
         .navigationBarTitleDisplayMode(.inline)

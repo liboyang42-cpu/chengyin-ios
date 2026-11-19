@@ -85,7 +85,7 @@ import SwiftUI
         }
         .task(id: key) { await reload() }
         .refreshable { await reload() }
-        .questifyContentSwap(value: loadedKey == key)
+        .questifyContentSwap(isLoading: loadedKey != key)
         .onDisappear { generation += 1; detailLoading = false; commentsLoading = false }
         .accessibilityIdentifier("square.detail")
     }
