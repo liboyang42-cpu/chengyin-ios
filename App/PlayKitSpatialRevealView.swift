@@ -221,13 +221,13 @@ import simd
             guard !reduceMotion else { return }
             if prepared.request.mode == .plane {
                 face.position.y += 0.3
-                let drop = SCNAction.moveBy(x: 0, y: -0.3, z: 0, duration: 0.42); drop.timingMode = .easeIn
-                let rise = SCNAction.moveBy(x: 0, y: 0.024, z: 0, duration: 0.09); rise.timingMode = .easeOut
-                let settle = SCNAction.moveBy(x: 0, y: -0.024, z: 0, duration: 0.09); settle.timingMode = .easeIn
+                let drop = SCNAction.moveBy(x: 0, y: -0.3, z: 0, duration: QuestifyMotionToken.slow); drop.timingMode = .easeIn
+                let rise = SCNAction.moveBy(x: 0, y: 0.024, z: 0, duration: QuestifyMotionToken.press); rise.timingMode = .easeOut
+                let settle = SCNAction.moveBy(x: 0, y: -0.024, z: 0, duration: QuestifyMotionToken.press); settle.timingMode = .easeIn
                 face.runAction(.sequence([drop, rise, settle]))
             } else {
                 face.scale = SCNVector3(0.02, 0.02, 0.02)
-                let grow = SCNAction.scale(to: 1, duration: 0.52); grow.timingMode = .easeOut; face.runAction(grow)
+                let grow = SCNAction.scale(to: 1, duration: QuestifyMotionToken.celebrate); grow.timingMode = .easeOut; face.runAction(grow)
             }
         }
     }

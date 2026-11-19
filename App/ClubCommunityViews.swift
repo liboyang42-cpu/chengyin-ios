@@ -113,6 +113,7 @@ struct ClubCommunityFeedView: View {
     @State private var composing = false
     @State private var destination: ClubCommunityDestination?
     @State private var discussion = ClubPostDiscussionState()
+    @QuestifyReduceMotion private var reduceMotion
     @Environment(\.clubCustomerTopics) private var topics
     @Environment(\.clubPostPlayHost) private var discussionHost
     init(context: ClubCommunityContext, identity: ClubReadIdentity, clubID: Int? = nil) {
@@ -134,7 +135,7 @@ struct ClubCommunityFeedView: View {
                             openComments: { if let target { toggleDiscussion(target) } },
                             openHistory: { destination = .init(post: post, clubID: post.clubID ?? clubID, screen: .history) })
                         if let selected = discussion.selection, selected.post == post {
-                            ClubPostDiscussionPanel(target: selected, source: model, close: { discussion.close() }).id(selected.id)
+                            ClubPostDiscussionPanel(target: selected, source: model, close: { withAnimation(reduceMotion ? nil : QuestifyMotion.content) { discussion.close() } }).id(selected.id)
                         }
                     }
                 }
@@ -183,8 +184,10 @@ struct ClubCommunityFeedView: View {
     }
     private func toggleDiscussion(_ target: ClubPostDiscussionSelection) {
         guard !model.busy, (discussionHost?.isCurrent() ?? true), (try? model.context.currentSession().identity) == identity else { return }
-        discussion.toggle(target, acceptedPosts: model.snapshot?.posts, context: .init(clubID: target.context.clubID,
-            identity: identity, readScope: model.imageReadScope, viewerRevision: topics.viewerRevision))
+        withAnimation(reduceMotion ? nil : QuestifyMotion.content) {
+            _ = discussion.toggle(target, acceptedPosts: model.snapshot?.posts, context: .init(clubID: target.context.clubID,
+                identity: identity, readScope: model.imageReadScope, viewerRevision: topics.viewerRevision))
+        }
     }
 }
 
@@ -390,6 +393,7 @@ struct ClubCommunityCommentsView: View {
 struct ClubCommunityHistoryView: View {
     let identity: ClubReadIdentity, postID: Int
     @StateObject private var model: ClubCommunityViewModel
+    @QuestifyReduceMotion private var reduceMotion
     init(context: ClubCommunityContext, identity: ClubReadIdentity, postID: Int) {
         self.identity = identity; self.postID = postID; _model = StateObject(wrappedValue: ClubCommunityViewModel(context: context))
     }
@@ -404,7 +408,10 @@ struct ClubCommunityHistoryView: View {
                     Text(verbatim: revision.content)
                     Text(verbatim: revision.createTime).foregroundStyle(.secondary)
                     ForEach(Array(revision.images.enumerated()), id: \.offset) { index, value in
-                        AsyncImage(url: URL(string: value)) { image in image.resizable().scaledToFit() } placeholder: { Image(systemName: "photo") }
+                        AsyncImage(url: URL(string: value), transaction: .questifyImageFade(reduceMotion: reduceMotion)) { phase in
+                            if let image = phase.image { image.resizable().scaledToFit().transition(.opacity) }
+                            else { QuestifyImageLoadingTint().overlay { Image(systemName: "photo").foregroundStyle(.secondary) } }
+                        }
                             .accessibilityLabel(Text("club.community.image") + Text(" \(index + 1)"))
                     }
                 }
