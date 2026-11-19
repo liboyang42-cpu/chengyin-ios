@@ -30,8 +30,6 @@ class SharedLoadingContainer(unittest.TestCase):
             'HomeFeedView.swift': 'QuestifyRedactedPlaceholder(label: "homeFeed.loading"',
             'TopicDetailView.swift': 'QuestifyDetailListPlaceholder(label: "topic.loading"',
             'ActivityDetailView.swift': 'QuestifyDetailListPlaceholder(label: "activity.loading"',
-            'GlobalSearchView.swift': 'QuestifyRedactedPlaceholder(label: "searchMap.loading", identifier: "searchMap.loading")',
-            'SearchMapExplorerView.swift': 'QuestifyRedactedPlaceholder(label: "searchMap.loading", identifier: "searchMap.loading")',
             'TicketWalletView.swift': 'QuestifyPlaceholderRows(label: "ticketWallet.loading"',
             'TicketWalletDetailView.swift': 'QuestifyPlaceholderRows(label: "ticketWallet.loading"',
             'GrowthCenterView.swift': 'QuestifyPlaceholderRows(label: "growth.loading"',
@@ -63,10 +61,11 @@ class SharedLoadingContainer(unittest.TestCase):
         self.assertIn('profile.selfOrders.empty', read('ProfileSelfOrdersSection.swift'))
         self.assertIn('profile.selfProjects.empty', read('ProfileSelfProjectsSection.swift'))
 
-    def test_search_ui_identifier_survives_on_placeholder(self):
-        # SearchMapFlowTests wait on descendants(matching: .any)["searchMap.loading"].
-        self.assertIn('identifier: "searchMap.loading"', read('GlobalSearchView.swift'))
-        self.assertIn('identifier: "searchMap.loading"', read('SearchMapExplorerView.swift'))
+    def test_search_screens_stay_on_main(self):
+        # Reverted in motion-1119: SearchMapFlowTests global-category cases failed in CI, and both files are
+        # byte-pinned by test_global_search_category_recovery. Kept as main until checked on a simulator.
+        self.assertIn('ProgressView("searchMap.loading").frame(maxWidth: .infinity).accessibilityIdentifier("searchMap.loading")', read('GlobalSearchView.swift'))
+        self.assertNotIn('QuestifyRedactedPlaceholder', read('SearchMapExplorerView.swift'))
 
 
 class RemoteImages(unittest.TestCase):

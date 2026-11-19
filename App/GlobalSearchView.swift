@@ -62,21 +62,13 @@ import SwiftUI
                     .frame(minHeight: 44).accessibilityIdentifier("merchant.discover.entry")
                 if !reader.isConfigured { SearchMapIssue(key: "searchMap.notConfigured") }
                 else {
-                    if loading {
-                        // motion-1119: first load shows redacted result cards; a refresh over kept results keeps the spinner.
-                        if retainedResults.snapshot(in: resultContext) == nil {
-                            QuestifyRedactedPlaceholder(label: "searchMap.loading", identifier: "searchMap.loading") {
-                            VStack(spacing: 12) { QuestifyPlaceholderCard(artworkHeight: 120); QuestifyPlaceholderCard(artworkHeight: 120) }
-                        }.transition(.opacity)
-                        } else { ProgressView("searchMap.loading").frame(maxWidth: .infinity).accessibilityIdentifier("searchMap.loading") }
-                    }
+                    if loading { ProgressView("searchMap.loading").frame(maxWidth: .infinity).accessibilityIdentifier("searchMap.loading") }
                     if let issue { SearchMapIssue(key: issue) { Task { await search() } } }
                     if let snapshot = retainedResults.snapshot(in: resultContext) {
                         results(snapshot.results, retainedKinds: snapshot.retainedKinds)
                     } else if !loading && issue == nil { suggestions }
                 }
             }.padding()
-            .questifyContentSwap(value: loading)
         }
         .appNavigationTitle("searchMap.title")
         .sheet(isPresented: $showsFilters) {
