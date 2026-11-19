@@ -39,7 +39,7 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
                             Button {
                                 selection = OrderSelection(order: order, revision: reader.sessionRevision)
                             } label: { MerchantOrderRow(order: order) }
-                            .buttonStyle(.plain)
+                            .buttonStyle(QuestifyCardButtonStyle())
                             .accessibilityIdentifier("merchant.order.row.\(order.id.map(String.init) ?? String(index))")
                         }
                     }

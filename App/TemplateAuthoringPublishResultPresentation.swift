@@ -65,6 +65,8 @@ struct TemplateAuthoringPublishResultPreferenceKey: PreferenceKey {
 @MainActor struct TemplateAuthoringPublishResultPanel: View {
     let result: TemplateAuthoringPublishResult
     let close: () -> Void
+    /// motion-1118: one success haptic when the result panel appears (Apple Pay / system result sheets).
+    @State private var presented = false
     var body: some View {
         VStack(spacing: 20) {
             Image(systemName: "checkmark.circle.fill").font(.largeTitle).foregroundStyle(.green)
@@ -79,5 +81,7 @@ struct TemplateAuthoringPublishResultPreferenceKey: PreferenceKey {
                 .buttonStyle(.borderedProminent).accessibilityIdentifier("templatePublishResult.openLibrary")
         }.padding(24).presentationDetents([.medium]).interactiveDismissDisabled(true)
             .accessibilityIdentifier("templatePublishResult.panel")
+            .sensoryFeedback(.success, trigger: presented)
+            .onAppear { presented = true }
     }
 }

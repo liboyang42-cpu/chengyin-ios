@@ -103,7 +103,7 @@ struct CityPlayerView: View {
                     }
                     Spacer(minLength: 0)
                 }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-            }.buttonStyle(.plain)
+            }.buttonStyle(QuestifyCardButtonStyle())
                 .accessibilityLabel(Text(verbatim: point.title) + Text(verbatim: ", ") + Text(ownStatus(point)))
                 .accessibilityHint(Text("city.read.point.selectHint"))
                 .accessibilityAddTraits(selected?.pointId == point.pointId ? .isSelected : [])

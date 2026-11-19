@@ -51,7 +51,8 @@ import SwiftUI
             Text(verbatim: receipt.title)
             LabeledContent("contextPublish.result.chapters", value: String(receipt.chapterCount))
             Text("contextPublish.result.readStatus").font(.subheadline)
-            if !canNavigate { Button("action.done") { finish() } }
+            // motion-1118: auto-close stays, but the user is never locked out for 2 s (Apple Pay / Mail: Done is always there).
+            Button("action.done") { finish() }
         }.padding().interactiveDismissDisabled()
         .task(id: receipt.id) {
             guard canNavigate else { return }

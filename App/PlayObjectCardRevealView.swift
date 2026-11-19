@@ -31,7 +31,7 @@ extension PlayKitScreen {
     let isCurrent: () -> Bool
     @State private var frame = 0
     @State private var scope = UUID()
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @QuestifyReduceMotion private var reduceMotion
     private var card: ObjectCard { receipt.card }
     private var media: (any ObjectCardImageLoading)? {
         let origins = Set(approvedHosts.compactMap { host -> String? in
@@ -77,6 +77,6 @@ extension PlayKitScreen {
     private func move(_ delta: Int) {
         guard isCurrent(), card.hasRotationFrames else { return }
         let next = ((frame + delta) % card.frames.count + card.frames.count) % card.frames.count
-        if reduceMotion { frame = next } else { withAnimation(.easeOut(duration: 0.12)) { frame = next } }
+        if reduceMotion { frame = next } else { withAnimation(QuestifyMotion.fast) { frame = next } }
     }
 }

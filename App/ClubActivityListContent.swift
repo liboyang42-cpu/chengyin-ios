@@ -19,7 +19,7 @@ import SwiftUI
     @ViewBuilder private func item(_ row: ClubActivityRow) -> some View {
         if canOpen {
             Button { open(row) } label: { ClubActivityCard(row: row) }
-                .buttonStyle(.plain).accessibilityHint("roamEvent.openTopic")
+                .buttonStyle(QuestifyCardButtonStyle()).accessibilityHint("roamEvent.openTopic")
                 .accessibilityIdentifier("club.calendar.topic.\(row.id)")
         } else { ClubActivityCard(row: row) }
         if let report { report(row) }
