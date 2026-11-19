@@ -272,7 +272,7 @@ private struct TicketWalletEntitlementRow: View {
                 .font(.headline).fixedSize(horizontal: false, vertical: true)
                 if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
                 Label {
-                    if let label = entitlement.statusLabel { Text(verbatim: label) }
+                    if let label = entitlement.statusLabel, !label.isEmpty { Text(verbatim: label) }
                     else { Text(LocalizedStringKey("ticketWallet.entitlementStatus." + entitlement.statusKey)) }
                 } icon: { Image(systemName: symbol).accessibilityHidden(true) }
                 .font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
