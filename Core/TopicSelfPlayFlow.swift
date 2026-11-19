@@ -14,6 +14,13 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
     public private(set) var pending: TopicSelfPlayPending?
     public private(set) var result: PaymentProviderReturnFlow?
     public private(set) var messageKey: String?
+    /// OR-028: display-only quote read when the sheet opens; create re-quotes at confirmation.
+    public private(set) var quote: RegistrationQuote?
+    public var validRange: (from: String, to: String)? {
+        guard let from = quote?.validFrom?.trimmingCharacters(in: .whitespacesAndNewlines), !from.isEmpty,
+              let to = quote?.validTo?.trimmingCharacters(in: .whitespacesAndNewlines), !to.isEmpty else { return nil }
+        return (from, to)
+    }
     public var onChange: (() -> Void)?
     private let client: (any TopicSelfPlayServing)?
     private let provider: (any TopicSelfPlayPaymentProviding)?
@@ -33,7 +40,7 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
     public var canCreate: Bool { configured && canEdit && document != nil && topic.selfPlay == 1 && topic.canOfferPurchase && topic.selfPlayPrice != nil && openedSession?.role != "merchant" }
     public var registrationID: Int? { pending?.registrationID }
     public func open() async {
-        generation += 1; let stamp = generation; review = nil; paymentReview = nil; result = nil; document = nil; pending = nil; realName = ""; phone = ""; consented = false
+        generation += 1; let stamp = generation; review = nil; paymentReview = nil; result = nil; document = nil; pending = nil; quote = nil; realName = ""; phone = ""; consented = false
         guard configured, let client, let session = openedSession, let id = SelfPlayTopicID(rawValue: topic.id) else { messageKey = "contextSelfPlay.unavailable"; onChange?(); return }
         do {
             pending = try journal.pending(owner: session.storageKey, topic: id)
@@ -42,6 +49,10 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
             guard stamp == generation, current, !Task.isCancelled else { return }
             document = notice
             messageKey = pending == nil ? nil : "contextSelfPlay.retained"
+            if pending == nil {
+                onChange?()
+                if let fetched = try? await client.quote(id), stamp == generation, current { quote = fetched }
+            }
         } catch { guard stamp == generation, current else { return }; messageKey = "contextSelfPlay.unavailable" }
         onChange?()
     }
@@ -67,6 +78,13 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
             let fresh = try await client.freshTopic(value.intent.topic)
             guard stamp == generation, current else { return }
             guard fresh.id == topic.id, fresh.canOfferPurchase, fresh.selfPlay == 1, fresh.selfPlayPrice == value.price else { throw TopicSelfPlayFailure.priceChanged }
+            // OR-003: create carries the server quote signature; a quote that disagrees with the reviewed price stops here.
+            var intent = value.intent
+            if let quote = try await client.quote(value.intent.topic) {
+                guard stamp == generation, current else { return }
+                guard quote.isUsableForCreate, quote.payAmount == value.price else { throw TopicSelfPlayFailure.priceChanged }
+                intent = try value.intent.signed(quoteSign: quote.quoteSign)
+            }
             try await client.recordConsent(requestID: value.intent.requestID, document: value.document)
             guard stamp == generation, current else { return }
             let record = TopicSelfPlayPending(owner: value.session.storageKey, topic: value.intent.topic, requestID: value.intent.requestID)
@@ -74,7 +92,7 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
             try journal.write(record); pending = record
             // A synchronous journal callback can invalidate the flow after the prior fence.
             guard stamp == generation, current, !Task.isCancelled else { return }
-            let created = try await client.create(value.intent)
+            let created = try await client.create(intent)
             guard stamp == generation, current else { return }
             var known = record; known.registrationID = created.registrationID
             try journal.write(known); pending = known

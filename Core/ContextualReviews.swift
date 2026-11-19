@@ -12,13 +12,28 @@ public enum ContextualReviewTarget: Hashable {
 public struct ContextualReviewDraft: Equatable {
     public var rating: Int
     public var contents: String
-    public init(rating: Int = 0, contents: String = "") { self.rating = rating; self.contents = contents }
+    /// One submission intent for comment/add (`request_id`). The coordinator stamps it once per
+    /// draft and reuses it when the same draft is sent again, so the server keeps a single row.
+    public var requestID: String?
+    public init(rating: Int = 0, contents: String = "", requestID: String? = nil) { self.rating = rating; self.contents = contents; self.requestID = requestID }
     public var isValid: Bool { (1...5).contains(rating) && !contents.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && contents.utf16.count <= 500 }
     public func fields(target: ContextualReviewTarget) throws -> [String: String] {
         guard isValid, target.ownerID > 0 else { throw APIError.invalidRequest }
-        return ["owner_type": String(target.ownerType), "owner_id": String(target.ownerID),
-                "rating": String(rating), "contents": contents.trimmingCharacters(in: .whitespacesAndNewlines), "reply_id": "0", "img_arr": ""]
+        var fields = ["owner_type": String(target.ownerType), "owner_id": String(target.ownerID),
+                      "rating": String(rating), "contents": contents.trimmingCharacters(in: .whitespacesAndNewlines), "reply_id": "0", "img_arr": ""]
+        if let requestID {
+            guard Self.isValidRequestID(requestID) else { throw APIError.invalidRequest }
+            fields["request_id"] = requestID
+        }
+        return fields
     }
+    /// Mirrors the server's accepted shape: 16-64 ASCII letters, numbers, `_` or `-`.
+    public static func isValidRequestID(_ value: String) -> Bool {
+        (16...64).contains(value.utf8.count) && value.utf8.allSatisfy {
+            (48...57).contains($0) || (65...90).contains($0) || (97...122).contains($0) || $0 == 45 || $0 == 95
+        }
+    }
+    static func makeRequestID() -> String { UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased() }
 }
 public struct ContextualReviewSession: Equatable {
     public let identity: ProfileReadIdentity
@@ -84,13 +99,15 @@ extension ContextualReviewWriting {
     }
 }
 public enum ContextualReviewState: Equatable { case idle, submitting, acknowledged, notSent, rejected, unknown }
-/// Retained by the session factory across sheet dismissals. Comment/add has no idempotency
-/// contract; unknown outcomes are locked by account+realm+target and never blindly retried.
+/// Retained by the session factory across sheet dismissals. Each draft carries one request_id,
+/// reused when the same draft is sent again; unknown outcomes stay locked by account+realm+target
+/// and are never blindly retried.
 @MainActor public final class ContextualReviewCoordinator {
     public let target: ContextualReviewTarget
     public let writer: any ContextualReviewWriting
     private struct Key: Hashable { let owner: String }
     private var states: [Key: ContextualReviewState] = [:]
+    private var requestIDs: [Key: (draft: ContextualReviewDraft, id: String)] = [:]
     private let journal: (any OperationPendingJournal)?
     private var targetKey: String { "contextual-review|\(target.ownerType)|\(target.ownerID)" }
     public var state: ContextualReviewState {
@@ -111,23 +128,33 @@ public enum ContextualReviewState: Equatable { case idle, submitting, acknowledg
     public func submit(_ draft: ContextualReviewDraft, expected: ContextualReviewSession) async {
         guard canSubmit, draft.isValid, writer.session == expected else { return }
         let key = Key(owner: expected.replayOwnerKey)
+        let stamped = stamp(draft, key: key)
         var record = OperationPendingRecord(ownerKey: expected.replayOwnerKey, targetKey: targetKey)
         do { try journal?.write(record) } catch { states[key] = .notSent; return }
         states[key] = .submitting
         do {
-            let authorization = ContextualOperationAuthorization(command: .review(target, draft), owner: expected.replayOwnerKey) {
+            let authorization = ContextualOperationAuthorization(command: .review(target, stamped), owner: expected.replayOwnerKey) {
                 guard let journal = self.journal else { return false }
                 return try journal.pending(ownerKey: record.ownerKey, targetKey: record.targetKey) == record
             }
-            try await writer.submit(draft, target: target, session: expected, authorization: authorization)
+            try await writer.submit(stamped, target: target, session: expected, authorization: authorization)
             states[key] = writer.session == expected && !Task.isCancelled ? .acknowledged : .unknown
         } catch let error as ContextualReviewFailure {
             switch error { case .notSent: states[key] = .notSent; case .rejected: states[key] = .rejected; case .unknown: states[key] = .unknown }
         } catch { states[key] = .unknown }
         do {
-            if states[key] == .acknowledged { record.acknowledgedSteps = 1; try journal?.write(record) }
+            if states[key] == .acknowledged { requestIDs[key] = nil; record.acknowledgedSteps = 1; try journal?.write(record) }
             else if states[key] == .notSent || states[key] == .rejected { try journal?.clear(record) }
         } catch { states[key] = .unknown }
+    }
+    /// Same rating and text under the same owner reuse the first request_id; an edited draft gets a new one.
+    private func stamp(_ draft: ContextualReviewDraft, key: Key) -> ContextualReviewDraft {
+        var plain = draft; plain.requestID = nil
+        let id: String
+        if let held = requestIDs[key], held.draft == plain { id = held.id }
+        else { id = ContextualReviewDraft.makeRequestID(); requestIDs[key] = (draft: plain, id: id) }
+        plain.requestID = id
+        return plain
     }
 }
 @MainActor public final class ContextualReviewHost {

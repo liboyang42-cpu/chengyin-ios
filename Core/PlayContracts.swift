@@ -81,6 +81,11 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
     /// FE-STORY chapter text the server sends only after a visit (nil while locked).
     public let fragmentText: String?
     public let cardHookLong: String?
+    /// CG-SH04-P1-3 (hengyin #866): a station behind an unsolved predecessor arrives with
+    /// `address: null` and `addressHidden: true`. Malformed stays nil.
+    public let addressHidden: Bool?
+    /// FE-G5 (hengyin #866): this store's perk on `/api/play/nodes`, with its display terms.
+    public let perk: PlayNodePerk?
 
     private enum CodingKeys: String, CodingKey {
         case nodeId, name, npc, address, latitude, longitude, sortId, done, arrived, selfReported, hasGame, gameDone, locked, validationMethod
@@ -89,6 +94,7 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         case players, photoRequireDesc, businessTime, openStatus, routeNodeState, lockReason
         case unlockAfterNodeId, chapterId, xp, puzzleScore, completionMode, sensorType, advancedConfigJson
         case imgHidden, visited, visitTime, visitCheck, visitRadius, storyLocked, visitedByTeam, fragmentText, cardHookLong
+        case addressHidden, perk
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -136,6 +142,8 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         visitedByTeam = try? c.playBool(.visitedByTeam)
         fragmentText = try? c.decodeIfPresent(String.self, forKey: .fragmentText)
         cardHookLong = try? c.decodeIfPresent(String.self, forKey: .cardHookLong)
+        addressHidden = try? c.playBool(.addressHidden)
+        perk = try? c.decodeIfPresent(PlayNodePerk.self, forKey: .perk)
         visitRadius = (try? c.playInt(.visitRadius)).flatMap { $0 > 0 ? $0 : nil }
         visitCheck = (try? c.decodeIfPresent(String.self, forKey: .visitCheck)).flatMap { PlayVisitCheck(rawValue: $0.uppercased()) }
         if let millis = try? c.decodeIfPresent(Int64.self, forKey: .visitTime), millis > 0 { visitTime = .epochMilliseconds(millis) }
@@ -243,9 +251,17 @@ public struct PlayNodesResult: Decodable, Equatable {
     /// FE-STORY mode 2 chapter counts. Nil unless both are present and consistent.
     public let storyUnlocked: Int?
     public let storyTotal: Int?
+    /// CG-ALL-11 (hengyin #866): how this run was started. Nil = an ordinary start (or the
+    /// server did not say); unknown values are nil, never guessed.
+    public let runStartMode: PlayRunStartMode?
+    /// CG-ALL-11 (hengyin #866): the route's public alternate start stations (city routes only).
+    public let altStations: [PlayAltStation]
+    /// FE-G7 (hengyin #866): true only when no delivered node carries a game. Nil = no verdict.
+    public let perkOnly: Bool?
     private enum CodingKeys: String, CodingKey {
         case topicId, topicName, topicDesc, mode, playable, registered, leadSpectator, selfPlay, total, doneCount
         case timeNote, expiresAt, nodes, chapters, routeState, eggs, storyUnlocked, storyTotal
+        case runStartMode, altStations, perkOnly
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -266,10 +282,94 @@ public struct PlayNodesResult: Decodable, Equatable {
         if let unlocked, let storyCount, storyCount >= 0, (0...storyCount).contains(unlocked) {
             storyUnlocked = unlocked; storyTotal = storyCount
         } else { storyUnlocked = nil; storyTotal = nil }
+        // Additive #866 fields: malformed means unknown and never fails the route read.
+        runStartMode = PlayRunStartMode(raw: try? c.decodeIfPresent(String.self, forKey: .runStartMode))
+        altStations = PlayAltStation.project((try? c.decode(PlayWireValue.self, forKey: .altStations)) ?? .null)
+        perkOnly = try? c.decodeIfPresent(Bool.self, forKey: .perkOnly)
         guard Set(nodes.map(\.id)).count == nodes.count, Set(chapters.map(\.id)).count == chapters.count,
               total.map({ $0 >= 0 }) ?? true, doneCount.map({ $0 >= 0 }) ?? true else { throw APIError.malformedResponse }
     }
     public var allDone: Bool { if let total, let doneCount { return total > 0 && doneCount >= total }; return false }
+}
+
+/// CG-ALL-11 (hengyin #866 `PlayRunStartModeService`): DESK = the run was started without
+/// a location check (rewards capped to XP and badges); ALT = started at a public alternate
+/// station. Only these two exact codes are recognized, matching the server's `normalize`.
+public enum PlayRunStartMode: String, Equatable, CaseIterable {
+    case desk = "DESK", alt = "ALT"
+    public init?(raw: String?) {
+        guard let raw = raw?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased(), let mode = Self(rawValue: raw) else { return nil }
+        self = mode
+    }
+    /// 桌面完成 / 替代站完成.
+    public var labelKey: String { self == .desk ? "playx.completion.desk" : "playx.completion.alternate" }
+}
+
+/// One `altStations` row: `id`, `name`, `longitude`, `latitude` (#866 `selectAltStations`).
+public struct PlayAltStation: Equatable, Identifiable {
+    public let id: Int
+    public let name: String?
+    public let longitude: Double?
+    public let latitude: Double?
+    public init(id: Int, name: String?, longitude: Double?, latitude: Double?) {
+        self.id = id; self.name = name; self.longitude = longitude; self.latitude = latitude
+    }
+    /// Rows without a positive id, and duplicate ids, are dropped. At most 20 (server limit).
+    static func project(_ value: PlayWireValue) -> [PlayAltStation] {
+        var seen = Set<Int>(), result: [PlayAltStation] = []
+        for row in value.array ?? [] {
+            guard let id = row["id"].integer ?? row["id"].text.flatMap({ Int($0) }), id > 0, seen.insert(id).inserted else { continue }
+            func coordinate(_ key: String) -> Double? {
+                let raw = row[key].double ?? row[key].text.flatMap(Double.init)
+                return raw.flatMap { $0.isFinite ? $0 : nil }
+            }
+            let name = row["name"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+            result.append(.init(id: id, name: name?.isEmpty == false ? name : nil, longitude: coordinate("longitude"), latitude: coordinate("latitude")))
+            if result.count == 20 { break }
+        }
+        return result
+    }
+}
+
+/// The optional `/api/play/arrive` start-mode fields (#866 `ApiPlayProgressController`).
+/// Absent = the original start path, unchanged. ALT must name one of this route's
+/// `altStations`; DESK never carries a station.
+public struct PlayRunStartRequest: Equatable {
+    public let mode: PlayRunStartMode
+    public let altStationID: Int?
+    public init(mode: PlayRunStartMode, altStationID: Int? = nil, offered: [PlayAltStation] = []) throws {
+        switch mode {
+        case .desk: guard altStationID == nil else { throw APIError.invalidRequest }
+        case .alt: guard let id = altStationID, id > 0, offered.contains(where: { $0.id == id }) else { throw APIError.invalidRequest }
+        }
+        self.mode = mode; self.altStationID = altStationID
+    }
+    public var fields: [String: String] {
+        var value = ["startMode": mode.rawValue]
+        if let altStationID { value["altStationId"] = String(altStationID) }
+        return value
+    }
+}
+
+/// FE-G5 (hengyin #866 `PlayNodeQueryApplication` + `PerkDisplayTerms`): a node's perk.
+/// `included` / `extraSpendText` / `reserveRequired` are present only when the merchant
+/// declared them; absent or malformed values stay nil and nothing is shown.
+public struct PlayNodePerk: Decodable, Equatable {
+    public let name: String?
+    public let redeemRule: String?
+    public let included: Bool?
+    public let extraSpendText: String?
+    public let reserveRequired: Bool?
+    private enum CodingKeys: String, CodingKey { case name, redeemRule, included, extraSpendText, reserveRequired }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        name = try? c.decodeIfPresent(String.self, forKey: .name)
+        redeemRule = try? c.decodeIfPresent(String.self, forKey: .redeemRule)
+        included = try? c.decodeIfPresent(Bool.self, forKey: .included)
+        let spend = (try? c.decodeIfPresent(String.self, forKey: .extraSpendText))?.trimmingCharacters(in: .whitespacesAndNewlines)
+        extraSpendText = spend?.isEmpty == false ? spend : nil
+        reserveRequired = try? c.decodeIfPresent(Bool.self, forKey: .reserveRequired)
+    }
 }
 
 public struct PlayAnswerReceipt: Decodable, Equatable {

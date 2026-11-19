@@ -2,7 +2,7 @@ import SwiftUI
 
 extension PlayKitScreen {
     @ViewBuilder var qaForm: some View {
-        artwork(raw["imageUrl"].text)
+        artwork(raw["imageUrl"].text, alt: raw["imageAlt"].text)
         PlatformAudioHost(rawURL: raw["audioUrl"].text, scope: mediaScope, makeModel: makeAudio)
         let mode = (raw["mode"].text ?? "TYPE").uppercased()
         if mode == "SHOT" {

@@ -185,6 +185,11 @@ import SwiftUI
                     }
                 }
                 Section("playx.results") {
+                    // CG-ALL-11 (hengyin #866 runStartMode): DESK 桌面完成, ALT 替代站完成; an ordinary start shows nothing.
+                    if let start = model.snapshot?.result.runStartMode {
+                        LabeledContent("playx.reward.mode") { Text(LocalizedStringKey(start.labelKey)) }
+                            .accessibilityIdentifier("playx.runStartMode")
+                    }
                     Button("playx.results.load") { Task { await model.loadEndingAndLeaderboard() } }.accessibilityIdentifier("playx.results.load")
                     NavigationLink("playx.stopwatch") { PlayStopwatchView() }
                     if let topicID = model.snapshot?.result.topicID, let factory = summaryModel, let summary = factory(topicID) {
@@ -446,11 +451,20 @@ struct PlayExperienceIssueView: View {
             Text("playx.reward.authority").font(.footnote)
             if let xp = reward["xp"].tolerantInteger ?? reward["score"].tolerantInteger { LabeledContent("playx.reward.xp") { Text(verbatim: String(xp)) } }
             if let score = reward["puzzleScore"].tolerantInteger { LabeledContent("playx.reward.puzzle") { Text(verbatim: String(score)) } }
-            if let mode = reward["completionMode"].text { LabeledContent("playx.reward.mode") { Text(verbatim: mode) } }
+            if let mode = reward["completionMode"].text { LabeledContent("playx.reward.mode") { PlayCompletionModeText(raw: mode) } }
             if let medal = reward["medalName"].text { Text(verbatim: medal) }
             PlayRewardBadgeRows(targets: PlayRewardBadgeTarget.targets(in: reward), destination: collectionDestination)
                 .id(PlayRewardBadgeTarget.targets(in: reward))
         }.accessibilityIdentifier("playx.reward")
+    }
+}
+/// CG-07-P2-2: assisted completions read differently from a solved node; an unrecognized
+/// server value stays verbatim. Desk/alternate starts come from `runStartMode` instead.
+struct PlayCompletionModeText: View {
+    let raw: String
+    var body: some View {
+        if let mode = PlayCompletionModePresentation(raw: raw) { Text(LocalizedStringKey(mode.labelKey)) }
+        else { Text(verbatim: raw) }
     }
 }
 @MainActor private struct PlayLeadSection: View {

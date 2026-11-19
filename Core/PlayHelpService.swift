@@ -119,6 +119,7 @@ public struct PlayHelpService {
             let receipt = try await service.use(scope: scope, level: row.level, requestID: requestID, token: token)
             ledger.settle(scope, operation: "use", level: row.level)
             unknownLevels.remove(row.level); contents[row.level] = receipt.content; notice = nil
+            PlayStageEventLog.shared.record(.hintOpen, nodeID: scope.nodeID)
             await load()
         } catch PlayExperienceError.rejected(_, let message) {
             ledger.settle(scope, operation: "use", level: row.level)
@@ -138,6 +139,8 @@ public struct PlayHelpService {
             let receipt = try await service.skip(scope: scope, requestID: requestID, token: token)
             ledger.settle(scope, operation: "skip", level: 0)
             skipUnknown = false; skipped = true; notice = nil
+            PlayStageEventLog.shared.record(.stageSkip, nodeID: scope.nodeID)
+            PlayStageEventLog.shared.record(.assistedComplete, nodeID: scope.nodeID)
             return receipt
         } catch PlayExperienceError.rejected(_, let message) {
             ledger.settle(scope, operation: "skip", level: 0)

@@ -19,6 +19,9 @@ import SwiftUI
                 Section {
                     Text(verbatim: model.flow.topic.name).font(.headline)
                     TopicPrice(value: model.flow.topic.selfPlayPrice, label: "topic.selfPlayPrice")
+                    if let range = model.flow.validRange {
+                        LabeledContent("contextSelfPlay.validRange") { Text(verbatim: range.from + " – " + range.to) }
+                    }
                     Text("contextSelfPlay.validity")
                     Text("contextSelfPlay.paymentNotice").font(.caption)
                 }

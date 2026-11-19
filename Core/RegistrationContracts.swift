@@ -44,10 +44,16 @@ public struct RegistrationQuote: Decodable, Equatable {
     public let couponDeductYuan: Decimal?
     public let clubMember: Bool
     public let quoteSign: String
+    /// OR-028 (hengyin #866 `RegistrationQuoteResult.validFrom/validTo`, java.util.Date in
+    /// Asia/Shanghai): kept as the server's calendar day `yyyy-MM-dd`. Accepts an ISO-8601
+    /// string (the date part is the server's own day, no timezone conversion) or epoch
+    /// milliseconds (rendered in Asia/Shanghai). Absent or malformed stays nil.
+    public let validFrom: String?
+    public let validTo: String?
 
     private enum CodingKeys: String, CodingKey {
         case payAmount, pointsUsed, pointsDeductYuan, pointsUsable
-        case memberDiscountYuan, couponDeductYuan, clubMember, quoteSign
+        case memberDiscountYuan, couponDeductYuan, clubMember, quoteSign, validFrom, validTo
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -59,7 +65,23 @@ public struct RegistrationQuote: Decodable, Equatable {
         couponDeductYuan = try c.registrationMoney(forKey: .couponDeductYuan)
         clubMember = try c.decodeIfPresent(Bool.self, forKey: .clubMember) ?? false
         quoteSign = try c.decodeIfPresent(String.self, forKey: .quoteSign) ?? ""
+        validFrom = Self.serverDay(c, .validFrom)
+        validTo = Self.serverDay(c, .validTo)
         guard pointsUsed >= 0 else { throw APIError.malformedResponse }
+    }
+
+    private static func serverDay(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> String? {
+        if let text = try? c.decodeIfPresent(String.self, forKey: key) {
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard trimmed.range(of: #"^\d{4}-\d{2}-\d{2}([T ].*)?$"#, options: .regularExpression) != nil else { return nil }
+            return String(trimmed.prefix(10))
+        }
+        guard let millis = try? c.decodeIfPresent(Int64.self, forKey: key), millis > 0,
+              let zone = TimeZone(identifier: "Asia/Shanghai") else { return nil }
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian); formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = zone; formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: Date(timeIntervalSince1970: Double(millis) / 1000))
     }
 
     /// A known total and a signature are both required, even for an explicitly zero quote.

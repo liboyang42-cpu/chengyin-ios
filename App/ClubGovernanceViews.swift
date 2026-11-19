@@ -516,7 +516,9 @@ struct ClubGovernanceReadView: View {
                 }
             } else { Text("club.gov.malformed").accessibilityIdentifier("club.feed.malformed") }
         } else if operation == .customer {
-            ClubGovernanceFactRows(value: value["summary"], fields: ["displayName", "phoneText", "arrivedCount", "pendingCount", "refundedCount", "paidAmount"], showUnknown: true)
+            // MC-063: a server-formatted amount line wins; the raw number stays as the older fallback.
+            let amountField = value["summary"]["paidAmountText"].text?.isEmpty == false ? "paidAmountText" : "paidAmount"
+            ClubGovernanceFactRows(value: value["summary"], fields: ["displayName", "phoneText", "arrivedCount", "pendingCount", "refundedCount", amountField], showUnknown: true)
             ClubGovernanceFactRows(value: value, fields: ["remark"])
             if let tags = value["tags"].array { ForEach(Array(tags.enumerated()), id: \.offset) { _, tag in Text(verbatim: tag.string ?? tag["name"].string ?? "") } }
             if value["canEdit"] == .bool(true) { edit(.saveCustomer, seed: ["remark": value["remark"], "tags": value["tags"]]) }

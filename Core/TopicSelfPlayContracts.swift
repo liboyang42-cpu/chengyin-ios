@@ -15,18 +15,36 @@ public struct TopicSelfPlayIntent: Encodable, Equatable {
     public let realName: String
     public let phone: String
     public let requestID: String
+    /// OR-003: only the signature the server returned for this topic's quote. Never invented.
+    public private(set) var quoteSign: String?
     public init(topic: SelfPlayTopicID, realName: String, phone: String, requestID: String) throws {
         let name = realName.trimmingCharacters(in: .whitespacesAndNewlines), phone = phone.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty, phone.range(of: "^1[0-9]{10}$", options: .regularExpression) != nil,
               !requestID.isEmpty, requestID.utf16.count <= 64 else { throw APIError.invalidRequest }
         self.topic = topic; self.realName = name; self.phone = phone; self.requestID = requestID
     }
-    enum CodingKeys: String, CodingKey { case ownerType, ownerId, realName, phone, isUsePoint, payChannel, requestId }
+    public func signed(quoteSign: String) throws -> TopicSelfPlayIntent {
+        let sign = quoteSign.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !sign.isEmpty, sign.utf16.count <= 1024 else { throw APIError.invalidRequest }
+        var copy = self; copy.quoteSign = sign; return copy
+    }
+    enum CodingKeys: String, CodingKey { case ownerType, ownerId, realName, phone, isUsePoint, payChannel, requestId, quoteSign }
     public func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(1, forKey: .ownerType); try c.encode(topic.rawValue, forKey: .ownerId)
         try c.encode(realName, forKey: .realName); try c.encode(phone, forKey: .phone)
         try c.encode(0, forKey: .isUsePoint); try c.encode("APP", forKey: .payChannel); try c.encode(requestID, forKey: .requestId)
+        try c.encodeIfPresent(quoteSign, forKey: .quoteSign)
+    }
+}
+/// The self-play quote asks for exactly what create sends: this topic, no points.
+public struct TopicSelfPlayQuoteRequest: Encodable, Equatable {
+    public let topic: SelfPlayTopicID
+    public init(topic: SelfPlayTopicID) { self.topic = topic }
+    enum CodingKeys: String, CodingKey { case ownerType, ownerId, isUsePoint }
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(1, forKey: .ownerType); try c.encode(topic.rawValue, forKey: .ownerId); try c.encode(0, forKey: .isUsePoint)
     }
 }
 public struct TopicSelfPlayDocument: Equatable {

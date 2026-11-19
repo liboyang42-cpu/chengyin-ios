@@ -45,8 +45,12 @@ class PlayKitNativeScreenChecks(unittest.TestCase):
             self.assertNotIn(forbidden, code)
     def test_photo_has_separate_capture_upload_and_task_review(self):
         code = self.read('App/PlayKitPersonalForms.swift')
-        for token in ['await model.capture(.photo, cameraFrame: frame)', 'await model.uploadPhoto()', 'model.reviewedPhoto()', 'capturedIdentity == identity', 'bytes.count > 10 * 1024 * 1024', 'SUBMIT_PHOTO_CHECK']:
+        for token in ['await model.capture(.photo, cameraFrame: frame)', 'await model.uploadPhoto()', 'model.reviewedPhoto()', 'capturedIdentity == identity', 'bytes.count > 10 * 1024 * 1024', 'PlayKitPhotoRecordMode.submitAction(for: raw)', 'PlayKitPhotoRecordMode.textConfirmedPayload']:
             self.assertIn(token, code)
+        # hengyin #866: RECORD stations submit SUBMIT_PHOTO_RECORD; every other photo segment stays SUBMIT_PHOTO_CHECK.
+        contract = self.read('Core/PlayKitScreenContracts.swift')
+        for token in ['segment["mode"].text == mode', 'public static let mode = "RECORD"', 'public static let action = "SUBMIT_PHOTO_RECORD"', '"SUBMIT_PHOTO_CHECK"', '["textConfirmed": .bool(true)]']:
+            self.assertIn(token, contract)
         self.assertIn('model.cancel()', code)
     def test_quiet_uses_audio_and_ball_uses_real_motion(self):
         native = self.read('App/PlayKitNativeSensorProvider.swift')

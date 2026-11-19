@@ -23,12 +23,20 @@ import FoundationNetworking
         }
         guard request.value(forHTTPHeaderField: "Content-Type")?.lowercased().hasPrefix("application/json") == true,
               let body = try? JSONDecoder().decode([String: ProjectEditJSON].self, from: data) else { return false }
+        if url == baseURL.appendingPathComponent("api/registration/quote") {
+            return Set(body.keys) == ["ownerType", "ownerId", "isUsePoint"] && body["ownerType"]?.integer == 1 && body["isUsePoint"]?.integer == 0
+                && body["ownerId"]?.integer.flatMap(SelfPlayTopicID.init(rawValue:)) != nil
+        }
         if url == baseURL.appendingPathComponent("api/registration/create") {
-            guard Set(body.keys) == ["ownerType", "ownerId", "realName", "phone", "isUsePoint", "payChannel", "requestId"],
+            let base: Set<String> = ["ownerType", "ownerId", "realName", "phone", "isUsePoint", "payChannel", "requestId"]
+            guard Set(body.keys) == base || Set(body.keys) == base.union(["quoteSign"]),
                   body["ownerType"]?.integer == 1, body["isUsePoint"]?.integer == 0, body["payChannel"]?.text == "APP",
                   let id = body["ownerId"]?.integer.flatMap(SelfPlayTopicID.init(rawValue:)),
-                  let name = body["realName"]?.text, let phone = body["phone"]?.text, let key = body["requestId"]?.text else { return false }
-            return (try? TopicSelfPlayIntent(topic: id, realName: name, phone: phone, requestID: key)) != nil
+                  let name = body["realName"]?.text, let phone = body["phone"]?.text, let key = body["requestId"]?.text,
+                  let intent = try? TopicSelfPlayIntent(topic: id, realName: name, phone: phone, requestID: key) else { return false }
+            guard let sign = body["quoteSign"] else { return true }
+            guard let text = sign.text else { return false }
+            return (try? intent.signed(quoteSign: text)) != nil
         }
         guard body["docType"]?.text == "activity_host_data_sharing", body["scene"]?.text == "activity_signup" else { return false }
         if url == baseURL.appendingPathComponent("api/compliance/consents/latest") { return Set(body.keys) == ["docType", "scene"] }

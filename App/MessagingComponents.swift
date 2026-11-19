@@ -253,10 +253,10 @@ struct MessagingReadScreen<Value, Content: View>: View {
 struct MessagingConversationName: View {
     let conversation: MessagingConversation?
     var body: some View {
-        if let name = conversation?.counterparty?.nickname, !name.isEmpty { Text(verbatim: name) }
+        if conversation?.kind == .system { Text("messaging.system") }
+        else if let name = conversation?.counterparty?.nickname, !name.isEmpty { Text(verbatim: name) }
         else {
             switch conversation?.kind {
-            case .system: Text("messaging.system")
             case .merchant: Text("messaging.official")
             case .group: Text("messaging.group")
             default: Text("messaging.member")
