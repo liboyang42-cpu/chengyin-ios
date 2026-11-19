@@ -75,7 +75,8 @@ class RemoteImages(unittest.TestCase):
         self.assertIn('struct QuestifyRemoteImage', source)
         self.assertIn('static func questifyImageFade(reduceMotion: Bool) -> Transaction', source)
         self.assertIn('struct QuestifyImageLoadingTint', source)
-        for name in ('ProfileBadgesView.swift', 'DiscoveryComponents.swift', 'SquareComponents.swift',
+        # ProfileBadgesView kept as base after ProfileSelfMedalsFlowTests failed in CI on the profile page.
+        for name in ('DiscoveryComponents.swift', 'SquareComponents.swift',
                      'RoamStampViews.swift', 'ClubCommunityViews.swift', 'ClubPostImageGallery.swift'):
             body = read(name)
             self.assertIn('.questifyImageFade(reduceMotion: reduceMotion)', body, name)

@@ -127,16 +127,14 @@ private struct ProfileBadgeTitle: View {
 private struct ProfileBadgeImage: View {
     let rawURL: String
     let size: CGFloat
-    @QuestifyReduceMotion private var reduceMotion
     private var url: URL? {
         guard let parts = URLComponents(string: rawURL), parts.scheme == "https",
               parts.host?.isEmpty == false, parts.user == nil, parts.password == nil else { return nil }
         return parts.url
     }
     var body: some View {
-        AsyncImage(url: url, transaction: .questifyImageFade(reduceMotion: reduceMotion)) { phase in
-            if let image = phase.image { image.resizable().scaledToFit().transition(.opacity) }
-            else { Image(systemName: "medal").resizable().scaledToFit().foregroundStyle(.secondary) }
+        AsyncImage(url: url) { image in image.resizable().scaledToFit() } placeholder: {
+            Image(systemName: "medal").resizable().scaledToFit().foregroundStyle(.secondary)
         }
         .frame(width: size, height: size)
         .accessibilityHidden(true)
