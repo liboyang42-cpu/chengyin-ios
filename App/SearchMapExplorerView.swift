@@ -107,11 +107,17 @@ import SwiftUI
                 }
                 if !reader.isConfigured { SearchMapIssue(key: "searchMap.notConfigured") }
                 else if area == nil { ContentUnavailableView("searchMap.areaRequired", systemImage: "mappin.and.ellipse") }
+                else if loading && visibleCityResults == nil && nearbyResults == nil {
+                    QuestifyRedactedPlaceholder(label: "searchMap.loading", identifier: "searchMap.loading") {
+                        VStack(spacing: 12) { QuestifyPlaceholderCard(artworkHeight: 120); QuestifyPlaceholderCard(artworkHeight: 120) }
+                    }.transition(.opacity)
+                }
                 else if loading { ProgressView("searchMap.loading").accessibilityIdentifier("searchMap.loading") }
                 else if let issue { SearchMapIssue(key: issue) { startLoad() } }
                 if let result = visibleCityResults { cityContent(result) }
                 if let result = nearbyResults { nearbyContent(result) }
             }.padding()
+            .questifyContentSwap(value: loading)
         }
         .onChange(of: selectedPin) { _, value in
             guard value != nil else { return }

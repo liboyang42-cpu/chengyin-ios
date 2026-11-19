@@ -63,14 +63,15 @@ struct DiscoveryErrorView: View {
 struct DiscoveryArtwork: View {
     let source: String?
     var height: CGFloat = 160
+    @QuestifyReduceMotion private var reduceMotion
     private var url: URL? {
         guard let source, let parts = URLComponents(string: source), parts.scheme == "https",
               parts.host != nil, parts.user == nil, parts.password == nil else { return nil }
         return parts.url
     }
     var body: some View {
-        AsyncImage(url: url) { phase in
-            if let image = phase.image { image.resizable().scaledToFill() }
+        AsyncImage(url: url, transaction: .questifyImageFade(reduceMotion: reduceMotion)) { phase in
+            if let image = phase.image { image.resizable().scaledToFill().transition(.opacity) }
             else {
                 ZStack {
                     Color.secondary.opacity(0.08)

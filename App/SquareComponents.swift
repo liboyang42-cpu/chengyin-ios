@@ -42,12 +42,14 @@ struct SquareIssueView: View {
 }
 struct SquareImage: View {
     let source: String
+    @QuestifyReduceMotion private var reduceMotion
     var body: some View {
         if let url = URL(string: source), url.scheme == "https", url.host != nil, url.user == nil, url.password == nil {
-            AsyncImage(url: url) { phase in
-                if let image = phase.image { image.resizable().scaledToFit() }
-                else if phase.error != nil { Label("square.imageUnavailable", systemImage: "photo.badge.exclamationmark") }
-                else { ProgressView("square.imageLoading") }
+            AsyncImage(url: url, transaction: .questifyImageFade(reduceMotion: reduceMotion)) { phase in
+                if let image = phase.image { image.resizable().scaledToFit().transition(.opacity) }
+                else if phase.error != nil {
+                    QuestifyImageLoadingTint().overlay { Label("square.imageUnavailable", systemImage: "photo.badge.exclamationmark") }
+                } else { QuestifyImageLoadingTint().accessibilityLabel(Text("square.imageLoading")) }
             }.frame(maxWidth: .infinity, maxHeight: 240)
                 .accessibilityLabel(Text("square.postImage"))
         } else {

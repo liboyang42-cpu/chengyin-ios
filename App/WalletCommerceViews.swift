@@ -142,7 +142,7 @@ private struct WalletFormatting {
             }.pickerStyle(.menu)
             if points { Text("wallet.loadedFilter"); NavigationLink("wallet.tasks") { WalletPointsTasksView(reader: reader) } }
             if model.pager.loadedScope == reader.scope {
-                if points { LabeledContent("wallet.pointsBalance", value: format.points(model.pager.rows.first?.afterPoints)) }
+                if points { LabeledContent("wallet.pointsBalance") { Text(verbatim: format.points(model.pager.rows.first?.afterPoints)).questifyNumericTransition(value: model.pager.rows.first?.afterPoints.motionValue ?? 0) } }
                 if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed { Text("wallet.empty") }
                 ForEach(filtered) { row in
                     VStack(alignment: .leading, spacing: 6) {
@@ -305,7 +305,7 @@ private struct WalletFormatting {
                 LabeledContent("wallet.taxFee", value: format.points(preview.taxFee))
                 LabeledContent("wallet.total", value: format.points(preview.totalAmount))
                 LabeledContent("wallet.requiredPoints", value: format.points(preview.requiredPoints.map(WalletAmount.init)))
-                LabeledContent("wallet.pointsBalance", value: format.points(preview.pointBalance))
+                LabeledContent("wallet.pointsBalance") { Text(verbatim: format.points(preview.pointBalance)).questifyNumericTransition(value: preview.pointBalance?.motionValue ?? 0) }
                 if let enough = preview.hasEnoughPoints { Text(LocalizedStringKey(enough ? "wallet.sufficient" : "wallet.insufficient")) }
                 else { Text("wallet.balanceUnknown") }
                 if let address = preview.address {
@@ -368,4 +368,9 @@ private struct WalletFormatting {
         }.appNavigationTitle("wallet.tasks").task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
     }
     private func load() async { await model.load(reader) { try await $0.pointsTasks(token: $1) } }
+}
+
+private extension WalletAmount {
+    /// motion-1119: only drives contentTransition(.numericText(value:)) direction; display text is unchanged.
+    var motionValue: Double { NSDecimalNumber(decimal: value).doubleValue }
 }

@@ -283,3 +283,21 @@ struct QuestifyDetailListPlaceholder: View {
         }
     }
 }
+
+extension Transaction {
+    /// AsyncImage phase change: fade the loaded image in over the placeholder (none under Reduce Motion).
+    static func questifyImageFade(reduceMotion: Bool) -> Transaction {
+        Transaction(animation: reduceMotion ? nil : QuestifyMotion.content)
+    }
+}
+
+/// Tint reserved while a remote image of unknown size loads (4:3 by default), kept on failure.
+struct QuestifyImageLoadingTint: View {
+    var aspectRatio: CGFloat = 4.0 / 3.0
+    var body: some View {
+        Color(uiColor: .tertiarySystemFill)
+            .aspectRatio(aspectRatio, contentMode: .fit)
+            .frame(maxWidth: .infinity)
+            .accessibilityHidden(true)
+    }
+}
