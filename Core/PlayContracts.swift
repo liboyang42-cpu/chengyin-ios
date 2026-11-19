@@ -75,6 +75,12 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
     public let visitCheck: PlayVisitCheck?
     public let visitRadius: Int?
     public let storyLocked: Bool?
+    /// FE-STORY 5.5: a teammate's visit unlocked this place for the whole ticket. Then
+    /// `visited` is true and `visitTime` may be null. Missing or malformed stays nil.
+    public let visitedByTeam: Bool?
+    /// FE-STORY chapter text the server sends only after a visit (nil while locked).
+    public let fragmentText: String?
+    public let cardHookLong: String?
 
     private enum CodingKeys: String, CodingKey {
         case nodeId, name, npc, address, latitude, longitude, sortId, done, arrived, selfReported, hasGame, gameDone, locked, validationMethod
@@ -82,7 +88,7 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         case hookText, storyText, gameTitle, ruleInstructions, requiredMaterials, duration, difficulty
         case players, photoRequireDesc, businessTime, openStatus, routeNodeState, lockReason
         case unlockAfterNodeId, chapterId, xp, puzzleScore, completionMode, sensorType, advancedConfigJson
-        case imgHidden, visited, visitTime, visitCheck, visitRadius, storyLocked
+        case imgHidden, visited, visitTime, visitCheck, visitRadius, storyLocked, visitedByTeam, fragmentText, cardHookLong
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -127,6 +133,9 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         imgHidden = try? c.playBool(.imgHidden)
         visited = try? c.playBool(.visited)
         storyLocked = try? c.playBool(.storyLocked)
+        visitedByTeam = try? c.playBool(.visitedByTeam)
+        fragmentText = try? c.decodeIfPresent(String.self, forKey: .fragmentText)
+        cardHookLong = try? c.decodeIfPresent(String.self, forKey: .cardHookLong)
         visitRadius = (try? c.playInt(.visitRadius)).flatMap { $0 > 0 ? $0 : nil }
         visitCheck = (try? c.decodeIfPresent(String.self, forKey: .visitCheck)).flatMap { PlayVisitCheck(rawValue: $0.uppercased()) }
         if let millis = try? c.decodeIfPresent(Int64.self, forKey: .visitTime), millis > 0 { visitTime = .epochMilliseconds(millis) }

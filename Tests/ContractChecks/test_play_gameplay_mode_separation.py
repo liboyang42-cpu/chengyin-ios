@@ -55,7 +55,7 @@ class PlayGameplayModeSeparationContracts(unittest.TestCase):
     def test_bilingual_copy_and_authored_normal_runtime_ui_coverage(self):
         strings=json.loads(self.read('Resources/Localizable.xcstrings'))['strings']
         keys=[key for key in strings if key.startswith('playFree.') or key.startswith('playMode.')]
-        self.assertEqual(len(keys),41)
+        self.assertEqual(len(keys),49)
         for key in keys:
             for language in ['en','zh-Hans']:self.assertTrue(strings[key]['localizations'][language]['stringUnit']['value'])
         tests=self.read('Tests/AppUITests/PlayExperienceFlowTests.swift')

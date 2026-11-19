@@ -25,6 +25,8 @@ import SwiftUI
     var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
     var spatialApproval = PlayKitSpatialApproval()
     var rewardCollectionDestination: ((PlayRewardBadgeTarget) -> AnyView)? = nil
+    /// Fixture-only seam for the FE-STORY 「我已到达」 location read; nil uses CoreLocation.
+    var makeArrivalLocation: (@MainActor () -> any RoamDeviceLocationProviding)? = nil
     @State private var selectedNode: Int?
     @State private var showRouteMap = false
     @State private var confirmEnd = false
@@ -33,7 +35,7 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         Group {
-            if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) {
+            if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) || (model.snapshot == nil && model.storyArchive != nil) {
                 FreeExplorationExperienceView(model: model, storeDestination: { AnyView(freeStoreDestination($0)) }, rewardCollectionDestination: rewardCollectionDestination)
             } else if model.gameplayMode == .cityOrientation {
                 orientationContent
@@ -221,7 +223,9 @@ import SwiftUI
         .accessibilityIdentifier("playx.overview")
     }
     @ViewBuilder private func freeStoreDestination(_ id: Int) -> some View {
-        if model.gameplayMode == .freeExploration {
+        // A re-read clears the snapshot while it loads; keep the same store view (and its
+        // arrival state, e.g. an unknown visit) instead of swapping it out mid-read.
+        if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) {
             FreeExplorationStoreView(nodeID: id, model: model, device: deviceModel?(id), shopNPC: shopNPCModel?(id), mediaScope: mediaScope,
                 makeExternalMaps: makeExternalMaps, storyDestination: { node in
                     guard model.hasCurrentMediaSnapshot, let chapterID = node.chapterID,
@@ -229,7 +233,7 @@ import SwiftUI
                     return AnyView(ChapterStoryView(chapterID: chapterID, nodeID: node.id, model: model,
                         mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts,
                         nodeDestination: { AnyView(freeStoreDestination($0)) }))
-                })
+                }, makeArrivalLocation: makeArrivalLocation)
         } else { Text("playMode.unavailable") }
     }
     @ViewBuilder private func narrativeLink(_ query: JourneyNarrativeQuery, subtitle: String? = nil) -> some View {

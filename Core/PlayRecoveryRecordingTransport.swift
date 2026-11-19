@@ -5,7 +5,11 @@ import FoundationNetworking
 
 /// Final synthetic byte-script recorder: no callback, delegated transport or network implementation.
 @MainActor final class PlayRecoveryRecordingTransport: HTTPTransport {
-    enum Response { case reply(Data, Int), failure(PlayExperienceError) }
+    enum Response {
+        case reply(Data, Int), failure(PlayExperienceError)
+        /// Synthetic no-network transport error (nothing reached a server).
+        case offline
+    }
     private(set) var requests: [URLRequest] = []
     var responses: [String: Response] = [:]
     var queues: [String: [Response]] = [:]
@@ -27,6 +31,7 @@ import FoundationNetworking
         guard let response else { throw PlayExperienceError.unsupported }
         switch response {
         case .failure(let error): throw error
+        case .offline: throw URLError(.notConnectedToInternet)
         case .reply(let bytes, let status):
             if let replacements = afterRequest[path] { responses.merge(replacements) { _, new in new } }
             if request.httpMethod == "POST", ["answer", "sensor-result", "checkin", "photo", "arrive"].contains(request.url?.lastPathComponent ?? "") {

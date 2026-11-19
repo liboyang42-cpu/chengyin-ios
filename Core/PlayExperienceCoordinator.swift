@@ -115,11 +115,16 @@ public struct PlayCompletionReview: Equatable {
     /// Last definitive `/api/play/arrive` result for one exact review. Anything else is
     /// either still unresolved (unknown) or an ordinary issue.
     public private(set) var arrivalOutcome: PlayArrivalDispatchOutcome?
+    /// FE-STORY 6.2 / 7.3 / 7.4: read-only unlocked chapters shown when the live read is
+    /// offline (device copy) or the ticket expired (server history). Never a write authority.
+    public private(set) var storyArchive: FreeExplorationStoryArchive?
+    public private(set) var storyArchiveSource: FreeExplorationArchiveSource?
     public enum Phase: String { case idle, loading, ready, reviewing, submitting, needsReadback, unknown, failed }
     private let service: PlayExperienceService
     private let currentSession: () -> PlayExperienceSession?
     private let recovery: any PlayCompletionRecoveryStore
     private let pausedStorage: any PlayPausedStorage
+    private let storyArchiveStore: (any FreeExplorationStoryArchiveStore)?
     private let onUnauthorized: (PlayExperienceSession) -> Void
     private var cachedCompletion: PlayCompletionRecoverySnapshot?
     private var retryReadbackVerified = false
@@ -194,14 +199,18 @@ public struct PlayCompletionReview: Equatable {
     public var canManageRun: Bool { gameplayMode == .cityOrientation && service.enabled.contains(.runPersistence) && hasCurrentMediaSnapshot && !localRecoveryFailed && pausedLease?.value?.pendingRemote != true }
     public init(scope: PlaySessionScope, service: PlayExperienceService, recovery: any PlayCompletionRecoveryStore,
                 pausedStorage: any PlayPausedStorage, currentSession: @escaping () -> PlayExperienceSession?,
-                onUnauthorized: @escaping (PlayExperienceSession) -> Void = { _ in }) {
+                onUnauthorized: @escaping (PlayExperienceSession) -> Void = { _ in },
+                storyArchive: (any FreeExplorationStoryArchiveStore)? = nil) {
         self.scope = scope; self.service = service; self.recovery = recovery; self.pausedStorage = pausedStorage
+        // The durable journal keeps the archive in its own encrypted account/run slot.
+        storyArchiveStore = storyArchive ?? (recovery as? any FreeExplorationStoryArchiveStore)
         self.currentSession = currentSession; self.onUnauthorized = onUnauthorized
     }
     public func load() async {
         guard phase != .submitting else { return }
         generation &+= 1; let request = generation
         phase = .loading; issue = nil; snapshot = nil; extras = [:]; cachedCompletion = nil; retryReadbackVerified = false
+        storyArchive = nil; storyArchiveSource = nil
         guard let session = currentSession(), scope.isValid else { phase = .failed; issue = .staleSession; return }
         if authorityOwner != session {
             reward = nil; hint = nil; ending = nil; leaderboard = nil; lead = nil
@@ -263,7 +272,69 @@ public struct PlayCompletionReview: Equatable {
                 unresolved = unresolved || !pendingThoughtKeys.isEmpty
             }
             phase = unresolved ? .unknown : .ready
-        } catch { fail(error, session: session, generation: request) }
+            if mode == .freeExploration {
+                if snapshot.result.playable == false {
+                    await loadExpiredStory(session: session, request: request, topicID: snapshot.result.topicID, topicName: snapshot.result.topicName,
+                                           known: snapshot.visibleNodes.map { FreeExplorationStoryArchive.LockedPlace(id: $0.id, name: $0.name) })
+                } else { await saveStoryArchive(snapshot, session: session, request: request) }
+            }
+        } catch {
+            var expired = false
+            if case PlayExperienceError.rejected(402, _) = error { expired = true }
+            let offline = Self.isOffline(error)
+            fail(error, session: session, generation: request)
+            guard expired || offline, generation == request, currentSession() == session else { return }
+            if expired { await loadExpiredStory(session: session, request: request, topicID: nil, topicName: nil, known: []) }
+            else if let cached = await readStoryArchive(session: session, request: request) { storyArchive = cached; storyArchiveSource = .offline }
+        }
+    }
+    /// No network at all; a server reply or malformed body is never treated as offline.
+    nonisolated static func isOffline(_ error: Error) -> Bool {
+        guard let error = error as? URLError else { return false }
+        let codes: [URLError.Code] = [.notConnectedToInternet, .networkConnectionLost, .dataNotAllowed, .internationalRoamingOff,
+                                      .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed, .timedOut]
+        return codes.contains(error.code)
+    }
+    private func readStoryArchive(session: PlayExperienceSession, request: UInt64) async -> FreeExplorationStoryArchive? {
+        guard let store = storyArchiveStore else { return nil }
+        let key = PlayRunStorageKey.make(session: session, scope: scope)
+        guard let value = try? await store.readStoryArchive(key: key), generation == request, currentSession() == session,
+              value.owner.matches(session) else { return nil }
+        return value
+    }
+    /// Best effort and local only: a failed save never changes the live read or any write.
+    private func saveStoryArchive(_ snapshot: PlaySnapshot, session: PlayExperienceSession, request: UInt64) async {
+        guard let store = storyArchiveStore,
+              let fresh = FreeExplorationStoryArchive(snapshot: snapshot, chapterStories: chapterStories, owner: .init(session: session)) else { return }
+        let previous = await readStoryArchive(session: session, request: request)
+        guard generation == request, currentSession() == session else { return }
+        try? await store.writeStoryArchive(previous.map { $0.merging(fresh) } ?? fresh, key: PlayRunStorageKey.make(session: session, scope: scope))
+    }
+    /// FE-STORY 7.4: an expired ticket reads `/api/play/history` once, without a route
+    /// session, and shows only the chapters it returns. No visit can be written from it.
+    private func loadExpiredStory(session: PlayExperienceSession, request: UInt64, topicID: Int?, topicName: String?,
+                                  known: [FreeExplorationStoryArchive.LockedPlace]) async {
+        let cached = await readStoryArchive(session: session, request: request)
+        guard generation == request, currentSession() == session else { return }
+        var resolved = topicID
+        if resolved == nil, case .topic(let id) = scope { resolved = id }
+        if resolved == nil { resolved = cached?.topicID }
+        guard let topic = resolved, topic > 0 else { return }
+        do {
+            let history = try await service.freeExplorationHistory(scope: scope, topicID: topic, token: session.token)
+            try check(session, request)
+            let names = known.isEmpty ? (cached.map { archive in archive.lockedPlaces + archive.places.map { FreeExplorationStoryArchive.LockedPlace(id: $0.id, name: $0.name) } } ?? []) : known
+            let archive = FreeExplorationStoryArchive(history: history, owner: .init(session: session), topicID: topic,
+                                                      topicName: topicName ?? cached?.topicName, knownPlaces: names)
+            storyArchive = archive; storyArchiveSource = .expired
+            if let store = storyArchiveStore {
+                try? await store.writeStoryArchive(cached.map { $0.merging(archive) } ?? archive, key: PlayRunStorageKey.make(session: session, scope: scope))
+            }
+        } catch {
+            guard generation == request, currentSession() == session else { return }
+            if error as? PlayExperienceError == .unauthorized { onUnauthorized(session); invalidate(); return }
+            if Self.isOffline(error), let cached { storyArchive = cached; storyArchiveSource = .offline }
+        }
     }
     public func claimVisibleThoughts(chapterID: Int) async {
         guard service.enabled.contains(.thoughtClaims) else { thoughtSyncPhase = .disabled; return }
@@ -637,6 +708,7 @@ public struct PlayCompletionReview: Equatable {
         chapterStories = [:]; storyVariables = [:]; storyVoices = [:]; storyThoughts = []
         generation &+= 1; loadedSession = nil; authorityMode = nil; snapshot = nil; extras = [:]; reward = nil; hint = nil; cachedCompletion = nil
         ending = nil; leaderboard = nil; lead = nil; advancedReadyNodeIDs = []; clock.restore(nil); phase = .idle; arrivalOutcome = nil
+        storyArchive = nil; storyArchiveSource = nil
     }
     private func landed(_ review: PlayCompletionIntent, snapshot: PlaySnapshot) -> Bool {
         // Legacy records without mode stay unresolved; another mode's same node

@@ -1425,6 +1425,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "F24062B96D28A3E7D332BA23";
 		};
+		"6F1F472758738E32FB0BE0C8" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/FreeExplorationVisitConfigView.swift";
+			"sourceTree" = "<group>";
+		};
+		"C322038112D2DF9E3B51860E" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "6F1F472758738E32FB0BE0C8";
+		};
 		"388EE83C51D3F23FCE26DEAC" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -9354,6 +9364,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "F1845C968331C79A22E20E80";
 		};
+		"0A8CA33DB21177475ADE55A3" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/FreeExplorationStoryArchive.swift";
+			"sourceTree" = "<group>";
+		};
+		"63136414CDB2D871A34C98BD" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "0A8CA33DB21177475ADE55A3";
+		};
+		"F2E575E1553308E20FED9749" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/FreeExplorationVisitConfig.swift";
+			"sourceTree" = "<group>";
+		};
+		"BD3935B29953DBD142F3F38E" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "F2E575E1553308E20FED9749";
+		};
 		"B325CE57CCF7A0E4F4E1A75E" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -16790,6 +16820,7 @@
 				"C96E1838FA731CBC13F26E64",
 				"AF6D73B5278C0DBAF79B23E6",
 				"F24062B96D28A3E7D332BA23",
+				"6F1F472758738E32FB0BE0C8",
 				"388EE83C51D3F23FCE26DEAC",
 				"466AF20D96FB340E68E0A6F4",
 				"776F68013C032C5F1C141F1C",
@@ -17582,6 +17613,8 @@
 				"BD08BAD8F3C61C87636EF4FE",
 				"02CB4F5CC0EA98E863C5A5BB",
 				"F1845C968331C79A22E20E80",
+				"0A8CA33DB21177475ADE55A3",
+				"F2E575E1553308E20FED9749",
 				"B325CE57CCF7A0E4F4E1A75E",
 				"3624948DFC0D97473E5FA272",
 				"D3987739C2E8C7A70D2AF7AA",
@@ -18356,6 +18389,7 @@
 				"966D2C93A8CF638AE9207040",
 				"FADFE6D416C9790EB3AB3846",
 				"FD074C28A8428FA452B86F55",
+				"5A0EA79A1E8A347F2E9EF5B1",
 				"D8A655D26EDC96006C127700",
 				"1D9FA3D65FD6E77A497BA5E8",
 				"B45B3D5B973D13B0B52DDA4E",
@@ -19033,6 +19067,7 @@
 				"EDCB2F780EB7759755069B62",
 				"C5C5BAD0AA7D7DB399444029",
 				"E61462496148FBE6F76B01E2",
+				"C322038112D2DF9E3B51860E",
 				"D479CE17289B45AF43FEC96F",
 				"1DA796653061D133840F16CD",
 				"07EC4D58037964AEEF6FD57C",
@@ -19825,6 +19860,8 @@
 				"8C65764C074096EA555C6170",
 				"AAA18D7B17631DED1599E099",
 				"BBF526FB46B5B2AB401135A0",
+				"63136414CDB2D871A34C98BD",
+				"BD3935B29953DBD142F3F38E",
 				"320883372AAB5F892B9525F6",
 				"0F01A931F22E2B7ABC730654",
 				"5573B0EC244D3E57D822A316",
@@ -21122,6 +21159,16 @@
 		"772EC6F1072F8202D0B33E3C" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "FD074C28A8428FA452B86F55";
+		};
+		"5A0EA79A1E8A347F2E9EF5B1" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/FreeExplorationStoryFlowTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"A10755B1E599556D9F042988" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "5A0EA79A1E8A347F2E9EF5B1";
 		};
 		"D8A655D26EDC96006C127700" = {
 			"isa" = "PBXFileReference";
@@ -22930,6 +22977,7 @@
 				"A0D37CFDB74370E33EC5F4F6",
 				"EF627E589B991AA9781918D3",
 				"772EC6F1072F8202D0B33E3C",
+				"A10755B1E599556D9F042988",
 				"CC3B40CD8B94D7C2A3DEC543",
 				"BBD517A8A7F7A313080E03CE",
 				"8E61ACCA44AD76D9110BC01C",
