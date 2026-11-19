@@ -25,16 +25,19 @@ public struct ClubRecord: Decodable, Equatable, Identifiable {
     public let joinPolicySupported: Bool
     /// Nil is unknown/absent, not pending. Unknown numeric states are retained.
     public let myJoinStatus: Int?
+    /// MC-055: the server's single governance bit. When absent, older responses keep the
+    /// existing owner/administrator facts; a present value always wins.
+    public let viewerCanGovern: Bool?
 
     public var canSeeMembers: Bool { isOwner || isJoined }
-    public var canGovern: Bool { isOwner || viewerIsAdmin }
+    public var canGovern: Bool { viewerCanGovern ?? (isOwner || viewerIsAdmin) }
     public var joinPending: Bool { myJoinStatus == 0 }
     public var needsApproval: Bool { joinPolicy == 1 }
 
     enum CodingKeys: String, CodingKey {
         case id, name, logo, cover, description, clubTypes, clubType, address, city, style
         case leaderName, keywords, activityPrefs, memberCount, isJoined, isOwner, viewerIsAdmin
-        case level, joinPolicy, joinPolicySupported, myJoinStatus
+        case level, joinPolicy, joinPolicySupported, myJoinStatus, viewerCanGovern
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -65,6 +68,7 @@ public struct ClubRecord: Decodable, Equatable, Identifiable {
         joinPolicy = try c.decodeIfPresent(Int.self, forKey: .joinPolicy) == 1 ? 1 : 0
         joinPolicySupported = try c.decodeIfPresent(Bool.self, forKey: .joinPolicySupported) ?? false
         myJoinStatus = try c.decodeIfPresent(Int.self, forKey: .myJoinStatus)
+        viewerCanGovern = try c.decodeIfPresent(Bool.self, forKey: .viewerCanGovern)
     }
 }
 

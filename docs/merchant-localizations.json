@@ -7,7 +7,7 @@
   {
     "key": "merchant.access.denied",
     "en": "Your current role cannot access this information",
-    "zh-Hans": "当前岗位无权查看这些信息"
+    "zh-Hans": "当前身份不能查看这些信息"
   },
   {
     "key": "merchant.access.disabled",
@@ -32,7 +32,7 @@
   {
     "key": "merchant.access.noReadSurfaces",
     "en": "This role has no access to the available read-only sections.",
-    "zh-Hans": "当前岗位无权查看已迁移的只读内容。"
+    "zh-Hans": "当前身份不能查看已迁移的只读内容。"
   },
   {
     "key": "merchant.access.pending",

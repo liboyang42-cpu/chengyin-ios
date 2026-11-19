@@ -16,6 +16,14 @@ final class ClubContractTests: XCTestCase {
         XCTAssertTrue(club.canGovern)
         XCTAssertFalse(club.canSeeMembers)
     }
+    func testServerGovernanceBitWinsAndAbsentFallsBackToOwnerOrAdmin() throws {
+        XCTAssertTrue(try decode(ClubRecord.self, #"{"id":7,"viewerCanGovern":true}"#).canGovern)
+        XCTAssertFalse(try decode(ClubRecord.self, #"{"id":7,"isOwner":true,"viewerCanGovern":false}"#).canGovern)
+        XCTAssertFalse(try decode(ClubRecord.self, #"{"id":7,"viewerIsAdmin":true,"viewerCanGovern":false}"#).canGovern)
+        XCTAssertTrue(try decode(ClubRecord.self, #"{"id":7,"isOwner":true,"viewerCanGovern":null}"#).canGovern)
+        XCTAssertNil(try decode(ClubRecord.self, #"{"id":7}"#).viewerCanGovern)
+        XCTAssertThrowsError(try decode(ClubRecord.self, #"{"id":7,"viewerCanGovern":"true"}"#))
+    }
     func testJoinedAndOwnerIndependentlyGrantSourceMemberVisibility() throws {
         for field in ["isJoined", "isOwner"] {
             let club = try decode(ClubRecord.self, "{\"id\":7,\"\(field)\":true}")

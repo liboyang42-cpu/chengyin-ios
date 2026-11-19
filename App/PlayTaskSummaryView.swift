@@ -50,7 +50,7 @@ struct PlayTaskStatusBadge: View {
     let snapshot: PlaySnapshot
     private var status: PlayTaskStatusPresentation { .init(node: node, snapshot: snapshot) }
     var body: some View {
-        QuestifyStatusBadge(title: LocalizedStringKey(status.labelKey), systemImage: status.symbol,
+        QuestifyStatusBadge(title: LocalizedStringKey(status.labelKey(completionMode: node.completionMode)), systemImage: status.symbol,
                             emphasized: status == .available, stateKey: status.rawValue)
             .accessibilityIdentifier("referenceTask.status.\(node.id)")
     }

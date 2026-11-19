@@ -62,8 +62,17 @@ extension PlayKitScreen {
             LabeledContent("playkit.photo.remaining") { Text(verbatim: String(max(0, cap - used))) }
         }
         if raw["flagged"].bool == true { Text("playkit.photo.fallbackRecorded") }
-        photoInput(frame: PlayKitPhotoFrame(source: raw["frameUrl"].text, opacityPercent: raw["frameOpacity"].double, approvedHosts: approvedArtworkHosts)) { url in prepare("SUBMIT_PHOTO_CHECK", ["imageUrl": .string(url)]) }
-        Text("playkit.photo.serverOnly").font(.footnote)
+        photoInput(frame: PlayKitPhotoFrame(source: raw["frameUrl"].text, opacityPercent: raw["frameOpacity"].double, approvedHosts: approvedArtworkHosts)) { url in prepare(PlayKitPhotoRecordMode.submitAction(for: raw), ["imageUrl": .string(url)]) }
+        if PlayKitPhotoRecordMode.applies(raw) {
+            // CG-ALL-12 (#866): RECORD station; no camera or a declined camera confirms in text and continues.
+            if !projection.complete {
+                Button("playkit.photo.continueWithout") { prepare(PlayKitPhotoRecordMode.action, PlayKitPhotoRecordMode.textConfirmedPayload) }
+                    .disabled(!enabled)
+                    .accessibilityIdentifier("playkit.photo.continueWithout")
+            }
+        } else {
+            Text("playkit.photo.serverOnly").font(.footnote)
+        }
     }
     @ViewBuilder var scanForm: some View {
         if projection.complete {

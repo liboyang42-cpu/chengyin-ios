@@ -82,9 +82,22 @@ class IMConversationReplyPolicyContracts(unittest.TestCase):
             for language in ['en', 'zh-Hans']:
                 self.assertTrue(value['localizations'][language]['stringUnit']['value'])
 
+    def test_system_conversation_uses_assistant_title_and_hint(self):
+        catalog = json.loads(self.read('Resources/Localizable.xcstrings'))['strings']
+        fragment = json.loads(self.read('Resources/IMConversationReplyPolicyLocalizations.fragment.json'))['strings']
+        zh = lambda table, key: table[key]['localizations']['zh-Hans']['stringUnit']['value']
+        self.assertEqual(zh(catalog, 'messaging.system'), '城瘾小助手')
+        self.assertEqual(zh(catalog, 'im.reply.systemNotice'), '城瘾小助手不接收回复')
+        self.assertEqual(zh(fragment, 'im.reply.systemNotice'), '城瘾小助手不接收回复')
+        name = self.read('App/MessagingComponents.swift').split('struct MessagingConversationName', 1)[1].split('struct MessagingConversationKindLabel', 1)[0]
+        self.assertLess(name.index('conversation?.kind == .system'), name.index('counterparty?.nickname'))
+        search = self.read('App/MessagingHomeView.swift').split('private func searchName', 1)[1].split('private func searchPreview', 1)[0]
+        self.assertLess(search.index('conversation.kind == .system'), search.index('counterparty?.nickname'))
+
     def test_shipping_owner_tests_cover_revocation_unknown_and_media_return(self):
         source = self.read('Tests/AppUnitTests/IMConversationReplyPolicyAppTests.swift')
-        for name in ['testSystemReadMuteStillDispatchThroughExistingOwner',
+        for name in ['testSystemConversationUsesAssistantTitleAndReplyHint',
+                     'testSystemReadMuteStillDispatchThroughExistingOwner',
                      'testQueuedTextRevocationConsumesTokenWithoutRevival',
                      'testClosedOrReplacedTextAppearanceCannotDispatchOldToken',
                      'testTextTokenCannotCrossSameAccountEpochChange',

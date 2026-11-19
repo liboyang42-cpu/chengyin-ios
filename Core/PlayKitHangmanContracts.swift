@@ -25,6 +25,9 @@ public struct PlayHangmanProjection: Equatable {
     public let pool: [String]
     /// Decoys removed by POOL_TRIM hints (0 when none).
     public let poolRemoved: Int
+    /// CG-01-P2-5: the author's "how to fill" note (e.g. one letter per slot, V = ü).
+    /// Shown behind a standing entry under the board; nil hides the entry.
+    public let howTo: String?
 
     public init(_ segment: PlayWireValue) throws {
         guard segment.object != nil, let rows = segment["slots"].array, !rows.isEmpty else { throw PlayExperienceError.malformed }
@@ -48,6 +51,8 @@ public struct PlayHangmanProjection: Equatable {
         caseSensitive = segment["caseSensitive"].bool == true
         solved = segment["solved"].bool == true
         display = segment["display"].text ?? ""
+        let note = segment["howTo"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+        howTo = note?.isEmpty == false ? note : nil
         switch segment["inputMode"] {
         case .null: inputMode = .keyboard
         case .string(let value):

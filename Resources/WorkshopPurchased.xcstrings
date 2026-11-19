@@ -524,7 +524,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号无法读取该许可。"
+            "value": "当前身份不能读取该许可。"
           }
         }
       }

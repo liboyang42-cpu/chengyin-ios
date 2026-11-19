@@ -27,7 +27,7 @@ import SwiftUI
             else if model.isLoading || model.loadedKey != key { ProgressView("growth.loading") }
             else if let issue = model.issue(key: key) { GrowthCenterIssueView(issue: issue, retry: { Task { await load() } }) }
             else if let board = model.value(key: key) {
-                if let rank = board.me.rank {
+                if let rank = board.me.rank, !board.listsMe {
                     Section("growth.myRank") { GrowthLeaderboardRow(entry: board.me, fallback: "growth.me", metric: board.metric).accessibilityIdentifier("growth.board.me.\(rank)") }
                 }
                 if board.list.isEmpty {

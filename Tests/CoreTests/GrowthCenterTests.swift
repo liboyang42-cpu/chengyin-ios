@@ -130,6 +130,16 @@ final class GrowthCenterTests: XCTestCase {
         XCTAssertThrowsError(try decode(GrowthCenterRecord.self, #"{"data":{"growth":{},"badges":[true],"missions":[]}}"#))
         XCTAssertThrowsError(try decode([GrowthCompletedActivity].self, #"{"data":[{}]}"#))
     }
+    func testMyRankRowIsOnlySeparateWhenNotAlreadyListed() throws {
+        let board = try decode(GrowthLeaderboard.self, GrowthCenterSyntheticFixtures.boardJSON)
+        XCTAssertFalse(board.listsMe)
+        let listed = try decode(GrowthLeaderboard.self, GrowthCenterSyntheticFixtures.boardJSON
+            .replacingOccurrences(of: #""me":{"rank":12,"memberId":999"#, with: #""me":{"rank":2,"memberId":102"#))
+        XCTAssertTrue(listed.listsMe)
+        let anonymous = try decode(GrowthLeaderboard.self, GrowthCenterSyntheticFixtures.boardJSON
+            .replacingOccurrences(of: #""memberId":999,"#, with: ""))
+        XCTAssertFalse(anonymous.listsMe)
+    }
     func testNullableRankNeverBecomesZeroAndDatesNeverShiftZones() throws {
         let board = try decode(GrowthLeaderboard.self, GrowthCenterSyntheticFixtures.emptyBoardJSON)
         XCTAssertNil(board.me.rank)
