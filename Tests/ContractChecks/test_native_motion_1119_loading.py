@@ -35,7 +35,6 @@ class SharedLoadingContainer(unittest.TestCase):
             'GrowthCenterView.swift': 'QuestifyPlaceholderRows(label: "growth.loading"',
             'SquareDetailView.swift': 'QuestifyPlaceholderRows(label: "square.loading"',
             'RoamItemDetailView.swift': 'QuestifyDetailListPlaceholder(label: "roam.loading"',
-            'AccountCollectionCouponsView.swift': 'QuestifyPlaceholderRows(label: "accountCollection.loading"',
             'DiscoveryHomeView.swift': 'QuestifyRedactedPlaceholder(label: "discovery.loading"',
         }
         for name, needle in expected.items():

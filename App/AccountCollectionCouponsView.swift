@@ -24,7 +24,7 @@ import SwiftUI
                         Text(LocalizedStringKey("accountCollection.coupons.filter." + option.rawValue)).tag(option)
                     }
                 }.pickerStyle(.menu).accessibilityIdentifier("accountCollection.coupons.filter")
-                if model.isLoading || model.loadedRequest != offeredRequest { QuestifyPlaceholderRows(label: "accountCollection.loading", identifier: "accountCollection.loading") }
+                if model.isLoading || model.loadedRequest != offeredRequest { ProgressView("accountCollection.loading") }
                 else if let issue = model.issue(for: offeredRequest) {
                     AccountCollectionIssueView(issue: issue, retry: { model.schedule(request: offeredRequest, reader: reader, presentation: presentation) })
                 } else if let coupons = model.rows(for: offeredRequest) {
@@ -52,7 +52,6 @@ import SwiftUI
             }
         }
         .listStyle(.insetGrouped)
-        .questifyContentSwap(isLoading: model.isLoading)
         .appNavigationTitle("accountCollection.coupons.title")
         .searchable(text: $searchText, prompt: Text("accountCollection.coupons.search"))
         .onSubmit(of: .search) { submittedQuery = searchText }
