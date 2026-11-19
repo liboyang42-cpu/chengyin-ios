@@ -104,7 +104,7 @@ struct TopicDetailView: View {
                     } label: {
                         VStack(alignment: .leading) {
                             Text(verbatim: chapter.title)
-                            if let minutes = chapter.totalTimeMinutes {
+                            if let minutes = TopicChapterCards.minutes(chapter) {
                                 LabeledContent("topic.durationMinutes", value: String(minutes)).font(.caption)
                             }
                             LabeledContent("topic.visibleChapterStops", value: String(chapter.nodes.count)).font(.caption)
