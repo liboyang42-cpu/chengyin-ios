@@ -14,6 +14,7 @@ private struct ActivityListDestination: Hashable { let id: Int }
     @State private var path: [ActivityListDestination] = []
     @State private var readerChange: UInt64 = 0
     @State private var loads = SignedInContentDetailLoadOwner()
+    @QuestifyReduceMotion private var reduceMotion
     private var identity: ActivityListReadIdentity { _ = readerChange; return ActivityListReadIdentity(reader) }
     var body: some View {
         NavigationStack(path: $path) {
@@ -55,6 +56,8 @@ private struct ActivityListDestination: Hashable { let id: Int }
                     .accessibilityIdentifier("activity.list.content")
                 }
             }
+            // motion-1118: spinner → list/empty/error cross-fades instead of popping (App Store / Mail).
+            .animation(reduceMotion ? nil : QuestifyMotion.content, value: model.identity != identity || (model.isLoading && model.items.isEmpty))
             .appNavigationTitle("activity.browse")
             .searchable(text:$query,placement:.navigationBarDrawer(displayMode:.always),prompt:"activity.search")
             .onSubmit(of:.search) { loads.start { await model.load(reader: reader, reset: true, keyword: query) } }

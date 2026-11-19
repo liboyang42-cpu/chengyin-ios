@@ -258,7 +258,7 @@ struct RoamBrowserView: View {
                 Button {
                     select(item, key: renderedKey, snapshot: renderedItems)
                 } label: { RoamItemRow(item: item, showsCurrentReadStatus: true) }
-                    .buttonStyle(.plain)
+                    .buttonStyle(QuestifyCardButtonStyle())
                     .accessibilityIdentifier("roam.row.\(item.id)")
             }
             Section {

@@ -114,7 +114,7 @@ struct PlaySessionView: View {
                                 Spacer(minLength: 4)
                                 Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
                             }.padding(.vertical, 6).frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
-                        }.buttonStyle(.plain).accessibilityIdentifier("play.node.\(node.id)")
+                        }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("play.node.\(node.id)")
                     }
                 }
             }
