@@ -161,6 +161,13 @@ final class TicketWalletTests: XCTestCase {
         }
         XCTAssertEqual(try decode(#"{"id":1,"registrationStatus":2,"verificationStatus":1}"#).redemption, .complete)
     }
+    func testPerkTermsAreOptionalAndMalformedValuesStayHidden() throws {
+        let ticket = try decode(#"{"id":1,"registrationStatus":2,"entitlements":[{"id":2,"status":0,"included":false,"extraSpendText":"需消费满 50 元","reserveRequired":true},{"id":3,"status":0,"included":true},{"id":4,"status":0,"included":"yes","reserveRequired":1}]}"#)
+        let rows = ticket.entitlements
+        XCTAssertEqual(rows[0].included, false); XCTAssertEqual(rows[0].extraSpendText, "需消费满 50 元"); XCTAssertEqual(rows[0].reserveRequired, true)
+        XCTAssertEqual(rows[1].included, true); XCTAssertNil(rows[1].extraSpendText); XCTAssertNil(rows[1].reserveRequired)
+        XCTAssertNil(rows[2].included); XCTAssertNil(rows[2].reserveRequired)
+    }
     func testOwnerPrecedenceAllProductTypesAndUnknownMoneyRetained() throws {
         let ticket = try decode(#"{"id":7,"cmsActivity":{"name":"activity","productType":1},"cmsTopic":{"name":"topic","productType":2},"payableAmount":0}"#)
         XCTAssertEqual(ticket.title, "activity"); XCTAssertEqual(ticket.productType, 1); XCTAssertEqual(ticket.payableAmount, 0)

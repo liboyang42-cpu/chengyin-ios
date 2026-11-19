@@ -96,6 +96,11 @@ public struct TicketWalletEntitlement: Decodable, Equatable, Identifiable {
     public let statusLabel: String?
     public let invalidReason: String?
     public let redeemedAt: String?
+    /// FE-G5 perk terms from the entitlement snapshot. Each is optional; absent or
+    /// malformed values stay nil and nothing is shown.
+    public let included: Bool?
+    public let extraSpendText: String?
+    public let reserveRequired: Bool?
     public var statusKey: String {
         switch status { case 0: return "pending"; case 1: return "redeemed"; case 2: return "invalid"; default: return "unknown" }
     }
@@ -105,6 +110,9 @@ public struct TicketWalletEntitlement: Decodable, Equatable, Identifiable {
         chapterID = try c.integer("chapterId"); chapterName = try c.text("chapterName")
         statusLabel = try c.text("statusLabel"); invalidReason = try c.text("invalidReason")
         redeemedAt = try c.text("redeemedAt")
+        included = try? c.decodeIfPresent(Bool.self, forKey: TicketWalletKey("included"))
+        extraSpendText = try? c.decodeIfPresent(String.self, forKey: TicketWalletKey("extraSpendText"))
+        reserveRequired = try? c.decodeIfPresent(Bool.self, forKey: TicketWalletKey("reserveRequired"))
     }
 }
 

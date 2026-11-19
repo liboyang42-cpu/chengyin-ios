@@ -149730,6 +149730,40 @@
         }
       }
     },
+    "ticketWallet.perk.included": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Included"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已含"
+          }
+        }
+      }
+    },
+    "ticketWallet.perk.reserveRequired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reservation required"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需预约"
+          }
+        }
+      }
+    },
     "ticketWallet.redeemedAt": {
       "extractionState": "manual",
       "localizations": {

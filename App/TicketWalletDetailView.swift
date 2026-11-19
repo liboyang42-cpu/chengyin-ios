@@ -277,6 +277,9 @@ private struct TicketWalletEntitlementRow: View {
                 } icon: { Image(systemName: symbol).accessibilityHidden(true) }
                 .font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
+            if entitlement.included == true { Text("ticketWallet.perk.included").font(.caption) }
+            else if let spend = entitlement.extraSpendText, !spend.isEmpty { Text(verbatim: spend).font(.caption) }
+            if entitlement.reserveRequired == true { Text("ticketWallet.perk.reserveRequired").font(.caption) }
             TicketWalletOptionalField(label: "ticketWallet.redeemedAt", value: entitlement.redeemedAt).font(.caption)
             if let reason = entitlement.invalidReason, !reason.isEmpty {
                 Text(verbatim: reason).font(.caption).foregroundStyle(.secondary)
