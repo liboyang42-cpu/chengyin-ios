@@ -42,11 +42,41 @@ extension PlayKitScreen {
         attempts
     }
     @ViewBuilder var branchForm: some View {
+        // E3: the player's previous pick stays in the story as their own line.
+        if let cast, let echo = CastBranchEcho(branch: raw) {
+            ChapterStoryLineView(name: cast.profile?.name ?? appLocalized("cast.player.you", locale: castLocale), text: echo.label, margin: castNameMargin)
+                .accessibilityIdentifier("playkit.branch.chosen")
+            ForEach(CastTrustDelta.remembered(echo.trust, config: cast.config)) { member in
+                Text("cast.branch.remembers \(member.name)").font(.caption).foregroundStyle(.tertiary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .accessibilityIdentifier("playkit.branch.remembers")
+            }
+        }
         if let title = raw["currentStep"]["title"].text { Text(verbatim: title).font(.title2.bold()) }
         if let body = raw["currentStep"]["body"].text { Text(verbatim: body) }
-        ForEach(projection.options) { option in
-            Button { prepare("CHOOSE", ["optionId": .string(option.id)]) } label: { Text(verbatim: option.label).frame(maxWidth: .infinity, alignment: .leading) }
-                .buttonStyle(.bordered).disabled(!enabled)
+        if presentation == .inline {
+            // E3: numbered choices inside the reading column, separated by hairlines.
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(projection.options.enumerated()), id: \.element.id) { index, option in
+                    if index > 0 { Divider() }
+                    Button { prepare("CHOOSE", ["optionId": .string(option.id)]) } label: {
+                        HStack(alignment: .firstTextBaseline, spacing: 12) {
+                            Text(verbatim: "\(index + 1).").font(.system(size: 16).monospacedDigit()).foregroundStyle(.secondary)
+                            Text(verbatim: option.label).font(.system(size: 16)).multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .padding(.vertical, 12).contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain).disabled(!enabled)
+                    .accessibilityLabel(Text(verbatim: option.label))
+                    .accessibilityIdentifier("playkit.branch.option.\(index + 1)")
+                }
+            }
+        } else {
+            ForEach(projection.options) { option in
+                Button { prepare("CHOOSE", ["optionId": .string(option.id)]) } label: { Text(verbatim: option.label).frame(maxWidth: .infinity, alignment: .leading) }
+                    .buttonStyle(.bordered).disabled(!enabled)
+            }
         }
         if projection.complete { Text("playkit.branch.ended") }
     }

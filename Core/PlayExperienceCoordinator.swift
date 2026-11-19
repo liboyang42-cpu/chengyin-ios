@@ -96,6 +96,13 @@ public struct PlayCompletionReview: Equatable {
     public private(set) var storyVariables: [String: PlayWireValue] = [:]
     public private(set) var storyVoices: [String: PlayWireValue] = [:]
     public private(set) var storyThoughts: [PlayWireValue] = []
+    /// Cast contract (2026-11-19). Nil config = feature off; nothing below is shown.
+    public private(set) var castConfig: CastConfig?
+    public private(set) var castProfile: CastPlayerProfile?
+    public private(set) var castTrust = CastTrust()
+    /// True while the start step's answer is only held on this device (save disabled,
+    /// failed or unknown). The step never blocks a run; the next readback wins.
+    public private(set) var castProfileLocalOnly = false
     public private(set) var thoughtSyncPhase: ChapterThoughtSyncPhase = .idle
     public private(set) var pendingThoughtKeys: Set<String> = []
     private var thoughtClaimSessionID: Int?
@@ -219,6 +226,7 @@ public struct PlayCompletionReview: Equatable {
             leaderOutcomeUnknown = unknownLeaderKeys.contains(PlayRunStorageKey.make(session: session, scope: scope))
             authorityOwner = session
             chapterStories = [:]; storyVariables = [:]; storyVoices = [:]; storyThoughts = []
+            castConfig = nil; castProfile = nil; castTrust = CastTrust(); castProfileLocalOnly = false
             pendingThoughtKeys = []; thoughtClaimSessionID = nil; thoughtSyncInFlight = false; thoughtSyncPhase = .idle; thoughtSyncNonce = UUID()
         }
         loadedSession = nil
@@ -263,6 +271,8 @@ public struct PlayCompletionReview: Equatable {
             storyVariables.merge(document.storyVariables) { _, new in new }
             storyVoices.merge(document.storyVoices) { _, new in new }
             storyThoughts = snapshot.route?.thoughts ?? document.storyThoughts
+            castConfig = document.castConfig; castTrust = document.trust
+            if let profile = document.playerProfile { castProfile = profile; castProfileLocalOnly = false }
             if let previous = thoughtClaimSessionID, let current = snapshot.route?.sessionID, previous != current {
                 pendingThoughtKeys = []; thoughtClaimSessionID = nil; thoughtSyncPhase = .idle
             }
@@ -361,6 +371,34 @@ public struct PlayCompletionReview: Equatable {
             thoughtSyncPhase = pendingThoughtKeys.isEmpty ? .synced : .needsReadback
             unresolved = unresolved || !pendingThoughtKeys.isEmpty
         }
+    }
+    /// Cast start step (spec C). The answer is applied at once so the run is never
+    /// blocked; the write is attempted only when its capability is enabled and the
+    /// profile is replaced by the server's readback on the next load.
+    public func saveCastProfile(name: String, identityKey: String?) async {
+        guard let config = castConfig, castProfile == nil else { return }
+        let key = config.identity(identityKey)?.key
+        let profile = CastPlayerProfile(name: config.playerName ? name : nil, identityKey: key)
+        castProfile = profile; castProfileLocalOnly = true
+        guard service.enabled.contains(.castProfile), let runID = snapshot?.route?.sessionID,
+              let session = loadedSession, session == currentSession() else { return }
+        let request = generation
+        do {
+            try await service.saveCastProfile(runID: runID, profile: profile, token: session.token)
+            try check(session, request)
+            castProfileLocalOnly = false
+        } catch {
+            guard currentSession() == session else { return }
+            if error as? PlayExperienceError == .unauthorized { onUnauthorized(session); invalidate() }
+            // Otherwise keep the local answer; no retry loop and no error toast.
+        }
+    }
+    /// Lazy TTS lookup for one line. Nil means no voice (not configured, disabled, or failed):
+    /// the caller hides the play affordance and shows no error.
+    public func castVoiceURL(chapterID: Int, blockKey: String) async -> String? {
+        guard castConfig != nil, let topicID = snapshot?.result.topicID,
+              let session = loadedSession, session == currentSession() else { return nil }
+        return try? await service.castVoice(topicID: topicID, chapterID: chapterID, blockKey: blockKey, token: session.token)
     }
     /// Called only from an accepted advanced state, never a local timer or preview.
     public func acceptAdvanced(_ state: PlayAdvancedState, context: PlayInteractionContext? = nil) throws {
@@ -706,6 +744,7 @@ public struct PlayCompletionReview: Equatable {
         pausedLease = nil; pausedOwner = nil; retryReadbackVerified = false
         thoughtSyncNonce = UUID(); thoughtSyncInFlight = false; pendingThoughtKeys = []; thoughtClaimSessionID = nil; thoughtSyncPhase = .idle
         chapterStories = [:]; storyVariables = [:]; storyVoices = [:]; storyThoughts = []
+        castConfig = nil; castProfile = nil; castTrust = CastTrust(); castProfileLocalOnly = false
         generation &+= 1; loadedSession = nil; authorityMode = nil; snapshot = nil; extras = [:]; reward = nil; hint = nil; cachedCompletion = nil
         ending = nil; leaderboard = nil; lead = nil; advancedReadyNodeIDs = []; clock.restore(nil); phase = .idle; arrivalOutcome = nil
         storyArchive = nil; storyArchiveSource = nil
