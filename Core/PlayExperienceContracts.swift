@@ -84,9 +84,16 @@ public struct PlayExperienceDocument: Decodable, Equatable {
     public let storyVariables: [String: PlayWireValue]
     public let storyVoices: [String: PlayWireValue]
     public let storyThoughts: [PlayWireValue]
+    /// Cast contract: nil means the feature is off (or the backend has not shipped it yet).
+    public let castConfig: CastConfig?
+    public let playerProfile: CastPlayerProfile?
+    public let trust: CastTrust
     public init(from decoder: Decoder) throws {
         base = try PlayNodesResult(from: decoder)
         let raw = try PlayWireValue(from: decoder)
+        castConfig = CastConfig(raw: raw["castConfig"] != .null ? raw["castConfig"] : raw["topic"]["castConfig"])
+        playerProfile = CastPlayerProfile.find(in: raw)
+        trust = CastTrust.find(in: raw)
         var rows: [Int: PlayNodeExtras] = [:]
         for row in raw["nodes"].array ?? [] {
             guard let id = row["nodeId"].tolerantInteger, id > 0 else { throw APIError.malformedResponse }
@@ -179,7 +186,16 @@ public struct PlayEndingDocument: Decodable, Equatable {
     }
     public let opener: String
     public let fragments: [Fragment]
+    /// D2/E6: trust and the ending's owner, when the backend returns them.
+    public let cast: CastEndingResult
     public var hasStory: Bool { !fragments.isEmpty }
+    private enum CodingKeys: String, CodingKey { case opener, fragments }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        opener = try c.decode(String.self, forKey: .opener)
+        fragments = try c.decode([Fragment].self, forKey: .fragments)
+        cast = CastEndingResult(raw: (try? PlayWireValue(from: decoder)) ?? .null)
+    }
 }
 public struct PlayCompanionLeaderboard: Equatable {
     public struct Row: Equatable, Identifiable {

@@ -95,6 +95,9 @@ struct TopicDetailView: View {
                     LabeledContent("topic.lockedChapters", value: String(value.lockedChapterCount)).accessibilityIdentifier("topic.lockedChapters")
                 }
             }
+            if let cast = value.castConfig, !cast.cast.isEmpty {
+                Section("topic.cast") { CastTopicRow(config: cast) }
+            }
             Section("topic.chapters") {
                 if value.chapters.isEmpty { Text("topic.noChapters") }
                 // Index identity preserves source order even when backend IDs are absent/duplicated.

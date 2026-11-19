@@ -38,6 +38,10 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     @State var lifetime = UUID()
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    /// Cast contract E3: the chosen line and 「{name}会记住这件事」 when the theme has a cast.
+    @Environment(\.questifyCast) var cast
+    @Environment(\.locale) var castLocale
+    @ScaledMetric(relativeTo: .caption2) var castNameMargin: CGFloat = 52
     private var segment: PlayWireValue {
         guard let state = model.state else { return .null }
         return ChapterInlineKitSelection.segment(kind, in: state)
