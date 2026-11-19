@@ -14,6 +14,13 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
     public private(set) var pending: TopicSelfPlayPending?
     public private(set) var result: PaymentProviderReturnFlow?
     public private(set) var messageKey: String?
+    /// OR-028: display-only quote read when the sheet opens; create re-quotes at confirmation.
+    public private(set) var quote: RegistrationQuote?
+    public var validRange: (from: String, to: String)? {
+        guard let from = quote?.validFrom?.trimmingCharacters(in: .whitespacesAndNewlines), !from.isEmpty,
+              let to = quote?.validTo?.trimmingCharacters(in: .whitespacesAndNewlines), !to.isEmpty else { return nil }
+        return (from, to)
+    }
     public var onChange: (() -> Void)?
     private let client: (any TopicSelfPlayServing)?
     private let provider: (any TopicSelfPlayPaymentProviding)?
@@ -33,7 +40,7 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
     public var canCreate: Bool { configured && canEdit && document != nil && topic.selfPlay == 1 && topic.canOfferPurchase && topic.selfPlayPrice != nil && openedSession?.role != "merchant" }
     public var registrationID: Int? { pending?.registrationID }
     public func open() async {
-        generation += 1; let stamp = generation; review = nil; paymentReview = nil; result = nil; document = nil; pending = nil; realName = ""; phone = ""; consented = false
+        generation += 1; let stamp = generation; review = nil; paymentReview = nil; result = nil; document = nil; pending = nil; quote = nil; realName = ""; phone = ""; consented = false
         guard configured, let client, let session = openedSession, let id = SelfPlayTopicID(rawValue: topic.id) else { messageKey = "contextSelfPlay.unavailable"; onChange?(); return }
         do {
             pending = try journal.pending(owner: session.storageKey, topic: id)
@@ -42,6 +49,10 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
             guard stamp == generation, current, !Task.isCancelled else { return }
             document = notice
             messageKey = pending == nil ? nil : "contextSelfPlay.retained"
+            if pending == nil {
+                onChange?()
+                if let fetched = try? await client.quote(id), stamp == generation, current { quote = fetched }
+            }
         } catch { guard stamp == generation, current else { return }; messageKey = "contextSelfPlay.unavailable" }
         onChange?()
     }

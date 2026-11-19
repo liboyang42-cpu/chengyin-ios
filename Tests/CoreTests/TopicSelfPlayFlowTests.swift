@@ -33,7 +33,7 @@ import FoundationNetworking
     func testQuotedCreateCarriesSignatureAfterQuoteAndBeforeConsent() async throws {
         let client = try Client(); client.quoteValue = try Self.quote(amount: 0, sign: "server-sign")
         let flow = TopicSelfPlayFlow(topic: try Self.topic(), client: client, journal: Journal())
-        await flow.open(); fill(flow); flow.prepare(); await flow.confirm(try XCTUnwrap(flow.review))
+        await flow.open(); fill(flow); flow.prepare(); client.calls.removeAll(); await flow.confirm(try XCTUnwrap(flow.review))
         XCTAssertEqual(client.calls.prefix(4), ["fresh", "quote", "consent", "create"])
         XCTAssertEqual(client.createdIntents.first?.quoteSign, "server-sign")
     }
@@ -41,9 +41,21 @@ import FoundationNetworking
         for quote in [try Self.quote(amount: 9, sign: "server-sign"), try Self.quote(amount: 0, sign: "")] {
             let client = try Client(); client.quoteValue = quote
             let journal = Journal(), flow = TopicSelfPlayFlow(topic: try Self.topic(), client: client, journal: journal)
-            await flow.open(); fill(flow); flow.prepare(); await flow.confirm(try XCTUnwrap(flow.review))
+            await flow.open(); fill(flow); flow.prepare(); client.calls.removeAll(); await flow.confirm(try XCTUnwrap(flow.review))
             XCTAssertEqual(client.calls, ["fresh", "quote"]); XCTAssertNil(journal.value); XCTAssertEqual(flow.phase, .editing)
         }
+    }
+    func testOpenShowsServerValidityOnlyWhenBothEndsArePresent() async throws {
+        let client = try Client()
+        client.quoteValue = try JSONDecoder().decode(RegistrationQuote.self, from: Data(#"{"payAmount":0,"quoteSign":"s","validFrom":"2026-11-19","validTo":"2027-02-17"}"#.utf8))
+        let flow = TopicSelfPlayFlow(topic: try Self.topic(), client: client, journal: Journal())
+        await flow.open()
+        XCTAssertEqual(flow.validRange?.from, "2026-11-19"); XCTAssertEqual(flow.validRange?.to, "2027-02-17")
+        XCTAssertFalse(client.calls.contains("create"))
+        client.quoteValue = try Self.quote(amount: 0, sign: "s"); await flow.open()
+        XCTAssertNil(flow.validRange)
+        client.quoteValue = nil; await flow.open()
+        XCTAssertNil(flow.quote); XCTAssertNil(flow.validRange)
     }
     func testRuntimeBodyGuardAcceptsOnlyTopicQuoteAndSignedCreate() throws {
         let base = URL(string: "https://example.com/scoped/")!

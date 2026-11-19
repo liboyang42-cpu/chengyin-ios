@@ -44,10 +44,13 @@ public struct RegistrationQuote: Decodable, Equatable {
     public let couponDeductYuan: Decimal?
     public let clubMember: Bool
     public let quoteSign: String
+    /// OR-028: server validity window, shown verbatim. Absent or malformed stays nil.
+    public let validFrom: String?
+    public let validTo: String?
 
     private enum CodingKeys: String, CodingKey {
         case payAmount, pointsUsed, pointsDeductYuan, pointsUsable
-        case memberDiscountYuan, couponDeductYuan, clubMember, quoteSign
+        case memberDiscountYuan, couponDeductYuan, clubMember, quoteSign, validFrom, validTo
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -59,6 +62,8 @@ public struct RegistrationQuote: Decodable, Equatable {
         couponDeductYuan = try c.registrationMoney(forKey: .couponDeductYuan)
         clubMember = try c.decodeIfPresent(Bool.self, forKey: .clubMember) ?? false
         quoteSign = try c.decodeIfPresent(String.self, forKey: .quoteSign) ?? ""
+        validFrom = try? c.decodeIfPresent(String.self, forKey: .validFrom)
+        validTo = try? c.decodeIfPresent(String.self, forKey: .validTo)
         guard pointsUsed >= 0 else { throw APIError.malformedResponse }
     }
 

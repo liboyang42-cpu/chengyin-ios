@@ -29385,6 +29385,23 @@
         }
       }
     },
+    "contextSelfPlay.validRange": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valid"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有效期"
+          }
+        }
+      }
+    },
     "contextSelfPlay.validity": {
       "extractionState": "manual",
       "localizations": {
