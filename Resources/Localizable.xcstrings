@@ -82896,6 +82896,23 @@
         }
       }
     },
+    "nativeNav.error.invalidLink": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This link is no longer valid"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "链接已失效"
+          }
+        }
+      }
+    },
     "nativeNav.error.title": {
       "extractionState": "manual",
       "localizations": {
