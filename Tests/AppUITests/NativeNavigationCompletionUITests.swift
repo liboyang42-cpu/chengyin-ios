@@ -11,8 +11,9 @@ final class NativeNavigationCompletionUITests: XCTestCase {
     func testGlobalFallbackHasHomeAndCloseWithoutRawRoute() {
         let app = launch("error")
         XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "nativeNav.error").firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["This link is no longer valid"].exists)
         XCTAssertTrue(app.buttons["nativeNav.error.close"].exists)
-        XCTAssertTrue(app.buttons["nativeNav.error.home"].exists)
+        XCTAssertFalse(app.buttons["nativeNav.error.home"].exists)
         XCTAssertFalse(app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'GoException'")).firstMatch.exists)
     }
     func testCouponReviewPrecedesSyntheticQRCode() {

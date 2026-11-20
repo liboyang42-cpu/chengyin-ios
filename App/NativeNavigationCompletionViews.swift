@@ -5,15 +5,25 @@ import SwiftUI
     let goHome: () -> Void
     @Environment(\.dismiss) private var dismiss
     var body: some View {
-        ContentUnavailableView {
-            Label("nativeNav.error.title", systemImage: "questionmark.folder")
-        } description: {
-            Text(failure == .cannotOpen ? "nativeNav.error.cannotOpen" : "nativeNav.error.detail")
-        } actions: {
-            Button("nativeNav.close") { dismiss() }.accessibilityIdentifier("nativeNav.error.close")
-            Button("homeFeed.title", action: goHome).accessibilityIdentifier("nativeNav.error.home")
-        }.navigationTitle("nativeNav.error.title")
-            .accessibilityElement(children: .contain).accessibilityIdentifier("nativeNav.error")
+        Group {
+            if failure == .cannotOpen {
+                ContentUnavailableView {
+                    Label("nativeNav.error.title", systemImage: "questionmark.folder")
+                } description: {
+                    Text("nativeNav.error.cannotOpen")
+                } actions: {
+                    Button("nativeNav.close") { dismiss() }.accessibilityIdentifier("nativeNav.error.close")
+                    Button("homeFeed.title", action: goHome).accessibilityIdentifier("nativeNav.error.home")
+                }.navigationTitle("nativeNav.error.title")
+            } else {
+                // Same missing/invalid-link state as the mini program: one line, one action (UI sweep 1119 U2).
+                ContentUnavailableView {
+                    Label("nativeNav.error.invalidLink", systemImage: "info.circle")
+                } actions: {
+                    Button("action.back") { dismiss() }.accessibilityIdentifier("nativeNav.error.close")
+                }
+            }
+        }.accessibilityElement(children: .contain).accessibilityIdentifier("nativeNav.error")
     }
 }
 
