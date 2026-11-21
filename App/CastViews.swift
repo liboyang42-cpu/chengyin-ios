@@ -285,7 +285,7 @@ struct ChapterStoryLineView: View {
         .accessibilityIdentifier("cast.playbill")
     }
     @ViewBuilder private var playerRow: some View {
-        let identity = config.identity(profile?.identityKey)?.title
+        let identity = profile?.resolvedIdentityTitle(in: config)
         if let name = profile?.name { row(name: name, identity: identity) }
         else {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
@@ -356,9 +356,15 @@ struct CastEndingSection: View {
                     }
                     .padding(.vertical, 4)
                 }
-                if let count = result.endingCount, let owner = config.member(result.endingFor) {
-                    Text("cast.ending.footer \(count) \(owner.name)").font(.footnote).foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
+                // The backend sends `trust` without `endingFor`/`endingCount`; the owner then falls back
+                // to the unique leading trust and the count sentence is left out.
+                if let owner = result.owner(config) {
+                    Group {
+                        if let count = result.endingCount, count > 1 { Text("cast.ending.footer \(count) \(owner.name)") }
+                        else { Text("cast.ending.owner \(owner.name)") }
+                    }
+                    .font(.footnote).foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
                 }
             }
             .accessibilityIdentifier("cast.ending")

@@ -29,6 +29,8 @@ public struct ChapterStorySegment: Equatable, Identifiable {
         case optionalReading(subtitle: String?, paragraphs: [String])
         /// Cast contract: a book-style paragraph whose speaker name sits in the leading margin.
         case line(ChapterStoryLine)
+        /// E3: an unanswered story branch, numbered inside the reading column. Nothing after it shows.
+        case choice(ChapterStoryChoice)
     }
     public let id: String
     public let content: Content
@@ -53,8 +55,10 @@ public struct ChapterStoryLine: Equatable {
     public let audioURL: String?
     /// Block key used for the lazy TTS request.
     public let blockKey: String?
-    public init(speaker: Speaker?, text: String, audioURL: String? = nil, blockKey: String? = nil) {
-        self.speaker = speaker; self.text = text; self.audioURL = audioURL; self.blockKey = blockKey
+    /// E3 「{name}会记住这件事」: cast ids whose trust the player's picked option changed.
+    public let rememberedBy: [String]
+    public init(speaker: Speaker?, text: String, audioURL: String? = nil, blockKey: String? = nil, rememberedBy: [String] = []) {
+        self.speaker = speaker; self.text = text; self.audioURL = audioURL; self.blockKey = blockKey; self.rememberedBy = rememberedBy
     }
 }
 
@@ -163,6 +167,19 @@ public enum ChapterStoryProjection {
                 let audio = ParticipationRecord.text(block["audioUrl"])
                 append(.line(.init(speaker: speaker, text: fill(String(content.prefix(300))), audioURL: audio,
                                    blockKey: ParticipationRecord.text(block["key"]))), id: id)
+            case "branch":
+                // Without cast the story branch block stays hidden, exactly as before.
+                guard let cast, let choice = ChapterStoryChoice(raw: block, chapterID: chapter.chapterID, fill: fill) else { break }
+                let key = CastStoryContext.pickKey(chapterID: chapter.chapterID, blockKey: choice.blockKey)
+                guard let picked = cast.picks[key], choice.options.indices.contains(picked) else {
+                    append(.choice(choice), id: id)
+                    return result
+                }
+                // The pick stays in the story as the player's own line; the other options disappear.
+                let option = choice.options[picked]
+                let remembered = CastTrustDelta.remembered(option.trust, config: cast.config).map(\.id)
+                append(.line(.init(speaker: .player, text: option.text, rememberedBy: remembered)), id: id)
+                if option.endsFlow { return result }
             case "image": if let url = ParticipationRecord.text(block["url"]) { append(.image(url), id: id) }
             case "audio": if let url = ParticipationRecord.text(block["url"]) { append(.audio(url), id: id) }
             case "voice":
