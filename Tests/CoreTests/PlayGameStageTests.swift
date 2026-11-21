@@ -10,7 +10,8 @@ final class PlayGameStageTests: XCTestCase {
 
     func testStationNumberNameChapterAndLeadComeFromTheRouteRead() throws {
         let route = try nodes(#"[{"nodeId":11,"name":"钟楼","sortId":1,"chapterId":3},{"nodeId":12,"name":" 老邮局 ","sortId":2,"chapterId":3,"hookText":"\n  信封上的邮戳还是热的。\n第二行不显示"}]"#)
-        let stage = try XCTUnwrap(PlayGameStage.resolve(nodeID: 12, nodes: route, chapters: chapters(#"[{"chapterId":3,"name":"第一章 · 雾起"}]"#)))
+        let story = try chapters(#"[{"chapterId":3,"name":"第一章 · 雾起"}]"#)
+        let stage = try XCTUnwrap(PlayGameStage.resolve(nodeID: 12, nodes: route, chapters: story))
         XCTAssertEqual(stage.ordinal, 2)
         XCTAssertEqual(stage.stationName, "老邮局")
         XCTAssertEqual(stage.chapterTitle, "第一章 · 雾起")
@@ -35,12 +36,18 @@ final class PlayGameStageTests: XCTestCase {
     }
 
     func testOutcomeMirrorsAuthoritativeResultRules() throws {
-        XCTAssertEqual(PlayGameOutcome.resolve(try projection(.qa, #"{"finished":true,"passed":true}"#)), .passed)
-        XCTAssertEqual(PlayGameOutcome.resolve(try projection(.stopwatch, #"{"attempts":1,"submitted":false,"passed":false}"#)), .notPassed)
-        XCTAssertEqual(PlayGameOutcome.resolve(try projection(.qa, #"{"mode":"PICK","judge":false,"finished":true,"passed":false}"#)), .recorded)
-        XCTAssertEqual(PlayGameOutcome.resolve(try projection(.photoCheck, #"{"degraded":true,"passed":true}"#)), .noVerdict)
-        XCTAssertEqual(PlayGameOutcome.resolve(try projection(.coinFlip, #"{"flipped":true}"#)), .recorded)
-        XCTAssertNil(PlayGameOutcome.resolve(try projection(.stopwatch, #"{"tries":3,"passed":false}"#)))
+        let p1 = try projection(.qa, #"{"finished":true,"passed":true}"#)
+        XCTAssertEqual(PlayGameOutcome.resolve(p1), .passed)
+        let p2 = try projection(.stopwatch, #"{"attempts":1,"submitted":false,"passed":false}"#)
+        XCTAssertEqual(PlayGameOutcome.resolve(p2), .notPassed)
+        let p3 = try projection(.qa, #"{"mode":"PICK","judge":false,"finished":true,"passed":false}"#)
+        XCTAssertEqual(PlayGameOutcome.resolve(p3), .recorded)
+        let p4 = try projection(.photoCheck, #"{"degraded":true,"passed":true}"#)
+        XCTAssertEqual(PlayGameOutcome.resolve(p4), .noVerdict)
+        let p5 = try projection(.coinFlip, #"{"flipped":true}"#)
+        XCTAssertEqual(PlayGameOutcome.resolve(p5), .recorded)
+        let p6 = try projection(.stopwatch, #"{"tries":3,"passed":false}"#)
+        XCTAssertNil(PlayGameOutcome.resolve(p6))
         XCTAssertEqual(PlayGameOutcome.passed.key, "playkit.story.passed")
         XCTAssertEqual(PlayGameOutcome.notPassed.key(open: true), "playkit.story.tryAgain")
         XCTAssertEqual(PlayGameOutcome.notPassed.key(open: false), "playkit.story.notPassed")
