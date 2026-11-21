@@ -103,6 +103,10 @@ public struct PlayCompletionReview: Equatable {
     /// True while the start step's answer is only held on this device (save disabled,
     /// failed or unknown). The step never blocks a run; the next readback wins.
     public private(set) var castProfileLocalOnly = false
+    /// Story-branch picks of the current run (`CastStoryContext.pickKey`). The server is the
+    /// authority; a repeat answer adopts the run's original pick from its response.
+    public private(set) var castStoryPicks: [String: Int] = [:]
+    private var castPicksRunID: Int?
     public private(set) var thoughtSyncPhase: ChapterThoughtSyncPhase = .idle
     public private(set) var pendingThoughtKeys: Set<String> = []
     private var thoughtClaimSessionID: Int?
@@ -226,7 +230,7 @@ public struct PlayCompletionReview: Equatable {
             leaderOutcomeUnknown = unknownLeaderKeys.contains(PlayRunStorageKey.make(session: session, scope: scope))
             authorityOwner = session
             chapterStories = [:]; storyVariables = [:]; storyVoices = [:]; storyThoughts = []
-            castConfig = nil; castProfile = nil; castTrust = CastTrust(); castProfileLocalOnly = false
+            castConfig = nil; castProfile = nil; castTrust = CastTrust(); castProfileLocalOnly = false; castStoryPicks = [:]; castPicksRunID = nil
             pendingThoughtKeys = []; thoughtClaimSessionID = nil; thoughtSyncInFlight = false; thoughtSyncPhase = .idle; thoughtSyncNonce = UUID()
         }
         loadedSession = nil
@@ -271,7 +275,11 @@ public struct PlayCompletionReview: Equatable {
             storyVariables.merge(document.storyVariables) { _, new in new }
             storyVoices.merge(document.storyVoices) { _, new in new }
             storyThoughts = snapshot.route?.thoughts ?? document.storyThoughts
-            castConfig = document.castConfig; castTrust = document.trust
+            castConfig = document.castConfig
+            // A different run starts with no picks and no local display trust.
+            if castPicksRunID != snapshot.route?.sessionID { castStoryPicks = [:]; castTrust = CastTrust(); castPicksRunID = snapshot.route?.sessionID }
+            // The run read carries no trust today; keep this run's display-only ticks until it does.
+            if !document.trust.values.isEmpty { castTrust = document.trust }
             if let profile = document.playerProfile { castProfile = profile; castProfileLocalOnly = false }
             if let previous = thoughtClaimSessionID, let current = snapshot.route?.sessionID, previous != current {
                 pendingThoughtKeys = []; thoughtClaimSessionID = nil; thoughtSyncPhase = .idle
@@ -398,7 +406,34 @@ public struct PlayCompletionReview: Equatable {
     public func castVoiceURL(chapterID: Int, blockKey: String) async -> String? {
         guard castConfig != nil, let topicID = snapshot?.result.topicID,
               let session = loadedSession, session == currentSession() else { return nil }
-        return try? await service.castVoice(topicID: topicID, chapterID: chapterID, blockKey: blockKey, token: session.token)
+        return try? await service.castVoice(topicID: topicID, chapterID: chapterID, blockKey: blockKey,
+                                            runID: snapshot?.route?.sessionID, token: session.token)
+    }
+    /// E3 story branch. The pick shows at once so reading is never blocked; trust ticks move
+    /// locally for display only. The write runs only when `.castBranch` is enabled, and a
+    /// repeat answer adopts the run's original pick. No retry loop and no error toast.
+    public func pickStoryBranch(_ choice: ChapterStoryChoice, optionIndex: Int) async {
+        guard let config = castConfig, choice.options.indices.contains(optionIndex) else { return }
+        let key = CastStoryContext.pickKey(chapterID: choice.chapterID, blockKey: choice.blockKey)
+        guard castStoryPicks[key] == nil else { return }
+        castStoryPicks[key] = optionIndex
+        castTrust = castTrust.applying(choice.options[optionIndex].trust, config: config)
+        guard service.enabled.contains(.castBranch), let runID = snapshot?.route?.sessionID,
+              let session = loadedSession, session == currentSession() else { return }
+        let request = generation
+        do {
+            let recorded = try await service.recordCastBranch(runID: runID, chapterID: choice.chapterID, blockKey: choice.blockKey,
+                                                              optionIndex: optionIndex, token: session.token)
+            try check(session, request)
+            if let recorded, recorded != optionIndex, choice.options.indices.contains(recorded), castStoryPicks[key] == optionIndex {
+                castTrust = castTrust.applying(choice.options[optionIndex].trust, config: config, sign: -1)
+                    .applying(choice.options[recorded].trust, config: config)
+                castStoryPicks[key] = recorded
+            }
+        } catch {
+            guard currentSession() == session else { return }
+            if error as? PlayExperienceError == .unauthorized { onUnauthorized(session); invalidate() }
+        }
     }
     /// Called only from an accepted advanced state, never a local timer or preview.
     public func acceptAdvanced(_ state: PlayAdvancedState, context: PlayInteractionContext? = nil) throws {
@@ -744,7 +779,7 @@ public struct PlayCompletionReview: Equatable {
         pausedLease = nil; pausedOwner = nil; retryReadbackVerified = false
         thoughtSyncNonce = UUID(); thoughtSyncInFlight = false; pendingThoughtKeys = []; thoughtClaimSessionID = nil; thoughtSyncPhase = .idle
         chapterStories = [:]; storyVariables = [:]; storyVoices = [:]; storyThoughts = []
-        castConfig = nil; castProfile = nil; castTrust = CastTrust(); castProfileLocalOnly = false
+        castConfig = nil; castProfile = nil; castTrust = CastTrust(); castProfileLocalOnly = false; castStoryPicks = [:]; castPicksRunID = nil
         generation &+= 1; loadedSession = nil; authorityMode = nil; snapshot = nil; extras = [:]; reward = nil; hint = nil; cachedCompletion = nil
         ending = nil; leaderboard = nil; lead = nil; advancedReadyNodeIDs = []; clock.restore(nil); phase = .idle; arrivalOutcome = nil
         storyArchive = nil; storyArchiveSource = nil

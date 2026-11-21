@@ -40,7 +40,10 @@ import UIKit
         return ChapterStoryProjection.segments(chapter: chapter, snapshot: snapshot,
             variables: model.storyVariables.merging(advancedVariables) { _, new in new },
             thoughts: model.storyThoughts, storyVoices: model.storyVoices, activeInlineNodeID: activeInlineNodeID,
-            cast: model.castConfig.map { CastStoryContext(config: $0, profile: model.castProfile) })
+            cast: castContext)
+    }
+    private var castContext: CastStoryContext? {
+        model.castConfig.map { CastStoryContext(config: $0, profile: model.castProfile, picks: model.castStoryPicks) }
     }
     /// Once any paragraph carries a margin name, every paragraph shares the same column.
     private var usesNameMargin: Bool {
@@ -85,7 +88,7 @@ import UIKit
                 ToolbarItem(placement: .topBarLeading) { Button("chapterStory.back", systemImage: "chevron.left") { leave() } }
             }
         }
-        .environment(\.questifyCast, model.castConfig.map { CastStoryContext(config: $0, profile: model.castProfile) })
+        .environment(\.questifyCast, castContext)
         .sheet(item: $castCard) { target in
             if let member = model.castConfig?.member(target.castID) {
                 CastCharacterCard(member: member, trust: model.castTrust[member.id], reachedChapters: reachedChapters,
@@ -120,6 +123,16 @@ import UIKit
                         model: model, mediaScope: mediaScope, makeAudio: makeAudio, compact: true)
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
+                // E3: after a story-branch pick, the characters whose trust it moved remember it.
+                ForEach(line.rememberedBy.compactMap { model.castConfig?.member($0) }) { member in
+                    Text("cast.branch.remembers \(member.name)").font(.caption).foregroundStyle(.tertiary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .accessibilityIdentifier("chapterStory.remembers")
+                }
+            }
+        case .choice(let choice):
+            ChapterStoryChoiceView(choice: choice, margin: usesNameMargin ? nameMargin : 0) { index in
+                Task { await model.pickStoryBranch(choice, optionIndex: index) }
             }
         case .image(let url): ChapterStoryArtwork(url: url, reader: imageReader)
         case .audio(let url): Button("chapterStory.listen", systemImage: "speaker.wave.2") { audioURL = url }
@@ -192,6 +205,37 @@ import UIKit
     private func leave() { if dirtyNodes.isEmpty { dismiss() } else { confirmLeave = true } }
 }
 
+/// E3 story branch: the question, then 1–3 numbered choices inside the reading column,
+/// separated by hairlines. Not a pop-up and not a card.
+private struct ChapterStoryChoiceView: View {
+    let choice: ChapterStoryChoice
+    let margin: CGFloat
+    let pick: (Int) -> Void
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if let question = choice.question { Text(verbatim: question).font(.body).lineSpacing(8) }
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(choice.options.enumerated()), id: \.offset) { index, option in
+                    if index > 0 { Divider() }
+                    Button { pick(index) } label: {
+                        HStack(alignment: .firstTextBaseline, spacing: 12) {
+                            Text(verbatim: "\(index + 1).").font(.system(size: 16).monospacedDigit()).foregroundStyle(.secondary)
+                            Text(verbatim: option.text).font(.system(size: 16)).multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .padding(.vertical, 12).contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text(verbatim: option.text))
+                    .accessibilityIdentifier("chapterStory.choice.\(index + 1)")
+                }
+            }
+        }
+        .padding(.leading, margin)
+        .accessibilityIdentifier("chapterStory.choice")
+    }
+}
+
 private struct CastCardTarget: Identifiable {
     let castID: String
     let line: ChapterStoryLine?
@@ -200,6 +244,7 @@ private struct CastCardTarget: Identifiable {
 
 @MainActor private struct ChapterStoryGameHost: View {
     @Bindable var advanced: PlayAdvancedCoordinator
+    @Environment(\.questifyCast) private var cast
     let device: PlayDeviceCaptureCoordinator?
     let mediaScope: UUID
     let makeAudio: (@MainActor () -> PlatformAudioPlayback)?
@@ -235,6 +280,14 @@ private struct CastCardTarget: Identifiable {
                 }
                 if state.inline && (state.isMultiplayer || state.config["leaderboard"]["enabled"].bool == true) {
                     PlayAdvancedInlineTeamHost(model: advanced)
+                }
+                // Cast v1: a station choice that moved trust (`trustChanged`, action response only).
+                if let cast {
+                    ForEach(state.trustChanged.compactMap { cast.config.member($0) }) { member in
+                        Text("cast.branch.remembers \(member.name)").font(.caption).foregroundStyle(.tertiary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .accessibilityIdentifier("chapterStory.station.remembers")
+                    }
                 }
             } else if advanced.phase == "loading" { ProgressView("chapterStory.loadingGame") }
             else {

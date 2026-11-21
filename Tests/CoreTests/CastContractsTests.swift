@@ -114,6 +114,10 @@ final class CastContractsTests: XCTestCase {
         let sent = try XCTUnwrap(last)
         XCTAssertEqual(sent.httpMethod, "POST"); XCTAssertEqual(sent.url?.path, "/api/play/run/profile")
         XCTAssertEqual(String(decoding: try XCTUnwrap(sent.httpBody), as: UTF8.self), #"{"identityKey":"i_a","name":"小舟","runId":50}"#)
+        // The server requires 1–12 characters: an empty answer goes out as the story fallback.
+        try await service(transport, enabled: [.castProfile]).saveCastProfile(runID: 50, profile: .init(name: "  ", identityKey: nil), token: "synthetic-token")
+        let unnamed = await transport.requests.last
+        XCTAssertEqual(String(decoding: try XCTUnwrap(unnamed?.httpBody), as: UTF8.self), #"{"name":"你","runId":50}"#)
     }
     func testVoiceLookupReturnsHTTPSOrNothing() async throws {
         let transport = CastTestTransport()
@@ -141,6 +145,86 @@ final class CastContractsTests: XCTestCase {
         XCTAssertNil(model.castConfig); XCTAssertNil(model.castProfile)
     }
 
+    func testProfileIdentityTitleSnapshotWinsOverThemeTitle() throws {
+        let config = try XCTUnwrap(CastConfig(raw: wire(Self.config)))
+        let profile = try XCTUnwrap(CastPlayerProfile.find(in: wire(#"{"routeState":{"playerProfile":{"name":"小舟","identityKey":"i_a","identityTitle":"送信人"}}}"#)))
+        XCTAssertEqual(profile.identityTitle, "送信人")
+        XCTAssertEqual(CastStoryVariables.fill("我是{身份}", profile: profile, config: config), "我是送信人")
+        XCTAssertEqual(CastPlayerProfile(name: nil, identityKey: "i_a").resolvedIdentityTitle(in: config), "信使")
+    }
+    func testEndingOwnerFallsBackToUniqueLeadingTrust() throws {
+        let config = try XCTUnwrap(CastConfig(raw: wire(Self.config)))
+        let landed: PlayEndingDocument = try wire(#"{"opener":"","fragments":[],"trust":{"c_a":2,"c_b":1}}"#).decoded()
+        XCTAssertNil(landed.cast.endingFor); XCTAssertNil(landed.cast.endingCount)
+        XCTAssertEqual(landed.cast.owner(config)?.id, "c_a")
+        XCTAssertNil(CastEndingResult(trust: CastTrust(values: ["c_a": 2, "c_b": 2])).owner(config))
+        XCTAssertNil(CastEndingResult(trust: CastTrust(values: ["c_a": -1])).owner(config))
+        XCTAssertEqual(CastEndingResult(trust: CastTrust(values: ["c_a": 3]), endingFor: "c_b").owner(config)?.id, "c_b")
+    }
+    func testStoryBranchStopsTheFlowUntilPickedThenBecomesThePlayersLine() throws {
+        let config = try XCTUnwrap(CastConfig(raw: wire(Self.config)))
+        let chapter = try ChapterStoryDocument(raw: wire(#"{"chapterId":8,"blocks":[{"type":"text","content":"雾从海上来。"},{"key":"k1","type":"branch","content":"你要怎么做？","options":[{"text":"留下来陪{玩家}的灯","to":"continue","trust":[{"castId":"c_a","delta":1}]},{"text":"转身离开","to":"end"}]},{"type":"text","content":"灯还亮着。"}]}"#))
+        let open = ChapterStoryProjection.segments(chapter: chapter, snapshot: try snapshot(), variables: [:],
+            cast: CastStoryContext(config: config, profile: CastPlayerProfile(name: "小舟", identityKey: nil)))
+        XCTAssertEqual(open.count, 2)
+        guard case .choice(let choice) = open[1].content else { return XCTFail() }
+        XCTAssertEqual(choice.blockKey, "k1"); XCTAssertEqual(choice.question, "你要怎么做？")
+        XCTAssertEqual(choice.options.map(\.text), ["留下来陪小舟的灯", "转身离开"])
+        XCTAssertFalse(choice.options[0].endsFlow); XCTAssertTrue(choice.options[1].endsFlow)
+        let stayed = ChapterStoryProjection.segments(chapter: chapter, snapshot: try snapshot(), variables: [:],
+            cast: CastStoryContext(config: config, profile: nil, picks: ["8:k1": 0]))
+        XCTAssertEqual(stayed.map(\.content), [.text("雾从海上来。"),
+            .line(.init(speaker: .player, text: "留下来陪你的灯", rememberedBy: ["c_a"])), .text("灯还亮着。")])
+        let left = ChapterStoryProjection.segments(chapter: chapter, snapshot: try snapshot(), variables: [:],
+            cast: CastStoryContext(config: config, profile: nil, picks: ["8:k1": 1]))
+        XCTAssertEqual(left.last?.content, .line(.init(speaker: .player, text: "转身离开")))
+        // Cast off: the story branch block stays hidden and the text flows on, as before.
+        XCTAssertEqual(ChapterStoryProjection.segments(chapter: chapter, snapshot: try snapshot(), variables: [:]).count, 2)
+    }
+    func testLocalTrustAppliesKnownCastOnly() throws {
+        let config = try XCTUnwrap(CastConfig(raw: wire(Self.config)))
+        let deltas = CastTrustDelta.read(try wire(#"[{"castId":"c_a","delta":2},{"castId":"c_x","delta":1}]"#))
+        let next = CastTrust().applying(deltas, config: config)
+        XCTAssertEqual(next.values, ["c_a": 2])
+        XCTAssertEqual(next.applying(deltas, config: config, sign: -1)["c_a"], 0)
+    }
+    func testAdvancedStateReadsTrustChangedOnce() throws {
+        let state = try PlayAdvancedState(wire(#"{"sessionId":1,"nodeId":2,"version":0,"activityId":0,"topicId":9,"status":"RUNNING","trustChanged":["c_a","c_a"," ","c_b"]}"#))
+        XCTAssertEqual(state.trustChanged, ["c_a", "c_b"])
+        XCTAssertTrue(try PlayAdvancedState(wire(#"{"sessionId":1,"nodeId":2,"version":0,"activityId":0,"topicId":9,"status":"RUNNING"}"#)).trustChanged.isEmpty)
+    }
+    func testStoryBranchWriteIsGatedAndAdoptsTheOriginalPick() async throws {
+        let transport = CastTestTransport()
+        do { _ = try await service(transport, enabled: [.reads]).recordCastBranch(runID: 50, chapterID: 8, blockKey: "k1", optionIndex: 1, token: "synthetic-token"); XCTFail() }
+        catch { XCTAssertEqual(error as? PlayExperienceError, .disabled) }
+        let recorded = try await service(transport, enabled: [.castBranch]).recordCastBranch(runID: 50, chapterID: 8, blockKey: "k1", optionIndex: 1, token: "synthetic-token")
+        XCTAssertEqual(recorded, 0)
+        let last = await transport.requests.last
+        let sent = try XCTUnwrap(last)
+        XCTAssertEqual(sent.url?.path, "/api/play/run/branch")
+        XCTAssertEqual(String(decoding: try XCTUnwrap(sent.httpBody), as: UTF8.self), #"{"blockKey":"k1","chapterId":8,"optionIndex":1,"runId":50}"#)
+        let voice = try await service(transport, enabled: [.reads]).castVoice(topicID: 9, chapterID: 8, blockKey: "b1", runID: 50, token: "synthetic-token")
+        XCTAssertNotNil(voice)
+        let lastQuery = await transport.requests.last?.url?.query
+        XCTAssertEqual(lastQuery, "blockKey=b1&chapterId=8&runId=50&topicId=9")
+    }
+    @MainActor func testCoordinatorPicksLocallyWhenWriteIsOff() async throws {
+        let transport = CastTestTransport()
+        let session = try PlayExperienceSession(accountID: 9, epoch: 1, namespace: "synthetic-cn", token: "synthetic-token")
+        let model = PlayExperienceCoordinator(scope: .topic(9), service: try service(transport, enabled: [.reads]), recovery: PlayMemoryCompletionRecovery(),
+            pausedStorage: PlayMemoryPausedStorage(), currentSession: { session })
+        await model.load()
+        let raw = try wire(#"{"key":"k1","options":[{"text":"留下","trust":[{"castId":"c_a","delta":1}]},{"text":"离开"}]}"#)
+        let choice = try XCTUnwrap(ChapterStoryChoice(raw: raw, chapterID: 8, fill: { $0 }))
+        await model.pickStoryBranch(choice, optionIndex: 0)
+        await model.pickStoryBranch(choice, optionIndex: 1) // a second answer never replaces the first
+        XCTAssertEqual(model.castStoryPicks, ["8:k1": 0]); XCTAssertEqual(model.castTrust["c_a"], 1)
+        let posts = await transport.requests.filter { $0.httpMethod == "POST" }
+        XCTAssertTrue(posts.isEmpty)
+        model.invalidate()
+        XCTAssertTrue(model.castStoryPicks.isEmpty); XCTAssertTrue(model.castTrust.isEmpty)
+    }
+
     private func service(_ transport: any HTTPTransport, enabled: Set<PlayExperienceCapability>) throws -> PlayExperienceService {
         .init(configuration: try APIConfiguration(baseURL: URL(string: "https://cast.test")!), transport: transport, enabled: enabled)
     }
@@ -156,6 +240,7 @@ private actor CastTestTransport: HTTPTransport {
         requests.append(request)
         switch request.url?.path {
         case "/api/play/run/profile": return (Data(#"{"code":200,"data":null}"#.utf8), 200)
+        case "/api/play/run/branch": return (Data(#"{"code":200,"data":{"chapterId":8,"blockKey":"k1","optionIndex":0,"to":"continue","duplicate":true}}"#.utf8), 200)
         case "/api/topic/cast/voice":
             let ok = request.url?.query?.contains("blockKey=b1") == true
             return (Data((ok ? #"{"code":200,"data":{"url":"https://voice.test/b1.mp3"}}"# : #"{"code":200,"data":{"url":""}}"#).utf8), 200)

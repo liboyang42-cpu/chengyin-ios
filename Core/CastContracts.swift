@@ -129,18 +129,25 @@ public struct CastConfig: Equatable, Sendable {
 public struct CastPlayerProfile: Equatable, Sendable {
     public let name: String?
     public let identityKey: String?
-    public init(name: String?, identityKey: String?) {
+    /// The identity title the server snapshotted into the run when the profile was set
+    /// (`CastRunRules.profileView`). A later rename by the author does not change a live run.
+    public let identityTitle: String?
+    public init(name: String?, identityKey: String?, identityTitle: String? = nil) {
         let trimmed = name?.trimmingCharacters(in: .whitespacesAndNewlines)
         self.name = trimmed?.isEmpty == false ? String(trimmed!.prefix(12)) : nil
         let key = identityKey?.trimmingCharacters(in: .whitespacesAndNewlines)
         self.identityKey = key?.isEmpty == false ? key : nil
+        let title = identityTitle?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.identityTitle = title?.isEmpty == false ? title : nil
     }
     /// A profile object counts as present even when the player kept the empty name,
     /// because 「出发」 with no name is a valid answer.
     public init?(raw: PlayWireValue) {
         guard raw.object != nil else { return nil }
-        self.init(name: raw["name"].text, identityKey: raw["identityKey"].text)
+        self.init(name: raw["name"].text, identityKey: raw["identityKey"].text, identityTitle: raw["identityTitle"].text)
     }
+    /// The run's snapshotted title first, then the theme's current title for the key.
+    public func resolvedIdentityTitle(in config: CastConfig) -> String? { identityTitle ?? config.identity(identityKey)?.title }
     /// Profile carried by a nodes/route/run-session payload, wherever the backend puts it.
     public static func find(in raw: PlayWireValue) -> CastPlayerProfile? {
         for candidate in [raw["playerProfile"], raw["routeState"]["playerProfile"], raw["state"]["playerProfile"], raw["routeState"]["profile"]] {
@@ -173,6 +180,25 @@ public struct CastTrust: Equatable, Sendable {
     public static func filledTicks(_ trust: Int) -> Int { max(0, min(tickCount, trust)) }
     /// Ending-line band. Provisional thresholds until the backend lane publishes its own.
     public static func band(_ trust: Int) -> CastTrustBand { trust < 0 ? .low : (trust >= 3 ? .high : .mid) }
+    /// Display-only local accumulation after a story-branch pick (−2…2 per delta, known cast only).
+    /// The server keeps the authoritative value; a readback that carries `trust` replaces this.
+    public func applying(_ deltas: [CastTrustDelta], config: CastConfig, sign: Int = 1) -> CastTrust {
+        var next = values
+        for delta in deltas where config.member(delta.castID) != nil { next[delta.castID, default: 0] += delta.delta * sign }
+        return CastTrust(values: next)
+    }
+    /// Same rule as the server's `CastRunRules.pickByTrust`: the unique highest positive trust.
+    /// Ties and no positive trust mean no owner.
+    public func leading(in config: CastConfig) -> CastMember? {
+        var best: CastMember?, bestValue = 0, tie = false
+        for member in config.cast {
+            let value = self[member.id]
+            guard value > 0 else { continue }
+            if best == nil || value > bestValue { best = member; bestValue = value; tie = false }
+            else if value == bestValue { tie = true }
+        }
+        return tie ? nil : best
+    }
     public static func find(in raw: PlayWireValue) -> CastTrust {
         for candidate in [raw["trust"], raw["routeState"]["trust"], raw["state"]["trust"]] where candidate != .null {
             return CastTrust(raw: candidate)
@@ -193,6 +219,11 @@ public struct CastEndingResult: Equatable, Sendable {
         trust = CastTrust.find(in: raw)
         endingFor = CastMember.trimmed(raw["endingFor"])
         endingCount = raw["endingCount"].tolerantInteger.flatMap { $0 > 0 ? $0 : nil }
+    }
+    /// Whose ending this was. The landed backend returns `trust` but no `endingFor`, so the
+    /// owner falls back to the unique leading trust, which is how the server chose the ending.
+    public func owner(_ config: CastConfig) -> CastMember? {
+        endingFor.map { config.member($0) } ?? trust.leading(in: config)
     }
     /// E6 rows: each character with non-zero trust, in cast order.
     public func rows(_ config: CastConfig) -> [CastEndingRow] {
@@ -246,15 +277,46 @@ public enum CastStoryVariables {
     public static let playerFallback = "你"
     public static func fill(_ text: String, profile: CastPlayerProfile?, config: CastConfig) -> String {
         guard text.contains("{玩家}") || text.contains("{身份}") else { return text }
-        let identity = config.identity(profile?.identityKey)?.title ?? ""
+        let identity = profile?.resolvedIdentityTitle(in: config) ?? ""
         return text.replacingOccurrences(of: "{玩家}", with: profile?.name ?? playerFallback)
             .replacingOccurrences(of: "{身份}", with: identity)
     }
 }
 
-/// Everything the chapter projection needs to resolve speakers.
+/// Everything the chapter projection needs to resolve speakers and story-branch picks.
 public struct CastStoryContext: Equatable, Sendable {
     public let config: CastConfig
     public let profile: CastPlayerProfile?
-    public init(config: CastConfig, profile: CastPlayerProfile?) { self.config = config; self.profile = profile }
+    /// Story-branch picks of this run, keyed by `pickKey(chapterID:blockKey:)`.
+    public let picks: [String: Int]
+    public init(config: CastConfig, profile: CastPlayerProfile?, picks: [String: Int] = [:]) {
+        self.config = config; self.profile = profile; self.picks = picks
+    }
+    public static func pickKey(chapterID: Int, blockKey: String) -> String { "\(chapterID):\(blockKey)" }
+}
+
+/// E3 story `branch` block (chapter text, not a station kit): `content` is the question and
+/// 2–3 options `{text, to: continue|end|chapter:N, trust?}`. Picks go to `POST /api/play/run/branch`.
+public struct ChapterStoryChoice: Equatable, Sendable {
+    public struct Option: Equatable, Sendable {
+        public let text: String
+        public let to: String?
+        public let trust: [CastTrustDelta]
+        /// Anything other than an empty or `continue` destination ends this chapter's text here.
+        public var endsFlow: Bool { to.map { !$0.isEmpty && $0 != "continue" } ?? false }
+    }
+    public let chapterID: Int
+    public let blockKey: String
+    public let question: String?
+    public let options: [Option]
+    public init?(raw: PlayWireValue, chapterID: Int, fill: (String) -> String) {
+        guard let key = CastMember.trimmed(raw["key"]), key.count <= 64 else { return nil }
+        let options = (raw["options"].array ?? []).prefix(3).compactMap { option -> Option? in
+            guard let text = CastMember.trimmed(option["text"]) else { return nil }
+            return Option(text: fill(text), to: CastMember.trimmed(option["to"]), trust: CastTrustDelta.read(option["trust"]))
+        }
+        guard !options.isEmpty, options.count == (raw["options"].array ?? []).prefix(3).count else { return nil }
+        self.chapterID = chapterID; blockKey = key; self.options = options
+        question = CastMember.trimmed(raw["content"]).map(fill)
+    }
 }

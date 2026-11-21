@@ -10,6 +10,9 @@ public struct PlayAdvancedState: Equatable {
     public let playKit: PlayWireValue; public let multiplayer: PlayWireValue
     public let storyVariables: [String: PlayWireValue]
     public let objectCard: ObjectCard?
+    /// Cast v1: cast ids whose trust this action changed (`trustChanged`, action responses only).
+    /// A later readback omits it, so 「X会记住这件事」 shows once, right after the choice.
+    public let trustChanged: [String]
     public var isMultiplayer: Bool { config["multiplayer"]["enabled"].bool == true }
     public var needsUnverifiedSteps: Bool { playKit["steps"].object != nil && playKit["steps"]["reached"].bool != true }
     public init(_ raw: PlayWireValue) throws {
@@ -26,6 +29,11 @@ public struct PlayAdvancedState: Equatable {
         branch = raw["branch"]; playKit = raw["playKit"]; multiplayer = raw["multiplayer"]
         storyVariables = raw["vars"].object ?? [:]
         objectCard = PlayObjectCardReceiptDecoder.decode(raw["objectCard"])
+        var seen = Set<String>()
+        trustChanged = (raw["trustChanged"].array ?? []).prefix(12).compactMap { value -> String? in
+            guard let id = value.text?.trimmingCharacters(in: .whitespacesAndNewlines), !id.isEmpty, seen.insert(id).inserted else { return nil }
+            return id
+        }
     }
     public func remainingSeconds(nowMilliseconds: Int64) -> Int? {
         deadlineAt.map { Int(max(0, ceil(Double($0 - nowMilliseconds) / 1000))) }
