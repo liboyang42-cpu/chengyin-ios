@@ -70,8 +70,6 @@ extension PlayKitScreen {
                     .disabled(!enabled)
                     .accessibilityIdentifier("playkit.photo.continueWithout")
             }
-        } else {
-            Text("playkit.photo.serverOnly").font(.footnote)
         }
     }
     @ViewBuilder var scanForm: some View {
@@ -117,7 +115,7 @@ extension PlayKitScreen {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Button("playkit.photo.capture") { cameraPurpose = true }
-                .disabled(!enabled || model.busy || !model.supports(.photo))
+                .playGamePrimaryButton().disabled(!enabled || model.busy || !model.supports(.photo))
             Button("playkitCamera.choosePhoto") {
                 let expected = identity; capturedIdentity = expected
                 Task {
@@ -136,7 +134,7 @@ extension PlayKitScreen {
                 if !model.canUpload && model.uploadedPhoto == nil && !model.busy { Text("playkit.photo.uploadGate").font(.footnote) }
                 if let evidence = model.reviewedPhoto(), case .photo(let uploadedURL) = evidence {
                     Label("playkit.photo.uploaded", systemImage: "checkmark.circle")
-                    Button("playkit.photo.use") { if mounted && capturedIdentity == identity && enabled { onURL(uploadedURL) } }.disabled(!enabled)
+                    Button("playkit.photo.use") { if mounted && capturedIdentity == identity && enabled { onURL(uploadedURL) } }.playGamePrimaryButton().disabled(!enabled)
                 }
             }
             if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
@@ -174,12 +172,12 @@ extension PlayKitScreen {
     @State private var mounted = false
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Button("playkit.scan.capture") { purpose = true }.disabled(!enabled || model.busy || !model.supports(.scan))
+            Button("playkit.scan.capture") { purpose = true }.playGamePrimaryButton().disabled(!enabled || model.busy || !model.supports(.scan))
             if !model.supports(.scan) { Text("playkit.camera.gated") }
             if model.busy { ProgressView("playkit.scan.working") }
             if capturedIdentity == identity, let output = model.output, case .scan(let code) = output {
                 Label("playkit.scan.captured", systemImage: "qrcode")
-                Button("playkit.review") { if mounted && enabled { onCode(code) } }.disabled(!enabled)
+                Button("playkit.review") { if mounted && enabled { onCode(code) } }.playGamePrimaryButton().disabled(!enabled)
             }
             if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
         }

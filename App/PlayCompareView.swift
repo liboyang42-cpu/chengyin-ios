@@ -45,7 +45,7 @@ import SwiftUI
                             requestReview("SUBMIT_COMPARE", payload, {})
                             issue = nil
                         } catch { issue = error as? PlayExperienceError ?? .invalidAction }
-                    }.buttonStyle(.borderedProminent)
+                    }.playGamePrimaryButton()
                         .disabled(!enabled || selection.revision != revision)
                         .accessibilityIdentifier("playkit.submit.compare")
                 }

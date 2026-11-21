@@ -70,8 +70,8 @@ import UIKit
                     }
                     audioSelection
                     if audioURL != nil { PlatformAudioHost(rawURL: audioURL, scope: mediaScope, makeModel: makeAudio) }
-                    Text("chapterStory.end").font(.footnote).foregroundStyle(.secondary)
-                    Button("chapterStory.return") { leave() }.buttonStyle(.borderedProminent)
+                    // The route action waits until no inline game is still mid-play here.
+                    if dirtyNodes.isEmpty { Button("chapterStory.return") { leave() }.buttonStyle(.borderedProminent) }
                 } else {
                     ContentUnavailableView("chapterStory.unavailable", systemImage: "lock", description: Text("chapterStory.unavailable.detail"))
                 }
@@ -165,6 +165,9 @@ import UIKit
                     inline: { activeInlineNodeID = id },
                     dirty: { value in if value { dirtyNodes.insert(id) } else { dirtyNodes.remove(id) } })
                 }.id(id)
+                .environment(\.playGameStage, model.snapshot.flatMap {
+                    PlayGameStage.resolve(nodeID: id, nodes: $0.result.nodes, chapters: $0.result.chapters, chapterTitle: chapter?.title)
+                })
             } else {
                 NavigationLink { nodeDestination(id) } label: { Label("chapterStory.play", systemImage: "play.circle") }
             }

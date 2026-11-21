@@ -17,12 +17,16 @@ extension PlayKitScreen {
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        Button("playkit.coin.flip") { prepare("FLIP_COIN") }.buttonStyle(.borderedProminent).disabled(!enabled)
+        Button("playkit.coin.flip") { prepare("FLIP_COIN") }.playGamePrimaryButton().disabled(!enabled)
     }
     @ViewBuilder var diceFaces: some View {
         let values = (raw["pips"].array ?? []).compactMap(\.integer)
         let d20 = raw["mode"].text == "d20"
         HStack {
+            // Before the first roll a resting die holds the space the result will take.
+            if values.isEmpty {
+                Image(systemName: d20 ? "dice" : "die.face.5").font(.system(size: 72)).foregroundStyle(.tertiary).accessibilityHidden(true)
+            }
             ForEach(Array(values.enumerated()), id: \.offset) { _, value in
                 if !d20 && (1...6).contains(value) { Image(systemName: "die.face.\(value).fill").font(.system(size: 72)).accessibilityLabel(Text(verbatim: String(value))) }
                 else { Text(verbatim: String(value)).font(.system(.largeTitle, design: .rounded).bold()).padding().background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16)) }
@@ -35,7 +39,7 @@ extension PlayKitScreen {
         if d20, let dc = raw["dc"].integer { LabeledContent("playkit.dice.target") { Text(verbatim: String(dc)) } }
         if d20, projection.complete, let success = raw["success"].bool { Text(success ? "playkit.result.passed" : "playkit.result.notPassed") }
         if !d20, values.count == 1, let pip = values.first, let faces = raw["faces"].array, faces.indices.contains(pip - 1), let task = faces[pip - 1].text { Text(verbatim: task) }
-        Button("playkit.dice.roll") { prepare("ROLL_DICE") }.buttonStyle(.borderedProminent).disabled(!enabled)
+        Button("playkit.dice.roll") { prepare("ROLL_DICE") }.playGamePrimaryButton().disabled(!enabled)
     }
     @ViewBuilder var randomDeck: some View {
         if let name = raw["deckName"].text { Text(verbatim: name).font(.title2.bold()) }
@@ -47,11 +51,21 @@ extension PlayKitScreen {
                 if let content = card["content"].text { Text(verbatim: content) }
             }.padding().frame(maxWidth: .infinity, alignment: .leading).background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20))
         }
+        if drawn.isEmpty {
+            // The face-down deck is there from the first frame, never an empty area.
+            VStack(spacing: 12) {
+                Image(systemName: "rectangle.stack").font(.system(size: 64)).foregroundStyle(.tint).accessibilityHidden(true)
+                Text(count > 0 ? "playkit.random.empty" : "playkit.random.unavailable").font(.body).multilineTextAlignment(.center)
+            }
+            .padding(24).frame(maxWidth: .infinity, minHeight: 180)
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("playkit.random.deck")
+        }
         if count > drawn.count {
-            Image(systemName: "rectangle.stack").font(.system(size: 80)).frame(maxWidth: .infinity).accessibilityHidden(true)
             LabeledContent("playkit.random.remaining") { Text(verbatim: String(count - drawn.count)) }
         }
-        Button("playkit.random.draw") { prepare("DRAW") }.buttonStyle(.borderedProminent).disabled(!enabled || count <= drawn.count)
+        Button("playkit.random.draw") { prepare("DRAW") }.playGamePrimaryButton().disabled(!enabled || count <= drawn.count)
     }
     @ViewBuilder var dailySignForm: some View {
         if let address = raw["address"].text { Text(verbatim: address).font(.headline) }
@@ -102,6 +116,5 @@ extension PlayKitScreen {
         LabeledContent("playkit.bingo.lines") { Text(verbatim: String(board.completedLines.count)) }
         if let line = raw["lineReward"].text, !line.isEmpty { LabeledContent("playkit.bingo.lineReward") { Text(verbatim: line) } }
         if let full = raw["fullReward"].text, !full.isEmpty { LabeledContent("playkit.bingo.fullReward") { Text(verbatim: full) } }
-        Text("playkit.bingo.authority").font(.footnote)
     }
 }

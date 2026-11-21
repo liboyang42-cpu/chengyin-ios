@@ -1181,13 +1181,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The service has not supplied a witness code"
+            "value": "The witness code isn’t ready yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端尚未提供见证码"
+            "value": "见证码还没准备好"
           }
         }
       }
@@ -1232,13 +1232,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server decides whether this time window is open. These are the configured clock labels, not a device-time unlock."
+            "value": "Opens only during the set time."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "是否开放由服务端决定。这里展示配置的时刻，不使用设备时间自动解锁。"
+            "value": "只在设定的时间段内开放。"
           }
         }
       }
@@ -1300,13 +1300,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose what you tasted. The answer stays on the server."
+            "value": "Taste, then pick what you found."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选择你品尝到的选项，答案由服务端保管。"
+            "value": "尝一尝，选出你品到的味道。"
           }
         }
       }
@@ -1351,13 +1351,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The name can be shown publicly and is checked by the service before it is saved."
+            "value": "The name may be shown publicly."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "作品名可能公开展示，保存前会由服务端进行内容审核。"
+            "value": "名字可能会公开展示。"
           }
         }
       }
@@ -1368,13 +1368,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server recorded the claim but returned no reveal text"
+            "value": "Claimed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已记录领取，但未返回揭示文案"
+            "value": "已领取"
           }
         }
       }
@@ -1419,13 +1419,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server says this discovery can be claimed"
+            "value": "It’s time — you can claim it now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端显示这次发现已可领取"
+            "value": "时候到了，可以领取了。"
           }
         }
       }
@@ -1436,13 +1436,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review and claim"
+            "value": "Claim"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核对并领取"
+            "value": "领取"
           }
         }
       }
@@ -1453,13 +1453,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review and begin"
+            "value": "Begin"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核对并开始"
+            "value": "开始"
           }
         }
       }

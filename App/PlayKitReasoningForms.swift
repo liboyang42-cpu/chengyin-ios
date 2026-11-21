@@ -32,8 +32,7 @@ extension PlayKitScreen {
                 }
             }
             if let cap = segment["maxAttempts"].integer, cap > 0 { LabeledContent("playkit.attemptLimit") { Text(verbatim: String(cap)) } }
-            Text("playkit.reasoning.serverOnly").font(.footnote)
-            Button("playkit.review") { requestReview(action, payload, {}) }.buttonStyle(.borderedProminent).disabled(!enabled || !valid)
+            Button("playkit.review") { requestReview(action, payload, {}) }.playGamePrimaryButton().disabled(!enabled || !valid)
         }.onAppear { if order.isEmpty { order = items.map(\.id) } }
             .onChange(of: items.map(\.id)) { _, ids in order = ids; placement = [:] }
             .onChange(of: left.map(\.id)) { _, _ in placement = [:] }
@@ -63,6 +62,7 @@ extension PlayKitScreen {
     }
     @ViewBuilder private var matchRows: some View {
         Text("playkit.match.instructions").font(.footnote)
+        PlayKitMatchLinesDiagram(left: left, right: right, placement: placement)
         ForEach(left) { item in
             Picker(selection: Binding(get: { placement[item.id] ?? "" }, set: { value in
                 guard enabled, value != (placement[item.id] ?? "") else { return }
@@ -95,5 +95,61 @@ extension PlayKitScreen {
         let destination = index + delta
         guard enabled, index != destination, order.indices.contains(index), order.indices.contains(destination) else { return }
         let value = order.remove(at: index); order.insert(value, at: destination); onDirty()
+    }
+}
+
+/// Both columns side by side with a drawn line for every current pair. It mirrors
+/// the pickers below (the accessible way to pair) and never decides anything itself.
+@MainActor struct PlayKitMatchLinesDiagram: View {
+    let left: [PlayKitOption]; let right: [PlayKitOption]; let placement: [String: String]
+    @QuestifyReduceMotion private var reduceMotion
+    @ScaledMetric(relativeTo: .subheadline) private var rowHeight: CGFloat = 48
+    @ScaledMetric(relativeTo: .subheadline) private var gutter: CGFloat = 48
+    private var lines: [PlayGameMatchLine] { PlayGameMatchLine.lines(left: left.map(\.id), right: right.map(\.id), placement: placement) }
+    var body: some View {
+        let current = lines
+        let rows = max(left.count, right.count)
+        HStack(alignment: .top, spacing: 0) {
+            column(left, paired: Set(current.map(\.left)), alignment: .trailing)
+            ZStack {
+                ForEach(current, id: \.self) { line in
+                    PlayKitMatchCurve(start: rowHeight * (CGFloat(line.left) + 0.5), end: rowHeight * (CGFloat(line.right) + 0.5))
+                        .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                        .transition(.opacity)
+                }
+            }
+            .frame(width: gutter, height: rowHeight * CGFloat(rows))
+            column(right, paired: Set(current.map(\.right)), alignment: .leading)
+        }
+        .animation(reduceMotion ? nil : QuestifyMotion.content, value: current)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("playkit.match.lines"))
+        .accessibilityValue(Text(verbatim: current.map { left[$0.left].label + " → " + right[$0.right].label }.joined(separator: "；")))
+        .accessibilityIdentifier("playkit.match.lines")
+    }
+    private func column(_ items: [PlayKitOption], paired: Set<Int>, alignment: Alignment) -> some View {
+        VStack(spacing: 0) {
+            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                Text(verbatim: item.label).font(.subheadline).lineLimit(2).minimumScaleFactor(0.8)
+                    .multilineTextAlignment(alignment == .trailing ? .trailing : .leading)
+                    .padding(.horizontal, 10)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment)
+                    .background(paired.contains(index) ? AnyShapeStyle(Color.accentColor.opacity(0.14)) : AnyShapeStyle(.quaternary),
+                                in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .padding(.vertical, 3)
+                    .frame(height: rowHeight)
+            }
+        }.frame(maxWidth: .infinity)
+    }
+}
+
+private struct PlayKitMatchCurve: Shape {
+    let start: CGFloat; let end: CGFloat
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX + 2, y: start))
+        path.addCurve(to: CGPoint(x: rect.maxX - 2, y: end),
+                      control1: CGPoint(x: rect.midX, y: start), control2: CGPoint(x: rect.midX, y: end))
+        return path
     }
 }

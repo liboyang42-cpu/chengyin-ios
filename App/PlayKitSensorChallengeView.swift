@@ -32,7 +32,6 @@ import SwiftUI
                 .font(.callout).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("playkit.sensor.purpose")
             if kind == .quietHold || kind == .shout { Text("playkit.sensor.audioPrivacy").font(.footnote).foregroundStyle(.secondary) }
-            if kind == .compass { Text("playkit.compass.caution").font(.footnote).foregroundStyle(.secondary) }
             if let error = stage.issue {
                 Label(LocalizedStringKey("playkit.sensor.error." + error.rawValue), systemImage: "exclamationmark.triangle")
                     .accessibilityIdentifier("playkit.sensor.issue")
@@ -45,11 +44,10 @@ import SwiftUI
                 Text(LocalizedStringKey(kind == .ballShake ? "playkit.ball.calibration" : "playkit.audio.calibration"))
             }
             if stage.phase == .measured {
-                Text("playkit.sensor.measuredBoundary").font(.footnote).foregroundStyle(.secondary)
                 Button("playkit.review") {
                     guard let payload = stage.payload else { return }
                     requestReview(stage.submitAction, payload, {})
-                }.buttonStyle(.borderedProminent).disabled(!enabled || !active || stage.payload == nil)
+                }.playGamePrimaryButton().disabled(!enabled || !active || stage.payload == nil)
                     .accessibilityIdentifier("playkit.sensor.review")
             } else if stage.phase == .ready {
                 Button("playkit.sensor.reviewStart") {
@@ -59,13 +57,12 @@ import SwiftUI
                         // acknowledgement. A stale callback cannot restart sensors.
                         if stage.startAfterAcknowledgement(attempt: token, revisionIdentity: currentRevisionIdentity?() ?? revisionIdentity) { onDirty() }
                     }
-                }.buttonStyle(.borderedProminent).disabled(!enabled || !active)
+                }.playGamePrimaryButton().disabled(!enabled || !active)
                     .accessibilityIdentifier("playkit.sensor.start")
-                Text("playkit.sensor.startBoundary").font(.footnote).foregroundStyle(.secondary)
             } else if stage.phase == .idle || stage.phase == .interrupted {
                 Button(LocalizedStringKey(kind == .compass ? "playkit.compass.begin" : "playkit.sensor.calibrate")) {
                     onDirty(); stage.begin(active: active)
-                }.buttonStyle(.borderedProminent).disabled(!enabled || !active || !stage.supported)
+                }.playGamePrimaryButton().disabled(!enabled || !active || !stage.supported)
                     .accessibilityIdentifier("playkit.sensor.calibrate")
             }
             if [.authorizing, .calibrating, .running, .ready].contains(stage.phase) {
@@ -107,7 +104,6 @@ import SwiftUI
                     }.clipped()
                 }.aspectRatio(300.0 / 420.0, contentMode: .fit)
                     .accessibilityElement(children: .ignore).accessibilityLabel(Text("playkit.ball.board"))
-                Text("playkit.ball.instruction").font(.footnote)
             }
         case .quietHold, .shout:
             let level = kind == .quietHold ? stage.quiet.level : stage.shout.level
@@ -126,7 +122,6 @@ import SwiftUI
                     .foregroundStyle(color)
                 ProgressView(value: held, total: total).accessibilityLabel(Text("playkit.sensor.holdProgress"))
                 if kind == .quietHold, stage.quiet.exceeded { Text("playkit.quiet.limitReached") }
-                if kind == .shout { Text("playkit.shout.continuous").font(.footnote) }
             }
         case .compass:
             VStack(spacing: 12) {

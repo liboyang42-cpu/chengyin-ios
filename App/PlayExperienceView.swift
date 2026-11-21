@@ -438,6 +438,9 @@ import SwiftUI
                             PlayAdvancedView(model: advanced, device: device, mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval) { state in
                                 try? model.acceptAdvanced(state, context: advancedContext)
                             }
+                            .environment(\.playGameStage, model.snapshot.flatMap {
+                                PlayGameStage.resolve(nodeID: nodeID, nodes: $0.result.nodes, chapters: $0.result.chapters)
+                            })
                         }
                     }
                 }

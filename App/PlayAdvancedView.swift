@@ -13,6 +13,7 @@ import SwiftUI
     @State private var teamSurfaceVisible = false
     @Environment(\.nativePlatformRuntime) private var nativePlatform
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.playGameStage) private var stage
     @Environment(\.scenePhase) private var scenePhase
     @ViewBuilder var body: some View {
         if !model.hasCurrentReadLifetime { Text("playMode.recoveryBlocked") }
@@ -20,6 +21,7 @@ import SwiftUI
     }
     private var currentContent: some View {
         List {
+            if let stage, !stage.isEmpty { Section { PlayGameStageHeader(stage: stage) } }
             Section {
                 LabeledContent("playx.state") { PlayRuntimePhaseText(phase: model.phase) }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
@@ -33,17 +35,15 @@ import SwiftUI
             }
             if let state = model.state {
                 Section("playx.advanced.authority") {
-                    LabeledContent("playx.state") { Text(verbatim: state.status) }
-                    LabeledContent("playx.advanced.version") { Text(verbatim: String(state.version)) }
                     if let score = state.score { LabeledContent("playx.reward.puzzle") { Text(verbatim: String(score)) } }
                     if state.deadlineAt != nil {
                         TimelineView(.periodic(from: .now, by: 1)) { context in
                             LabeledContent("playx.advanced.remaining") { Text(verbatim: String(state.remainingSeconds(nowMilliseconds: Int64(context.date.timeIntervalSince1970 * 1000)) ?? 0)) }
                         }
-                        Text("playx.advanced.timerNotice").font(.footnote)
                     }
                     if state.readyForBase {
                         Button("playx.advanced.continue") { onReady(state); dismiss() }
+                            .playGamePrimaryButton()
                             .disabled(model.pending != nil || !model.isCurrent || model.phase != "ready")
                             .accessibilityIdentifier("playx.advanced.continue")
                     }
@@ -53,11 +53,12 @@ import SwiftUI
                         NavigationLink {
                             PlayKitScreen(model: model, kind: kind, device: device, mediaScope: mediaScope,
                                 makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval)
+                                .environment(\.playGameStage, stage)
                         } label: {
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(LocalizedStringKey("playkit.kind." + kind.rawValue)).font(.headline)
                                 if let title = state.playKit[kind.rawValue]["title"].text, !title.isEmpty { Text(verbatim: title).font(.subheadline) }
-                                if PlayKitScreenProjection(kind: kind, segment: state.playKit[kind.rawValue]).complete { Text("playkit.result.recorded").font(.caption) }
+                                if PlayKitScreenProjection(kind: kind, segment: state.playKit[kind.rawValue]).complete { Label("playkit.result.recorded", systemImage: "checkmark.circle").font(.caption) }
                             }
                         }.accessibilityIdentifier("playkit.open." + kind.rawValue)
                     }
