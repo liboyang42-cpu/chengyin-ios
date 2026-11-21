@@ -101,6 +101,49 @@ final class Verify1119PlayTests: XCTestCase {
         XCTAssertTrue(plain.altStations.isEmpty); XCTAssertNil(plain.perkOnly)
         XCTAssertNil(plain.nodes.first?.addressHidden); XCTAssertNil(plain.nodes.first?.perk?.included)
     }
+    // CG-01-P2-7 — evidence cards are the finished stations' solved-feedback text, in route order
+    func testEvidenceCardsComeOnlyFromFinishedStationsWithFeedback() throws {
+        let result = try JSONDecoder().decode(PlayNodesResult.self, from: Data(#"""
+        {"mode":1,"playable":true,"nodes":[
+          {"nodeId":1,"name":"钟楼","done":true,"feedbackText":" 钟停在三点 "},
+          {"nodeId":2,"name":"桥","done":true,"feedbackText":"  "},
+          {"nodeId":3,"name":"井","done":false,"feedbackText":"还没到"},
+          {"nodeId":4,"name":"门","done":true}]}
+        """#.utf8))
+        XCTAssertEqual(result.nodes[0].feedbackText, "钟停在三点"); XCTAssertNil(result.nodes[1].feedbackText)
+        let cards = PlayRunKeepsakes.evidenceCards(in: try PlaySnapshot(scope: .topic(9), result: result))
+        XCTAssertEqual(cards, [PlayEvidenceCard(id: 1, name: "钟楼", text: "钟停在三点")])
+        let malformed = try nodes("", node: #"{"nodeId":1,"done":true,"feedbackText":7,"picUrl":false}"#)
+        XCTAssertNil(malformed.nodes.first?.feedbackText); XCTAssertNil(malformed.nodes.first?.photoURL)
+    }
+
+    // CG-01-P2-6 / CG-02-P2-11 — the settlement lists the player's own photos of finished stations
+    func testRunPhotosListOnlyFinishedStationsWithAPhoto() throws {
+        let result = try JSONDecoder().decode(PlayNodesResult.self, from: Data(#"""
+        {"mode":1,"playable":true,"total":3,"doneCount":3,"nodes":[
+          {"nodeId":1,"name":"钟楼","done":true,"picUrl":"https://a.example/1.jpg"},
+          {"nodeId":2,"name":"桥","done":true,"picUrl":null},
+          {"nodeId":3,"name":"井","done":true,"picUrl":"https://a.example/3.jpg"}]}
+        """#.utf8))
+        let snapshot = try PlaySnapshot(scope: .topic(9), result: result)
+        XCTAssertEqual(snapshot.availability, .completed)
+        XCTAssertEqual(PlayRunKeepsakes.photos(in: snapshot).map(\.id), [1, 3])
+        XCTAssertEqual(PlayRunKeepsakes.photos(in: snapshot).first?.url, "https://a.example/1.jpg")
+        let open = try JSONDecoder().decode(PlayNodesResult.self, from: Data(#"{"nodes":[{"nodeId":5,"done":false,"picUrl":"https://a.example/5.jpg"}]}"#.utf8))
+        XCTAssertTrue(PlayRunKeepsakes.photos(in: try PlaySnapshot(scope: .topic(9), result: open)).isEmpty)
+    }
+
+    // FE-G7 — a perk-only theme shows no chapter progress or story ending; only explicit true counts
+    func testPerkOnlyThemeIsReadOnlyFromAnExplicitTrue() throws {
+        let node = #"{"nodeId":1,"visited":true,"storyLocked":false}"#
+        let perkOnly = try PlaySnapshot(scope: .topic(9), result: nodes(#","mode":2,"playable":true,"storyUnlocked":1,"storyTotal":1,"perkOnly":true"#, node: node))
+        let presentation = try XCTUnwrap(FreeExplorationPresentation(snapshot: perkOnly))
+        XCTAssertTrue(presentation.isPerkOnly); XCTAssertTrue(presentation.isFullyVisited)
+        for extra in ["", #","perkOnly":false"#, #","perkOnly":"true""#] {
+            let ordinary = try PlaySnapshot(scope: .topic(9), result: nodes(#","mode":2,"playable":true"# + extra, node: node))
+            XCTAssertEqual(FreeExplorationPresentation(snapshot: ordinary)?.isPerkOnly, false)
+        }
+    }
     func testArriveStartModeFieldsMatchTheOptionalParameters() throws {
         let offered = [PlayAltStation(id: 3, name: nil, longitude: nil, latitude: nil)]
         XCTAssertEqual(try PlayRunStartRequest(mode: .desk).fields, ["startMode": "DESK"])

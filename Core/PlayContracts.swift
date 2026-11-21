@@ -86,6 +86,12 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
     public let addressHidden: Bool?
     /// FE-G5 (hengyin #866): this store's perk on `/api/play/nodes`, with its display terms.
     public let perk: PlayNodePerk?
+    /// CG-01-P2-7: the station's solved-feedback text (city routes). Read back only for
+    /// finished stations as this run's evidence card; blank means no card.
+    public let feedbackText: String?
+    /// CG-01-P2-6 / CG-02-P2-11: this player's own photo for the station, as the server
+    /// returns it on `/api/play/nodes` (`picUrl`). Missing or blank means no photo.
+    public let photoURL: String?
 
     private enum CodingKeys: String, CodingKey {
         case nodeId, name, npc, address, latitude, longitude, sortId, done, arrived, selfReported, hasGame, gameDone, locked, validationMethod
@@ -94,7 +100,7 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         case players, photoRequireDesc, businessTime, openStatus, routeNodeState, lockReason
         case unlockAfterNodeId, chapterId, xp, puzzleScore, completionMode, sensorType, advancedConfigJson
         case imgHidden, visited, visitTime, visitCheck, visitRadius, storyLocked, visitedByTeam, fragmentText, cardHookLong
-        case addressHidden, perk
+        case addressHidden, perk, feedbackText, picUrl
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -144,11 +150,16 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         cardHookLong = try? c.decodeIfPresent(String.self, forKey: .cardHookLong)
         addressHidden = try? c.playBool(.addressHidden)
         perk = try? c.decodeIfPresent(PlayNodePerk.self, forKey: .perk)
+        feedbackText = (try? c.decodeIfPresent(String.self, forKey: .feedbackText)).flatMap(Self.nonBlank)
+        photoURL = (try? c.decodeIfPresent(String.self, forKey: .picUrl)).flatMap(Self.nonBlank)
         visitRadius = (try? c.playInt(.visitRadius)).flatMap { $0 > 0 ? $0 : nil }
         visitCheck = (try? c.decodeIfPresent(String.self, forKey: .visitCheck)).flatMap { PlayVisitCheck(rawValue: $0.uppercased()) }
         if let millis = try? c.decodeIfPresent(Int64.self, forKey: .visitTime), millis > 0 { visitTime = .epochMilliseconds(millis) }
         else if let text = try? c.decodeIfPresent(String.self, forKey: .visitTime), !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { visitTime = .text(text) }
         else { visitTime = nil }
+    }
+    private static func nonBlank(_ raw: String) -> String? {
+        let text = raw.trimmingCharacters(in: .whitespacesAndNewlines); return text.isEmpty ? nil : text
     }
     public var hasAdvancedPrerequisite: Bool {
         guard let advancedConfig else { return false }
