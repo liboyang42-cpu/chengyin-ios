@@ -40,7 +40,8 @@ struct ClubManagementView: View {
             } else {
                 if loading { ProgressView().accessibilityLabel(Text("club.management.loading")) }
                 if failed && denied {
-                    QuestifyNoPermissionView(titleKey: "club.management.access.denied", identifier: "club.management") { Task { await refresh() } }
+                    QuestifyNoPermissionView(titleKey: "club.management.access.denied", identifier: "club.management", actionIdentifier: "club.management.refresh",
+                                             actionDisabled: refreshDisabled) { Task { await refresh() } }
                 } else if failed {
                     Text("club.management.unavailable").foregroundStyle(.secondary)
                     if let serverReadMessage { Text(verbatim: serverReadMessage) }
@@ -74,7 +75,7 @@ struct ClubManagementView: View {
                 }
                 if !(failed && denied) {
                     Button("club.management.refresh") { Task { await refresh() } }
-                        .disabled(loading || state == .checking || state == .awaitingConfirmation || state == .submitting)
+                        .disabled(refreshDisabled)
                         .accessibilityIdentifier("club.management.refresh")
                 }
                 Text("club.management.deferred").font(.footnote).foregroundStyle(.secondary)
@@ -144,14 +145,15 @@ struct ClubManagementView: View {
                 }
             }
             if failed && denied {
-                QuestifyNoPermissionView(titleKey: "club.management.access.denied", identifier: "club.management.detail") { Task { await refresh() } }
+                QuestifyNoPermissionView(titleKey: "club.management.access.denied", identifier: "club.management.detail", actionIdentifier: "club.management.detail.refresh",
+                                         actionDisabled: refreshDisabled) { Task { await refresh() } }
             } else {
                 if failed {
                     Text("club.management.unavailable")
                     if let serverReadMessage { Text(verbatim: serverReadMessage) }
                 }
                 Button("club.management.refresh") { Task { await refresh() } }
-                    .disabled(loading || state == .checking || state == .awaitingConfirmation || state == .submitting)
+                    .disabled(refreshDisabled)
                     .accessibilityIdentifier("club.management.detail.refresh")
             }
         }
@@ -163,6 +165,7 @@ struct ClubManagementView: View {
         .onChange(of: readContext) { _, _ in invalidateDetailContext() }
         .onDisappear { leaveScreen() }
     }
+    private var refreshDisabled: Bool { loading || state == .checking || state == .awaitingConfirmation || state == .submitting }
     private func invalidateDetailContext() {
         guard screenIdentity != identity || screenRevision != viewerRevision else { return }
         // Fence cancellation-ignoring completions and cancel only undispatched review.

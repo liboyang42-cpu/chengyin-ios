@@ -27,6 +27,10 @@ import SwiftUI
     let titleKey: LocalizedStringKey
     var actionKey: LocalizedStringKey = "access.recheck"
     let identifier: String
+    /// The single action keeps the identifier the screen's own refresh / retry control already had,
+    /// so the one way forward stays the same control in every state (defaults to `<identifier>.access`).
+    var actionIdentifier: String? = nil
+    var actionDisabled = false
     let action: () -> Void
     var body: some View {
         ContentUnavailableView {
@@ -34,7 +38,8 @@ import SwiftUI
         } actions: {
             Button(actionKey, action: action)
                 .buttonStyle(.borderedProminent)
-                .accessibilityIdentifier(identifier + ".access")
+                .disabled(actionDisabled)
+                .accessibilityIdentifier(actionIdentifier ?? identifier + ".access")
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .contain)
