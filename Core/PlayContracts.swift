@@ -67,8 +67,12 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
     /// Retain unknown configuration rather than silently bypassing its prerequisite.
     public let advancedConfig: PlayJSONValue?
     /// F07: a later city-route station not yet reached arrives with `imgUrl: null` and
-    /// `imgHidden: true`. Any future station image shows a neutral silhouette instead.
+    /// `imgHidden: true`; its image then comes from `PlayStationImageResolver` (chapter → route → texture).
     public let imgHidden: Bool?
+    /// Station photo (`imgUrl`, may be a comma list). Nil when absent, malformed or F07-hidden.
+    public let imageURL: String?
+    /// The station game's template story image (`storyImg`), the only game cover on the wire.
+    public let storyImage: String?
     /// FE-STORY (mode 2 only). Missing or malformed values stay nil; see `PlaySnapshot.isStoryLocked`.
     public let visited: Bool?
     public let visitTime: PlayVisitTime?
@@ -94,7 +98,7 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         case players, photoRequireDesc, businessTime, openStatus, routeNodeState, lockReason
         case unlockAfterNodeId, chapterId, xp, puzzleScore, completionMode, sensorType, advancedConfigJson
         case imgHidden, visited, visitTime, visitCheck, visitRadius, storyLocked, visitedByTeam, fragmentText, cardHookLong
-        case addressHidden, perk
+        case addressHidden, perk, imgUrl, storyImg
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -137,6 +141,8 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         advancedConfig = try c.decodeIfPresent(PlayJSONValue.self, forKey: .advancedConfigJson)
         // Additive fields never fail an otherwise valid read: malformed means unknown.
         imgHidden = try? c.playBool(.imgHidden)
+        imageURL = (try? c.decodeIfPresent(String.self, forKey: .imgUrl)) ?? nil
+        storyImage = (try? c.decodeIfPresent(String.self, forKey: .storyImg)) ?? nil
         visited = try? c.playBool(.visited)
         storyLocked = try? c.playBool(.storyLocked)
         visitedByTeam = try? c.playBool(.visitedByTeam)
@@ -176,7 +182,9 @@ public struct PlayChapter: Decodable, Equatable, Identifiable {
     public let audioURL: String?
     /// FE-STORY mode 2 only: every place in this chapter is still unvisited. Missing stays nil.
     public let chapterLocked: Bool?
-    private enum CodingKeys: String, CodingKey { case chapterId, name, description, audioUrl, chapterLocked }
+    /// Chapter images (`imgArr`: comma text, JSON array text or array). Malformed stays empty.
+    public let images: [String]
+    private enum CodingKeys: String, CodingKey { case chapterId, name, description, audioUrl, chapterLocked, imgArr }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         guard let id = try c.playInt(.chapterId), id > 0 else { throw APIError.malformedResponse }
@@ -184,6 +192,7 @@ public struct PlayChapter: Decodable, Equatable, Identifiable {
         description = try c.decodeIfPresent(String.self, forKey: .description)
         audioURL = try c.decodeIfPresent(String.self, forKey: .audioUrl)
         chapterLocked = try? c.playBool(.chapterLocked)
+        images = PlayStationImageResolver.list((try? c.decodeIfPresent(PlayWireValue.self, forKey: .imgArr)) ?? nil)
     }
 }
 
@@ -234,6 +243,8 @@ public struct PlayNodesResult: Decodable, Equatable {
     public let topicID: Int?
     public let topicName: String?
     public let topicDescription: String?
+    /// Route cover (topic `imgUrl`), the station image chain's last real image.
+    public let topicCover: String?
     public let mode: Int?
     public let playable: Bool?
     public let registered: Bool?
@@ -261,13 +272,14 @@ public struct PlayNodesResult: Decodable, Equatable {
     private enum CodingKeys: String, CodingKey {
         case topicId, topicName, topicDesc, mode, playable, registered, leadSpectator, selfPlay, total, doneCount
         case timeNote, expiresAt, nodes, chapters, routeState, eggs, storyUnlocked, storyTotal
-        case runStartMode, altStations, perkOnly
+        case runStartMode, altStations, perkOnly, topicCover
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         eggs = JourneyEgg.project((try? c.decode(PlayWireValue.self, forKey: .eggs)) ?? .null)
         topicID = try c.playInt(.topicId); topicName = try c.decodeIfPresent(String.self, forKey: .topicName)
         topicDescription = try c.decodeIfPresent(String.self, forKey: .topicDesc)
+        topicCover = (try? c.decodeIfPresent(String.self, forKey: .topicCover)) ?? nil
         mode = try c.playInt(.mode); playable = try c.playBool(.playable)
         registered = try? c.decode(Bool.self, forKey: .registered); selfPlay = try c.playBool(.selfPlay)
         leadSpectator = try c.decodeIfPresent(Bool.self, forKey: .leadSpectator)

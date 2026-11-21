@@ -180,13 +180,18 @@ import SwiftUI
                 Section("playx.nodes") {
                     ForEach(model.snapshot?.visibleNodes ?? []) { node in
                         Button { selectedNode = node.id } label: {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(verbatim: node.name ?? "#\(node.id)").font(.headline)
-                                Text(LocalizedStringKey("playx.task." + PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node).rawValue))
-                                    .foregroundStyle(.secondary)
-                                if let snapshot = model.snapshot { PlayTaskStatusBadge(node: node, snapshot: snapshot) }
-                                if let reason = model.snapshot?.lockReason(node) { Text(verbatim: reason).font(.footnote) }
-                            }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 4)
+                            HStack(alignment: .top, spacing: 12) {
+                                PlayStationArtwork(image: model.snapshot.map { PlayStationImageResolver.station(for: node, in: $0.result) } ?? .texture,
+                                                   aspectRatio: 1, cornerRadius: 10, loads: model.hasCurrentMediaSnapshot)
+                                    .frame(width: 56)
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text(verbatim: node.name ?? "#\(node.id)").font(.headline)
+                                    Text(LocalizedStringKey("playx.task." + PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node).rawValue))
+                                        .foregroundStyle(.secondary)
+                                    if let snapshot = model.snapshot { PlayTaskStatusBadge(node: node, snapshot: snapshot) }
+                                    if let reason = model.snapshot?.lockReason(node) { Text(verbatim: reason).font(.footnote) }
+                                }.frame(maxWidth: .infinity, alignment: .leading)
+                            }.padding(.vertical, 4)
                         }.accessibilityIdentifier("playx.node.\(node.id)")
                     }
                 }
@@ -353,6 +358,11 @@ import SwiftUI
                     }.accessibilityIdentifier("journey.record.open.questions.\(nodeID)")
                 }
                 Section {
+                    if let snapshot = model.snapshot {
+                        PlayStationArtwork(image: PlayStationImageResolver.station(for: node, in: snapshot.result),
+                                           loads: model.hasCurrentMediaSnapshot)
+                            .listRowInsets(EdgeInsets()).accessibilityIdentifier("playx.node.image")
+                    }
                     Text(verbatim: node.name ?? "#\(node.id)").font(.title2.bold())
                     if let body = node.storyText ?? node.description { Text(verbatim: body) }
                     if let instructions = node.ruleInstructions { Text(verbatim: instructions) }
