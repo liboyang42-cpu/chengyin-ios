@@ -39,7 +39,10 @@ import XCTest
         h.time.addTimeInterval(2); await flow.transmit(reviewID: review.id); XCTAssertEqual(h.wire.requests.count, 1)
         h.time.addTimeInterval(4); XCTAssertTrue(flow.canConfirmPending)
         h.wire.changes = [:]; await flow.transmit(reviewID: review.id)
-        XCTAssertEqual(h.wire.requests.count, 2); XCTAssertEqual(h.wire.requests[0].body, h.wire.requests[1].body)
+        XCTAssertEqual(h.wire.requests.count, 2)
+        // Same request content on retry; compare decoded JSON because dictionary key order is not stable byte-for-byte.
+        let first = h.wire.requests[0].body, second = h.wire.requests[1].body
+        XCTAssertEqual(try JSONSerialization.jsonObject(with: first) as? NSDictionary, try JSONSerialization.jsonObject(with: second) as? NSDictionary)
         XCTAssertNil(flow.pending); XCTAssertEqual(flow.messages.count, 2); XCTAssertNil(flow.serviceNotice)
     }
     func testRetryableFailedOutcomeDoesNotBecomeAnAIAnswer() async throws {
