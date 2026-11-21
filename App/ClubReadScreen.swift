@@ -64,7 +64,7 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
     }
     @ViewBuilder private func issueView(_ issue: ClubLoadIssue) -> some View {
         if issue.isForbidden {
-            QuestifyNoPermissionView(titleKey: "club.access.denied", identifier: accessibilityPrefix, actionIdentifier: accessibilityPrefix + ".retry") { Task { await reload() } }
+            QuestifyNoPermissionView(titleKey: "club.access.denied", identifier: accessibilityPrefix, actionSuffix: ".retry") { Task { await reload() } }
         } else {
         ContentUnavailableView {
             Label {

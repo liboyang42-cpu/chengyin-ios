@@ -40,7 +40,7 @@ struct ClubManagementView: View {
             } else {
                 if loading { ProgressView().accessibilityLabel(Text("club.management.loading")) }
                 if failed && denied {
-                    QuestifyNoPermissionView(titleKey: "club.management.access.denied", identifier: "club.management", actionIdentifier: "club.management.refresh",
+                    QuestifyNoPermissionView(titleKey: "club.management.access.denied", identifier: "club.management", actionSuffix: ".refresh",
                                              actionDisabled: refreshDisabled) { Task { await refresh() } }
                 } else if failed {
                     Text("club.management.unavailable").foregroundStyle(.secondary)
@@ -145,7 +145,7 @@ struct ClubManagementView: View {
                 }
             }
             if failed && denied {
-                QuestifyNoPermissionView(titleKey: "club.management.access.denied", identifier: "club.management.detail", actionIdentifier: "club.management.detail.refresh",
+                QuestifyNoPermissionView(titleKey: "club.management.access.denied", identifier: "club.management.detail", actionSuffix: ".refresh",
                                          actionDisabled: refreshDisabled) { Task { await refresh() } }
             } else {
                 if failed {

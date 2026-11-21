@@ -29,7 +29,7 @@ import SwiftUI
     let identifier: String
     /// The single action keeps the identifier the screen's own refresh / retry control already had,
     /// so the one way forward stays the same control in every state (defaults to `<identifier>.access`).
-    var actionIdentifier: String? = nil
+    var actionSuffix = ".access"
     var actionDisabled = false
     let action: () -> Void
     var body: some View {
@@ -39,7 +39,7 @@ import SwiftUI
             Button(actionKey, action: action)
                 .buttonStyle(.borderedProminent)
                 .disabled(actionDisabled)
-                .accessibilityIdentifier(actionIdentifier ?? identifier + ".access")
+                .accessibilityIdentifier(identifier + actionSuffix)
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .contain)
