@@ -1514,5 +1514,17 @@
   "playx.preference.done": {
     "en": "Return to journey",
     "zh-Hans": "返回旅程"
+  },
+  "playx.evidence.title": {
+    "en": "Evidence cards",
+    "zh-Hans": "证据卡"
+  },
+  "playx.evidence.empty": {
+    "en": "No evidence cards yet",
+    "zh-Hans": "还没有证据卡"
+  },
+  "playx.photos.title": {
+    "en": "Photos from this run",
+    "zh-Hans": "本局照片"
   }
 }
