@@ -140,7 +140,12 @@ struct ClubOwnerFundsSection: View {
             Button("club.ownerFunds.contact") {
                 let revision = workflow.revision
                 Task { await workflow.openContact(target: target, access: access, context: context, sourceIsCurrent: sourceIsCurrent, expectedGeneration: revision) }
-            }.disabled(!current || workflow.loading || workflow.availability != .positive || context.support == nil)
+            }
+                // A greyed contact button says why on tap, in the same words as the note above it.
+                .disabledExplained(workflow.availability == .positive ? nil
+                                       : LocalizedStringKey(workflow.availability == .zero ? "club.ownerFunds.zero" : "club.ownerFunds.unknown"),
+                                   otherwise: !current || workflow.loading || context.support == nil,
+                                   identifier: "club.ownerFunds.contact")
                 .accessibilityIdentifier("club.ownerFunds.contact")
             }
             Button("wallet.retry") {

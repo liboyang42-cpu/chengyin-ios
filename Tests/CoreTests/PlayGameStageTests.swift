@@ -9,20 +9,30 @@ final class PlayGameStageTests: XCTestCase {
     }
 
     func testStationNumberNameChapterAndLeadComeFromTheRouteRead() throws {
-        let route = try nodes(#"[{"nodeId":11,"name":"钟楼","sortId":1,"chapterId":3},{"nodeId":12,"name":" 老邮局 ","sortId":2,"chapterId":3,"hookText":"\n  信封上的邮戳还是热的。\n第二行不显示"}]"#)
+        let route = try nodes(#"[{"nodeId":11,"name":"钟楼","sortId":1,"chapterId":3,"latitude":31.2,"longitude":121.4},{"nodeId":12,"name":" 老邮局 ","sortId":2,"chapterId":3,"latitude":31.3,"longitude":121.5,"hookText":"\n  信封上的邮戳还是热的。\n第二行不显示"}]"#)
         let story = try chapters(#"[{"chapterId":3,"name":"第一章 · 雾起"}]"#)
         let stage = try XCTUnwrap(PlayGameStage.resolve(nodeID: 12, nodes: route, chapters: story))
         XCTAssertEqual(stage.ordinal, 2)
         XCTAssertEqual(stage.stationName, "老邮局")
         XCTAssertEqual(stage.chapterTitle, "第一章 · 雾起")
         XCTAssertEqual(stage.lead, "信封上的邮戳还是热的。")
+        XCTAssertEqual(stage.title, "老邮局")
         XCTAssertFalse(stage.isEmpty)
     }
 
+    /// Hengyin #886: route 9914701 stop 4 read 「第2站」 because the number restarted per chapter.
+    func testStationNumberIsRouteWideAcrossChaptersAndCountsPlacesOnly() throws {
+        let route = try nodes(#"[{"nodeId":1,"chapterId":1,"latitude":31.1,"longitude":121.1},{"nodeId":2,"chapterId":1,"latitude":31.2,"longitude":121.2},{"nodeId":3,"chapterId":1},{"nodeId":4,"chapterId":2,"latitude":31.3,"longitude":121.3},{"nodeId":5,"chapterId":2,"latitude":31.4,"longitude":121.4}]"#)
+        XCTAssertEqual(PlayGameStage.stationNumber(nodeID: 5, nodes: route), 4)
+        XCTAssertEqual(PlayGameStage.stationNumber(nodeID: 4, nodes: route, mode: 1), 3)
+        XCTAssertNil(PlayGameStage.stationNumber(nodeID: 3, nodes: route), "a story-only game has no place number")
+        XCTAssertNil(PlayGameStage.stationNumber(nodeID: 5, nodes: route, mode: 2), "free exploration is not numbered")
+    }
+
     func testSortIDOrdersStationsOnlyWhenEveryStationHasOne() throws {
-        let sorted = try nodes(#"[{"nodeId":1,"sortId":3},{"nodeId":2,"sortId":1},{"nodeId":3,"sortId":2}]"#)
+        let sorted = try nodes(#"[{"nodeId":1,"sortId":3,"latitude":1,"longitude":1},{"nodeId":2,"sortId":1,"latitude":1,"longitude":1},{"nodeId":3,"sortId":2,"latitude":1,"longitude":1}]"#)
         XCTAssertEqual(PlayGameStage.resolve(nodeID: 1, nodes: sorted)?.ordinal, 3)
-        let partial = try nodes(#"[{"nodeId":1,"sortId":3},{"nodeId":2},{"nodeId":3,"sortId":2}]"#)
+        let partial = try nodes(#"[{"nodeId":1,"sortId":3,"latitude":1,"longitude":1},{"nodeId":2,"latitude":1,"longitude":1},{"nodeId":3,"sortId":2,"latitude":1,"longitude":1}]"#)
         XCTAssertEqual(PlayGameStage.resolve(nodeID: 1, nodes: partial)?.ordinal, 1)
     }
 
@@ -30,9 +40,32 @@ final class PlayGameStageTests: XCTestCase {
         let route = try nodes(#"[{"nodeId":5,"name":"  ","hookText":"   "}]"#)
         let stage = try XCTUnwrap(PlayGameStage.resolve(nodeID: 5, nodes: route, chapterTitle: "雨夜"))
         XCTAssertEqual(stage.chapterTitle, "雨夜")
-        XCTAssertNil(stage.stationName); XCTAssertNil(stage.lead)
+        XCTAssertNil(stage.stationName); XCTAssertNil(stage.lead); XCTAssertNil(stage.title)
         XCTAssertNil(PlayGameStage.resolve(nodeID: 99, nodes: route))
         XCTAssertTrue(PlayGameStage(ordinal: 0, stationName: nil, chapterTitle: " ", lead: nil).isEmpty)
+    }
+
+    func testTitleIsWrittenOnceWithoutRoutePrefixOrLevelNumber() throws {
+        XCTAssertEqual(PlayGameStage.displayTitle("雾港旧事 · 第3关：钟楼谜题"), "钟楼谜题")
+        XCTAssertEqual(PlayGameStage.displayTitle("第2关 老邮局"), "老邮局")
+        XCTAssertEqual(PlayGameStage.displayTitle("1 · 老门"), "老门")
+        XCTAssertEqual(PlayGameStage.displayTitle("第3关"), "第3关", "cleaning never empties a title")
+        XCTAssertNil(PlayGameStage.displayTitle("  "))
+        let route = try nodes(#"[{"nodeId":7,"name":"钟楼（守钟人 · 老街）","gameTitle":"雾港旧事 · 第4关：钟声","latitude":1,"longitude":1}]"#)
+        let stage = try XCTUnwrap(PlayGameStage.resolve(nodeID: 7, nodes: route))
+        XCTAssertEqual(stage.title, "钟声")
+        XCTAssertNil(stage.stationLabel(besides: stage.title), "a numbered station shows 「第N站」, not its name")
+        let unnumbered = try XCTUnwrap(PlayGameStage.resolve(nodeID: 7, nodes: route, mode: 2))
+        XCTAssertEqual(unnumbered.stationLabel(besides: "钟声"), "钟楼（守钟人 · 老街）")
+        XCTAssertNil(unnumbered.stationLabel(besides: "钟楼"), "the same station is never written twice")
+    }
+
+    func testRouteReadGivesTheStationImageChainAsHero() throws {
+        let result = try JSONDecoder().decode(PlayNodesResult.self, from: Data(#"{"mode":1,"topicCover":"media-asset:756","chapters":[{"chapterId":3,"name":"那算了","blocks":[{"type":"text","text":"…"},{"type":"image","url":"https://x.example/b.jpg"}]}],"nodes":[{"nodeId":4,"chapterId":3,"latitude":1,"longitude":1}]}"#.utf8))
+        let stage = try XCTUnwrap(PlayGameStage.resolve(nodeID: 4, in: result))
+        XCTAssertEqual(stage.image, PlayStationImage(source: "https://x.example/b.jpg", tier: .chapter))
+        XCTAssertEqual(stage.ordinal, 1)
+        XCTAssertEqual(stage.chapterTitle, "那算了")
     }
 
     func testOutcomeMirrorsAuthoritativeResultRules() throws {

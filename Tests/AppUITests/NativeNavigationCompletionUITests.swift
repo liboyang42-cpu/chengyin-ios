@@ -11,8 +11,9 @@ final class NativeNavigationCompletionUITests: XCTestCase {
     func testGlobalFallbackHasHomeAndCloseWithoutRawRoute() {
         let app = launch("error")
         XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "nativeNav.error").firstMatch.waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["nativeNav.error.close"].exists)
-        XCTAssertTrue(app.buttons["nativeNav.error.home"].exists)
+        // Hengyin #888: the shared 「链接已失效 · 返回」 state — one way back, no second action.
+        XCTAssertTrue(app.buttons["nativeNav.error.back"].exists)
+        XCTAssertFalse(app.buttons["nativeNav.error.home"].exists)
         XCTAssertFalse(app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'GoException'")).firstMatch.exists)
     }
     func testCouponReviewPrecedesSyntheticQRCode() {

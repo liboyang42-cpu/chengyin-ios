@@ -31,7 +31,7 @@ import SwiftUI
             Group {
                 switch entry.intent {
                 case .routeError(let failure):
-                    NativeRouteErrorView(failure: failure, goHome: { session.dismissNativeEntry(); goHome() })
+                    NativeRouteErrorView(failure: failure, back: { session.dismissNativeEntry() })
                 case .badge(let parameters):
                     ObjectBadgeRoutePreview(parameters: parameters, expectedScope: entry.id, currentScope: { session.nativeEntry?.id ?? UUID() })
                 case .teamInvitation(let route):

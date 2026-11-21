@@ -15,7 +15,9 @@ public struct PlayStationImage: Equatable {
 }
 
 /// One shared station image chain (hengyin `utils/station-image.js` uses the same order):
-/// station imgUrl → the station's chapter first image (img_arr) → route cover (topic imgUrl) → texture.
+/// station imgUrl → the station's chapter image (img_arr → chapter cover → first story image block)
+/// → route cover (topic imgUrl) → texture. Only resolved addresses count: an author media reference
+/// such as `media-asset:756` cannot be displayed, so the chain skips it and moves on.
 /// A game thumbnail tries the game cover first, then the same station chain.
 /// F07: a later station's photo arrives as `imgUrl: null`, so it falls to the chapter or route
 /// cover, both already public on the play screen; the hidden station photo is never revealed.
@@ -53,15 +55,33 @@ public enum PlayStationImageResolver {
 
     public static func first(_ text: String?) -> String? { list(text).first }
 
+    /// A resolved http(s) address. Author references (`media-asset:N`), relative paths and
+    /// other unresolved values are not images the app can show.
+    public static func isDisplayable(_ source: String?) -> Bool {
+        guard let value = source?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(), !value.isEmpty else { return false }
+        return (value.hasPrefix("https://") || value.hasPrefix("http://")) && value.count > 8
+    }
+
+    /// First displayable entry of an image field.
+    public static func firstDisplayable(_ text: String?) -> String? { list(text).first { isDisplayable($0) } }
+
+    /// The first `{type:"image", url}` block with a displayable address.
+    public static func firstBlockImage(_ blocks: PlayWireValue?) -> String? {
+        for block in blocks?.array ?? [] where block["type"].text == "image" {
+            if let url = block["url"].text?.trimmingCharacters(in: .whitespacesAndNewlines), isDisplayable(url) { return url }
+        }
+        return nil
+    }
+
     public static func station(stationImage: String?, chapterImages: [String], routeCover: String?) -> PlayStationImage {
-        if let image = first(stationImage) { return .init(source: image, tier: .station) }
-        if let image = chapterImages.first(where: { !$0.isEmpty }) { return .init(source: image, tier: .chapter) }
-        if let image = first(routeCover) { return .init(source: image, tier: .route) }
+        if let image = firstDisplayable(stationImage) { return .init(source: image, tier: .station) }
+        if let image = chapterImages.first(where: { isDisplayable($0) }) { return .init(source: image, tier: .chapter) }
+        if let image = firstDisplayable(routeCover) { return .init(source: image, tier: .route) }
         return .texture
     }
 
     public static func game(gameCover: String?, stationImage: String?, chapterImages: [String], routeCover: String?) -> PlayStationImage {
-        if let image = first(gameCover) { return .init(source: image, tier: .game) }
+        if let image = firstDisplayable(gameCover) { return .init(source: image, tier: .game) }
         return station(stationImage: stationImage, chapterImages: chapterImages, routeCover: routeCover)
     }
 
@@ -78,7 +98,8 @@ public enum PlayStationImageResolver {
 
     static func chapterImages(for node: PlayNode, in result: PlayNodesResult) -> [String] {
         guard let chapterID = node.chapterID else { return [] }
-        return result.chapters.first(where: { $0.id == chapterID })?.images ?? []
+        guard let chapter = result.chapters.first(where: { $0.id == chapterID }) else { return [] }
+        return chapter.images + [chapter.cover, chapter.storyImage].compactMap { $0 }
     }
 
     /// Own-origin images were historically stored as http://; upgrade only those two hosts,

@@ -166,9 +166,9 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
         }
     }
     @ViewBuilder private var header: some View {
-        if let stage { PlayGameStageHeader(stage: stage) }
-        if !projection.title.isEmpty {
-            Text(verbatim: projection.title).font(presentation == .inline ? .title2.bold() : .largeTitle.bold())
+        if let stage { PlayGameStageHeader(stage: stage, pageTitle: projection.title) }
+        if let title = PlayGameStage.displayTitle(projection.title) {
+            Text(verbatim: title).font(presentation == .inline ? .title2.bold() : .largeTitle.bold())
                 .fixedSize(horizontal: false, vertical: true)
         }
         ForEach(["lead", "prompt", "hint", "sub"], id: \.self) { key in

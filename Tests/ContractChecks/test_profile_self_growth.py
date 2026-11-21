@@ -25,7 +25,7 @@ class ProfileSelfGrowthSourceChecks(unittest.TestCase):
  def test_no_direct_endpoint_write_or_storage(self):
   for term in ['api/','URLSession','HTTPTransport','AuthRequestBuilder','UserDefaults','save(','token']:self.assertNotIn(term,self.core)
  def test_six_exact_metric_sources(self):
-  for term in ['progress?.level ?? center?.level','center?.experience','center?.points','progress?.totalCheckins','progress?.totalMileage','progress?.streakDays']:self.assertIn(term,self.core)
+  for term in ['nonnegative(center?.level)','center?.experience','center?.points','progress?.totalCheckins','progress?.totalMileage','progress?.streakDays']:self.assertIn(term,self.core)
  def test_unknown_not_zero_and_no_rank_substitution(self):
   summary=self.core.split('public struct ProfileSelfGrowthSummary')[1]
   self.assertNotIn('?? 0',summary);self.assertNotIn('overview.rank',summary);self.assertNotIn('board.me.score',summary)

@@ -39,8 +39,10 @@ struct ClubManagementView: View {
                 Text("club.management.unconfigured")
             } else {
                 if loading { ProgressView().accessibilityLabel(Text("club.management.loading")) }
-                if failed {
-                    Text(LocalizedStringKey(denied ? "club.management.denied" : "club.management.unavailable")).foregroundStyle(.secondary)
+                if failed && denied {
+                    QuestifyNoPermissionView(titleKey: "club.management.access.denied", identifier: "club.management") { Task { await refresh() } }
+                } else if failed {
+                    Text("club.management.unavailable").foregroundStyle(.secondary)
                     if let serverReadMessage { Text(verbatim: serverReadMessage) }
                 }
                 status
@@ -70,9 +72,11 @@ struct ClubManagementView: View {
                         }
                     }
                 }
-                Button("club.management.refresh") { Task { await refresh() } }
-                    .disabled(loading || state == .checking || state == .awaitingConfirmation || state == .submitting)
-                    .accessibilityIdentifier("club.management.refresh")
+                if !(failed && denied) {
+                    Button("club.management.refresh") { Task { await refresh() } }
+                        .disabled(loading || state == .checking || state == .awaitingConfirmation || state == .submitting)
+                        .accessibilityIdentifier("club.management.refresh")
+                }
                 Text("club.management.deferred").font(.footnote).foregroundStyle(.secondary)
             }
         }
@@ -139,13 +143,17 @@ struct ClubManagementView: View {
                     }
                 }
             }
-            if failed {
-                Text(LocalizedStringKey(denied ? "club.management.denied" : "club.management.unavailable"))
-                if let serverReadMessage { Text(verbatim: serverReadMessage) }
+            if failed && denied {
+                QuestifyNoPermissionView(titleKey: "club.management.access.denied", identifier: "club.management.detail") { Task { await refresh() } }
+            } else {
+                if failed {
+                    Text("club.management.unavailable")
+                    if let serverReadMessage { Text(verbatim: serverReadMessage) }
+                }
+                Button("club.management.refresh") { Task { await refresh() } }
+                    .disabled(loading || state == .checking || state == .awaitingConfirmation || state == .submitting)
+                    .accessibilityIdentifier("club.management.detail.refresh")
             }
-            Button("club.management.refresh") { Task { await refresh() } }
-                .disabled(loading || state == .checking || state == .awaitingConfirmation || state == .submitting)
-                .accessibilityIdentifier("club.management.detail.refresh")
         }
         .appNavigationTitle(key: {
             switch selected { case .request: return "club.management.request"; case .member: return "club.management.member" }

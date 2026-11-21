@@ -185,6 +185,11 @@ public enum GrowthCenterFormatting {
         guard let date = formatter.date(from: value), formatter.string(from: date) == value else { return nil }
         return String(value.prefix(16)).replacingOccurrences(of: "T", with: " ")
     }
+    /// The earned date shown on a badge row, 「2026.09.01」. Nil whenever the moment is not a valid China-time stamp.
+    public static func badgeDate(_ value: String?) -> String? {
+        guard let moment = badgeMoment(value) else { return nil }
+        return String(moment.prefix(10)).replacingOccurrences(of: "-", with: ".")
+    }
 }
 private extension KeyedDecodingContainer {
     func growthInteger(_ key: Key) throws -> Int? {

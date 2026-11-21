@@ -62,7 +62,10 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
             isLoading = false
         }
     }
-    private func issueView(_ issue: ClubLoadIssue) -> some View {
+    @ViewBuilder private func issueView(_ issue: ClubLoadIssue) -> some View {
+        if issue.isForbidden {
+            QuestifyNoPermissionView(titleKey: "club.access.denied", identifier: accessibilityPrefix) { Task { await reload() } }
+        } else {
         ContentUnavailableView {
             Label {
                 Text(LocalizedStringKey(issue.titleKey)).accessibilityIdentifier(accessibilityPrefix + ".error")
@@ -76,6 +79,7 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
             } else if issue.canRetry {
                 Button("action.retry") { Task { await reload() } }.accessibilityIdentifier(accessibilityPrefix + ".retry")
             }
+        }
         }
     }
     private func reload() async {
@@ -105,11 +109,13 @@ private struct ClubLoadIssue {
     let message: String?
     let needsSignIn: Bool
     let canRetry: Bool
+    let isForbidden: Bool
     init(_ error: Error) {
         let failure = error as? ClubReadFailure
         message = failure?.message.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
         needsSignIn = failure?.isUnauthorized == true || error as? APIError == .unauthorized
         canRetry = !needsSignIn && error as? APIError != .notConfigured
+        isForbidden = !needsSignIn && failure?.isForbidden == true
         if needsSignIn { titleKey = "club.signInRequired"; hintKey = "club.signInHint" }
         else if failure?.isForbidden == true { titleKey = "club.accessDenied"; hintKey = "club.accessDeniedHint" }
         else if failure == .membershipRequired { titleKey = "club.membersUnavailable"; hintKey = "club.joinToSeeMembers" }

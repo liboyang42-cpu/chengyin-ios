@@ -67,7 +67,9 @@ public struct ProfileSelfGrowthSummary: Equatable {
     public let progressIssue: GrowthCenterIssue?
     public init(_ overview: GrowthCenterOverview) {
         let center = overview.center.value, progress = overview.progress.value
-        level = GrowthCenterFormatting.nonnegative(progress?.level ?? center?.level).map { max(1, $0) }
+        // Hengyin #888: the level is the growth center's levelNo (computed server-side from growth_level_config);
+        // play progress `level` is a check-in tier and never stands in for it.
+        level = GrowthCenterFormatting.nonnegative(center?.level).map { max(1, $0) }
         experience = GrowthCenterFormatting.nonnegative(center?.experience)
         points = GrowthCenterFormatting.nonnegative(center?.points)
         checkins = GrowthCenterFormatting.nonnegative(progress?.totalCheckins)

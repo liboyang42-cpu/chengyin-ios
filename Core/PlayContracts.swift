@@ -184,7 +184,11 @@ public struct PlayChapter: Decodable, Equatable, Identifiable {
     public let chapterLocked: Bool?
     /// Chapter images (`imgArr`: comma text, JSON array text or array). Malformed stays empty.
     public let images: [String]
-    private enum CodingKeys: String, CodingKey { case chapterId, name, description, audioUrl, chapterLocked, imgArr }
+    /// Chapter cover, when the read carries one. Malformed stays nil.
+    public let cover: String?
+    /// The first image block of the chapter story (`blocks[{type:"image",url}]`). Nil when absent or malformed.
+    public let storyImage: String?
+    private enum CodingKeys: String, CodingKey { case chapterId, name, description, audioUrl, chapterLocked, imgArr, cover, blocks }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         guard let id = try c.playInt(.chapterId), id > 0 else { throw APIError.malformedResponse }
@@ -193,6 +197,8 @@ public struct PlayChapter: Decodable, Equatable, Identifiable {
         audioURL = try c.decodeIfPresent(String.self, forKey: .audioUrl)
         chapterLocked = try? c.playBool(.chapterLocked)
         images = PlayStationImageResolver.list((try? c.decodeIfPresent(PlayWireValue.self, forKey: .imgArr)) ?? nil)
+        cover = PlayStationImageResolver.first((try? c.decodeIfPresent(String.self, forKey: .cover)) ?? nil)
+        storyImage = PlayStationImageResolver.firstBlockImage((try? c.decodeIfPresent(PlayWireValue.self, forKey: .blocks)) ?? nil)
     }
 }
 

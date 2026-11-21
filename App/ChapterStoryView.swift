@@ -166,7 +166,7 @@ import UIKit
                     dirty: { value in if value { dirtyNodes.insert(id) } else { dirtyNodes.remove(id) } })
                 }.id(id)
                 .environment(\.playGameStage, model.snapshot.flatMap {
-                    PlayGameStage.resolve(nodeID: id, nodes: $0.result.nodes, chapters: $0.result.chapters, chapterTitle: chapter?.title)
+                    PlayGameStage.resolve(nodeID: id, in: $0.result, chapterTitle: chapter?.title)
                 })
             } else {
                 NavigationLink { nodeDestination(id) } label: { Label("chapterStory.play", systemImage: "play.circle") }

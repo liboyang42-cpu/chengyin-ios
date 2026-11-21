@@ -34,7 +34,7 @@ import XCTest
         .init(.init(center:.content(try JSONDecoder().decode(GrowthCenterRecord.self,from:Data(center.utf8))),progress:.content(try JSONDecoder().decode(GrowthPlayProgress.self,from:Data(progress.utf8))),completed:.failure(.failed),rank:.failure(.failed)))
     }
     private func waitPending() async { for _ in 0..<100 where reader.pending == nil {await Task.yield()};XCTAssertNotNil(reader.pending) }
-    func testSixMetricsUseExactSourceValues() throws { let s=try summary();XCTAssertEqual(s.level,4);XCTAssertEqual(s.experience,2450);XCTAssertEqual(s.points,700);XCTAssertEqual(s.checkins,12);XCTAssertEqual(s.mileage,13.45);XCTAssertEqual(s.streakDays,2) }
+    func testSixMetricsUseExactSourceValues() throws { let s=try summary();XCTAssertEqual(s.level,3, "levelNo, not the play check-in tier");XCTAssertEqual(s.experience,2450);XCTAssertEqual(s.points,700);XCTAssertEqual(s.checkins,12);XCTAssertEqual(s.mileage,13.45);XCTAssertEqual(s.streakDays,2) }
     func testKnownZeroIsPreservedInsteadOfUnknown() throws {
         let s=try summary(center:#"{"growth":{"levelNo":0,"expValue":0},"points":0,"badges":[],"missions":[]}"#,progress:#"{"level":0,"totalCheckins":0,"totalMileage":0,"streakDays":0}"#)
         XCTAssertEqual(s.level,1);XCTAssertEqual(s.points,0);XCTAssertEqual(s.mileage,0);XCTAssertEqual(s.checkins,0)
