@@ -36,6 +36,8 @@ struct PlayNodeDetailView: View {
         let selectedAnswer = model.acceptedChoice(for: nodeID) ?? answer
         return Form {
             Section {
+                PlayStationArtwork(image: PlayStationImageResolver.station(for: node, in: snapshot.result))
+                    .listRowInsets(EdgeInsets()).accessibilityIdentifier("play.node.image")
                 if let name = node.name, !name.isEmpty { Text(verbatim: name).font(.title2.bold()) }
                 else { Text("play.node.untitled").font(.title2.bold()) }
                 if let address = node.address, !address.isEmpty {
@@ -62,7 +64,11 @@ struct PlayNodeDetailView: View {
                 }
                 if let title = node.gameTitle, !title.isEmpty {
                     Section("play.task") {
-                        Text(verbatim: title).font(.headline)
+                        HStack(spacing: 12) {
+                            PlayStationArtwork(image: PlayStationImageResolver.game(for: node, in: snapshot.result), aspectRatio: 4.0 / 3.0, cornerRadius: 10)
+                                .frame(width: 84).accessibilityIdentifier("play.task.image")
+                            Text(verbatim: title).font(.headline)
+                        }
                         if let rules = node.ruleInstructions, !rules.isEmpty { Text(verbatim: rules) }
                         if let materials = node.requiredMaterials, !materials.isEmpty { LabeledContent("play.materials") { Text(verbatim: materials) } }
                         if let duration = node.durationMinutes { LabeledContent("play.duration") { Text(verbatim: String(duration)) } }
