@@ -8,13 +8,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Estimate result: on target"
+            "value": "Spot on!"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "估数结果：命中"
+            "value": "估得正好！"
           }
         }
       }
@@ -25,13 +25,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Estimate result: close"
+            "value": "Very close"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "估数结果：接近"
+            "value": "很接近了"
           }
         }
       }
@@ -42,13 +42,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Estimate result: outside the target range"
+            "value": "A bit far off"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "估数结果：偏离目标范围"
+            "value": "差得有点远"
           }
         }
       }

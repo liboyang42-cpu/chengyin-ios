@@ -38,6 +38,9 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     @State var lifetime = UUID()
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    /// 「第N站 · 站名」, chapter and lead line, when the host knows the station.
+    @Environment(\.playGameStage) private var stage
+    @QuestifyReduceMotion private var reduceMotion
     /// Cast contract E3: the chosen line and 「{name}会记住这件事」 when the theme has a cast.
     @Environment(\.questifyCast) var cast
     @Environment(\.locale) var castLocale
@@ -62,11 +65,9 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
                 Form {
                     Section("playkit.review") {
                         Text(LocalizedStringKey("playkit.kind." + kind.rawValue))
-                        Text(verbatim: item.action).font(.caption)
                         Text("playkit.reviewBoundary")
                         if let question = item.compareQuestion { PlayCompareReview(question: question, marked: (item.payload["marked"]?.array ?? []).compactMap(\.text)) }
                         else { PlayKitPayloadReadback(payload: item.payload) }
-                        LabeledContent("playkit.version") { Text(verbatim: String(item.version)) }
                         Button("playkit.confirm") {
                             let completion = reviewedCompletion
                             let expectedLifetime = lifetime
@@ -74,7 +75,8 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
                             Task {
                                 if await model.submit(item), lifetime == expectedLifetime { issue = nil; dirty = false; completion?() }
                             }
-                        }.disabled(!model.canInteract || model.state?.version != item.version || model.state?.sessionID != item.sessionID)
+                        }.playGamePrimaryButton()
+                            .disabled(!model.canInteract || model.state?.version != item.version || model.state?.sessionID != item.sessionID)
                             .accessibilityIdentifier("playkit.review.confirm")
                     }
                 }.navigationTitle("playkit.review")
@@ -164,9 +166,17 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
         }
     }
     @ViewBuilder private var header: some View {
-        if !projection.title.isEmpty { Text(verbatim: projection.title).font(.largeTitle.bold()).fixedSize(horizontal: false, vertical: true) }
+        if let stage { PlayGameStageHeader(stage: stage) }
+        if !projection.title.isEmpty {
+            Text(verbatim: projection.title).font(presentation == .inline ? .title2.bold() : .largeTitle.bold())
+                .fixedSize(horizontal: false, vertical: true)
+        }
         ForEach(["lead", "prompt", "hint", "sub"], id: \.self) { key in
-            if let value = segment[key].text, !value.isEmpty { Text(verbatim: value).foregroundStyle(.secondary) }
+            if let value = segment[key].text, !value.isEmpty, value != stage?.lead {
+                // The game's own lead reads as story; prompts and hints stay secondary.
+                if key == "lead" { Text(verbatim: value).font(.body).lineSpacing(8).fixedSize(horizontal: false, vertical: true) }
+                else { Text(verbatim: value).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
+            }
         }
         if let state = model.state, state.deadlineAt != nil {
             TimelineView(.periodic(from: .now, by: 1)) { context in
@@ -219,16 +229,26 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     }
     @ViewBuilder var authoritativeResult: some View {
         if reasoningFeedback.showsResult(for: projection) {
-            if kind == .photoCheck, segment["degraded"].bool == true {
-                Label("playkit.photo.noVerdict", systemImage: "exclamationmark.bubble")
-            } else if PlayKitNoRightAnswer.applies(kind: kind, segment: segment), projection.reportedPass != nil {
-                Label("playkit.result.recorded", systemImage: "checkmark.circle")
-            } else if let passed = projection.reportedPass {
-                Label(passed ? "playkit.result.passed" : "playkit.result.notPassed", systemImage: passed ? "checkmark.circle" : "info.circle")
-            } else if projection.complete { Label("playkit.result.recorded", systemImage: "checkmark.circle") }
-            // F02: a typed wrong-answer reply is already shown under the input.
-            if let feedback = projection.feedback, !feedback.isEmpty, typedWrongReply == nil { Text(verbatim: feedback) }
-            if projection.complete { Text("playkit.result.authority").font(.footnote).foregroundStyle(.secondary) }
+            // Same authority rules as before (PlayGameOutcome mirrors them); only the voice is the story's.
+            VStack(alignment: .leading, spacing: 12) {
+                if let outcome = PlayGameOutcome.resolve(projection) {
+                    PlayGameResultLine(outcome: outcome, open: projection.reportedPass == false && !projection.complete)
+                }
+                // F02: a typed wrong-answer reply is already shown under the input.
+                if let feedback = projection.feedback, !feedback.isEmpty, typedWrongReply == nil {
+                    Text(verbatim: feedback).font(.body).lineSpacing(6).fixedSize(horizontal: false, vertical: true)
+                }
+                // The way back to the story appears only once the game is settled.
+                if presentation == .navigation,
+                   PlayGameOutcome.showsContinue(complete: projection.complete, pending: model.pending != nil, phase: model.phase) {
+                    Button { dismiss() } label: {
+                        Label("playkit.continueStory", systemImage: "book").frame(maxWidth: .infinity)
+                    }.playGamePrimaryButton().accessibilityIdentifier("playkit.continueStory")
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .transition(.opacity)
+            .animation(reduceMotion ? nil : QuestifyMotion.content, value: projection.complete)
         }
     }
     @ViewBuilder private var recovery: some View {
@@ -250,7 +270,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     }
     func submitButton(_ action: String, payload: [String: PlayWireValue], valid: Bool = true) -> some View {
         Button("playkit.review") { prepare(action, payload) }
-            .buttonStyle(.borderedProminent).disabled(!enabled || !valid)
+            .playGamePrimaryButton().disabled(!enabled || !valid)
             .accessibilityIdentifier("playkit.submit." + kind.rawValue)
     }
     func artwork(_ url: String?, alt: String? = nil) -> some View {

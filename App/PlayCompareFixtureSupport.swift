@@ -32,10 +32,10 @@ import Observation
         func item(_ id: String, _ time: String, _ text: String) -> PlayWireValue { .object(["id": .string(id), "time": .string(time), "text": .string(text)]) }
         let done = correct || attempts >= 2
         let compare: PlayWireValue = .object([
-            "prompt": .string("Mark the changed event in both records."), "maxAttempts": .int(2), "attempts": .int(attempts), "remainingAttempts": .int(max(0, 2 - attempts)),
+            "prompt": .string("对照两份值班记录，标出被改动的那一条。"), "maxAttempts": .int(2), "attempts": .int(attempts), "remainingAttempts": .int(max(0, 2 - attempts)),
             "finished": .bool(done), "passed": .bool(correct), "lastCorrect": .bool(correct), "lastMarked": .array(marked.map(PlayWireValue.string)),
-            "left": .object(["label": .string("Original record"), "items": .array([item("left_gate", "09:00", "The gate opened."), item("left_bell", "10:00", "The bell rang.")])]),
-            "right": .object(["label": .string("Revised record"), "items": .array([item("right_gate", "09:00", "The gate stayed closed."), item("right_bell", "10:00", "The bell rang.")])])
+            "left": .object(["label": .string("原始记录"), "items": .array([item("left_gate", "09:00", "The gate opened."), item("left_bell", "10:00", "The bell rang.")])]),
+            "right": .object(["label": .string("改写后的记录"), "items": .array([item("right_gate", "09:00", "The gate stayed closed."), item("right_bell", "10:00", "The bell rang.")])])
         ])
         let state: PlayWireValue = .object(["sessionId": .int(1), "activityId": .int(41), "topicId": .int(71), "nodeId": .int(701), "version": .int(version), "status": .string("RUNNING"), "readyForBase": .bool(done), "playKit": .object(["compare": compare])])
         return try JSONEncoder().encode(PlayWireValue.object(["code": .int(200), "data": state]))

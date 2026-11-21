@@ -276,8 +276,8 @@
     "zh-Hans": "可以自由聆听，播放不会提交完成状态，也不承诺奖励分。"
   },
   "playkitLegacy.silent.noWitnessCode": {
-    "en": "The service has not supplied a witness code",
-    "zh-Hans": "服务端尚未提供见证码"
+    "en": "The witness code isn’t ready yet",
+    "zh-Hans": "见证码还没准备好"
   },
   "playkitLegacy.window.opens": {
     "en": "Opens",
@@ -288,8 +288,8 @@
     "zh-Hans": "结束时间"
   },
   "playkitLegacy.window.authority": {
-    "en": "The server decides whether this time window is open. These are the configured clock labels, not a device-time unlock.",
-    "zh-Hans": "是否开放由服务端决定。这里展示配置的时刻，不使用设备时间自动解锁。"
+    "en": "Opens only during the set time.",
+    "zh-Hans": "只在设定的时间段内开放。"
   },
   "playkitLegacy.window.subscribed": {
     "en": "The source service reports a reminder subscription",
@@ -304,8 +304,8 @@
     "zh-Hans": "开启提醒"
   },
   "playkitLegacy.blind.instructions": {
-    "en": "Choose what you tasted. The answer stays on the server.",
-    "zh-Hans": "选择你品尝到的选项，答案由服务端保管。"
+    "en": "Taste, then pick what you found.",
+    "zh-Hans": "尝一尝，选出你品到的味道。"
   },
   "playkitLegacy.blind.tryAgain": {
     "en": "That choice was not solved. You can choose again.",
@@ -316,12 +316,12 @@
     "zh-Hans": "给作品起个名字"
   },
   "playkitLegacy.name.audience": {
-    "en": "The name can be shown publicly and is checked by the service before it is saved.",
-    "zh-Hans": "作品名可能公开展示，保存前会由服务端进行内容审核。"
+    "en": "The name may be shown publicly.",
+    "zh-Hans": "名字可能会公开展示。"
   },
   "playkitLegacy.slow.emptyReadback": {
-    "en": "The server recorded the claim but returned no reveal text",
-    "zh-Hans": "服务端已记录领取，但未返回揭示文案"
+    "en": "Claimed",
+    "zh-Hans": "已领取"
   },
   "playkitLegacy.slow.reveal": {
     "en": "Reveal the returned discovery",
@@ -332,16 +332,16 @@
     "zh-Hans": "还需等待天数"
   },
   "playkitLegacy.slow.ready": {
-    "en": "The server says this discovery can be claimed",
-    "zh-Hans": "服务端显示这次发现已可领取"
+    "en": "It’s time — you can claim it now.",
+    "zh-Hans": "时候到了，可以领取了。"
   },
   "playkitLegacy.slow.claim": {
-    "en": "Review and claim",
-    "zh-Hans": "核对并领取"
+    "en": "Claim",
+    "zh-Hans": "领取"
   },
   "playkitLegacy.slow.start": {
-    "en": "Review and begin",
-    "zh-Hans": "核对并开始"
+    "en": "Begin",
+    "zh-Hans": "开始"
   },
   "playkitLegacy.slow.authority": {
     "en": "Waiting and availability come from the server. Changing your device date cannot unlock this task.",

@@ -1,0 +1,40 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "playGame.stage.station %lld %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop %1$lld · %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第%1$lld站 · %2$@"
+          }
+        }
+      }
+    },
+    "playGame.stage.stationNumber %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第%lld站"
+          }
+        }
+      }
+    }
+  }
+}

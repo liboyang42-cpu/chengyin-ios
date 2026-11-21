@@ -1,6 +1,227 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "playkit.continueStory" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue the story"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续故事"
+          }
+        }
+      }
+    },
+    "playkit.story.passed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done. You’ve uncovered this stop’s secret."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "成了。这一站的秘密，被你轻轻揭开。"
+          }
+        }
+      }
+    },
+    "playkit.story.notPassed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not this time. The story remembers that you tried."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这一次没能成，故事记下了你的尝试。"
+          }
+        }
+      }
+    },
+    "playkit.story.tryAgain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Almost. Try another way."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还差一点。换个思路，再试一次。"
+          }
+        }
+      }
+    },
+    "playkit.story.recorded" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your choice is now part of the story."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的选择，已经写进了故事里。"
+          }
+        }
+      }
+    },
+    "playkit.story.noVerdict" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your photo is in. The result will follow."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "照片已经收下，结果稍后揭晓。"
+          }
+        }
+      }
+    },
+    "playkit.branch.waiting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The path hasn’t forked yet. Give it a moment."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前面的路还没有分岔，稍等片刻。"
+          }
+        }
+      }
+    },
+    "playkit.hidden.scenePending" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The search picture is on its way"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "寻物图还在路上"
+          }
+        }
+      }
+    },
+    "playkit.random.empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The deck is shuffled. Draw a card."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "牌已洗好，抽一张看看。"
+          }
+        }
+      }
+    },
+    "playkit.random.unavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There are no cards to draw right now."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这副牌暂时没有可抽的了。"
+          }
+        }
+      }
+    },
+    "playkit.match.lines" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pairs"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连线"
+          }
+        }
+      }
+    },
+    "playGame.stage.station %lld %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop %1$lld · %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第%1$lld站 · %2$@"
+          }
+        }
+      }
+    },
+    "playGame.stage.stationNumber %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop %lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第%lld站"
+          }
+        }
+      }
+    },
     "topic.chapterCards" : {
       "localizations" : {
         "en" : {
@@ -98879,13 +99100,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This branch has ended"
+            "value": "This part of the story has reached its end."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已到达这段故事的终点"
+            "value": "这段故事走到了尽头。"
           }
         }
       }
@@ -98896,13 +99117,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera access is not configured for this session"
+            "value": "The camera isn’t available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前会话尚未配置相机能力"
+            "value": "相机暂时不可用"
           }
         }
       }
@@ -98947,13 +99168,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read the task’s QR code with the camera. Review the captured code before sending it for server validation."
+            "value": "Scan the task’s QR code with your camera."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用相机读取任务二维码。识别后先核对，再发送给服务端验证。"
+            "value": "用相机扫一扫任务二维码。"
           }
         }
       }
@@ -99083,13 +99304,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review and start"
+            "value": "Start"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核对并开始"
+            "value": "开始"
           }
         }
       }
@@ -99219,13 +99440,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The result will appear after the server responds"
+            "value": "Tap to flip the coin."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端返回后显示结果"
+            "value": "点一下，抛出硬币。"
           }
         }
       }
@@ -99253,13 +99474,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The session has changed. Your selection has not been submitted for this version. Load the latest receipt before editing again."
+            "value": "The puzzle just updated. Load the latest marks before continuing."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "会话版本已更新，当前选择未针对新版本提交。继续编辑前请载入最新回执。"
+            "value": "题目刚刚更新了，请先载入最新的标记再继续。"
           }
         }
       }
@@ -99276,7 +99497,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端判定整组标记正确。"
+            "value": "全部找对了。"
           }
         }
       }
@@ -99287,13 +99508,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server marked the complete selection incorrect. Individual answers are not revealed."
+            "value": "Something’s still off. Compare again closely."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端判定整组标记有误，不揭示单条答案。"
+            "value": "还有地方没找对，再仔细对照看看。"
           }
         }
       }
@@ -99321,13 +99542,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The comparison question is incomplete or inconsistent. Refresh the server state before continuing."
+            "value": "This puzzle can’t open right now. Refresh and try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "对照题数据不完整或不一致，请刷新服务端状态后继续。"
+            "value": "这道题暂时打不开，请刷新后再试。"
           }
         }
       }
@@ -99389,13 +99610,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Replace your unsent selection with the server’s last recorded selection?"
+            "value": "Replace your current marks with the ones you last submitted?"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "用服务端最近记录的选择替换未提交的选择？"
+            "value": "用上次提交的标记替换现在的选择？"
           }
         }
       }
@@ -99423,13 +99644,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "These exact entries will be submitted together. One submission is recorded; only the server decides the result."
+            "value": "These marks are submitted together as one attempt."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "将一起提交以下条目并计作一次作答，结果仅由服务端判定。"
+            "value": "以下标记会一起提交，算作一次作答。"
           }
         }
       }
@@ -99644,13 +99865,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The task configuration is incomplete. Refresh or return to the task."
+            "value": "This game can’t open right now. Refresh and try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "任务配置不完整，请刷新或返回任务。"
+            "value": "这个小游戏暂时打不开，请刷新后再试。"
           }
         }
       }
@@ -99678,13 +99899,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your message may be shown to the next visitor. Completion still depends on the server response."
+            "value": "Your words will be left for the next visitor."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这句话可能展示给下一位来访者，是否完成以服务端回执为准。"
+            "value": "这句话会留给下一位来访者。"
           }
         }
       }
@@ -99763,13 +99984,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server total"
+            "value": "Total"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端合计"
+            "value": "点数合计"
           }
         }
       }
@@ -99780,13 +100001,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dice results have not arrived yet"
+            "value": "Tap to roll the dice."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "骰子结果尚未返回"
+            "value": "点一下，掷出骰子。"
           }
         }
       }
@@ -99814,13 +100035,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unsubmitted input and this attempt’s local measurements will be discarded. Any already-sent request still needs its server readback."
+            "value": "Anything you haven’t submitted will be cleared."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未提交的输入和本次本地测量将被清除。已经发出的请求仍需核对服务端结果。"
+            "value": "还没提交的内容会被清除。"
           }
         }
       }
@@ -99865,13 +100086,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Estimate result: close"
+            "value": "Very close"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "估数结果：接近"
+            "value": "很接近了"
           }
         }
       }
@@ -99882,13 +100103,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Estimate result: on target"
+            "value": "Spot on!"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "估数结果：命中"
+            "value": "估得正好！"
           }
         }
       }
@@ -99899,13 +100120,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Estimate result: outside the target range"
+            "value": "A bit far off"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "估数结果：偏离目标范围"
+            "value": "差得有点远"
           }
         }
       }
@@ -99967,13 +100188,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tap a location in the image to review that position"
+            "value": "Tap where you spot it"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "点选图片中的位置后核对提交"
+            "value": "点一下你发现它的位置"
           }
         }
       }
@@ -100732,13 +100953,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A request is unresolved. New submissions are locked until its exact result is checked or the same request is retried."
+            "value": "Your last action is still on its way. Wait for it before trying again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "有请求结果尚未确认。核对结果或重试原请求前，不能发起新提交。"
+            "value": "刚才的操作还在路上，等它落定再继续。"
           }
         }
       }
@@ -100766,13 +100987,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server recorded a fallback outcome. Its completion state controls the next step."
+            "value": "Your photo is in. The story goes on."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已记录兜底结果，下一步由服务端完成状态决定。"
+            "value": "照片已经收下，故事会继续。"
           }
         }
       }
@@ -100902,13 +101123,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The selected image will be sent to the configured service. Uploading is separate from submitting the task and does not complete it."
+            "value": "The photo uploads first; you submit it afterwards."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选中的照片将发送给已配置的服务。上传和任务提交是两个步骤，上传不代表完成任务。"
+            "value": "照片会先上传，之后由你确认提交。"
           }
         }
       }
@@ -100919,13 +101140,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photo upload is not configured, or this photo no longer belongs to the current task version"
+            "value": "This photo can’t be uploaded right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "尚未配置图片上传，或这张照片已不属于当前任务版本"
+            "value": "暂时无法上传这张照片"
           }
         }
       }
@@ -101021,13 +101242,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server settled this prediction as incorrect"
+            "value": "Revealed: not this time"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已结算：未猜中"
+            "value": "揭晓了：这次没猜中"
           }
         }
       }
@@ -101089,13 +101310,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This prediction round was voided; no result reward was issued for the round"
+            "value": "This round was called off."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本轮竞猜已作废，本轮没有结果奖励"
+            "value": "这一轮竞猜取消了。"
           }
         }
       }
@@ -101106,13 +101327,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting for the merchant to settle the answer"
+            "value": "The answer isn’t out yet. Check back later."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "等待商家公布并结算答案"
+            "value": "答案还没揭晓，过些时候再来看看。"
           }
         }
       }
@@ -101123,13 +101344,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server settled this prediction as correct"
+            "value": "Revealed: you called it"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已结算：猜中"
+            "value": "揭晓了：你猜中了"
           }
         }
       }
@@ -101140,13 +101361,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current selection, not a result"
+            "value": "Your pick"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前暂选，尚非判定结果"
+            "value": "已选这张"
           }
         }
       }
@@ -101157,13 +101378,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This round has ended. The server has revealed the answer."
+            "value": "This round is over. The answer is revealed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本轮已结束，服务端已揭晓正确图。"
+            "value": "本轮结束，正确答案已经揭晓。"
           }
         }
       }
@@ -101174,13 +101395,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last confirmed choice: correct"
+            "value": "Last pick: right"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上次确认的选择：正确"
+            "value": "上次选对了"
           }
         }
       }
@@ -101191,13 +101412,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last confirmed choice: incorrect"
+            "value": "Last pick: wrong"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上次确认的选择：错误"
+            "value": "上次选错了"
           }
         }
       }
@@ -101208,13 +101429,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The last confirmed choice was incorrect. You can choose again."
+            "value": "Not that one. Pick again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上次确认的选择不正确，可以重新选择。"
+            "value": "上次没选对，再挑一次。"
           }
         }
       }
@@ -101225,13 +101446,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Answer revealed by the server"
+            "value": "The answer"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端揭晓的正确图"
+            "value": "正确答案"
           }
         }
       }
@@ -101276,13 +101497,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Registration is locked after the server accepts it. Check every answer and the avatar before submitting."
+            "value": "Your profile is set once submitted. Check each answer first."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端接受后将锁定档案，请在提交前核对所有回答和头像。"
+            "value": "提交后档案就定下来了，先看看每一项。"
           }
         }
       }
@@ -101310,13 +101531,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Select all answers you want to submit"
+            "value": "Pick all that apply"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选择所有要提交的选项"
+            "value": "可以多选"
           }
         }
       }
@@ -101327,13 +101548,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Answer revealed by the server"
+            "value": "The answer"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端公布的答案"
+            "value": "正确答案"
           }
         }
       }
@@ -101531,13 +101752,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The last arrangement did not pass. You can revise it while the task remains open."
+            "value": "Almost. Adjust and submit again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上次排列未通过，任务仍开放时可以修改后重交。"
+            "value": "还差一点，调整一下再交。"
           }
         }
       }
@@ -101548,13 +101769,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check the pending request"
+            "value": "Check the last result"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核对待确认请求"
+            "value": "查看刚才的结果"
           }
         }
       }
@@ -101565,13 +101786,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh server state"
+            "value": "Refresh"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "刷新服务端状态"
+            "value": "刷新"
           }
         }
       }
@@ -101599,13 +101820,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server result: not passed"
+            "value": "Not this time"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端判定：未通过"
+            "value": "这次没成"
           }
         }
       }
@@ -101616,13 +101837,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server result: passed"
+            "value": "Well done"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端判定：已通过"
+            "value": "成功了"
           }
         }
       }
@@ -101633,13 +101854,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recorded by the server"
+            "value": "Recorded"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已记录"
+            "value": "已记下"
           }
         }
       }
@@ -101650,13 +101871,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry the exact reviewed request"
+            "value": "Resend the last action"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重试已核对的原请求"
+            "value": "重新发送刚才的操作"
           }
         }
       }
@@ -101667,13 +101888,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review submission"
+            "value": "Submit"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核对提交"
+            "value": "提交"
           }
         }
       }
@@ -101684,13 +101905,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check the exact values below. Confirmation sends this action for this session and version; it does not guarantee completion or a reward."
+            "value": "Once confirmed, it becomes part of the story and can’t be undone."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请核对下方实际提交值。确认后仅为当前会话和版本发送此动作，不代表一定完成或获得奖励。"
+            "value": "确认后就写进故事里，提交后不能撤回。"
           }
         }
       }
@@ -101786,13 +102007,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting for server response"
+            "value": "Sending…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "等待服务端回应"
+            "value": "正在送达…"
           }
         }
       }
@@ -101803,13 +102024,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only peak volume is measured. Audio is never saved or uploaded."
+            "value": "Only the volume is measured; nothing is recorded."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅测量声音峰值，不保存或上传音频。"
+            "value": "只听音量，不录音。"
           }
         }
       }
@@ -101854,13 +102075,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This sensor activity is not enabled for this build."
+            "value": "This game isn’t available on this device yet."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此版本尚未启用该传感器玩法。"
+            "value": "这个小游戏暂时还不能在这台设备上玩。"
           }
         }
       }
@@ -102007,13 +102228,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ready when you are"
+            "value": "Start when you’re ready"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "准备好后即可开始"
+            "value": "准备好了就开始"
           }
         }
       }
@@ -102041,13 +102262,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Measurement ready to review"
+            "value": "Done — submit to see how you did"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "测量结果已就绪，请核对"
+            "value": "完成了，提交看看结果"
           }
         }
       }
@@ -102092,13 +102313,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This activity uses motion readings to move the ball as you tilt your phone and count wall contacts. Keep a firm grip and stay still."
+            "value": "Tilt gently to roll the ball into the edges. Hold on tight and watch your step."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此玩法使用运动读数，让球随手机倾斜移动并记录撞墙次数。请握稳手机，站在安全的位置。"
+            "value": "轻轻倾斜手机，让小球碰到四边。请握稳手机，留意脚下。"
           }
         }
       }
@@ -102109,13 +102330,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This activity uses the compass to read the magnetic direction of the top of your phone and requires location permission. No location coordinates are read or sent. Hold the phone upright in portrait and keep it aligned with the target."
+            "value": "Hold the phone upright, turn toward the target and hold steady."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此玩法使用罗盘读取手机顶部的磁北方位角，需要位置权限，但不会读取或发送位置坐标。请竖屏握住手机并持续对准目标方向。"
+            "value": "竖着拿好手机，转向目标方向并稳住。"
           }
         }
       }
@@ -102126,13 +102347,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This activity uses the microphone to measure ambient peak volume. Keep quiet for the required time after the server confirms the start."
+            "value": "Once it starts, stay quiet until time runs out."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此玩法使用麦克风测量环境声音峰值。服务器确认开始后，请在要求的时间内保持安静。"
+            "value": "开始后保持安静，直到计时结束。"
           }
         }
       }
@@ -102143,13 +102364,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This activity uses the microphone to measure sustained loudness. Choose a suitable place and a comfortable volume; stop if it feels uncomfortable."
+            "value": "Once it starts, keep the volume up — a dip resets the clock. Pick a suitable spot and stay comfortable."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此玩法使用麦克风测量持续音量。请选择合适的场所，使用舒适的音量；如有不适请停止。"
+            "value": "开始后持续大声喊，音量一降计时就重来。选个合适的地方，量力而行。"
           }
         }
       }
@@ -102160,13 +102381,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review start request"
+            "value": "Start the challenge"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核对开始请求"
+            "value": "开始挑战"
           }
         }
       }
@@ -102228,13 +102449,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your session changed. Return to the task and reopen it."
+            "value": "Your account changed. Go back and reopen this."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "登录会话已变化，请返回任务后重新打开。"
+            "value": "账号状态有变化，请返回后重新打开。"
           }
         }
       }
@@ -102245,13 +102466,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Session seconds remaining"
+            "value": "Seconds left"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "会话剩余秒数"
+            "value": "剩余秒数"
           }
         }
       }
@@ -102432,13 +102653,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This round has ended without passing."
+            "value": "This round is over. Not this time."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本轮已结束，未通过。"
+            "value": "这一轮结束了，这次没成。"
           }
         }
       }
@@ -102466,13 +102687,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The last attempt did not pass. You can try again."
+            "value": "Almost. Try once more."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上次尝试未通过，可以再试一次。"
+            "value": "还差一点，再试一次。"
           }
         }
       }
@@ -102483,13 +102704,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This task is no longer available"
+            "value": "This game has closed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前任务已不可用"
+            "value": "这个小游戏已经收起来了"
           }
         }
       }
@@ -102585,13 +102806,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The service requires WeChat encrypted step proof. Native device steps cannot replace that proof without an approved contract."
+            "value": "Steps sync in the WeChat mini program."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前服务需要微信运动的加密步数凭证。原生设备步数不能在未经契约批准的情况下替代该凭证。"
+            "value": "步数需要在微信小程序里同步。"
           }
         }
       }
@@ -103622,13 +103843,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose what you tasted. The answer stays on the server."
+            "value": "Taste, then pick what you found."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选择你品尝到的选项，答案由服务端保管。"
+            "value": "尝一尝，选出你品到的味道。"
           }
         }
       }
@@ -103690,13 +103911,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The name can be shown publicly and is checked by the service before it is saved."
+            "value": "The name may be shown publicly."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "作品名可能公开展示，保存前会由服务端进行内容审核。"
+            "value": "名字可能会公开展示。"
           }
         }
       }
@@ -103809,13 +104030,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The service has not supplied a witness code"
+            "value": "The witness code isn’t ready yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端尚未提供见证码"
+            "value": "见证码还没准备好"
           }
         }
       }
@@ -103877,13 +104098,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review and claim"
+            "value": "Claim"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核对并领取"
+            "value": "领取"
           }
         }
       }
@@ -103911,13 +104132,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server recorded the claim but returned no reveal text"
+            "value": "Claimed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已记录领取，但未返回揭示文案"
+            "value": "已领取"
           }
         }
       }
@@ -103928,13 +104149,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server says this discovery can be claimed"
+            "value": "It’s time — you can claim it now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端显示这次发现已可领取"
+            "value": "时候到了，可以领取了。"
           }
         }
       }
@@ -103962,13 +104183,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review and begin"
+            "value": "Begin"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核对并开始"
+            "value": "开始"
           }
         }
       }
@@ -103979,13 +104200,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server decides whether this time window is open. These are the configured clock labels, not a device-time unlock."
+            "value": "Opens only during the set time."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "是否开放由服务端决定。这里展示配置的时刻，不使用设备时间自动解锁。"
+            "value": "只在设定的时间段内开放。"
           }
         }
       }
@@ -104419,13 +104640,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server-confirmed state"
+            "value": "This stop"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端权威状态"
+            "value": "本站进度"
           }
         }
       }
@@ -104499,13 +104720,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Draw from the server"
+            "value": "Draw a card"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请求服务端抽取"
+            "value": "抽一张"
           }
         }
       }
@@ -172175,13 +172396,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Solved. The server accepted this word."
+            "value": "Solved!"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已解开，服务端已确认。"
+            "value": "解开了！"
           }
         }
       }
@@ -172192,13 +172413,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not yet. Your letters are kept; change some and submit again."
+            "value": "Not yet. Your letters stay; change a few and try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没猜对。已填的字会保留，调整后可以再提交。"
+            "value": "还没猜对。已填的字会保留，换几个再试。"
           }
         }
       }

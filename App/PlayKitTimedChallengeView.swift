@@ -25,7 +25,6 @@ import SwiftUI
     private var running: Bool { timing.phase == .running || [.waiting, .signal].contains(reaction.phase) }
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("playkit.challenge.authority").font(.footnote).foregroundStyle(.secondary)
             if kind == .reaction { reactionStage }
             else { timedStage }
             if timing.phase == .interrupted || reaction.phase == .interrupted { Label("playkit.challenge.interrupted", systemImage: "pause.circle") }
@@ -75,17 +74,16 @@ import SwiftUI
         Text(verbatim: clockLabel).font(.system(.largeTitle, design: .rounded).monospacedDigit())
             .accessibilityLabel(Text(kind == .stopwatch && running && elapsed >= 1000 ? "playkit.stopwatch.hidden" : "playkit.challenge.clock"))
         if timing.phase == .idle || timing.phase == .interrupted {
-            Button("playkit.challenge.start") { start() }.buttonStyle(.borderedProminent)
+            Button("playkit.challenge.start") { start() }.playGamePrimaryButton()
                 .disabled(!enabled || !validConfiguration).accessibilityIdentifier("playkit.challenge.start")
         }
         if timing.phase == .running && kind != .countdown {
             Button(kind == .stopwatch ? "playkit.stopwatch.stop" : "playkit.type.finish") {
                 timing.measure(now: ProcessInfo.processInfo.systemUptime); elapsed = timing.elapsedMilliseconds; typingFocused = false
-            }.buttonStyle(.borderedProminent).disabled(!enabled).accessibilityIdentifier("playkit.challenge.measure")
+            }.playGamePrimaryButton().disabled(!enabled).accessibilityIdentifier("playkit.challenge.measure")
         }
         if timing.phase == .measured {
-            Text("playkit.challenge.measurementOnly").font(.footnote)
-            Button("playkit.review") { reviewMeasurement() }.buttonStyle(.borderedProminent)
+            Button("playkit.review") { reviewMeasurement() }.playGamePrimaryButton()
                 .disabled(!enabled || (kind == .typeIn && input.isEmpty)).accessibilityIdentifier("playkit.challenge.submit")
         }
         if !validConfiguration { Text("playkit.configurationInvalid") }
@@ -107,7 +105,7 @@ import SwiftUI
         LabeledContent("playkit.reaction.round") { Text(verbatim: "\(reaction.roundsMilliseconds.count) / \(reaction.rounds)").monospacedDigit() }
         if let goal = segment["goalMs"].integer, goal > 0 { LabeledContent("playkit.reaction.goal") { Text(verbatim: "\(goal) ms") } }
         if reaction.phase == .idle || reaction.phase == .interrupted {
-            Button("playkit.challenge.start") { start() }.buttonStyle(.borderedProminent).disabled(!enabled)
+            Button("playkit.challenge.start") { start() }.playGamePrimaryButton().disabled(!enabled)
         } else if reaction.phase == .waiting || reaction.phase == .signal {
             Button {
                 reaction.tap(now: ProcessInfo.processInfo.systemUptime); onDirty()
@@ -116,7 +114,7 @@ import SwiftUI
                     Image(systemName: reaction.phase == .signal ? "hand.tap.fill" : "hourglass")
                     Text(reaction.phase == .signal ? "playkit.reaction.tap" : "playkit.reaction.wait")
                 }.font(.largeTitle.bold()).frame(maxWidth: .infinity, minHeight: 240)
-            }.buttonStyle(.borderedProminent).tint(reaction.phase == .signal ? .green : .orange)
+            }.playGamePrimaryButton().tint(reaction.phase == .signal ? .green : .orange)
                 .disabled(!enabled).accessibilityIdentifier("playkit.reaction.target")
         } else if reaction.phase == .early || reaction.phase == .betweenRounds {
             if reaction.phase == .early { Label("playkit.reaction.early", systemImage: "exclamationmark.circle") }
@@ -126,9 +124,8 @@ import SwiftUI
             HStack { Text(verbatim: String(index + 1)); Spacer(); Text(verbatim: "\(ms) ms").monospacedDigit() }
         }
         if reaction.phase == .measured {
-            Text("playkit.challenge.measurementOnly").font(.footnote)
             Button("playkit.review") { requestReview("SUBMIT_REACTION", ["times": .array(reaction.roundsMilliseconds.map(PlayWireValue.int))], {}) }
-                .buttonStyle(.borderedProminent).disabled(!enabled)
+                .playGamePrimaryButton().disabled(!enabled)
         }
     }
     private func start() {

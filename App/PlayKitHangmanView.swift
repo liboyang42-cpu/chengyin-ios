@@ -74,7 +74,7 @@ import SwiftUI
             Button("playkit.letterPool.submit") {
                 if let payload = projection.keyboardPayload(typed) { review(payload, projection: projection) }
             }
-            .buttonStyle(.borderedProminent)
+            .playGamePrimaryButton()
             .disabled(!enabled || projection.keyboardPayload(typed) == nil)
             .accessibilityIdentifier("playkit.submit.hangman")
         }
@@ -221,7 +221,7 @@ import SwiftUI
     }
     private var submitButton: some View {
         Button("playkit.letterPool.submit", action: submit)
-            .buttonStyle(.borderedProminent).disabled(!enabled || !canSubmit)
+            .playGamePrimaryButton().disabled(!enabled || !canSubmit)
             .accessibilityIdentifier(submitIdentifier)
     }
 }

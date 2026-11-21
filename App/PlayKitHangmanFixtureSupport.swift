@@ -40,7 +40,7 @@ import Observation
         let kit: PlayWireValue
         if question {
             kit = .object(["qa": .object([
-                "question": .string("Sample station question"), "mode": .string("TYPE"),
+                "question": .string("老邮局门牌上缺了哪两个字？"), "mode": .string("TYPE"),
                 "attempts": .int(questionAttempts), "finished": .bool(questionPassed), "passed": .bool(questionPassed),
                 "letterPool": .object(["chars": .array(["丙", "甲", "丁", "乙"].map(PlayWireValue.string)), "answerLength": .int(2), "removed": .int(0)])
             ])])
@@ -50,7 +50,7 @@ import Observation
                 return .object(["i": .int(index), "kind": .string("BLANK")])
             }
             kit = .object(["hangman": .object([
-                "title": .string("Sample station word"), "length": .int(5), "blankCount": .int(3), "caseSensitive": .bool(false),
+                "title": .string("补全老街的店名"), "length": .int(5), "blankCount": .int(3), "caseSensitive": .bool(false),
                 "solved": .bool(solved), "display": .string("__-_D"), "inputMode": .string("pool"),
                 "pool": .array(["C", "X", "A", "Y", "B"].map(PlayWireValue.string)), "poolRemoved": .int(0),
                 "slots": .array([open(0), open(1), .object(["i": .int(2), "ch": .string("-"), "kind": .string("SEPARATOR")]), open(3),

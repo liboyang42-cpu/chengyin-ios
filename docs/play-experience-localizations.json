@@ -440,8 +440,8 @@
     "zh-Hans": "开始本次玩法"
   },
   "playx.advanced.authority": {
-    "en": "Server-confirmed state",
-    "zh-Hans": "服务端权威状态"
+    "en": "This stop",
+    "zh-Hans": "本站进度"
   },
   "playx.advanced.version": {
     "en": "State version",
@@ -464,8 +464,8 @@
     "zh-Hans": "继续基础任务"
   },
   "playx.advanced.draw": {
-    "en": "Draw from the server",
-    "zh-Hans": "请求服务端抽取"
+    "en": "Draw a card",
+    "zh-Hans": "抽一张"
   },
   "playx.advanced.branch": {
     "en": "Choose a path",

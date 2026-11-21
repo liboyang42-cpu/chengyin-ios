@@ -78,6 +78,11 @@ extension PlayKitScreen {
                     .buttonStyle(.bordered).disabled(!enabled)
             }
         }
+        // No options yet is a quiet pause in the story, not a blank area.
+        if projection.options.isEmpty && !projection.complete {
+            Label("playkit.branch.waiting", systemImage: "signpost.right").foregroundStyle(.secondary)
+                .accessibilityIdentifier("playkit.branch.waiting")
+        }
         if projection.complete { Text("playkit.branch.ended") }
     }
     @ViewBuilder var estimateForm: some View {
@@ -154,11 +159,11 @@ extension PlayKitScreen {
                         .accessibilityAction(named: Text("playkit.hidden.center")) {
                             if enabled { prepare("SUBMIT_HIDDEN_OBJECT", ["x": .number(0.5), "y": .number(0.5)]) }
                         }
-                } else if phase.error != nil { Label("playkit.imageUnavailable", systemImage: "photo.badge.exclamationmark") }
-                else { ProgressView("playkit.imageLoading") }
+                } else if phase.error != nil { PlayGameImagePlaceholder(titleKey: "playkit.imageUnavailable", systemImage: "photo.badge.exclamationmark") }
+                // Same footprint while loading, so the targets and result never jump.
+                else { PlayGameImagePlaceholder(titleKey: "playkit.imageLoading", loading: true) }
             }
-        } else { Label("playkit.imageGated", systemImage: "photo") }
-        Text("playkit.hidden.boundary").font(.footnote)
+        } else { PlayGameImagePlaceholder(titleKey: "playkit.hidden.scenePending", systemImage: "magnifyingglass") }
         attempts
     }
     @ViewBuilder var predictForm: some View {
@@ -213,12 +218,19 @@ extension PlayKitScreen {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+            // The chosen number with its unit right beside it, always visible above the wheel.
+            Text(verbatim: wheel.value(at: selectedIndex).map { PlayGameNumber.text($0, unit: unit) } ?? "—")
+                .font(.system(.largeTitle, design: .rounded).bold()).monospacedDigit()
+                .lineLimit(1).minimumScaleFactor(0.6)
+                .frame(maxWidth: .infinity)
+                .accessibilityLabel(Text("playkit.estimate.value"))
+                .accessibilityIdentifier("playkit.estimate.selected")
             LabeledContent("playkit.estimate.range") {
-                Text(verbatim: "\(wheel.minimum.formatted()) – \(wheel.maximum.formatted()) \(unit)")
+                Text(verbatim: PlayGameNumber.text(wheel.minimum, unit: nil) + " – " + PlayGameNumber.text(wheel.maximum, unit: unit))
             }
             Picker("playkit.estimate.value", selection: $selectedIndex) {
                 ForEach(wheel.ticks.indices, id: \.self) { index in
-                    Text(verbatim: "\(wheel.ticks[index]) \(unit)")
+                    Text(verbatim: PlayGameNumber.text(wheel.ticks[index], unit: unit))
                         .lineLimit(1).minimumScaleFactor(0.5).tag(index)
                 }
             }.pickerStyle(.wheel).frame(height: wheelHeight).disabled(!enabled)
@@ -226,7 +238,7 @@ extension PlayKitScreen {
             Button("playkit.review") {
                 guard enabled, let value = wheel.value(at: selectedIndex) else { return }
                 requestReview("SUBMIT_ESTIMATE", ["value": .number(value)], {})
-            }.buttonStyle(.borderedProminent).disabled(!enabled || wheel.value(at: selectedIndex) == nil)
+            }.playGamePrimaryButton().disabled(!enabled || wheel.value(at: selectedIndex) == nil)
                 .accessibilityIdentifier("playkit.submit.estimate")
         }.onChange(of: selectedIndex) { _, _ in onDirty() }
     }
