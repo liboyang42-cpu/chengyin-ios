@@ -23,6 +23,9 @@ public struct FreeExplorationPresentation: Equatable {
     public let storyTotal: Int?
     /// The free ending opens once every visible place has been visited (any order).
     public let isFullyVisited: Bool
+    /// FE-G7 (hengyin #866 `perkOnly`): no store in this theme carries a game, so there is no
+    /// chapter progress or story ending to show. Only an explicit `true` counts.
+    public let isPerkOnly: Bool
     public init?(snapshot: PlaySnapshot) {
         guard PlayGameplayMode(serverValue: snapshot.result.mode) == .freeExploration else { return nil }
         stores = snapshot.availability == .registrationRequired ? [] : snapshot.visibleNodes
@@ -33,6 +36,7 @@ public struct FreeExplorationPresentation: Equatable {
         } else { self.total = nil; self.redeemed = nil; isFullyRedeemed = false }
         storyUnlocked = snapshot.result.storyUnlocked; storyTotal = snapshot.result.storyTotal
         isFullyVisited = snapshot.availability != .registrationRequired && !stores.isEmpty && stores.allSatisfy(snapshot.isVisited)
+        isPerkOnly = snapshot.result.perkOnly == true
     }
     /// Arrival precedes an optional in-store game. Missing game state never
     /// borrows a city-orientation answer/sensor/route-completion command.

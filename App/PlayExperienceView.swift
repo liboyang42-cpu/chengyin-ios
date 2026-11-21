@@ -147,6 +147,11 @@ import SwiftUI
                             }
                         }
                         if snapshot.availability == .completed { narrativeLink(.ending) }
+                        // CG-01-P2-7: this run's evidence cards, reopenable at any time.
+                        let cards = PlayRunKeepsakes.evidenceCards(in: snapshot)
+                        NavigationLink { PlayEvidenceCardsView(cards: cards) } label: {
+                            LabeledContent("playx.evidence.title") { Text(verbatim: String(cards.count)).monospacedDigit() }
+                        }.accessibilityIdentifier("playx.evidence.open")
                     }
                 }
                 Section("playx.run.title") {
@@ -222,6 +227,26 @@ import SwiftUI
                                 VStack(alignment: .leading) { Text(verbatim: fragment.name).font(.headline); if let text = fragment.text, !text.isEmpty { Text(verbatim: text) } }
                             }
                         } else { Text("playx.ending.empty").accessibilityIdentifier("playx.ending.empty") }
+                    }
+                }
+                // CG-01-P2-6 / CG-02-P2-11: the player's own station photos on the settlement.
+                if let snapshot = model.snapshot, model.hasCurrentMediaSnapshot,
+                   snapshot.availability == .completed || model.ending != nil {
+                    let photos = PlayRunKeepsakes.photos(in: snapshot)
+                    if !photos.isEmpty {
+                        Section("playx.photos.title") {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                LazyHStack(alignment: .top, spacing: 12) {
+                                    ForEach(photos) { photo in
+                                        VStack(alignment: .leading, spacing: 6) {
+                                            PlayKitArtwork(source: photo.url, approvedHosts: approvedArtworkHosts, alt: photo.name)
+                                                .frame(width: 160, height: 160).clipShape(RoundedRectangle(cornerRadius: 12))
+                                            if let name = photo.name { Text(verbatim: name).font(.caption).lineLimit(2) }
+                                        }.frame(width: 160, alignment: .leading)
+                                    }
+                                }
+                            }.accessibilityIdentifier("playx.photos")
+                        }
                     }
                 }
                 if let board = model.leaderboard {
@@ -315,6 +340,27 @@ import SwiftUI
         ambientModel?.project(eggs: result.eggs, topicID: result.topicID)
     }
     private static var milliseconds: Int64 { Int64(Date().timeIntervalSince1970 * 1000) }
+}
+
+/// CG-01-P2-7: the evidence cards collected so far in this run, in route order.
+private struct PlayEvidenceCardsView: View {
+    let cards: [PlayEvidenceCard]
+    var body: some View {
+        Group {
+            if cards.isEmpty {
+                ContentUnavailableView("playx.evidence.empty", systemImage: "rectangle.stack")
+            } else {
+                List(cards) { card in
+                    VStack(alignment: .leading, spacing: 8) {
+                        if let name = card.name { Text(verbatim: name).font(.headline) }
+                        Text(verbatim: card.text).fixedSize(horizontal: false, vertical: true)
+                    }.padding(.vertical, 4).accessibilityElement(children: .combine)
+                }
+            }
+        }
+        .navigationTitle(Text("playx.evidence.title")).navigationBarTitleDisplayMode(.inline)
+        .accessibilityIdentifier("playx.evidence.list")
+    }
 }
 
 @MainActor private struct PlayExperienceNodeView: View {

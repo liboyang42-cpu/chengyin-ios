@@ -14,7 +14,8 @@ import SwiftUI
                 if let title = snapshot.result.topicName { Text(verbatim: title).font(.title.bold()) }
                 if let description = snapshot.result.topicDescription { Text(verbatim: description) }
                 Text("playFree.choiceHint")
-                if let unlocked = presentation.storyUnlocked, let chapters = presentation.storyTotal {
+                // FE-G7: a perk-only theme has no chapters, so no chapter progress.
+                if !presentation.isPerkOnly, let unlocked = presentation.storyUnlocked, let chapters = presentation.storyTotal {
                     Label("playFree.story.unlocked.count \(unlocked) \(chapters)", systemImage: "books.vertical")
                         .font(.headline).accessibilityIdentifier("playFree.story.unlocked.count")
                 }
@@ -97,7 +98,7 @@ struct FreeExplorationStoreName: View {
                         }
                     }
                     // FE-STORY: the ending opens once every place was visited, in any order.
-                    if FreeExplorationPresentation(snapshot: snapshot)?.isFullyVisited == true {
+                    if let presentation = FreeExplorationPresentation(snapshot: snapshot), presentation.isFullyVisited, !presentation.isPerkOnly {
                         Button("playFree.ending.read") { Task { await model.loadFreeExplorationEnding() } }
                         if let ending = model.ending {
                             if !ending.opener.isEmpty { Text(verbatim: ending.opener) }

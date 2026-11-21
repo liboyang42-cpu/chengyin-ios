@@ -50,3 +50,28 @@ extension PlayTaskStatusPresentation {
         return labelKey
     }
 }
+
+/// CG-01-P2-7: one evidence card per finished station that carries solved-feedback text,
+/// in server order. Unfinished or locked stations never show their card early.
+public struct PlayEvidenceCard: Equatable, Identifiable {
+    public let id: Int
+    public let name: String?
+    public let text: String
+}
+/// CG-01-P2-6 / CG-02-P2-11: this player's own photo for a finished station.
+public struct PlayRunPhoto: Equatable, Identifiable {
+    public let id: Int
+    public let name: String?
+    public let url: String
+}
+public enum PlayRunKeepsakes {
+    private static func finished(_ snapshot: PlaySnapshot) -> [PlayNode] {
+        snapshot.visibleNodes.filter { snapshot.isDone($0) && !snapshot.isLocked($0) }
+    }
+    public static func evidenceCards(in snapshot: PlaySnapshot) -> [PlayEvidenceCard] {
+        finished(snapshot).compactMap { node in node.feedbackText.map { PlayEvidenceCard(id: node.id, name: node.name, text: $0) } }
+    }
+    public static func photos(in snapshot: PlaySnapshot) -> [PlayRunPhoto] {
+        finished(snapshot).compactMap { node in node.photoURL.map { PlayRunPhoto(id: node.id, name: node.name, url: $0) } }
+    }
+}
