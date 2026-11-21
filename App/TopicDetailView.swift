@@ -24,10 +24,11 @@ struct TopicDetailView: View {
     var body: some View {
         Group {
             if !reader.isConfigured { TopicIssueView(issue: .notConfigured) }
-            else if loading || loadedKey != key { ProgressView("topic.loading") }
+            else if loading || loadedKey != key { QuestifyDetailListPlaceholder(label: "topic.loading", identifier: "topic.loading").transition(.opacity) }
             else if let issue { TopicIssueView(issue: issue) { loads.start { await load() } } }
-            else if let detail { content(detail) }
+            else if let detail { content(detail).transition(.opacity) }
         }
+        .questifyContentSwap(isLoading: loading || loadedKey != key)
         .appNavigationTitle("topic.detail")
         .navigationBarTitleDisplayMode(.inline)
         .task(id: key) { await loads.run { await load() } }

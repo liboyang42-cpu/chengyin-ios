@@ -111,3 +111,195 @@ struct TicketWalletStatusBadge: View {
         QuestifyStatusBadge(title: LocalizedStringKey("ticketWallet.status." + status.rawValue), systemImage: symbol, emphasized: status == .ready, stateKey: status.rawValue)
     }
 }
+
+// MARK: - motion-1119 shared loading, remote image and numeric motion
+
+/// Spinner-only loading → a redacted placeholder of the real layout that cross-fades to content
+/// (App Store / Mail pattern). Error and empty states stay in `content`, unchanged.
+/// The placeholder is one VoiceOver element carrying the screen's existing loading label and identifier.
+struct QuestifyLoadingContainer<Placeholder: View, Content: View>: View {
+    let isLoading: Bool
+    let label: LocalizedStringKey
+    var identifier: String? = nil
+    private let placeholder: () -> Placeholder
+    private let content: () -> Content
+    @QuestifyReduceMotion private var reduceMotion
+
+    init(isLoading: Bool, label: LocalizedStringKey, identifier: String? = nil,
+         @ViewBuilder placeholder: @escaping () -> Placeholder, @ViewBuilder content: @escaping () -> Content) {
+        self.isLoading = isLoading; self.label = label; self.identifier = identifier
+        self.placeholder = placeholder; self.content = content
+    }
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            if isLoading {
+                QuestifyRedactedPlaceholder(label: label, identifier: identifier, content: placeholder)
+                    .transition(.opacity)
+            } else {
+                content().transition(.opacity)
+            }
+        }
+        .animation(reduceMotion || isLoading ? nil : QuestifyMotion.content, value: isLoading)
+    }
+}
+
+/// The placeholder half of QuestifyLoadingContainer, for List rows that cannot be wrapped in a ZStack.
+/// Pair with `.questifyContentSwap(isLoading:)` on the List so rows cross-fade when loading ends.
+struct QuestifyRedactedPlaceholder<Content: View>: View {
+    let label: LocalizedStringKey
+    var identifier: String? = nil
+    private let content: () -> Content
+    init(label: LocalizedStringKey, identifier: String? = nil, @ViewBuilder content: @escaping () -> Content) {
+        self.label = label; self.identifier = identifier; self.content = content
+    }
+    var body: some View {
+        content()
+            .redacted(reason: .placeholder)
+            .allowsHitTesting(false)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(label))
+            .accessibilityAddTraits(.updatesFrequently)
+            .accessibilityIdentifier(identifier ?? "questify.loadingPlaceholder")
+    }
+}
+
+/// Generic redacted card in the shape of QuestifyCardSurface rows: artwork tint, title, two metadata lines.
+/// Used only where the screen has no sample-able real row.
+struct QuestifyPlaceholderCard: View {
+    var artworkHeight: CGFloat? = 164
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            if let artworkHeight {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color(uiColor: .tertiarySystemFill))
+                    .frame(height: artworkHeight)
+            }
+            VStack(alignment: .leading, spacing: 10) {
+                Text(verbatim: "Placeholder title").font(.title3.weight(.semibold))
+                Text(verbatim: "Placeholder metadata line").font(.subheadline)
+                Text(verbatim: "Placeholder detail").font(.subheadline)
+            }
+        }
+        .questifyCardSurface()
+    }
+}
+
+/// Plain grouped-list row placeholder: a headline and a secondary line.
+struct QuestifyPlaceholderRow: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(verbatim: "Placeholder row title").font(.headline)
+            Text(verbatim: "Placeholder secondary").font(.subheadline)
+        }
+        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+    }
+}
+
+extension View {
+    /// Cross-fade a List/stack when loading ends (placeholder → content), skipped under Reduce Motion.
+    /// Only the arrival animates: going back to loading, sign-out or scope changes remove content at once,
+    /// so stale (possibly private) rows never linger through a fade.
+    func questifyContentSwap(isLoading: Bool) -> some View { modifier(QuestifyContentSwap(isLoading: isLoading)) }
+    /// Numbers that update after load roll instead of jumping (contentTransition(.numericText())).
+    func questifyNumericTransition(value: Double) -> some View { modifier(QuestifyNumericTransition(value: value)) }
+}
+
+private struct QuestifyContentSwap: ViewModifier {
+    let isLoading: Bool
+    @QuestifyReduceMotion private var reduceMotion
+    func body(content: Content) -> some View {
+        content.animation(reduceMotion || isLoading ? nil : QuestifyMotion.content, value: isLoading)
+    }
+}
+
+private struct QuestifyNumericTransition: ViewModifier {
+    let value: Double
+    @QuestifyReduceMotion private var reduceMotion
+    func body(content: Content) -> some View {
+        content
+            .contentTransition(reduceMotion ? .identity : .numericText(value: value))
+            .animation(reduceMotion ? nil : QuestifyMotion.release, value: value)
+    }
+}
+
+/// Remote cover/card/thumbnail/avatar: placeholder tint at the final size or aspect ratio, image fades in on
+/// load, failure keeps the placeholder. The frame never changes between phases, so nothing shifts.
+struct QuestifyRemoteImage: View {
+    let url: URL?
+    /// Final width / height. Nil keeps the caller's frame (pass a fixed frame then).
+    var aspectRatio: CGFloat? = nil
+    var contentMode: ContentMode = .fill
+    var cornerRadius: CGFloat = 0
+    var placeholderSymbol: String? = nil
+    @QuestifyReduceMotion private var reduceMotion
+
+    var body: some View {
+        Color(uiColor: .tertiarySystemFill)
+            .aspectRatio(aspectRatio, contentMode: .fit)
+            .overlay {
+                AsyncImage(url: url, transaction: Transaction(animation: reduceMotion ? nil : QuestifyMotion.content)) { phase in
+                    if let image = phase.image {
+                        image.resizable().aspectRatio(contentMode: contentMode).transition(.opacity)
+                    } else if let placeholderSymbol {
+                        Image(systemName: placeholderSymbol).font(.title3).foregroundStyle(.secondary)
+                    } else { Color.clear }
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+    }
+}
+
+/// Grouped-list rows for List screens: only the first row speaks the loading label to VoiceOver.
+struct QuestifyPlaceholderRows: View {
+    let label: LocalizedStringKey
+    var identifier: String? = nil
+    var count = 3
+    var body: some View {
+        ForEach(0..<count, id: \.self) { index in
+            if index == 0 {
+                QuestifyRedactedPlaceholder(label: label, identifier: identifier) { QuestifyPlaceholderRow() }
+            } else {
+                QuestifyPlaceholderRow().redacted(reason: .placeholder).accessibilityHidden(true)
+            }
+        }
+    }
+}
+
+/// Detail-screen placeholder in the shape of the inset-grouped detail Lists (title block + rows).
+struct QuestifyDetailListPlaceholder: View {
+    let label: LocalizedStringKey
+    var identifier: String? = nil
+    var body: some View {
+        QuestifyRedactedPlaceholder(label: label, identifier: identifier) {
+            List {
+                Section {
+                    Text(verbatim: "Placeholder detail title").font(.title2.bold())
+                    Text(verbatim: "Placeholder subtitle line")
+                    Text(verbatim: "Placeholder introduction that wraps across two lines in the loaded layout.")
+                }
+                Section { ForEach(0..<4, id: \.self) { _ in QuestifyPlaceholderRow() } }
+            }
+            .listStyle(.insetGrouped)
+            .scrollDisabled(true)
+        }
+    }
+}
+
+extension Transaction {
+    /// AsyncImage phase change: fade the loaded image in over the placeholder (none under Reduce Motion).
+    static func questifyImageFade(reduceMotion: Bool) -> Transaction {
+        Transaction(animation: reduceMotion ? nil : QuestifyMotion.content)
+    }
+}
+
+/// Tint reserved while a remote image of unknown size loads (4:3 by default), kept on failure.
+struct QuestifyImageLoadingTint: View {
+    var aspectRatio: CGFloat = 4.0 / 3.0
+    var body: some View {
+        Color(uiColor: .tertiarySystemFill)
+            .aspectRatio(aspectRatio, contentMode: .fit)
+            .frame(maxWidth: .infinity)
+            .accessibilityHidden(true)
+    }
+}

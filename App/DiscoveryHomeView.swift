@@ -38,7 +38,8 @@ struct DiscoveryHomeView: View {
                         if let error = home.error {
                             DiscoveryErrorView(error: error) { Task { await loadHome() } }
                         }
-                        if home.isLoading { ProgressView("discovery.loading") }
+                        if home.isLoading && home.value == nil { QuestifyRedactedPlaceholder(label: "discovery.loading", identifier: "discovery.loading") { QuestifyPlaceholderCard() } }
+                        else if home.isLoading { ProgressView("discovery.loading") }
                         if let value = home.value {
                             if value.isEmpty && !home.isLoading && home.error == nil {
                                 ContentUnavailableView("discovery.emptyGames", systemImage: "sparkles.rectangle.stack")
@@ -52,6 +53,7 @@ struct DiscoveryHomeView: View {
                         }
                     }
                     .refreshable { await reload() }
+                    .questifyContentSwap(isLoading: home.isLoading)
                 }
             }
             .sheet(isPresented:$showsTopics) { SessionTopicBrowserView() }

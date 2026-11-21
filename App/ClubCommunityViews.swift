@@ -390,6 +390,7 @@ struct ClubCommunityCommentsView: View {
 struct ClubCommunityHistoryView: View {
     let identity: ClubReadIdentity, postID: Int
     @StateObject private var model: ClubCommunityViewModel
+    @QuestifyReduceMotion private var reduceMotion
     init(context: ClubCommunityContext, identity: ClubReadIdentity, postID: Int) {
         self.identity = identity; self.postID = postID; _model = StateObject(wrappedValue: ClubCommunityViewModel(context: context))
     }
@@ -404,7 +405,10 @@ struct ClubCommunityHistoryView: View {
                     Text(verbatim: revision.content)
                     Text(verbatim: revision.createTime).foregroundStyle(.secondary)
                     ForEach(Array(revision.images.enumerated()), id: \.offset) { index, value in
-                        AsyncImage(url: URL(string: value)) { image in image.resizable().scaledToFit() } placeholder: { Image(systemName: "photo") }
+                        AsyncImage(url: URL(string: value), transaction: .questifyImageFade(reduceMotion: reduceMotion)) { phase in
+                            if let image = phase.image { image.resizable().scaledToFit().transition(.opacity) }
+                            else { QuestifyImageLoadingTint().overlay { Image(systemName: "photo").foregroundStyle(.secondary) } }
+                        }
                             .accessibilityLabel(Text("club.community.image") + Text(" \(index + 1)"))
                     }
                 }

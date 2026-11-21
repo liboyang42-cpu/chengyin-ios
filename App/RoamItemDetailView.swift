@@ -68,10 +68,11 @@ struct RoamItemDetailView: View {
             ZStack {
                 if !reader.isConfigured { RoamStatusView(issue: .notConfigured) }
                 else if !isCurrent { RoamStatusView(issue: .unauthorized) }
-                else if loading { ProgressView("roam.loading") }
+                else if loading { QuestifyDetailListPlaceholder(label: "roam.loading", identifier: "roam.loading").transition(.opacity) }
                 else if let issue { RoamStatusView(issue: issue) { startLoad() } }
                 else { content }
             }
+            .questifyContentSwap(isLoading: loading)
             .appNavigationTitle("roam.detail")
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(item: $eventNavigation) { selection in

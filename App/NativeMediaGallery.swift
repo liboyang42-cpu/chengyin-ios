@@ -17,6 +17,8 @@ import UIKit
     @State private var selection: Selection?
     @State private var returnFocusIndex: Int?
     @AccessibilityFocusState private var focusedImageIndex: Int?
+    @Namespace private var mediaZoomNamespace
+    @QuestifyReduceMotion private var reduceMotion
     private struct Selection: Identifiable { let id = UUID(); let snapshot: MediaGallerySnapshot }
     var body: some View {
         Group {
@@ -28,6 +30,7 @@ import UIKit
                                 NativeMediaImage(raw: source, reader: reader, zoomable: false)
                                     .frame(width: compact ? 180 : 112, height: 112).clipped()
                             }.buttonStyle(.plain)
+                                .modifier(MediaZoomSource(id: index, namespace: mediaZoomNamespace, enabled: !reduceMotion))
                                 .accessibilityLabel(Text("media.destination.openImage"))
                                 .accessibilityValue(Text("\(index + 1) / \(min(sources.count, 100))"))
                                 .accessibilityIdentifier("media.gallery.open.\(index)")
@@ -41,12 +44,37 @@ import UIKit
             focusedImageIndex = returnFocusIndex; returnFocusIndex = nil
         }) { selected in
             NativeMediaGallery(snapshot: selected.snapshot, titleKey: titleKey, reader: reader)
+                .modifier(MediaZoomDestination(id: selected.snapshot.initialIndex, namespace: mediaZoomNamespace, enabled: !reduceMotion))
         }
         .onChange(of: scope) { _, _ in invalidateSelection() }
         .onChange(of: sources) { _, _ in invalidateSelection() }
     }
     private func invalidateSelection() {
         returnFocusIndex = nil; focusedImageIndex = nil; selection = nil
+    }
+}
+
+/// iOS 18 Photos-style zoom from the tapped thumbnail; iOS 17 and Reduce Motion keep the
+/// existing full-screen cover presentation unchanged.
+private struct MediaZoomSource: ViewModifier {
+    let id: Int
+    let namespace: Namespace.ID
+    let enabled: Bool
+    @ViewBuilder func body(content: Content) -> some View {
+        if enabled {
+            if #available(iOS 18.0, *) { content.matchedTransitionSource(id: id, in: namespace) } else { content }
+        } else { content }
+    }
+}
+
+private struct MediaZoomDestination: ViewModifier {
+    let id: Int
+    let namespace: Namespace.ID
+    let enabled: Bool
+    @ViewBuilder func body(content: Content) -> some View {
+        if enabled {
+            if #available(iOS 18.0, *) { content.navigationTransition(.zoom(sourceID: id, in: namespace)) } else { content }
+        } else { content }
     }
 }
 

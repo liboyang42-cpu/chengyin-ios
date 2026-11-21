@@ -119,6 +119,8 @@ struct RoamBrowserView: View {
             .onChange(of: retentionScope) { _, scope in retainedRead.retainOnly(scope: scope) }
             .sheet(item: $selected) { item in
                 RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, stampDestination: stampDestination, posterDestination: posterDestination, eventDestination: eventDestination, playerProfileDestination: playerProfileDestination, couponWalletDestination: couponWalletDestination)
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
             }
             .toolbar {
                 if let onOpenAccount {

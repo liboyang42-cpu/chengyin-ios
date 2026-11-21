@@ -75,12 +75,14 @@ struct RoamStampCard: View {
 }
 private struct RoamStampImage: View {
     let source: String
+    @QuestifyReduceMotion private var reduceMotion
     var body: some View {
         if let url = URL(string: source), url.scheme == "https", url.host != nil, url.user == nil, url.password == nil {
-            AsyncImage(url: url) { phase in
-                if let image = phase.image { image.resizable().scaledToFit() }
-                else if phase.error != nil { Label("roam.experience.imageUnavailable", systemImage: "photo.badge.exclamationmark") }
-                else { ProgressView("roam.loading") }
+            AsyncImage(url: url, transaction: .questifyImageFade(reduceMotion: reduceMotion)) { phase in
+                if let image = phase.image { image.resizable().scaledToFit().transition(.opacity) }
+                else if phase.error != nil {
+                    QuestifyImageLoadingTint().overlay { Label("roam.experience.imageUnavailable", systemImage: "photo.badge.exclamationmark") }
+                } else { QuestifyImageLoadingTint() }
             }.frame(maxWidth: .infinity, minHeight: 100, maxHeight: 240).accessibilityLabel(Text("roam.experience.stampImage"))
         } else { Label("roam.experience.imageUnavailable", systemImage: "photo") }
     }

@@ -20,7 +20,7 @@ import SwiftUI
             if reader.isOfflineExample { Text("ticketWallet.offlineExample").font(.caption) }
             if !reader.isAuthenticated { TicketWalletIssueView(issue: .login) }
             else if !reader.isConfigured { TicketWalletIssueView(issue: .notConfigured) }
-            else if model.isLoading || model.loadedOwner != key { ProgressView("ticketWallet.loading") }
+            else if model.isLoading || model.loadedOwner != key { QuestifyPlaceholderRows(label: "ticketWallet.loading", identifier: "ticketWallet.loading", count: 4) }
             else if let issue = model.issue(owner: key) {
                 TicketWalletIssueView(issue: issue, retry: { schedule(offeredPresentation) })
             } else if let ticket = model.value(owner: key), ticket.id == id {
@@ -79,6 +79,7 @@ import SwiftUI
             }
         }
         .listStyle(.insetGrouped)
+        .questifyContentSwap(isLoading: model.isLoading)
         .listSectionSpacing(20)
         .appNavigationTitle("ticketWallet.detail")
         .navigationBarTitleDisplayMode(.inline)

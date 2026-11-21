@@ -44,8 +44,10 @@ import SwiftUI
     var body: some View {
         Group {
             if let open {
-                content.contentShape(Rectangle())
-                    .onTapGesture(perform: open)
+                // The label holds only text (no nested controls), so a native Button keeps
+                // scroll-cancellation and gains the standard card pressed state.
+                Button(action: open) { content.foregroundStyle(.primary).contentShape(Rectangle()) }
+                    .buttonStyle(QuestifyCardButtonStyle())
                     .accessibilityElement(children: .combine).accessibilityAddTraits(.isButton)
                     .accessibilityHint(expanded ? "club.discussion.collapse" : "club.discussion.expand")
                     .accessibilityAction { open() }

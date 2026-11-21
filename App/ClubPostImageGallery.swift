@@ -12,6 +12,7 @@ import SwiftUI
     @State private var retries: [Int: Int] = [:]
     @State private var returnFocus: Int?
     @AccessibilityFocusState private var focusedImage: Int?
+    @QuestifyReduceMotion private var reduceMotion
     private var current: Bool {
         (try? model.context.currentSession().identity) == identity &&
         model.snapshot?.posts.filter({ $0.id == post.id }).count == 1 && model.snapshot?.posts.contains(post) == true
@@ -21,7 +22,7 @@ import SwiftUI
         Group {
             if current {
                 ForEach(Array(post.images.enumerated()), id: \.offset) { index, raw in
-                    AsyncImage(url: URL(string: raw)) { phase in
+                    AsyncImage(url: URL(string: raw), transaction: .questifyImageFade(reduceMotion: reduceMotion)) { phase in
                         switch phase {
                         case .success(let image):
                             Button {
@@ -32,6 +33,7 @@ import SwiftUI
                                 returnFocus = index; initialImage = image; selection = target
                             } label: { image.resizable().scaledToFit() }
                             .buttonStyle(.plain)
+                            .transition(.opacity)
                             .accessibilityLabel(Text("club.postImages.open \(index + 1) \(post.images.count)"))
                             .accessibilityIdentifier("club.postImages.open.\(post.id).\(index)")
                             .accessibilityFocused($focusedImage, equals: index)
@@ -43,7 +45,7 @@ import SwiftUI
                             }
                         case .empty:
                             if URL(string: raw) == nil { Label("media.destination.failed", systemImage: "photo.badge.exclamationmark") }
-                            else { ProgressView("square.imageLoading") }
+                            else { QuestifyImageLoadingTint().accessibilityLabel(Text("square.imageLoading")) }
                         @unknown default: Image(systemName: "photo")
                         }
                     }.id("\(renderedReadScope)|\(index)|\(retries[index, default: 0])")
