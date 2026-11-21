@@ -17,7 +17,7 @@ import SwiftUI
                 case "badge": ObjectBadgeWallView(reader: ProfileFixtureReader(.success))
                 case "team":
                     if let teams { TeamHomeView(coordinator: teams.makeCoordinator(), makeCoordinator: teams.makeCoordinator) }
-                default: NativeRouteErrorView(failure: .unsupported, goHome: {})
+                default: NativeRouteErrorView(failure: .unsupported)
                 }
             }
         }.task {

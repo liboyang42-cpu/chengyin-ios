@@ -123,17 +123,16 @@ extension EnvironmentValues {
                     }
                 }
                 ForEach(Array(center.badges.enumerated()), id: \.offset) { index, badge in
-                    if let moment = GrowthCenterFormatting.badgeMoment(badge.obtainedAt) {
-                        DisclosureGroup {
-                            LabeledContent("growth.badge.obtained") { Text(verbatim: moment).monospacedDigit() }
-                            Text("growth.badge.timezone").font(.caption).foregroundStyle(.secondary)
-                        } label: {
-                            Label { GrowthCenterName(name: badge.displayName, fallback: "growth.badge.unnamed") } icon: { Image(systemName: "medal").accessibilityHidden(true) }
-                        }.accessibilityIdentifier("growth.badge.\(index)")
-                    } else {
+                    // The earned date sits on the row itself; a badge without one shows no date.
+                    LabeledContent {
+                        if let date = GrowthCenterFormatting.badgeDate(badge.obtainedAt) {
+                            Text(verbatim: date).monospacedDigit().accessibilityIdentifier("growth.badge.\(index).date")
+                        }
+                    } label: {
                         Label { GrowthCenterName(name: badge.displayName, fallback: "growth.badge.unnamed") } icon: { Image(systemName: "medal").accessibilityHidden(true) }
-                            .accessibilityIdentifier("growth.badge.\(index)")
                     }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("growth.badge.\(index)")
                 }
             }
         }

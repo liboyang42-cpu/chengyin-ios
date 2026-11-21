@@ -31,6 +31,24 @@ final class PlayStationImageTests: XCTestCase {
         XCTAssertEqual(PlayStationImageResolver.game(gameCover: nil, stationImage: nil, chapterImages: [], routeCover: nil), .texture)
     }
 
+    /// Hengyin #886: route 9914701 stop 4 had no station image and a topic cover of `media-asset:756`.
+    func testChainUsesResolvedAddressesOnlyAndChapterCoverThenStoryImage() throws {
+        let cover = #""media-asset:756""#
+        var value = try route(node: #"{"nodeId":7,"chapterId":81,"imgUrl":"media-asset:12"}"#,
+                              chapters: #"[{"chapterId":81,"imgArr":"media-asset:3","cover":"https://x.example/cover.jpg","blocks":[{"type":"image","url":"https://x.example/b.jpg"}]}]"#, cover: cover)
+        XCTAssertEqual(PlayStationImageResolver.station(for: value.nodes[0], in: value), .init(source: "https://x.example/cover.jpg", tier: .chapter))
+        value = try route(node: #"{"nodeId":7,"chapterId":81}"#,
+                          chapters: #"[{"chapterId":81,"blocks":[{"type":"image","url":"media-asset:9"},{"type":"image","url":" https://x.example/b.jpg "}]}]"#, cover: cover)
+        XCTAssertEqual(PlayStationImageResolver.station(for: value.nodes[0], in: value), .init(source: "https://x.example/b.jpg", tier: .chapter))
+        value = try route(node: #"{"nodeId":7,"chapterId":81}"#, chapters: #"[{"chapterId":81,"blocks":"oops"}]"#, cover: cover)
+        XCTAssertEqual(PlayStationImageResolver.station(for: value.nodes[0], in: value), .texture, "never a raw media-asset reference")
+        XCTAssertEqual(PlayStationImageResolver.game(gameCover: "media-asset:1", stationImage: nil, chapterImages: [], routeCover: "https://x.example/t.jpg"),
+                       .init(source: "https://x.example/t.jpg", tier: .route))
+        XCTAssertFalse(PlayStationImageResolver.isDisplayable("a.jpg"))
+        XCTAssertFalse(PlayStationImageResolver.isDisplayable("MEDIA-ASSET:4"))
+        XCTAssertTrue(PlayStationImageResolver.isDisplayable("https://x.example/a.jpg"))
+    }
+
     func testImageListShapes() {
         XCTAssertEqual(PlayStationImageResolver.list("a.jpg, b.jpg;c.jpg" as String?), ["a.jpg", "b.jpg", "c.jpg"])
         XCTAssertEqual(PlayStationImageResolver.list(#"["a.jpg","b.jpg"]"# as String?), ["a.jpg", "b.jpg"])

@@ -11,25 +11,49 @@ extension EnvironmentValues {
     }
 }
 
-/// 「第N站 · 站名」 with its chapter, then the station's lead line in the same
-/// typography as the chapter story. Everything is synchronous text from the current
-/// route read, so it is present on the first frame and never shifts the game below.
+/// 「第N站」 (route-wide, the station list's number) with the chapter as its own small label,
+/// then — on the start screen — the station image and the game title written once, then the
+/// station's lead line in the chapter story's typography. Everything is synchronous text from the
+/// current route read, so it is present on the first frame and never shifts the game below.
 @MainActor struct PlayGameStageHeader: View {
     let stage: PlayGameStage
+    /// The start screen draws the hero image and the title; a game screen has its own title.
+    var showsTitle = false
+    var showsArtwork = false
+    var loadsArtwork = true
+    /// The title the page already shows, so the station line never repeats it.
+    var pageTitle: String? = nil
+    private var title: String? { showsTitle ? stage.title : nil }
+    private var stationLabel: String? { stage.stationLabel(besides: title ?? PlayGameStage.displayTitle(pageTitle)) }
     var body: some View {
         if !stage.isEmpty {
             VStack(alignment: .leading, spacing: 10) {
-                if stage.ordinal != nil || stage.stationName != nil || stage.chapterTitle != nil {
+                if showsArtwork, let image = stage.image {
+                    PlayStationArtwork(image: image, loads: loadsArtwork).accessibilityIdentifier("playGame.stage.image")
+                }
+                if stage.ordinal != nil || stationLabel != nil || stage.chapterTitle != nil {
                     VStack(alignment: .leading, spacing: 2) {
-                        stationLine.font(.subheadline.weight(.semibold)).foregroundStyle(.tint)
+                        if let ordinal = stage.ordinal {
+                            Text("playGame.stage.stationNumber \(ordinal)").font(.subheadline.weight(.semibold)).foregroundStyle(.tint)
+                        } else if let stationLabel {
+                            Text(verbatim: stationLabel).font(.subheadline.weight(.semibold)).foregroundStyle(.tint)
+                        }
                         if let chapter = stage.chapterTitle {
                             Text(verbatim: chapter).font(.footnote).foregroundStyle(.secondary)
+                                .accessibilityIdentifier("playGame.stage.chapter")
                         }
                     }
                     .accessibilityElement(children: .combine)
-                    .accessibilityAddTraits(.isHeader)
+                    .accessibilityAddTraits(title == nil ? .isHeader : [])
+                    .accessibilityIdentifier("playGame.stage.station")
                 }
-                if let lead = stage.lead {
+                if let title {
+                    Text(verbatim: title).font(.title2.bold())
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
+                        .accessibilityIdentifier("playGame.stage.title")
+                }
+                if let lead = stage.lead, lead != title {
                     Text(verbatim: lead).font(.body).lineSpacing(8)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("playGame.stage.lead")
@@ -37,14 +61,6 @@ extension EnvironmentValues {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityIdentifier("playGame.stage.header")
-        }
-    }
-    @ViewBuilder private var stationLine: some View {
-        switch (stage.ordinal, stage.stationName) {
-        case let (ordinal?, name?): Text("playGame.stage.station \(ordinal) \(name)")
-        case let (ordinal?, nil): Text("playGame.stage.stationNumber \(ordinal)")
-        case let (nil, name?): Text(verbatim: name)
-        case (nil, nil): EmptyView()
         }
     }
 }

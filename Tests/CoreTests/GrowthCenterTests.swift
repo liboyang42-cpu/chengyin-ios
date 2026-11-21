@@ -148,6 +148,10 @@ final class GrowthCenterTests: XCTestCase {
         XCTAssertEqual(GrowthCenterFormatting.badgeMoment("2026-09-01 00:15:00"), "2026-09-01 00:15")
         XCTAssertEqual(GrowthCenterFormatting.badgeMoment("2024-02-29T23:59:59"), "2024-02-29 23:59")
         for value: String? in [nil, "", "2026-02-29 12:00:00", "2026-13-01 12:00:00", "2026-09-01 24:00:00", "2026-09-01 00:00:60", "2026-09-01T00:00:00Z"] { XCTAssertNil(GrowthCenterFormatting.badgeMoment(value)) }
+        XCTAssertEqual(GrowthCenterFormatting.badgeDate("2026-09-01 00:15:00"), "2026.09.01")
+        XCTAssertEqual(GrowthCenterFormatting.badgeDate("2024-02-29T23:59:59"), "2024.02.29")
+        XCTAssertNil(GrowthCenterFormatting.badgeDate("2026-02-29 12:00:00"))
+        XCTAssertNil(GrowthCenterFormatting.badgeDate(nil))
         XCTAssertNil(GrowthCenterFormatting.nonnegative(-1)); XCTAssertEqual(GrowthCenterFormatting.nonnegative(0), 0)
         XCTAssertNil(GrowthCenterFormatting.mileage(.infinity)); XCTAssertNil(GrowthCenterFormatting.mileage(-1))
     }

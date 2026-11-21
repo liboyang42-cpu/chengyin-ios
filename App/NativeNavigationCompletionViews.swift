@@ -1,19 +1,15 @@
 import SwiftUI
 
+/// An unsupported, malformed or unopenable link lands on the shared 「链接已失效 · 返回」 state.
+/// 返回 leaves the link: `back` closes the entry it was opened in (falling back to dismissal).
 @MainActor struct NativeRouteErrorView: View {
     let failure: NativeRouteFailure
-    let goHome: () -> Void
+    let back: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
+    init(failure: NativeRouteFailure, back: (() -> Void)? = nil) { self.failure = failure; self.back = back }
     var body: some View {
-        ContentUnavailableView {
-            Label("nativeNav.error.title", systemImage: "questionmark.folder")
-        } description: {
-            Text(failure == .cannotOpen ? "nativeNav.error.cannotOpen" : "nativeNav.error.detail")
-        } actions: {
-            Button("nativeNav.close") { dismiss() }.accessibilityIdentifier("nativeNav.error.close")
-            Button("homeFeed.title", action: goHome).accessibilityIdentifier("nativeNav.error.home")
-        }.navigationTitle("nativeNav.error.title")
-            .accessibilityElement(children: .contain).accessibilityIdentifier("nativeNav.error")
+        QuestifyInvalidLinkView(identifier: "nativeNav.error") { if let back { back() } else { dismiss() } }
+            .navigationBarTitleDisplayMode(.inline)
     }
 }
 

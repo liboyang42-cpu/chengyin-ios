@@ -75,6 +75,8 @@ import SwiftUI
                 Text("merchant.projectEvents.changed")
             } else if model.loading {
                 ProgressView("merchant.loading").accessibilityIdentifier("merchant.projectEvents.loading")
+            } else if model.errorKey == "merchant.access.denied" {
+                QuestifyNoPermissionView(titleKey: "merchant.access.denied", identifier: "merchant.projectEvents", actionSuffix: ".retry") { Task { await reload() } }
             } else if let error = model.errorKey {
                 Text(LocalizedStringKey(error)).foregroundStyle(.secondary)
                 Button("merchant.projectEvents.retry") { Task { await reload() } }

@@ -185,6 +185,11 @@ import SwiftUI
                                                    aspectRatio: 1, cornerRadius: 10, loads: model.hasCurrentMediaSnapshot)
                                     .frame(width: 56)
                                 VStack(alignment: .leading, spacing: 6) {
+                                    if let snapshot = model.snapshot,
+                                       let number = PlayGameStage.stationNumber(nodeID: node.id, nodes: snapshot.result.nodes, mode: snapshot.result.mode) {
+                                        Text("playGame.stage.stationNumber \(number)").font(.caption.weight(.semibold)).foregroundStyle(.tint)
+                                            .accessibilityIdentifier("playx.node.number.\(node.id)")
+                                    }
                                     Text(verbatim: node.name ?? "#\(node.id)").font(.headline)
                                     Text(LocalizedStringKey("playx.task." + PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node).rawValue))
                                         .foregroundStyle(.secondary)
@@ -439,7 +444,7 @@ import SwiftUI
                                 try? model.acceptAdvanced(state, context: advancedContext)
                             }
                             .environment(\.playGameStage, model.snapshot.flatMap {
-                                PlayGameStage.resolve(nodeID: nodeID, nodes: $0.result.nodes, chapters: $0.result.chapters)
+                                PlayGameStage.resolve(nodeID: nodeID, in: $0.result)
                             })
                         }
                     }

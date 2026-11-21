@@ -21,7 +21,9 @@ import SwiftUI
     }
     private var currentContent: some View {
         List {
-            if let stage, !stage.isEmpty { Section { PlayGameStageHeader(stage: stage) } }
+            if let stage, !stage.isEmpty {
+                Section { PlayGameStageHeader(stage: stage, showsTitle: true, showsArtwork: true, loadsArtwork: model.hasCurrentReadLifetime) }
+            }
             Section {
                 LabeledContent("playx.state") { PlayRuntimePhaseText(phase: model.phase) }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
@@ -57,7 +59,7 @@ import SwiftUI
                         } label: {
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(LocalizedStringKey("playkit.kind." + kind.rawValue)).font(.headline)
-                                if let title = state.playKit[kind.rawValue]["title"].text, !title.isEmpty { Text(verbatim: title).font(.subheadline) }
+                                if let title = PlayGameStage.displayTitle(state.playKit[kind.rawValue]["title"].text), title != stage?.title { Text(verbatim: title).font(.subheadline) }
                                 if PlayKitScreenProjection(kind: kind, segment: state.playKit[kind.rawValue]).complete { Label("playkit.result.recorded", systemImage: "checkmark.circle").font(.caption) }
                             }
                         }.accessibilityIdentifier("playkit.open." + kind.rawValue)

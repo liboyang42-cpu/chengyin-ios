@@ -183,9 +183,11 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     }
                 }
             } else if !access.isOwner {
-                Text("merchant.access.noReadSurfaces").foregroundStyle(.secondary)
+                QuestifyNoPermissionView(titleKey: "merchant.access.denied", actionKey: "merchant.refreshAccess", identifier: "merchant.home") { Task { await refreshAccess() } }
             }
-            Button("merchant.refreshAccess") { Task { await refreshAccess() } }
+            if access.isOwner || access.allows(.orders) || access.allows(.projects) {
+                Button("merchant.refreshAccess") { Task { await refreshAccess() } }
+            }
         }
         .refreshable { await refreshAccess() }
         .task {
@@ -246,10 +248,14 @@ struct MerchantInlineFailure: View {
     let errorKey: String
     let retry: () -> Void
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(LocalizedStringKey(errorKey)).foregroundStyle(.secondary)
-            if errorKey != "merchant.access.denied" && errorKey != "auth.expired" {
-                Button("action.retry", action: retry)
+        if errorKey == "merchant.access.denied" {
+            QuestifyNoPermissionView(titleKey: "merchant.access.denied", identifier: "merchant.inline", action: retry)
+        } else {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(LocalizedStringKey(errorKey)).foregroundStyle(.secondary)
+                if errorKey != "auth.expired" {
+                    Button("action.retry", action: retry)
+                }
             }
         }
     }
@@ -260,12 +266,16 @@ struct MerchantFailureView: View {
     let identifier: String
     let retry: () -> Void
     var body: some View {
-        ContentUnavailableView {
-            Label { Text(LocalizedStringKey(errorKey)).accessibilityIdentifier(identifier + ".error") }
-                icon: { Image(systemName: errorKey == "merchant.access.denied" ? "lock" : "exclamationmark.triangle") }
-        } actions: {
-            if errorKey != "merchant.access.denied" && errorKey != "auth.expired" {
-                Button("action.retry", action: retry).accessibilityIdentifier(identifier + ".retry")
+        if errorKey == "merchant.access.denied" {
+            QuestifyNoPermissionView(titleKey: "merchant.access.denied", identifier: identifier, action: retry)
+        } else {
+            ContentUnavailableView {
+                Label { Text(LocalizedStringKey(errorKey)).accessibilityIdentifier(identifier + ".error") }
+                    icon: { Image(systemName: "exclamationmark.triangle") }
+            } actions: {
+                if errorKey != "auth.expired" {
+                    Button("action.retry", action: retry).accessibilityIdentifier(identifier + ".retry")
+                }
             }
         }
     }
